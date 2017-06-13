@@ -36,7 +36,7 @@ install:
 
 # Run test
 script:
-  - "coverage run --source=pgdb pytest"
+  - "coverage run --source=pgdb -m py.test"
 
 # Calculate coverage
 after_success:
