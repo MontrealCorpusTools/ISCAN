@@ -15,6 +15,7 @@ if [ ! -d "$HOME/miniconda/miniconda/envs/test-environment" ]; then
   which python
   pip install -q coveralls coverage textgrid librosa tqdm influxdb
   pip install -q git+https://github.com/mmcauliffe/python-acoustic-similarity.git
+  pip install -q neo4j-driver
 else
   echo "Miniconda already installed."
 fi
