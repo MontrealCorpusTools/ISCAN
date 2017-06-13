@@ -1,0 +1,58 @@
+{% extends "pgdb/base.html" %}
+{% load static %}
+
+{% block content %}
+{% if messages %}
+<ul class="messages">
+    {% for message in messages %}
+    <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+    {% endfor %}
+</ul>
+{% endif %}
+{% for db in databases %}
+<table>
+    <thead>
+    <th>Name</th>
+    <th>Status</th>
+    <th>Number of corpora</th>
+    <th>Neo4j admin site</th>
+    <th>InfluxDB admin site</th>
+    <th>Actions</th>
+    </thead>
+    <tbody>
+    <tr>
+        <td>
+{{ db.name }}</td>
+        <td>{{ db.get_status_display }}</td>
+        <td>{{ db.corpora.all|length }} (<a href="{% url 'pgdb:corpus_status' %}?database={{db.name}}">View</a>)</td>
+        <td>
+            {% if db.status == 'R' %}
+            <a href="http://localhost:{{db.neo4j_http_port}}">http://localhost:{{db.neo4j_http_port}}</a>
+            {% endif %}
+        </td>
+        <td>
+            {% if db.status == 'R' %}
+            <a href="http://localhost:{{db.influxdb_admin_port}}">http://localhost:{{db.influxdb_admin_port}}</a>
+            {% endif %}
+        </td>
+        <td>
+            <form name="change_status" method="post" action="{% url 'pgdb:change_database_status' %}">
+                {% csrf_token %}
+    <input type="hidden" name="database" value="{{db.name}}" />
+            {% if db.status == 'R' %}
+    <input type="hidden" name="action" value="stop" />
+    <input type="submit" value="Stop" />
+            {% elif db.status == 'S' %}
+    <input type="hidden" name="action" value="start" />
+    <input type="submit" value="Start" />
+            {% elif db.status == 'E' %}
+    <input type="hidden" name="action" value="log" />
+    <input type="submit" value="Download relevant logs" />
+            {%endif%}
+</form>
+        </td>
+    </tr>
+    </tbody>
+</table>
+{% endfor %}
+{% endblock %}

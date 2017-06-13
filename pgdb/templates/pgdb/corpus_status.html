@@ -1,0 +1,42 @@
+{% extends "pgdb/base.html" %}
+{% load static %}
+
+{% block content %}
+{% if messages %}
+<ul class="messages">
+    {% for message in messages %}
+    <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+    {% endfor %}
+</ul>
+{% endif %}
+{% for c in corpora %}
+<table>
+    <thead>
+    <th>Name</th>
+    <th>Database status</th>
+    <th>Corpus status</th>
+    <th>Numbers of linguistic items</th>
+    <th>Enrichment</th>
+    <th>Actions</th>
+    </thead>
+    <tbody>
+    <tr>
+        <td>
+{{ c.name }}</td>
+        <td>{{ c.database.get_status_display }}</td>
+        <td>{% if c.status == 'I' %} Imported {% elif c.status == 'NI' %} Not imported <form name="change_status" method="post" action="{% url 'pgdb:import_corpus' %}">
+            {% csrf_token %}
+    <input type="hidden" name="corpus_id" value="{{c.id}}" /><input type="submit" value="Import corpus" /></form>
+            {% elif c.status == 'IR' %} Import running
+            {% elif c.status == 'ER' %} Enrichment running
+            {% endif %}</td>
+        <td>
+        </td>
+        <td>
+
+        </td>
+    </tr>
+    </tbody>
+</table>
+{% endfor %}
+{% endblock %}

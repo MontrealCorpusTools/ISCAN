@@ -1,0 +1,8 @@
+django>=1.11.1
+djangorestframework>=3.6.3
+https://github.com/technige/py2neo/archive/v4.zip
+neo4j-driver>=1.2.1
+https://github.com/MontrealCorpusTools/PolyglotDB/archive/master.zip
+pytest-django>=3.1.2
+celery
+django-celery-results

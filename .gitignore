@@ -6,6 +6,12 @@ __pycache__/
 # C extensions
 *.so
 
+# PyCharm
+.idea/
+
+*.sqlite3
+test_data/data/
+
 # Distribution / packaging
 .Python
 env/
