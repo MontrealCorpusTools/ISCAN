@@ -1,0 +1,13 @@
+[run]
+source = pgdb
+
+[report]
+exclude_lines =
+    pragma: no cover
+    if __name__ == .__main__.:
+
+    raise AssertionError
+    raise NotImplementedError
+    pass
+
+    if sys\.platform
