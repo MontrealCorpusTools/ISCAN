@@ -2,6 +2,11 @@
 import os
 import sys
 
+
+## DEBUG FIXME
+PGDB_REPO_PATH = r'/mnt/d/Dev/GitHub/PolyglotDB'
+
+sys.path.insert(0, PGDB_REPO_PATH)
 if __name__ == "__main__":
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "polyglot_server.settings")
     try:

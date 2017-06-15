@@ -25,3 +25,5 @@ def import_corpus_task(corpus_pk):
         else:
             return False
         c.load(parser, corpus.source_directory)
+    corpus.status = 'I'
+    corpus.save()

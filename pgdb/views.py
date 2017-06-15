@@ -174,10 +174,12 @@ def stop_database(request):
             database = Database.objects.get(name=request.data.get('name'))
         except ObjectDoesNotExist:
             return HttpResponse(status=status.HTTP_400_BAD_REQUEST)
-        success = database.stop()
-        if success:
-            return HttpResponse(status=status.HTTP_202_ACCEPTED)
-        return HttpResponse(status=status.HTTP_423_LOCKED)
+        try:
+            success = database.stop()
+            if success:
+                return HttpResponse(status=status.HTTP_202_ACCEPTED)
+        except Exception as e:
+            return HttpResponse(content=str(e), status=status.HTTP_423_LOCKED)
 
 
 @api_view(['GET', 'PUT', 'DELETE'])
@@ -249,10 +251,13 @@ def import_corpus_api(request):
             corpus.save()
         if corpus.status != 'NI':
             return HttpResponse('The corpus has already been imported.', status=status.HTTP_400_BAD_REQUEST)
-        t = import_corpus_task.delay(corpus.pk)
         corpus.status = 'IR'
-        corpus.current_task_id = t.task_id
+        #corpus.current_task_id = t.task_id
         corpus.save()
+        if request.data.get('blocking', False):
+            import_corpus_task(corpus.pk)
+        else:
+            t = import_corpus_task.delay(corpus.pk)
         return HttpResponse(status=status.HTTP_202_ACCEPTED)
 
 

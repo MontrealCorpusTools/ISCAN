@@ -2,7 +2,10 @@ django>=1.11.1
 djangorestframework>=3.6.3
 https://github.com/technige/py2neo/archive/v4.zip
 neo4j-driver>=1.2.1
-https://github.com/MontrealCorpusTools/PolyglotDB/archive/master.zip
+https://github.com/mmcauliffe/PolyglotDB/archive/client-work.zip
 pytest-django>=3.1.2
-celery
+pytest-pythonpath
+celery==4.0.0
+kombu==4.0.0
+amqp==2.1.1
 django-celery-results

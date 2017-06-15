@@ -113,8 +113,11 @@ class Database(models.Model):
                                               stdin=subprocess.DEVNULL)
                 neo4j_proc.communicate()
             neo4j_pid = None
+            begin = time.time()
             while neo4j_pid is None:
                 time.sleep(0.1)
+                if time.time() - begin > 10:
+                    return False
                 proc = subprocess.Popen(neo4j_finder, shell=True,
                                         stdout=subprocess.PIPE)
                 stdout, stderr = proc.communicate()
@@ -128,6 +131,7 @@ class Database(models.Model):
             self.neo4j_pid = neo4j_pid
             self.status = 'R'
             self.save()
+            time.sleep(5)
         except Exception as e:
             with open(self.log_path, 'a') as f:
                 exc_type, exc_value, exc_traceback = sys.exc_info()
@@ -138,9 +142,9 @@ class Database(models.Model):
     def stop(self):
         print(self.neo4j_pid)
         if self.neo4j_pid is None:
-            return False
+            raise Exception('Neo4j PID is None')
         if self.status in ['S', 'E']:
-            return False
+            raise Exception('Database is already stopped')
         try:
             os.kill(self.influxdb_pid, signal.SIGINT)
         except ProcessLookupError:
@@ -175,9 +179,11 @@ class Database(models.Model):
         self.neo4j_pid = None
         self.status = 'S'
         self.save()
+        time.sleep(10)
         return True
 
     def install(self):
+        shutil.rmtree(self.directory, ignore_errors=True)
         archive_path = download_neo4j()
         extract_neo4j(self.name, archive_path)
         if sys.platform == 'darwin':
@@ -229,7 +235,6 @@ class Database(models.Model):
     def delete(self, *args, **kwargs):
         if self.status == 'R':
             self.stop()
-            time.sleep(5)
         shutil.rmtree(self.directory, ignore_errors=True)
         super(Database, self).delete()
 
