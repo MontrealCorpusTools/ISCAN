@@ -17,8 +17,8 @@ and start and stop databases as they need access to them.
 Prerequisites
 =============
 
-#. Java 8
-#. RabbitMQ server set up and running
+1. Java 8
+2. RabbitMQ server set up and running
 
 Installation
 ============
@@ -26,15 +26,15 @@ Installation
 We recommend using a separate virtual environment for running the server, since the packages it depends on are idiosyncratic
 to the server (i.e., latest dev version of py2neo, not the most current celery, etc.)
 
-#. `pip install -r requirements.txt -U`
+1. `pip install -r requirements.txt -U`
 
 Edit settings
 =============
 
-#. Edit polyglot_server/settings.py
-#. Change SOURCE_DATA_DIRECTORY to point to directory where corpora to be imported are
-#. Optionally change POLYGLOT_DATA_DIRECTORY to point to a directory where you want the databases to be installed/stored
-#. Eventually we'll have instructions for changing the server's relational database backend and other web server config details
+1. Edit polyglot_server/settings.py
+2. Change SOURCE_DATA_DIRECTORY to point to directory where corpora to be imported are
+3. Optionally change POLYGLOT_DATA_DIRECTORY to point to a directory where you want the databases to be installed/stored
+4. Eventually we'll have instructions for changing the server's relational database backend and other web server config details
 
 From the root directory run:
 
