@@ -17,7 +17,7 @@ from .utils import get_used_ports
 from .serializers import DatabaseSerializer
 from .models import Database, Corpus
 from .forms import CorpusForm
-from .tasks import import_corpus_task
+from .tasks import import_corpus_task, enrich_corpus_task, query_corpus_task
 from celery.result import AsyncResult
 import celery.states as cstates
 
@@ -148,6 +148,7 @@ def create_database(request):
         for db in dbs:
             data[db.name] = db.get_status_display()
         return JsonResponse(data, status=status.HTTP_200_OK)
+    return HttpResponse('Request method not supported', status=status.HTTP_400_BAD_REQUEST)
 
 
 @api_view(['POST'])
@@ -160,11 +161,12 @@ def start_database(request):
         try:
             database = Database.objects.get(name=request.data.get('name'))
         except ObjectDoesNotExist:
-            return HttpResponse(status=status.HTTP_400_BAD_REQUEST)
+            return HttpResponse('Could not find the specified database.', status=status.HTTP_404_NOT_FOUND)
         success = database.start()
         if success:
             return HttpResponse(status=status.HTTP_202_ACCEPTED)
         return HttpResponse(status=status.HTTP_423_LOCKED)
+    return HttpResponse('Request method not supported.', status=status.HTTP_400_BAD_REQUEST)
 
 
 @api_view(['POST'])
@@ -173,31 +175,29 @@ def stop_database(request):
         try:
             database = Database.objects.get(name=request.data.get('name'))
         except ObjectDoesNotExist:
-            return HttpResponse(status=status.HTTP_400_BAD_REQUEST)
+            return HttpResponse('Could not find the specified database.', status=status.HTTP_404_NOT_FOUND)
         try:
             success = database.stop()
             if success:
                 return HttpResponse(status=status.HTTP_202_ACCEPTED)
         except Exception as e:
             return HttpResponse(content=str(e), status=status.HTTP_423_LOCKED)
+    return HttpResponse('Request method not supported.', status=status.HTTP_400_BAD_REQUEST)
 
 
 @api_view(['GET', 'PUT', 'DELETE'])
 def database_api(request, name):
+    try:
+        database = Database.objects.get(name=name)
+    except ObjectDoesNotExist:
+        return HttpResponse(status=status.HTTP_404_NOT_FOUND)
     if request.method == 'DELETE':
-        try:
-            database = Database.objects.get(name=name)
-            database.delete()
-        except ObjectDoesNotExist:
-            return HttpResponse(status=status.HTTP_400_BAD_REQUEST)
+        database.delete()
         return HttpResponse(status=status.HTTP_202_ACCEPTED)
     elif request.method == 'GET':
-        try:
-            database = Database.objects.get(name=name)
-        except ObjectDoesNotExist:
-            return HttpResponse(status=status.HTTP_400_BAD_REQUEST)
         data = database.get_status_display()
         return JsonResponse({'data': data}, status=status.HTTP_200_OK)
+    return HttpResponse('Request method not supported.', status=status.HTTP_400_BAD_REQUEST)
 
 
 @api_view(['GET', 'PUT', 'DELETE'])
@@ -210,26 +210,24 @@ def corpus_api(request, name=None):
                 data[c.name] = c.get_status_display()
             return JsonResponse(data, status=status.HTTP_200_OK)
     else:
+        try:
+            corpus = Corpus.objects.get(name=name)
+        except ObjectDoesNotExist:
+            return HttpResponse('Could not find the specified corpus.', status=status.HTTP_404_NOT_FOUND)
         if request.method == 'DELETE':
-            try:
-                corpus = Corpus.objects.get(name=name)
-                corpus.delete()
-            except ObjectDoesNotExist:
-                return HttpResponse(status=status.HTTP_400_BAD_REQUEST)
+            corpus.delete()
             return HttpResponse(status=status.HTTP_202_ACCEPTED)
         elif request.method == 'GET':
-            try:
-                corpus = Corpus.objects.get(name=name)
-            except ObjectDoesNotExist:
-                return HttpResponse(status=status.HTTP_400_BAD_REQUEST)
             data = corpus.get_status_display()
             return JsonResponse({'data': data}, status=status.HTTP_200_OK)
+    return HttpResponse('Request method not supported.', status=status.HTTP_400_BAD_REQUEST)
 
 
 @api_view(['GET'])
 def get_source_choices_api(request):
     if request.method == 'GET':
         return JsonResponse({'data': os.listdir(settings.SOURCE_DATA_DIRECTORY)}, status=status.HTTP_200_OK)
+    return HttpResponse('Request method not supported.', status=status.HTTP_400_BAD_REQUEST)
 
 
 @api_view(['POST'])
@@ -241,24 +239,28 @@ def import_corpus_api(request):
             try:
                 database = Database.objects.get(name=request.data.get('database_name'))
             except ObjectDoesNotExist:
-                return HttpResponse('Could not find the specified database.', status=status.HTTP_400_BAD_REQUEST)
+                return HttpResponse('Could not find the specified database.', status=status.HTTP_404_NOT_FOUND)
 
             if database.status != 'R':
                 return HttpResponse('The specified database is not currently running.',
                                     status=status.HTTP_400_BAD_REQUEST)
             corpus = Corpus(name=request.data['name'], database=database,
-                            source_directory=os.path.join(settings.SOURCE_DATA_DIRECTORY, request.data['source_directory']), input_format=request.data['format'])
+                            source_directory=os.path.join(settings.SOURCE_DATA_DIRECTORY,
+                                                          request.data['source_directory']),
+                            input_format=request.data['format'])
             corpus.save()
         if corpus.status != 'NI':
             return HttpResponse('The corpus has already been imported.', status=status.HTTP_400_BAD_REQUEST)
         corpus.status = 'IR'
-        #corpus.current_task_id = t.task_id
+        # corpus.current_task_id = t.task_id
         corpus.save()
-        if request.data.get('blocking', False):
+        blocking = request.data.get('blocking', False)
+        if blocking:
             import_corpus_task(corpus.pk)
         else:
             t = import_corpus_task.delay(corpus.pk)
         return HttpResponse(status=status.HTTP_202_ACCEPTED)
+    return HttpResponse('Request method not supported.', status=status.HTTP_400_BAD_REQUEST)
 
 
 @api_view(['GET'])
@@ -267,7 +269,7 @@ def get_corpus_status(request, name=None):
         try:
             corpus = Corpus.objects.get(name=name)
         except ObjectDoesNotExist:
-            return HttpResponse('Could not find the specified corpus.', status=status.HTTP_400_BAD_REQUEST)
+            return HttpResponse('Could not find the specified corpus.', status=status.HTTP_404_NOT_FOUND)
 
         if corpus.current_task_id is None:
             return JsonResponse(data={'data': 'ready'}, status=status.HTTP_200_OK)
@@ -286,11 +288,7 @@ def get_corpus_status(request, name=None):
                 corpus.save()
                 return JsonResponse(data={'data': 'error'}, status=status.HTTP_200_OK)
             return JsonResponse(data={'data': 'busy'}, status=status.HTTP_200_OK)
-
-
-@api_view(['POST'])
-def enrich_corpus_api(request):
-    pass
+    return HttpResponse('Request method not supported.', status=status.HTTP_400_BAD_REQUEST)
 
 
 @api_view(['GET'])
@@ -299,23 +297,68 @@ def corpus_hierarchy_api(request, name=None):
         try:
             corpus = Corpus.objects.get(name=name)
         except ObjectDoesNotExist:
-            return HttpResponse('Could not find the specified corpus.', status=status.HTTP_400_BAD_REQUEST)
+            return HttpResponse('Could not find the specified corpus.', status=status.HTTP_404_NOT_FOUND)
         with CorpusContext(corpus.config) as c:
             hierarchy = c.hierarchy
         return JsonResponse(data=hierarchy.to_json(), status=status.HTTP_200_OK)
+    return HttpResponse('Request method not supported.', status=status.HTTP_400_BAD_REQUEST)
 
 
 @api_view(['POST'])
-def corpus_query_api(request):
+def corpus_query_api(request, name=None):
     if request.method == 'POST':
         data = request.data
         print(data)
         try:
-            corpus = Corpus.objects.get(name=data['corpus_name'])
+            corpus = Corpus.objects.get(name=name)
         except ObjectDoesNotExist:
-            return HttpResponse('Could not find the specified corpus.', status=status.HTTP_400_BAD_REQUEST)
-        with CorpusContext(corpus.config) as c:
-            q = c.query_graph(getattr(c,data['to_find']))
-            q.from_json(c, data)
-            results = q.all()
-        return JsonResponse(data=results.to_json(), status=status.HTTP_200_OK)
+            return HttpResponse('Could not find the specified corpus.', status=status.HTTP_404_NOT_FOUND)
+        if corpus.database.status != 'R':
+            return HttpResponse("The corpus's database is not currently running.",
+                                status=status.HTTP_400_BAD_REQUEST)
+        if corpus.status == 'NI':
+            return HttpResponse('The corpus has not been imported yet.', status=status.HTTP_400_BAD_REQUEST)
+        if corpus.is_busy:
+            return HttpResponse('The corpus is currently busy, please try once the current process is finished.',
+                                status=status.HTTP_409_CONFLICT)
+        corpus.status = corpus.QUERY_RUNNING
+        corpus.save()
+        blocking = data.get('blocking', False)
+        if blocking:
+            results = query_corpus_task(corpus.pk, data)
+            return JsonResponse(data=list(results.to_json()), status=status.HTTP_200_OK, safe=False)
+        else:
+            t = query_corpus_task.delay(corpus.pk, data)
+            corpus.current_task_id = t.task_id
+            return HttpResponse(status=status.HTTP_202_ACCEPTED)
+    return HttpResponse('Request method not supported.', status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['POST'])
+def corpus_enrichment_api(request, name=None):
+    if request.method == 'POST':
+        data = request.data
+        print(data)
+        try:
+            corpus = Corpus.objects.get(name=name)
+        except ObjectDoesNotExist:
+            return HttpResponse('Could not find the specified corpus.', status=status.HTTP_404_NOT_FOUND)
+
+        if corpus.database.status != 'R':
+            return HttpResponse("The corpus's database is not currently running.",
+                                status=status.HTTP_400_BAD_REQUEST)
+        if corpus.status == 'NI':
+            return HttpResponse('The corpus has not been imported yet.', status=status.HTTP_400_BAD_REQUEST)
+        if corpus.is_busy:
+            return HttpResponse('The corpus is currently busy, please try once the current process is finished.',
+                                status=status.HTTP_409_CONFLICT)
+        corpus.status = 'ER'
+        corpus.save()
+        blocking = data.get('blocking', False)
+        if blocking:
+            enrich_corpus_task(corpus.pk, data)
+        else:
+            t = enrich_corpus_task.delay(corpus.pk, data)
+        return HttpResponse(status=status.HTTP_202_ACCEPTED)
+
+    return HttpResponse('Request method not supported.', status=status.HTTP_400_BAD_REQUEST)

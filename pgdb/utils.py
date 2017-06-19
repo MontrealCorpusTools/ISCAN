@@ -86,6 +86,19 @@ def extract_influxdb(database_name, archive_path):
 def clear_cached_archives():
     shutil.rmtree(settings.POLYGLOT_TEMP_DIR, ignore_errors=True)
 
-
-
+def get_pids():
+    pids = []
+    if sys.platform.startswith('win'):
+        neo4j_finder = 'WMIC PROCESS get Processid,Caption,Commandline'
+    else:
+        neo4j_finder = 'ps S'
+    proc = subprocess.Popen(neo4j_finder, shell=True,
+                            stdout=subprocess.PIPE)
+    stdout, stderr = proc.communicate()
+    for line in stdout.decode('utf8').splitlines():
+        try:
+            pids.append(int(line.strip().split()[0]))
+        except ValueError:
+            pass
+    return pids
 

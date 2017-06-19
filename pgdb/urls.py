@@ -15,7 +15,9 @@ urlpatterns = [
     url(r'^api/source_directories/$', views.get_source_choices_api, name='source_choices'),
 
     url(r'^api/corpus/(?P<name>\w+)/hierarchy/$', views.corpus_hierarchy_api, name='hierarchy_api'),
-    url(r'^api/query/$', views.corpus_query_api, name='query_api'),
+    url(r'^api/corpus/(?P<name>\w+)/query/$', views.corpus_query_api, name='query_api'),
+    url(r'^api/corpus/(?P<name>\w+)/enrich$', views.corpus_enrichment_api, name='enrichment_api'),
+
 
     url(r'^database_status/$', views.DatabaseStatusView.as_view(), name='database_status'),
     url(r'^corpus_status/$', views.CorpusStatusView.as_view(), name='corpus_status'),
