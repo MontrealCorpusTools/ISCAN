@@ -1,4 +1,5 @@
 import pytest
+import os
 import time
 import json
 from rest_framework.test import APIClient
@@ -42,7 +43,6 @@ def test_hierarchy():
             {'name': 'test_database'},
             format="json")
         assert response.status_code == status.HTTP_202_ACCEPTED
-
 
 
 @pytest.mark.django_db
@@ -116,6 +116,7 @@ def test_query():
             format="json")
         assert response.status_code == status.HTTP_202_ACCEPTED
 
+
 @pytest.mark.django_db
 def test_create_database():
     client = APIClient()
@@ -135,6 +136,33 @@ def test_create_database():
         reverse('pgdb:database_api', args=[data['name']]),
         format="json")
     assert response.status_code == status.HTTP_202_ACCEPTED
+
+
+@pytest.mark.django_db
+def test_ports():
+    client = APIClient()
+
+    response = client.get(
+        reverse('pgdb:database_ports_api', args=['test_database']),
+        format="json")
+    print(response.content)
+    assert response.status_code == status.HTTP_200_OK
+    r = json.loads(response.content)
+    assert r == {'graph_http_port': 7400, 'graph_bolt_port': 7402,
+                 'acoustic_http_port': 8400}
+
+
+@pytest.mark.django_db
+def test_database_directory(pg_data_directory):
+    client = APIClient()
+
+    response = client.get(
+        reverse('pgdb:database_directory_api', args=['test_database']),
+        format="json")
+    print(response.content)
+    assert response.status_code == status.HTTP_200_OK
+    r = json.loads(response.content)
+    assert r['data'] == os.path.join(pg_data_directory, 'test_database')
 
 
 @pytest.mark.django_db

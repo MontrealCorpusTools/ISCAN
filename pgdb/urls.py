@@ -10,6 +10,8 @@ urlpatterns = [
 
     url(r'^api/corpus/$', views.corpus_api, name='corpus_api'),
     url(r'^api/database/(?P<name>\w+)/$', views.database_api, name='database_api'),
+    url(r'^api/database/(?P<name>\w+)/ports/$', views.database_ports_api, name='database_ports_api'),
+    url(r'^api/database/(?P<name>\w+)/directory/$', views.database_data_directory_api, name='database_directory_api'),
     url(r'^api/corpus/(?P<name>\w+)/$', views.corpus_api, name='corpus_api'),
     url(r'^api/import_corpus/$', views.import_corpus_api, name='import_corpus_api'),
     url(r'^api/source_directories/$', views.get_source_choices_api, name='source_choices'),

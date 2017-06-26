@@ -3,7 +3,7 @@ import os
 
 from pgdb.models import Database, Corpus
 from polyglot_server.celery import app
-from polyglot_server.settings import SOURCE_DATA_DIRECTORY
+from polyglot_server.settings import SOURCE_DATA_DIRECTORY, POLYGLOT_DATA_DIRECTORY
 
 
 @pytest.fixture(scope='session')
@@ -26,3 +26,8 @@ def django_db_setup(django_db_setup, django_db_blocker):
 def celery_app(request):
     app.conf.update(CELERY_ALWAYS_EAGER=True)
     return app
+
+
+@pytest.fixture(scope='module')
+def pg_data_directory():
+    return POLYGLOT_DATA_DIRECTORY

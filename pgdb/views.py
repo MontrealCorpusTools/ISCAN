@@ -166,7 +166,6 @@ def start_database(request):
         if success:
             return HttpResponse(status=status.HTTP_202_ACCEPTED)
         return HttpResponse(status=status.HTTP_423_LOCKED)
-    return HttpResponse('Request method not supported.', status=status.HTTP_400_BAD_REQUEST)
 
 
 @api_view(['POST'])
@@ -182,7 +181,6 @@ def stop_database(request):
                 return HttpResponse(status=status.HTTP_202_ACCEPTED)
         except Exception as e:
             return HttpResponse(content=str(e), status=status.HTTP_423_LOCKED)
-    return HttpResponse('Request method not supported.', status=status.HTTP_400_BAD_REQUEST)
 
 
 @api_view(['GET', 'PUT', 'DELETE'])
@@ -197,7 +195,28 @@ def database_api(request, name):
     elif request.method == 'GET':
         data = database.get_status_display()
         return JsonResponse({'data': data}, status=status.HTTP_200_OK)
-    return HttpResponse('Request method not supported.', status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['GET'])
+def database_ports_api(request, name):
+    if request.method == 'GET':
+        try:
+            database = Database.objects.get(name=name)
+        except ObjectDoesNotExist:
+            return HttpResponse(status=status.HTTP_404_NOT_FOUND)
+        data = database.ports
+        return JsonResponse(data=data, status=status.HTTP_200_OK)
+
+
+@api_view(['GET'])
+def database_data_directory_api(request, name):
+    if request.method == 'GET':
+        try:
+            database = Database.objects.get(name=name)
+        except ObjectDoesNotExist:
+            return HttpResponse(status=status.HTTP_404_NOT_FOUND)
+        data = {'data':database.directory}
+        return JsonResponse(data=data, status=status.HTTP_200_OK)
 
 
 @api_view(['GET', 'PUT', 'DELETE'])
@@ -220,14 +239,12 @@ def corpus_api(request, name=None):
         elif request.method == 'GET':
             data = corpus.get_status_display()
             return JsonResponse({'data': data}, status=status.HTTP_200_OK)
-    return HttpResponse('Request method not supported.', status=status.HTTP_400_BAD_REQUEST)
 
 
 @api_view(['GET'])
 def get_source_choices_api(request):
     if request.method == 'GET':
         return JsonResponse({'data': os.listdir(settings.SOURCE_DATA_DIRECTORY)}, status=status.HTTP_200_OK)
-    return HttpResponse('Request method not supported.', status=status.HTTP_400_BAD_REQUEST)
 
 
 @api_view(['POST'])
@@ -260,7 +277,6 @@ def import_corpus_api(request):
         else:
             t = import_corpus_task.delay(corpus.pk)
         return HttpResponse(status=status.HTTP_202_ACCEPTED)
-    return HttpResponse('Request method not supported.', status=status.HTTP_400_BAD_REQUEST)
 
 
 @api_view(['GET'])
@@ -288,7 +304,6 @@ def get_corpus_status(request, name=None):
                 corpus.save()
                 return JsonResponse(data={'data': 'error'}, status=status.HTTP_200_OK)
             return JsonResponse(data={'data': 'busy'}, status=status.HTTP_200_OK)
-    return HttpResponse('Request method not supported.', status=status.HTTP_400_BAD_REQUEST)
 
 
 @api_view(['GET'])
@@ -301,7 +316,6 @@ def corpus_hierarchy_api(request, name=None):
         with CorpusContext(corpus.config) as c:
             hierarchy = c.hierarchy
         return JsonResponse(data=hierarchy.to_json(), status=status.HTTP_200_OK)
-    return HttpResponse('Request method not supported.', status=status.HTTP_400_BAD_REQUEST)
 
 
 @api_view(['POST'])
@@ -326,12 +340,13 @@ def corpus_query_api(request, name=None):
         blocking = data.get('blocking', False)
         if blocking:
             results = query_corpus_task(corpus.pk, data)
-            return JsonResponse(data=list(results.to_json()), status=status.HTTP_200_OK, safe=False)
+            results = list(results.to_json())
+            print(results)
+            return JsonResponse(data=results, status=status.HTTP_200_OK, safe=False)
         else:
             t = query_corpus_task.delay(corpus.pk, data)
             corpus.current_task_id = t.task_id
             return HttpResponse(status=status.HTTP_202_ACCEPTED)
-    return HttpResponse('Request method not supported.', status=status.HTTP_400_BAD_REQUEST)
 
 
 @api_view(['POST'])
@@ -360,5 +375,3 @@ def corpus_enrichment_api(request, name=None):
         else:
             t = enrich_corpus_task.delay(corpus.pk, data)
         return HttpResponse(status=status.HTTP_202_ACCEPTED)
-
-    return HttpResponse('Request method not supported.', status=status.HTTP_400_BAD_REQUEST)

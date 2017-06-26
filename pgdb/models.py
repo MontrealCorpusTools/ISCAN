@@ -184,7 +184,8 @@ class Database(models.Model):
             while True:
                 time.sleep(1)
                 if time.time() - begin > timeout:
-                    raise Exception('Connection to the Neo4j database could not be established in the specified timeout.')
+                    raise Exception(
+                        'Connection to the Neo4j database could not be established in the specified timeout.')
                 if self.is_running:
                     break
             self.status = 'R'
@@ -197,6 +198,11 @@ class Database(models.Model):
         return True
 
     @property
+    def ports(self):
+        return {'graph_http_port': self.neo4j_http_port, 'graph_bolt_port': self.neo4j_bolt_port,
+                'acoustic_http_port': self.influxdb_http_port}
+
+    @property
     def is_running(self):
         """
         Returns are boolean for where the database is currently running (i.e., processing Neo4j Cypher queries).
@@ -206,13 +212,12 @@ class Database(models.Model):
         c = CorpusConfig('')
         c.acoustic_user = None
         c.acoustic_password = None
-        c.acoustic_host = 'localhost'
-        c.acoustic_port = self.influxdb_http_port
+        c.host = 'localhost'
+        c.acoustic_http_port = self.influxdb_http_port
         c.graph_user = None
         c.graph_password = None
-        c.graph_host = 'localhost'
-        c.graph_port = self.neo4j_http_port
-        c.bolt_port = self.neo4j_bolt_port
+        c.graph_http_port = self.neo4j_http_port
+        c.graph_bolt_port = self.neo4j_bolt_port
         try:
             get_corpora_list(c)
             return True
@@ -334,6 +339,7 @@ class Corpus(models.Model):
     """
     Corpus objects contain meta data about the PolyglotDB corpora and are the primary interface for running PolyglotDB code.
     """
+
     class Meta:
         verbose_name_plural = "corpora"
 
@@ -397,13 +403,12 @@ class Corpus(models.Model):
         c = CorpusConfig(str(self), data_dir=self.data_directory)
         c.acoustic_user = None
         c.acoustic_password = None
-        c.acoustic_host = 'localhost'
-        c.acoustic_port = self.database.influxdb_http_port
+        c.host = 'localhost'
+        c.acoustic_http_port = self.database.influxdb_http_port
         c.graph_user = None
         c.graph_password = None
-        c.graph_host = 'localhost'
-        c.graph_port = self.database.neo4j_http_port
-        c.bolt_port = self.database.neo4j_bolt_port
+        c.graph_http_port = self.database.neo4j_http_port
+        c.graph_bolt_port = self.database.neo4j_bolt_port
 
         return c
 
@@ -452,7 +457,7 @@ class Corpus(models.Model):
 
     def query_corpus(self, query_config):
         with CorpusContext(self.config) as c:
-            q = c.query_graph(getattr(c, query_config['to_find'][0]))
+            q = c.query_graph(getattr(c, query_config['to_find']))
             q.from_json(c, query_config)
             results = q.all()
         return results
