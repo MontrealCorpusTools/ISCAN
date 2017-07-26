@@ -1,0 +1,88 @@
+{% extends "intonation/base.html" %}
+{% load static %}
+
+{% block extrahead %}
+<style>
+    .svg-container {
+    display: inline-block;
+    position: relative;
+    width: 100%;
+    //padding-bottom: 100%; /* aspect ratio */
+    vertical-align: top;
+    overflow: hidden;
+}
+.svg-content-responsive {
+    display: inline-block;
+    position: absolute;
+    top: 10px;
+    left: 0;
+}
+.row {
+    white-space: nowrap;
+}
+</style>
+<!--<script src="{% static "intonation/js/d3.min.js" %}" charset="utf-8"></script>-->
+<script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+<script src="{% static "intonation/js/bestiary.js" %}" charset="utf-8"></script>
+
+{% endblock %}
+
+{% block content %}
+<div id="chart">
+</div>
+{% endblock %}
+
+{% block sidebar %}
+<div id="sidebar">
+    <div id="filters"></div>
+    <div id="facets"></div>
+</div>
+            <script>
+            function generate_sound_file_url(name){
+    return "{% url 'intonation:sound_file' discourse=112233 %}".replace("112233", name);
+}
+            function generate_view_url(name){
+    return "{% url 'intonation:view_discourse' discourse=112233 %}".replace("112233", name);
+}
+        var color = d3.scale.category20b();
+            var margin = {top: 1, right: 30, bottom: 55, left: 40};
+    var width = parseInt(d3.select('#chart').style('width'), 10);
+    width = width - margin.left - margin.right;
+    var height = 400;
+                    var metadata = {{metadata|safe}};
+                    var extents = {{extents|safe}};
+
+                    var x = d3.scale.linear().range([0, width]).nice();
+                        // Adjusted Close
+                    var y = d3.scale.linear().range([height, 0]).nice();
+
+                    x.domain([extents['min_x'], extents['max_x']]);
+                    y.domain([extents['min_y'], extents['max_y']]);
+
+                    // Make x axis
+                    var xaxis = d3.svg.axis()
+                                      .scale(x)
+                                      .orient("bottom")
+                                      .ticks(10);
+
+                    // Make y axis
+                    var yaxis = d3.svg.axis()
+                                      .scale(y)
+                                      .orient("left")
+                                      .ticks(5);
+
+    var valueline = d3.svg.line().defined(function(d) { return d.y!=null; })
+                          .x( function(d) { return x(d.x); })
+                          .y( function(d) { return y(d.y); })
+                    InitSelects(metadata);
+
+    var column = d3.select("#Column").node().value;
+    var row = d3.select("#Row").node().value;
+    var color_attribute = d3.select("#Color").node().value;
+                    var data = {{time_series|safe}};
+                    InitFacets();
+
+
+
+            </script>
+{% endblock %}

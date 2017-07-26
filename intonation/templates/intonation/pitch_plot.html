@@ -1,0 +1,159 @@
+{% extends "intonation/base.html" %}
+{% load static %}
+
+{% block extrahead %}
+
+<script src="https://d3js.org/d3.v4.js"></script>
+<script src="{% static "intonation/js/jquery-3.2.1.min.js" %}" charset="utf-8"></script>
+<style>
+html, body
+{
+    height: 100%;
+	margin: 0;
+	padding: 0;
+}
+rect.pane {
+  cursor: move;
+  fill: none;
+  pointer-events: all;
+}
+.combined {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+.plot{
+  position: relative;
+  width: 100%;
+  height: 50%;
+  overflow: hidden;
+
+}
+
+</style>
+
+{% endblock %}
+
+{% block content %}
+<div id="chart">
+
+    <div id="waveform" class="plot">
+    </div>
+    <div id="pitchtrack" class="plot">
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+
+<script>
+        var duration = {{duration}};
+        var waveform = {{waveform|safe}};
+        var pitch_track = {{pitch_track|safe}};
+        var edited_pitch_track = {{pitch_track|safe}};
+        var edited_pulses = [];
+
+</script>
+<script src="{% static "intonation/js/time_plot_setup.js" %}" charset="utf-8"></script>
+<script src="{% static "intonation/js/edit_pitch.js" %}" charset="utf-8"></script>
+
+<script src="{% static "intonation/js/waveform_plot.js" %}" charset="utf-8"></script>
+<script src="{% static "intonation/js/pitch_plot.js" %}" charset="utf-8"></script>
+<script src="{% static "intonation/js/edited_pitch_plot.js" %}" charset="utf-8"></script>
+
+<script>
+function getCookie(name) {
+    var cookieValue = null;
+    if (document.cookie && document.cookie != '') {
+        var cookies = document.cookie.split(';');
+        for (var i = 0; i < cookies.length; i++) {
+            var cookie = jQuery.trim(cookies[i]);
+            // Does this cookie string begin with the name we want?
+            if (cookie.substring(0, name.length + 1) == (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+var csrftoken = getCookie('csrftoken');
+function csrfSafeMethod(method) {
+    // these HTTP methods do not require CSRF protection
+    return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
+}
+function sameOrigin(url) {
+    // test that a given url is a same-origin URL
+    // url could be relative or scheme relative or absolute
+    var host = document.location.host; // host + port
+    var protocol = document.location.protocol;
+    var sr_origin = '//' + host;
+    var origin = protocol + sr_origin;
+    // Allow absolute or scheme relative URLs to same origin
+    return (url == origin || url.slice(0, origin.length + 1) == origin + '/') ||
+        (url == sr_origin || url.slice(0, sr_origin.length + 1) == sr_origin + '/') ||
+        // or any other URL that isn't scheme relative or absolute i.e relative.
+        !(/^(\/\/|http:|https:).*/.test(url));
+}
+$.ajaxSetup({
+    beforeSend: function(xhr, settings) {
+        if (!csrfSafeMethod(settings.type) && sameOrigin(settings.url)) {
+            // Send the token to same-origin, relative URLs only.
+            // Send the token only if the method warrants CSRF protection
+            // Using the CSRFToken value acquired earlier
+            xhr.setRequestHeader("X-CSRFToken", csrftoken);
+        }
+    }
+});
+draw();
+$('#pitch-form').on('submit', function(event){
+    event.preventDefault();
+    console.log("form submitted!")  // sanity check
+    get_pitch_track();
+});
+
+function get_pitch_track() {
+    console.log("create post is working!") // sanity check
+    $.ajax({
+        url : "{% url 'intonation:generate_pitch' discourse %}", // the endpoint
+        type : "POST", // http method
+        data : { pitch_source : $('#id_pitch_source').val(),
+                min_pitch: $('#id_min_pitch').val(),
+                max_pitch: $('#id_max_pitch').val(),
+                }, // data sent with the post request
+
+        // handle a successful response
+        success : function(json) {
+            console.log(json); // log the returned json to the console
+            edited_pitch_track = json.pitch_track;
+            edited_pulses = json.pulses;
+            updateEditedTrack();
+        },
+
+        // handle a non-successful response
+        error : function(xhr,errmsg,err) {
+            $('#results').html("<div class='alert-box alert radius' data-alert>Oops! We have encountered an error: "+errmsg+
+                " <a href='#' class='close'>&times;</a></div>"); // add the error to the dom
+            console.log(xhr.status + ": " + xhr.responseText); // provide a bit more info about the error to the console
+        }
+    });
+};
+</script>
+{% endblock %}
+
+{%block sidebar %}
+
+<div id="pitch_form">
+     <h1>Run pitch analysis</h1>
+
+{% if error_message %}<p><strong>{{ error_message }}</strong></p>{% endif %}
+
+  <form method="post" id="pitch-form">
+{% csrf_token %}
+{{ form.as_p }}
+<input type="submit" value="Generate new pitch track" />
+</form>
+</div>
+<div id="results"></div>
+{% endblock %}

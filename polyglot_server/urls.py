@@ -21,4 +21,5 @@ from django.contrib import admin
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
     url(r'^', include('pgdb.urls', namespace='pgdb')),
+    url(r'^intonation/', include('intonation.urls', namespace='intonation')),
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

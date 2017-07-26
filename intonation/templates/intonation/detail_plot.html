@@ -1,0 +1,88 @@
+{% extends "intonation/base.html" %}
+{% load static %}
+
+{% block extrahead %}
+
+<script src="https://d3js.org/d3.v4.js"></script>
+<style>
+rect.pane {
+  cursor: move;
+  fill: none;
+  pointer-events: all;
+}
+.combined {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+div.plot{
+  position: relative;
+  width: 100%;
+  height: 33%;
+  overflow: hidden;
+
+}
+</style>
+
+{% endblock %}
+
+{% block content %}
+<div id="chart">
+
+    <div id="waveform" class="plot">
+    </div>
+    <div id="specgram" class="plot">
+    </div>
+    <div id="pitchtrack" class="plot">
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+
+<script>
+        // SETUP DATA
+        var duration = {{duration}};
+        var specgram = {{specgram|safe}};
+        var waveform = {{waveform|safe}};
+        var pitch_track = {{pitch_track|safe}};
+
+</script>
+<script src="{% static "intonation/js/time_plot_setup.js" %}" charset="utf-8"></script>
+<script src="{% static "intonation/js/detail.js" %}" charset="utf-8"></script>
+
+<script src="{% static "intonation/js/waveform_plot.js" %}" charset="utf-8"></script>
+<script src="{% static "intonation/js/spectrogram_plot.js" %}" charset="utf-8"></script>
+<script src="{% static "intonation/js/pitch_plot.js" %}" charset="utf-8"></script>
+
+<script>
+draw();
+</script>
+
+{% endblock %}
+
+{% block sidebar %}
+<div id="annotate_form">
+     <h1>Annotations</h1>
+
+{% if error_message %}<p><strong>{{ error_message }}</strong></p>{% endif %}
+
+<form action="{% url 'intonation:annotate' discourse %}" method="post">
+{% csrf_token %}
+{% for item_type in annotation_options.all %}
+     <h3>{{item_type }}</h3>
+     {% for category in item_type.categories.all %}
+     <h6>{{ category }}</h6>
+     {% for value in category.values.all %}
+    <input type="radio" name="choice" id="choice{{ forloop.counter }}" value="{{ value.id }}" />
+    <label for="choice{{ forloop.counter }}">{{ value.value }}</label><br />
+{% endfor %}
+{% endfor %}
+{% endfor %}
+<input type="submit" value="Annotate" />
+</form>
+    <a href="{% url 'intonation:edit_pitch' discourse %}">Edit pitch track</a>
+</div>
+
+{% endblock %}

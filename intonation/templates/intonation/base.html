@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+
+    <style>
+
+html, body
+{
+  font: 10px sans-serif;
+    height: 100%;
+	margin: 0;
+	padding: 0;
+}
+
+.axis path, .axis line {
+  fill: none;
+  stroke: #000;
+  shape-rendering: crispEdges;
+}
+
+.line {
+  fill: none;
+  stroke: steelblue;
+  stroke-width: 1.5px;
+}
+
+.dot {
+  fill: white;
+  stroke: steelblue;
+  stroke-width: 1.5px;
+}
+
+div{
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+
+}
+
+div#content{
+  width: 75%;
+  height: 100%;
+  overflow: hidden;
+   float: left;
+}
+div#sidebar{
+    width: 25%;
+    height: 100%;
+    float: right;
+    overflow: auto;
+}
+
+</style>
+{% block extrahead %}
+{% endblock %}
+</head>
+<body>
+
+<div id="content">
+{% block content %}
+{% endblock %}
+</div>
+
+<div id="sidebar">
+{% block sidebar %}
+{% endblock %}
+</div>
+{% block scripts %}
+{% endblock %}
+</body>
+</html>
