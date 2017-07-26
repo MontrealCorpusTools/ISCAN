@@ -13,7 +13,7 @@ if [ ! -d "$HOME/miniconda/miniconda/envs/test-environment" ]; then
   conda create -q -n test-environment python=3.6 setuptools atlas numpy sqlalchemy pytest scipy scikit-learn networkx
   source activate test-environment
   which python
-  pip install -q coveralls coverage textgrid librosa tqdm influxdb
+  pip install -q coveralls coverage textgrid librosa tqdm influxdb technige.cypy
   pip install -q git+https://github.com/mmcauliffe/python-acoustic-similarity.git
   pip install -q neo4j-driver
 else
