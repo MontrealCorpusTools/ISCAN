@@ -48,7 +48,7 @@ def test_hierarchy():
 @pytest.mark.django_db
 def test_query():
     from polyglotdb.structure import Hierarchy
-    from polyglotdb.query.graph import GraphQuery
+    from polyglotdb.query.annotations import GraphQuery
     client = APIClient()
 
     c = Corpus.objects.get(name='test_corpus')

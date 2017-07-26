@@ -5,8 +5,10 @@ import sys
 
 ## DEBUG FIXME
 PGDB_REPO_PATH = r'/mnt/d/Dev/GitHub/PolyglotDB'
+AS_REPO_PATH = r'/mnt/d/Dev/GitHub/python-acoustic-similarity'
 
 sys.path.insert(0, PGDB_REPO_PATH)
+sys.path.insert(0, AS_REPO_PATH)
 if __name__ == "__main__":
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "polyglot_server.settings")
     try:
