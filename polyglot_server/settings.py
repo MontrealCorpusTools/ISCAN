@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'django_celery_results',
     'pgdb',
+    'intonation',
 ]
 
 MIDDLEWARE = [
@@ -118,9 +119,9 @@ STATIC_URL = '/static/'
 
 ## Polyglot-server settings
 
-SOURCE_DATA_DIRECTORY = os.path.join(BASE_DIR, 'test_data', 'source')
+SOURCE_DATA_DIRECTORY = '/mnt/d/Data/PolyglotData'
 
-POLYGLOT_DATA_DIRECTORY = os.path.join(BASE_DIR, 'test_data', 'data')
+POLYGLOT_DATA_DIRECTORY = '/mnt/d/bestiary-data'
 
 POLYGLOT_TEMP_DIR = os.path.join(POLYGLOT_DATA_DIRECTORY, 'downloads')
 

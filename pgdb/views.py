@@ -242,6 +242,18 @@ def corpus_api(request, name=None):
 
 
 @api_view(['GET'])
+def corpus_list_api(request, name):
+    try:
+        database = Database.objects.get(name=name)
+    except ObjectDoesNotExist:
+        return HttpResponse('Could not find the specified database.', status=status.HTTP_404_NOT_FOUND)
+    corpora = Corpus.objects.filter(database=database)
+    if request.method == 'GET':
+        data = [c.name for c in corpora]
+        return JsonResponse(data, status=status.HTTP_200_OK, safe=False)
+
+
+@api_view(['GET'])
 def get_source_choices_api(request):
     if request.method == 'GET':
         return JsonResponse({'data': os.listdir(settings.SOURCE_DATA_DIRECTORY)}, status=status.HTTP_200_OK)
