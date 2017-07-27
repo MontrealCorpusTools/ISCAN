@@ -10,12 +10,11 @@ if [ ! -d "$HOME/miniconda/miniconda/envs/test-environment" ]; then
   conda config --set always_yes yes --set changeps1 no
   conda update -q conda
   conda info -a
-  conda create -q -n test-environment python=3.6 setuptools atlas numpy sqlalchemy pytest scipy scikit-learn networkx
+  conda create -q -n test-environment python=3.6 setuptools atlas numpy pytest scipy
   source activate test-environment
   which python
-  pip install -q coveralls coverage textgrid librosa tqdm influxdb technige.cypy
+  pip install -q coveralls coverage textgrid librosa tqdm influxdb neo4j-driver
   pip install -q git+https://github.com/mmcauliffe/python-acoustic-similarity.git
-  pip install -q neo4j-driver
 else
   echo "Miniconda already installed."
 fi
