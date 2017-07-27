@@ -111,6 +111,7 @@ def change_database_status(request):
 def create_database(request):
     if request.method == 'POST':
         used_ports = get_used_ports()
+        print(used_ports)
         current_ports = []
         data_dict = {'name': request.data.get('name'),
                      'neo4j_http_port': request.data.get('neo4j_http_port', None),

@@ -13,7 +13,7 @@ def get_used_ports():
     ports = []
     for d in databases:
         ports.extend([d.neo4j_http_port, d.neo4j_https_port, d.neo4j_bolt_port, d.neo4j_admin_port,
-                      d.influxdb_http_port, d.influxdb_udp_port, d.influxdb_admin_port])
+                      d.influxdb_http_port, d.influxdb_meta_port, d.influxdb_udp_port, d.influxdb_admin_port])
     return ports
 
 
