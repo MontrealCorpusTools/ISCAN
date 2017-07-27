@@ -119,9 +119,9 @@ STATIC_URL = '/static/'
 
 ## Polyglot-server settings
 
-SOURCE_DATA_DIRECTORY = '/mnt/d/Data/PolyglotData'
+SOURCE_DATA_DIRECTORY = os.path.join(BASE_DIR, 'test_data', 'source')
 
-POLYGLOT_DATA_DIRECTORY = '/mnt/d/bestiary-data'
+POLYGLOT_DATA_DIRECTORY = os.path.join(BASE_DIR, 'test_data', 'data')
 
 POLYGLOT_TEMP_DIR = os.path.join(POLYGLOT_DATA_DIRECTORY, 'downloads')
 
@@ -137,3 +137,8 @@ BASE_INFLUXDB_PORT = 8400
 CELERY_RESULT_BACKEND = 'django-db'
 
 CELERY_BROKER_URL = 'amqp://guest:guest@localhost:5672//'
+
+try:
+    from .local_settings import *
+except ImportError
+    pass
