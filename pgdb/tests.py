@@ -130,8 +130,8 @@ def test_create_database():
     assert len(res) == 2
     db = Database.objects.get(name='first_database')
     assert db.neo4j_http_port == 7404
-    assert db.influxdb_http_port == 8403
-    assert db.influxdb_udp_port == 8404
+    assert db.influxdb_http_port == 8404
+    assert db.influxdb_udp_port == 8406
     response = client.delete(
         reverse('pgdb:database_api', args=[data['name']]),
         format="json")
