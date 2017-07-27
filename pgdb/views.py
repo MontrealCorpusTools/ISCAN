@@ -137,6 +137,7 @@ def create_database(request):
                         ports[port_key] += 1
                         break
                     ports[port_key] += 1
+        print(data_dict)
         serializer = DatabaseSerializer(data=data_dict)
         if serializer.is_valid():
             database = serializer.save()
