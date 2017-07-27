@@ -140,5 +140,5 @@ CELERY_BROKER_URL = 'amqp://guest:guest@localhost:5672//'
 
 try:
     from .local_settings import *
-except ImportError
+except ImportError:
     pass
