@@ -66,7 +66,6 @@ def download_influxdb():
 
     download_link = 'https://dl.influxdata.com/influxdb/releases/influxdb-{version}_{dist_string}'.format(
         version=settings.INFLUXDB_VERSION, dist_string=dist_string)
-    print(download_link)
     archive_path, headers = urlretrieve(download_link, path, data=None)
     return archive_path
 

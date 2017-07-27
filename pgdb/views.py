@@ -111,7 +111,6 @@ def change_database_status(request):
 def create_database(request):
     if request.method == 'POST':
         used_ports = get_used_ports()
-        print(used_ports)
         current_ports = []
         data_dict = {'name': request.data.get('name'),
                      'neo4j_http_port': request.data.get('neo4j_http_port', None),
@@ -138,7 +137,6 @@ def create_database(request):
                         ports[port_key] += 1
                         break
                     ports[port_key] += 1
-        print(data_dict)
         serializer = DatabaseSerializer(data=data_dict)
         if serializer.is_valid():
             database = serializer.save()
@@ -337,7 +335,6 @@ def corpus_hierarchy_api(request, name=None):
 def corpus_query_api(request, name=None):
     if request.method == 'POST':
         data = request.data
-        print(data)
         try:
             corpus = Corpus.objects.get(name=name)
         except ObjectDoesNotExist:
@@ -356,7 +353,6 @@ def corpus_query_api(request, name=None):
         if blocking:
             results = query_corpus_task(corpus.pk, data)
             results = list(results.to_json())
-            print(results)
             return JsonResponse(data=results, status=status.HTTP_200_OK, safe=False)
         else:
             t = query_corpus_task.delay(corpus.pk, data)
@@ -368,7 +364,6 @@ def corpus_query_api(request, name=None):
 def corpus_enrichment_api(request, name=None):
     if request.method == 'POST':
         data = request.data
-        print(data)
         try:
             corpus = Corpus.objects.get(name=name)
         except ObjectDoesNotExist:
