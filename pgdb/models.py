@@ -41,6 +41,7 @@ class Database(models.Model):
     neo4j_bolt_port = models.SmallIntegerField()
     neo4j_admin_port = models.SmallIntegerField()
     influxdb_http_port = models.SmallIntegerField()
+    influxdb_meta_port = models.SmallIntegerField()
     influxdb_udp_port = models.SmallIntegerField()
     influxdb_admin_port = models.SmallIntegerField()
     status = models.CharField(max_length=1, choices=STATUS_CHOICES, default=STOPPED)
@@ -306,6 +307,7 @@ class Database(models.Model):
             template = f.read()
         with open(influxdb_conf_path, 'w') as f:
             f.write(template.format(http_port=self.influxdb_http_port,
+                                    meta_port=self.influxdb_meta_port,
                                     udp_port=self.influxdb_udp_port,
                                     admin_port=self.influxdb_admin_port,
                                     auth_enabled='false',

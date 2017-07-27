@@ -118,6 +118,7 @@ def create_database(request):
                      'neo4j_bolt_port': request.data.get('neo4j_bolt_port', None),
                      'neo4j_admin_port': request.data.get('neo4j_admin_port', None),
                      'influxdb_http_port': request.data.get('influxdb_http_port', None),
+                     'influxdb_meta_port': request.data.get('influxdb_meta_port', None),
                      'influxdb_udp_port': request.data.get('influxdb_udp_port', None),
                      'influxdb_admin_port': request.data.get('influxdb_admin_port', None)}
         ports = {'neo4j': settings.BASE_NEO4J_PORT, 'influxdb': settings.BASE_INFLUXDB_PORT}
