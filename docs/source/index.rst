@@ -10,6 +10,7 @@ Welcome to polyglot-server's documentation!
    :maxdepth: 2
    :caption: Contents:
 
+   getting_started.rst
 
 
 Indices and tables

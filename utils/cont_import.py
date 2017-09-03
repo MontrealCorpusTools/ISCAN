@@ -68,11 +68,11 @@ def loading():
 
 
 def enrichment():
-    with CorpusContext(name, **graph_db) as g:
+    with CorpusContext(config) as g:
         if not 'utterance' in g.annotation_types:
+            print('encoding utterances')
             begin = time.time()
             g.encode_pauses('^<SIL>$', call_back=call_back)
-            # g.encode_pauses('^[<{].*$', call_back = call_back)
             g.encode_utterances(min_pause_length=10, call_back=call_back)
             # g.encode_utterances(min_pause_length = 0.5, call_back = call_back)
             logger.info('Utterance enrichment took: {}'.format(time.time() - begin))
@@ -164,6 +164,9 @@ def enrichment():
         if not g.hierarchy.has_speaker_property('gender'):
             enrich_speakers_from_csv(g, speaker_info_path)
 
+        g.refresh_hierarchy()
+        g.hierarchy.add_type_properties(g, 'word', [('transcription', str)])
+        g.encode_hierarchy()
 
 
 def acoustics():
