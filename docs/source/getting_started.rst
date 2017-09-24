@@ -1,3 +1,5 @@
+.. _`install the Linux subsystem`: https://msdn.microsoft.com/en-us/commandline/wsl/install_guide
+
 .. _getting_started:
 
 ***************
@@ -7,7 +9,8 @@ Getting started
 .. note::
 
    Currently only Ubuntu is a supported and tested system.  We hope to support other operating systems in the future, but
-   please bear in mind that things may not work.
+   please bear in mind that things may not work.  If you are on Windows 10, you can `install the Linux subsystem`_.
+   Polyglot servers are known to run using the Bash shell in Windows 10.
 
 Prerequisites
 =============
