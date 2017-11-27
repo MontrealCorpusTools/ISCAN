@@ -68,7 +68,7 @@ draw();
 
 {% if error_message %}<p><strong>{{ error_message }}</strong></p>{% endif %}
 
-<form action="{% url 'intonation:annotate' discourse %}" method="post">
+<form action="{% url 'intonation:annotate' corpus discourse %}" method="post">
 {% csrf_token %}
 {% for item_type in annotation_options.all %}
      <h3>{{item_type }}</h3>
@@ -82,7 +82,7 @@ draw();
 {% endfor %}
 <input type="submit" value="Annotate" />
 </form>
-    <a href="{% url 'intonation:edit_pitch' discourse %}">Edit pitch track</a>
+    <a href="{% url 'intonation:edit_pitch' corpus discourse %}">Edit pitch track</a>
 </div>
 
 {% endblock %}

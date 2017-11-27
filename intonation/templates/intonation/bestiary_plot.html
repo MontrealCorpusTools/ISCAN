@@ -64,10 +64,10 @@
     <div id="facets"></div>
             <script>
             function generate_sound_file_url(name){
-    return "{% url 'intonation:sound_file' discourse=112233 %}".replace("112233", name);
+    return "{% url 'intonation:sound_file' corpus=111222 discourse=112233 %}".replace("112233", name).replace("111222", "{{corpus}}");
 }
             function generate_view_url(name){
-    return "{% url 'intonation:view_discourse' discourse=112233 %}".replace("112233", name);
+    return "{% url 'intonation:view_discourse' corpus=111222 discourse=112233 %}".replace("112233", name).replace("111222", "{{corpus}}");
 }
         var color = d3.scaleOrdinal(d3.schemeCategory20);
             var margin = {top: 1, right: 30, bottom: 55, left: 40};

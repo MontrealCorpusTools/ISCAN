@@ -55,6 +55,17 @@ var pitch_clippath = pitch_vis.append("clipPath")
     .attr("y", 0)
     .attr("width", width)
     .attr("height", pitch_height);
+
+var pitch_pane = pitch_vis.append("rect")
+    .attr("class", "pane")
+    .attr("width", width)
+    .attr("height", pitch_height);
+
+pitch_pane.call(d3.zoom()
+    .scaleExtent(zoom_scales)
+    .translateExtent([[0, 0], [width, pitch_height]])
+    .on("zoom", zoomed));
+
 var pitch_viewplot = pitch_vis.append("g").attr("clip-path", "url(#pitch_clip)");
 
 pitch_viewplot.append("path")
@@ -73,16 +84,6 @@ pitch_viewplot.append('g').selectAll("circle")
     })
     .style("fill", 'blue');
 
-
-var pitch_pane = pitch_vis.append("rect")
-    .attr("class", "pane")
-    .attr("width", width)
-    .attr("height", pitch_height);
-
-pitch_pane.call(d3.zoom()
-    .scaleExtent(zoom_scales)
-    .translateExtent([[0, 0], [width, pitch_height]])
-    .on("zoom", zoomed));
 
 
 function drawPitchTrack() {
@@ -108,7 +109,7 @@ function resizePitch() {
         });
     pitch_x_function = function (d) {
         return x(d.x);
-    }
+    };
 
     pitch_pane.call(d3.zoom()
         .scaleExtent(zoom_scales)

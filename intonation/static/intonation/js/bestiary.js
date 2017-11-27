@@ -74,7 +74,6 @@ function InitSelects(metadata) {
 
 
 function color_function(d) {
-
     if (color_attribute != 'none') {
         return color(d[color_attribute]);
     }

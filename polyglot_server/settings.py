@@ -123,6 +123,11 @@ SOURCE_DATA_DIRECTORY = os.path.join(BASE_DIR, 'test_data', 'source')
 
 POLYGLOT_DATA_DIRECTORY = os.path.join(BASE_DIR, 'test_data', 'data')
 
+try:
+    from .local_settings import *
+except ImportError:
+    pass
+
 POLYGLOT_TEMP_DIR = os.path.join(POLYGLOT_DATA_DIRECTORY, 'downloads')
 
 NEO4J_VERSION = '3.2.1'
@@ -137,8 +142,3 @@ BASE_INFLUXDB_PORT = 8400
 CELERY_RESULT_BACKEND = 'django-db'
 
 CELERY_BROKER_URL = 'amqp://guest:guest@localhost:5672//'
-
-try:
-    from .local_settings import *
-except ImportError:
-    pass

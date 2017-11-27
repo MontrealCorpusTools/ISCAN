@@ -14,7 +14,7 @@ import polyglotdb.io as pgio
 from polyglotdb.config import CorpusConfig
 from polyglotdb.utils import get_corpora_list
 
-from .utils import download_influxdb, download_neo4j, extract_influxdb, extract_neo4j, make_influxdb_safe, get_pids
+from .utils import download_influxdb, download_neo4j, extract_influxdb, extract_neo4j, make_influxdb_safe, get_pids, get_used_ports
 
 
 # Create your models here.
@@ -36,14 +36,14 @@ class Database(models.Model):
         (ERROR, 'Error'),
     )
     name = models.CharField(max_length=100, unique=True)
-    neo4j_http_port = models.SmallIntegerField()
-    neo4j_https_port = models.SmallIntegerField()
-    neo4j_bolt_port = models.SmallIntegerField()
-    neo4j_admin_port = models.SmallIntegerField()
-    influxdb_http_port = models.SmallIntegerField()
-    influxdb_meta_port = models.SmallIntegerField()
-    influxdb_udp_port = models.SmallIntegerField()
-    influxdb_admin_port = models.SmallIntegerField()
+    neo4j_http_port = models.SmallIntegerField(blank=True)
+    neo4j_https_port = models.SmallIntegerField(blank=True)
+    neo4j_bolt_port = models.SmallIntegerField(blank=True)
+    neo4j_admin_port = models.SmallIntegerField(blank=True)
+    influxdb_http_port = models.SmallIntegerField(blank=True)
+    influxdb_meta_port = models.SmallIntegerField(blank=True)
+    influxdb_udp_port = models.SmallIntegerField(blank=True)
+    influxdb_admin_port = models.SmallIntegerField(blank=True)
     status = models.CharField(max_length=1, choices=STATUS_CHOICES, default=STOPPED)
     neo4j_pid = models.IntegerField(null=True, blank=True)
     influxdb_pid = models.IntegerField(null=True, blank=True)
@@ -322,6 +322,25 @@ class Database(models.Model):
         """
         Overwrites the default save method to install the corpus on save (provided it hasn't already been installed)
         """
+
+        used_ports = get_used_ports()
+        current_ports = []
+        ports = {'neo4j': settings.BASE_NEO4J_PORT, 'influxdb': settings.BASE_INFLUXDB_PORT}
+        port_names = ['neo4j_http_port', 'neo4j_https_port', 'neo4j_bolt_port', 'neo4j_admin_port',
+                      'influxdb_http_port', 'influxdb_meta_port', 'influxdb_udp_port', 'influxdb_admin_port']
+        for p in port_names:
+            p_type = 'neo4j'
+            if p.startswith('influx'):
+                p_type = 'influxdb'
+            if not getattr(self, p):
+                while True:
+                    if ports[p_type] not in used_ports and ports[p_type] not in current_ports:
+                        setattr(self, p, ports[p_type])
+                        ports[p_type] += 1
+                        break
+                    ports[p_type] += 1
+            current_ports.append(getattr(self, p))
+
         super(Database, self).save(*args, **kwargs)
         if not os.path.exists(self.directory):
             self.install()
@@ -392,7 +411,7 @@ class Corpus(models.Model):
         :return: str
             Corpus's data directory
         """
-        return os.path.join(self.database.directory, self.name)
+        return self.database.directory
 
     @property
     def config(self):

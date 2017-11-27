@@ -18,12 +18,13 @@ class IntonationView(TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super(IntonationView, self).get_context_data(**kwargs)
+        corpus = self.kwargs.get('corpus', None)
+        context['corpus'] = corpus
         discourse = self.request.GET.get('discourse', None)
         speaker = self.request.GET.get('speaker', None)
         relative_time = self.request.GET.get('relative_time', True)
         relative_time = True
         # corpus = self.request.session['corpus']
-        corpus = 'cont'
         corpus = Corpus.objects.get(name=corpus)
         context['time_series'], context['metadata'], context['extents'] = self.get_time_series(corpus, discourse,
                                                                                                speaker, relative_time)
@@ -33,13 +34,15 @@ class IntonationView(TemplateView):
         datasets = []
 
         with CorpusContext(corpus.config) as c:
+            print(corpus.config.data_dir)
+            print(c.hierarchy)
             c.config.pitch_source = 'reaper'
             q = c.query_graph(c.utterance)
             if discourse is not None:
                 q = q.filter(c.utterance.discourse.name == discourse)
             if speaker is not None:
                 q = q.filter(c.utterance.speaker.name == speaker)
-            track_column = c.utterance.pitch_relative.interpolated_track
+            track_column = c.utterance.pitch.interpolated_track
             track_column.num_points = 100
             track_column.attribute.relative_time = relative_time
             q = q.columns(c.utterance.discourse.name.column_name('discourse'),
@@ -58,7 +61,7 @@ class IntonationView(TemplateView):
                     x = float(time)
                     if x > 1:
                         print('time error')
-                    y = value['F0_relative']
+                    y = value['F0']
                     if x is not None:
                         if extents['min_x'] is None or x < extents['min_x']:
                             extents['min_x'] = x
@@ -161,16 +164,16 @@ class EditPitchView(DetailView):
         return context
 
 
-def generate_pitch_track(request, discourse):
+def generate_pitch_track(request, corpus, discourse):
     form = PitchAnalysisForm(request.POST)
     if form.is_valid():
         print(form.cleaned_data)
-        corpus = 'cont'
         corpus = Corpus.objects.get(name=corpus)
         with CorpusContext(corpus.config) as c:
-            results, pulses = c.analyze_discourse_pitch(discourse, **form.cleaned_data)
+            results, pulses = c.analyze_discourse_pitch(discourse, pulses=True, **form.cleaned_data)
         pitch_data = {}
         track = []
+        #print(results)
         for k, v in sorted(results.items()):
             if isinstance(v, dict):
                 v = v['F0']
@@ -178,18 +181,25 @@ def generate_pitch_track(request, discourse):
                 continue
             track.append({'x': k, 'y': v})
         pitch_data['pitch_track'] = track
-        pitch_data['pulses'] = [{'x': x} for x in pulses]
-        print(pitch_data)
+        pitch_data['pulses'] = [{'x': x} for x in sorted(pulses)]
+        #pitch_data['pulses'] = []
+        #print(pitch_data)
         return JsonResponse(pitch_data, safe=False)
     else:
         return JsonResponse(data=form.errors, status=status.HTTP_400_BAD_REQUEST)
 
-
-def sound_file(request, discourse):
-    corpus = 'cont'
+def save_pitch_track(request, corpus, discourse):
+    data = json.loads(request.body)
     corpus = Corpus.objects.get(name=corpus)
     with CorpusContext(corpus.config) as c:
-        fname = c.discourse_sound_file(discourse)["consonant_filepath"]
+        c.update_pitch_track(discourse, data)
+    return JsonResponse(data={'success': False})
+
+def sound_file(request, corpus, discourse):
+    print(corpus, discourse)
+    corpus = Corpus.objects.get(name=corpus)
+    with CorpusContext(corpus.config) as c:
+        fname = c.discourse_sound_file(discourse)["consonant_file_path"]
     response = FileResponse(open(fname, "rb"))
     # response['Content-Type'] = 'audio/wav'
     # response['Content-Length'] = os.path.getsize(fname)
