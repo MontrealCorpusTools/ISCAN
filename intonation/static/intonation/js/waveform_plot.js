@@ -90,12 +90,9 @@ function zoomended(){
         if (!snd.playing()) {
             var coords = d3.mouse(this);
             var time = xt.invert(coords[0]);
-            console.log(time);
             waveform_playline.attr("x1", xt(time))
                 .attr("x2", xt(time));
             snd.seek(time);
-            d3.event.stopPropagation();
-            console.log(snd.seek());
         }
     }
     console.log(e);

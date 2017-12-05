@@ -45,7 +45,8 @@ class IntonationView(TemplateView):
             track_column = c.utterance.pitch.interpolated_track
             track_column.num_points = 100
             track_column.attribute.relative_time = relative_time
-            q = q.columns(c.utterance.discourse.name.column_name('discourse'),
+            q = q.columns(c.utterance.id.column_name('utterance_id'),
+                c.utterance.discourse.name.column_name('discourse'),
                           c.utterance.speaker.name.column_name('speaker'),
                           c.utterance.discourse.context.column_name('context'),
                           c.utterance.discourse.item.column_name('item'),
@@ -79,6 +80,7 @@ class IntonationView(TemplateView):
                 metadata['item'].add(item)
                 metadata['context'].add(context)
                 datasets.append({'discourse': r['discourse'],
+                                 'utterance_id': r['utterance_id'],
                                  'values': data,
                                  'speaker': r['speaker'],
                                  'context': context,
@@ -92,53 +94,48 @@ class DetailView(TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super(DetailView, self).get_context_data(**kwargs)
-        discourse = self.kwargs.get('discourse', None)
+        utterance_id = self.kwargs.get('utterance_id', None)
         # corpus = self.request.session['corpus']
         corpus = 'cont'
         corpus = Corpus.objects.get(name=corpus)
-        context['discourse'] = discourse
+        context['utterance_id'] = utterance_id
+        with CorpusContext(corpus.config) as c:
+            q = c.query_graph(c.utterance).filter(c.utterance.id == utterance_id).columns(c.utterance.begin.column_name('begin'),
+                                                                                          c.utterance.end.column_name('end'),
+                                                                                          c.utterance.discourse.name.column_name('discourse'),
+                                                                                          c.utterance.pitch.track)
+            utterance_info = q.all()[0]
 
-        context['waveform'] = self.get_time_series(corpus, discourse)
-        context['specgram'] = self.get_spec_gram(corpus, discourse)
-        context['pitch_track'] = self.get_pitch_track(corpus, discourse)
-        context['duration'] = self.get_duration(corpus, discourse)
+        context['waveform'] = self.get_time_series(corpus, utterance_info)
+        context['specgram'] = self.get_spec_gram(corpus, utterance_info)
+        context['pitch_track'] = self.get_pitch_track(utterance_info)
+        context['begin'] = utterance_info['begin']
+        context['end'] = utterance_info['end']
         context['annotation_options'] = ItemType.objects.prefetch_related('categories').prefetch_related(
             'categories__values').all()
         return context
 
-    def get_pitch_track(self, corpus, discourse):
+    def get_pitch_track(self, utterance_info):
         track = []
-        with CorpusContext(corpus.config) as c:
-            q = c.query_graph(c.utterance).filter(c.utterance.discourse.name == discourse)
-            q = q.columns(c.utterance.label, c.utterance.pitch.track)
-            results = q.all()
-        for r in results:
-            for k, v in r.track.items():
-                track.append({'x': float(k), 'y': float(v['F0'])})
+        for k, v in utterance_info.track.items():
+            track.append({'x': float(k), 'y': float(v['F0'])})
         return json.dumps(track)
 
-    def get_duration(self, corpus, discourse):
-
+    def get_time_series(self, corpus, utterance_info):
         with CorpusContext(corpus.config) as c:
-            duration = c.discourse_sound_file(discourse)['duration']
-        return duration
-
-    def get_time_series(self, corpus, discourse):
-        with CorpusContext(corpus.config) as c:
-            c.config.pitch_source = 'praat'
-            signal, sr = c.load_waveform(discourse, 'vowel')
+            signal, sr = c.load_waveform(utterance_info['discourse'], 'vowel', begin=utterance_info['begin'], end=utterance_info['end'])
             step = 1 / sr
-            data = [{'y': float(p), 'x': i * step} for i, p in enumerate(signal)]
+            data = [{'y': float(p), 'x': i * step + utterance_info['begin']} for i, p in enumerate(signal)]
         return json.dumps(data)
 
-    def get_spec_gram(self, corpus, discourse):
+    def get_spec_gram(self, corpus, utterance_info):
         dataset = {}
         with CorpusContext(corpus.config) as c:
-            data, time_step, freq_step = c.generate_spectrogram(discourse, 'consonant')
+            data, time_step, freq_step = c.generate_spectrogram(utterance_info['discourse'], 'consonant', begin=utterance_info['begin'], end=utterance_info['end'])
             reshaped = []
             for i in range(data.shape[0]):
                 for j in range(data.shape[1]):
-                    reshaped.append({'time': j * time_step, 'frequency': i * freq_step, 'power': float(data[i, j])})
+                    reshaped.append({'time': j * time_step + utterance_info['begin'], 'frequency': i * freq_step, 'power': float(data[i, j])})
         dataset['values'] = reshaped
         dataset['time_step'] = time_step
         dataset['freq_step'] = freq_step
@@ -152,54 +149,63 @@ class EditPitchView(DetailView):
 
     def get_context_data(self, **kwargs):
         context = super(EditPitchView, self).get_context_data(**kwargs)
-        discourse = self.kwargs.get('discourse', None)
+        utterance_id = self.kwargs.get('utterance_id', None)
         # corpus = self.request.session['corpus']
         corpus = 'cont'
         corpus = Corpus.objects.get(name=corpus)
-        context['discourse'] = discourse
-        context['waveform'] = self.get_time_series(corpus, discourse)
-        context['pitch_track'] = self.get_pitch_track(corpus, discourse)
-        context['duration'] = self.get_duration(corpus, discourse)
+        context['utterance_id'] = utterance_id
+        with CorpusContext(corpus.config) as c:
+            q = c.query_graph(c.utterance).filter(c.utterance.id == utterance_id).columns(c.utterance.begin.column_name('begin'),
+                                                                                          c.utterance.end.column_name('end'),
+                                                                                          c.utterance.discourse.name.column_name('discourse'),
+                                                                                          c.utterance.pitch.track)
+            utterance_info = q.all()[0]
+        context['waveform'] = self.get_time_series(corpus, utterance_info)
+        context['pitch_track'] = self.get_pitch_track(utterance_info)
+        context['begin'] = utterance_info['begin']
+        context['end'] = utterance_info['end']
         context['form'] = PitchAnalysisForm()
         return context
 
 
-def generate_pitch_track(request, corpus, discourse):
+def generate_pitch_track(request, corpus, utterance_id):
     form = PitchAnalysisForm(request.POST)
     if form.is_valid():
         print(form.cleaned_data)
         corpus = Corpus.objects.get(name=corpus)
         with CorpusContext(corpus.config) as c:
-            results, pulses = c.analyze_discourse_pitch(discourse, pulses=True, **form.cleaned_data)
+            results, pulses = c.analyze_utterance_pitch(utterance_id, with_pulses=True, **form.cleaned_data)
         pitch_data = {}
         track = []
-        #print(results)
-        for k, v in sorted(results.items()):
-            if isinstance(v, dict):
-                v = v['F0']
-            if v < 1:
+        for datapoint in results:
+            v = datapoint['F0']
+            k = datapoint['time']
+            if v is None or v < 1:
                 continue
             track.append({'x': k, 'y': v})
         pitch_data['pitch_track'] = track
         pitch_data['pulses'] = [{'x': x} for x in sorted(pulses)]
         #pitch_data['pulses'] = []
-        #print(pitch_data)
         return JsonResponse(pitch_data, safe=False)
     else:
         return JsonResponse(data=form.errors, status=status.HTTP_400_BAD_REQUEST)
 
-def save_pitch_track(request, corpus, discourse):
+def save_pitch_track(request, corpus, utterance_id):
     data = json.loads(request.body)
     corpus = Corpus.objects.get(name=corpus)
     with CorpusContext(corpus.config) as c:
-        c.update_pitch_track(discourse, data)
-    return JsonResponse(data={'success': False})
+        c.update_utterance_pitch_track(utterance_id, data)
+    return JsonResponse(data={'success': True})
 
-def sound_file(request, corpus, discourse):
-    print(corpus, discourse)
+def sound_file(request, corpus, utterance_id):
     corpus = Corpus.objects.get(name=corpus)
     with CorpusContext(corpus.config) as c:
-        fname = c.discourse_sound_file(discourse)["consonant_file_path"]
+        q = c.query_graph(c.utterance).filter(c.utterance.id == utterance_id).columns(c.utterance.begin.column_name('begin'),
+                                                                                      c.utterance.end.column_name('end'),
+                                                                                      c.utterance.discourse.name.column_name('discourse'),
+                                                                                      c.utterance.pitch.track)
+        utterance_info = q.all()[0]
+        fname = c.discourse_sound_file(utterance_info['discourse'])["consonant_file_path"]
     response = FileResponse(open(fname, "rb"))
     # response['Content-Type'] = 'audio/wav'
     # response['Content-Length'] = os.path.getsize(fname)

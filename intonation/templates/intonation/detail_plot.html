@@ -43,7 +43,8 @@ div.plot{
 
 <script>
         // SETUP DATA
-        var duration = {{duration}};
+        var begin_time = {{begin}};
+        var end_time = {{end}};
         var specgram = {{specgram|safe}};
         var waveform = {{waveform|safe}};
         var pitch_track = {{pitch_track|safe}};
@@ -68,7 +69,7 @@ draw();
 
 {% if error_message %}<p><strong>{{ error_message }}</strong></p>{% endif %}
 
-<form action="{% url 'intonation:annotate' corpus discourse %}" method="post">
+<form action="{% url 'intonation:annotate' corpus utterance_id %}" method="post">
 {% csrf_token %}
 {% for item_type in annotation_options.all %}
      <h3>{{item_type }}</h3>
@@ -82,7 +83,7 @@ draw();
 {% endfor %}
 <input type="submit" value="Annotate" />
 </form>
-    <a href="{% url 'intonation:edit_pitch' corpus discourse %}">Edit pitch track</a>
+    <a href="{% url 'intonation:edit_pitch' corpus utterance_id %}">Edit pitch track</a>
 </div>
 
 {% endblock %}

@@ -84,11 +84,11 @@ function color_function(d) {
 
 function click(d) {
     if (d3.event.ctrlKey) {
-        var snd = new Audio(generate_sound_file_url(d.discourse)); // buffers automatically when created
+        var snd = new Audio(generate_sound_file_url(d.utterance_id)); // buffers automatically when created
         snd.play();
     }
     else {
-        var url = generate_view_url(d.discourse);
+        var url = generate_view_url(d.utterance_id);
         window.open(url, '_blank');
     }
 };

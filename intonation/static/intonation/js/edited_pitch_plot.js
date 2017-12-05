@@ -36,9 +36,6 @@ edited_pitch_points.on("click", function() {
     pitch_viewplot.selectAll('circle.selected').style("fill", 'blue').classed("selected",false);
   }
   d3.select(this).attr('class', 'selected').style("fill", "red");
-  console.log(d3.select(this));
-  console.log(coords);
-  d3.event.stopPropagation();
 });
 
 var edited_pitch_line = pitch_viewplot.append("path")

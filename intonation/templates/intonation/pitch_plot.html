@@ -51,7 +51,8 @@
     <script src="{% static "intonation/js/howler.min.js" %}" charset="utf-8"></script>
 
     <script>
-        var duration = {{duration}};
+        var begin_time = {{begin}};
+        var end_time = {{end}};
         var waveform = {{waveform | safe}};
         var pitch_track = {{pitch_track | safe}};
         var edited_pitch_track = {{pitch_track | safe}};
@@ -82,7 +83,7 @@
             return cookieValue;
         }
 
-        var sound_file_url = "{% url 'intonation:sound_file' corpus discourse %}";
+        var sound_file_url = "{% url 'intonation:sound_file' corpus utterance_id %}";
         var snd = new Howl({
             src: [sound_file_url],
             format: ['wav'],
@@ -155,10 +156,10 @@
         function get_pitch_track() {
             console.log("create post is working!"); // sanity check
             $.ajax({
-                url: "{% url 'intonation:generate_pitch' corpus discourse %}", // the endpoint
+                url: "{% url 'intonation:generate_pitch' corpus utterance_id %}", // the endpoint
                 type: "POST", // http method
                 data: {
-                    pitch_source: $('#id_pitch_source').val(),
+                    source: $('#id_source').val(),
                     min_pitch: $('#id_min_pitch').val(),
                     max_pitch: $('#id_max_pitch').val()
                 }, // data sent with the post request
@@ -181,7 +182,7 @@
         }
         function save_pitch_track() {
             $.ajax({
-                url: "{% url 'intonation:save_pitch' corpus discourse %}", // the endpoint
+                url: "{% url 'intonation:save_pitch' corpus utterance_id %}", // the endpoint
                 type: "POST", // http method
                 data: JSON.stringify(edited_pitch_track), // data sent with the post request
 
@@ -221,7 +222,7 @@
         <button id="double">Double pitch</button>
         <button id="halve">Halve pitch</button>
         <button id="smooth">Smooth pitch</button>
-        <form method="post" action="{%  url 'intonation:save_pitch' corpus discourse %}" id="save-form">
+        <form method="post" id="save-form">
             {% csrf_token %}
             <input type="submit" value="Save edited pitch track"/>
         </form>

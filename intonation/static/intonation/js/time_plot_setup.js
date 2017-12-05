@@ -4,7 +4,7 @@ var margin = {top: 40, right: 30, bottom: 40, left: 90},
 var width = parseInt(d3.select('#chart').style('width'), 10)-margin.right-margin.left;
 
 var x = d3.scaleLinear().range([0, width]).nice();
-x.domain([0, duration]);
+x.domain([begin_time, end_time]);
 
 // Make x axis
 var xaxis = d3.axisBottom(x)
