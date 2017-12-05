@@ -96,7 +96,7 @@ class DetailView(TemplateView):
         context = super(DetailView, self).get_context_data(**kwargs)
         utterance_id = self.kwargs.get('utterance_id', None)
         # corpus = self.request.session['corpus']
-        corpus = 'cont'
+        corpus = self.kwargs.get('corpus', None)
         corpus = Corpus.objects.get(name=corpus)
         context['utterance_id'] = utterance_id
         with CorpusContext(corpus.config) as c:
