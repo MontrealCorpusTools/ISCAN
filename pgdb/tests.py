@@ -4,7 +4,7 @@ import time
 import json
 from rest_framework.test import APIClient
 from rest_framework import status
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 
 from pgdb.models import Database, Corpus
 from django.test import override_settings
