@@ -97,7 +97,6 @@ class DetailView(TemplateView):
         utterance_id = self.kwargs.get('utterance_id', None)
         # corpus = self.request.session['corpus']
         corpus = self.kwargs.get('corpus', None)
-        context['corpus'] = corpus
         corpus = Corpus.objects.get(name=corpus)
         context['utterance_id'] = utterance_id
         padding = 0.1
