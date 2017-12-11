@@ -32,6 +32,18 @@
 
         }
 
+        div.tooltip {
+          position: absolute;
+          text-align: center;
+          width: 60px;
+          height: 28px;
+          padding: 2px;
+          font: 12px sans-serif;
+          background: lightsteelblue;
+          border: 0px;
+          border-radius: 8px;
+          pointer-events: none;
+        }
     </style>
 
 {% endblock %}
@@ -47,7 +59,7 @@
 {% endblock %}
 
 {% block scripts %}
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/mousetrap/1.4.6/mousetrap.js" charset="utf-8"></script>%}
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mousetrap/1.4.6/mousetrap.js" charset="utf-8"></script>
     <script src="{% static "intonation/js/howler.min.js" %}" charset="utf-8"></script>
 
     <script>
@@ -152,6 +164,9 @@
         $('#smooth').on('click', function (event) {
             smooth_selected();
         });
+        $('#remove').on('click', function (event) {
+            remove_selected();
+        });
 
         function get_pitch_track() {
             console.log("create post is working!"); // sanity check
@@ -191,8 +206,7 @@
                     console.log( edited_pitch_track);
                     console.log(json); // log the returned json to the console
                     if (json.success) {
-                        edited_pitch_track = pitch_track;
-                        updateEditedTrack()
+                        location.reload();
                     }
                 },
 
@@ -222,6 +236,7 @@
         <button id="double">Double pitch</button>
         <button id="halve">Halve pitch</button>
         <button id="smooth">Smooth pitch</button>
+        <button id="remove">Remove point</button>
         <form method="post" id="save-form">
             {% csrf_token %}
             <input type="submit" value="Save edited pitch track"/>

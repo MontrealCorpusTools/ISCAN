@@ -14,6 +14,9 @@ var pitch_valueline = d3.line()
         return pitch_y(d.y);
     });
 
+var div = d3.select("body").append("div")
+    .attr("class", "tooltip")
+    .style("opacity", 0);
 
 var pitch_yaxis = d3.axisLeft(pitch_y)
     .ticks(5);
@@ -69,14 +72,16 @@ pitch_pane.call(d3.zoom()
 var pitch_viewplot = pitch_vis.append("g").attr("clip-path", "url(#pitch_clip)");
 
 pitch_viewplot.append("path")
-    .attr("class", "line").data([pitch_track]).attr('d', function (d) {
+    .attr("class", "line")
+    .classed("original",true).data([pitch_track]).attr('d', function (d) {
     return pitch_valueline(d);
 })
     .style('stroke', 'blue');
 
-pitch_viewplot.append('g').selectAll("circle")
+pitch_viewplot.append('g').selectAll("circle.original")
     .data(pitch_track)
     .enter().append("circle")
+    .classed("original",true)
     .attr("r", 5)
     .attr("cx", pitch_x_function)
     .attr("cy", function (d) {
@@ -96,7 +101,20 @@ function drawPitchTrack() {
         .attr("cx", pitch_x_function)
         .attr("cy", function (d) {
             return pitch_y(d.y);
-        });
+        })
+    .on("mouseover", function(d) {
+       div.transition()
+         .duration(200)
+         .style("opacity", .9);
+       div.html(d.x + "<br/>" + d.y)
+         .style("left", (d3.event.pageX) + "px")
+         .style("top", (d3.event.pageY - 28) + "px");
+       })
+     .on("mouseout", function(d) {
+       div.transition()
+         .duration(500)
+         .style("opacity", 0);
+       });
 }
 
 function resizePitch() {

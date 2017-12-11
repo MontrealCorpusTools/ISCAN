@@ -3,7 +3,7 @@ var pulse_x_function = function (d) {
 }
 
 
-pitch_viewplot.selectAll("circle")
+pitch_viewplot.selectAll("circle.original")
     .style("fill-opacity", 0.5);
 pitch_vis.selectAll("path.line")
     .style("stroke-opacity", 0.5);
@@ -28,45 +28,60 @@ var edited_pitch_points = pitch_viewplot.append('g').selectAll("circle")
     .attr("cx", pitch_x_function)
     .attr("cy", function (d) {
         return pitch_y(d.y);
-    }).style('fill', 'blue');
+    }).style('fill', 'blue')
+    .on("mouseover", function(d) {
+       div.transition()
+         .duration(200)
+         .style("opacity", .9);
+       div.html("time: " + d.x + "<br/>"+ "F0: " + d.y)
+         .style("left", (d3.event.pageX) + "px")
+         .style("top", (d3.event.pageY - 28) + "px");
+       })
+     .on("mouseout", function(d) {
+       div.transition()
+         .duration(500)
+         .style("opacity", 0);
+       });
 
 edited_pitch_points.on("click", function() {
   var coords = d3.mouse(this);
   if (!d3.event.ctrlKey) {
     pitch_viewplot.selectAll('circle.selected').style("fill", 'blue').classed("selected",false);
   }
-  d3.select(this).attr('class', 'selected').style("fill", "red");
+  d3.select(this).attr('class', 'selected edited').style("fill", "red");
 });
 
 var edited_pitch_line = pitch_viewplot.append("path")
-    .attr('class', 'edited')
-    .attr("class", "line").data([edited_pitch_track]).attr('d', function (d) {
+    .attr("class", "line")
+    .classed("edited",true).data([edited_pitch_track]).attr('d', function (d) {
         return pitch_valueline(d);
     })
     .style('stroke', 'blue');
 
 
 function updateEditedTrack() {
+    console.log(edited_pitch_track);
     edited_pitch_line = edited_pitch_line.data([edited_pitch_track]);
     edited_pitch_line.enter().append("path")
         .attr("class", "line")
+    .classed("edited",true)
         .style('stroke', 'blue');
     edited_pitch_line.attr('d', function (d) {
         return pitch_valueline(d);
     });
     edited_pitch_line.exit().remove();
 
+    var circles = pitch_viewplot.selectAll('circle.edited').data(edited_pitch_track);
 
-    edited_pitch_points = edited_pitch_points.data(edited_pitch_track);
-    edited_pitch_points.enter().append("circle")
+    circles.enter().append("circle")
         .attr('class', 'edited')
         .attr("r", 5).style('fill', 'blue');
-    edited_pitch_points
+    circles
         .attr("cx", pitch_x_function)
         .attr("cy", function (d) {
             return pitch_y(d.y);
         });
-    edited_pitch_points.exit().remove();
+    circles.exit().remove();
 
     edited_pulse_line = waveform_viewplot.selectAll('line.edited').data(edited_pulses);
     edited_pulse_line.enter().append('line')
@@ -150,4 +165,14 @@ function smooth_selected() {
     pitch_y.domain([new_domain[0] - pitch_padding, new_domain[1] + pitch_padding]);
     resizePitch();
     drawPitchTrack();
+}
+
+function remove_selected(){
+    pitch_viewplot.selectAll('circle.selected').data().forEach(function(d){
+        var ind = edited_pitch_track.findIndex(function(e){return e['x']==d['x'];});
+        edited_pitch_track.splice(ind, 1)
+        console.log(ind);
+    });
+    updateEditedTrack();
+    pitch_viewplot.selectAll('circle.selected').style("fill", 'blue').classed("selected",false);
 }
