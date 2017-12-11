@@ -1,6 +1,7 @@
 from django.conf.urls import url
 from . import views
 
+app_name = 'pgdb'
 urlpatterns = [
     url(r'^api/database/$', views.create_database, name='create_database_api'),
     url(r'^api/start/$', views.start_database, name='start_database_api'),
