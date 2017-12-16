@@ -8,10 +8,13 @@ import json
 from polyglotdb import CorpusContext
 from pgdb.models import Corpus
 from .forms import PitchAnalysisForm
+import librosa
+from scipy.io import wavfile
 
 from .models import ItemType
 
 from rest_framework import status
+
 
 class IntonationView(TemplateView):
     template_name = 'intonation/bestiary_plot.html'
@@ -46,7 +49,7 @@ class IntonationView(TemplateView):
             track_column.num_points = 100
             track_column.attribute.relative_time = relative_time
             q = q.columns(c.utterance.id.column_name('utterance_id'),
-                c.utterance.discourse.name.column_name('discourse'),
+                          c.utterance.discourse.name.column_name('discourse'),
                           c.utterance.speaker.name.column_name('speaker'),
                           c.utterance.discourse.context.column_name('context'),
                           c.utterance.discourse.item.column_name('item'),
@@ -101,10 +104,11 @@ class DetailView(TemplateView):
         context['utterance_id'] = utterance_id
         padding = 0.1
         with CorpusContext(corpus.config) as c:
-            q = c.query_graph(c.utterance).filter(c.utterance.id == utterance_id).columns(c.utterance.begin.column_name('begin'),
-                                                                                          c.utterance.end.column_name('end'),
-                                                                                          c.utterance.discourse.name.column_name('discourse'),
-                                                                                          c.utterance.pitch.track)
+            q = c.query_graph(c.utterance).filter(c.utterance.id == utterance_id).columns(
+                c.utterance.begin.column_name('begin'),
+                c.utterance.end.column_name('end'),
+                c.utterance.discourse.name.column_name('discourse'),
+                c.utterance.pitch.track)
             utterance_info = q.all()[0]
             begin = utterance_info['begin'] - padding
             if begin < 0:
@@ -139,11 +143,13 @@ class DetailView(TemplateView):
     def get_spec_gram(self, corpus, utterance_info, begin, end):
         dataset = {}
         with CorpusContext(corpus.config) as c:
-            data, time_step, freq_step = c.generate_spectrogram(utterance_info['discourse'], 'consonant', begin=begin, end=end)
+            data, time_step, freq_step = c.generate_spectrogram(utterance_info['discourse'], 'consonant', begin=begin,
+                                                                end=end)
             reshaped = []
             for i in range(data.shape[0]):
                 for j in range(data.shape[1]):
-                    reshaped.append({'time': j * time_step + utterance_info['begin'], 'frequency': i * freq_step, 'power': float(data[i, j])})
+                    reshaped.append({'time': j * time_step + utterance_info['begin'], 'frequency': i * freq_step,
+                                     'power': float(data[i, j])})
         dataset['values'] = reshaped
         dataset['time_step'] = time_step
         dataset['freq_step'] = freq_step
@@ -165,10 +171,11 @@ class EditPitchView(DetailView):
         context['utterance_id'] = utterance_id
         padding = 0.1
         with CorpusContext(corpus.config) as c:
-            q = c.query_graph(c.utterance).filter(c.utterance.id == utterance_id).columns(c.utterance.begin.column_name('begin'),
-                                                                                          c.utterance.end.column_name('end'),
-                                                                                          c.utterance.discourse.name.column_name('discourse'),
-                                                                                          c.utterance.pitch.track)
+            q = c.query_graph(c.utterance).filter(c.utterance.id == utterance_id).columns(
+                c.utterance.begin.column_name('begin'),
+                c.utterance.end.column_name('end'),
+                c.utterance.discourse.name.column_name('discourse'),
+                c.utterance.pitch.track)
             utterance_info = q.all()[0]
             begin = utterance_info['begin'] - padding
             if begin < 0:
@@ -202,29 +209,53 @@ def generate_pitch_track(request, corpus, utterance_id):
             track.append({'x': k, 'y': v})
         pitch_data['pitch_track'] = track
         pitch_data['pulses'] = [{'x': x} for x in sorted(pulses)]
-        #pitch_data['pulses'] = []
+        # pitch_data['pulses'] = []
         return JsonResponse(pitch_data, safe=False)
     else:
         return JsonResponse(data=form.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
 def save_pitch_track(request, corpus, utterance_id):
     data = json.loads(request.body)
     print(data)
     corpus = Corpus.objects.get(name=corpus)
     with CorpusContext(corpus.config) as c:
-        c.update_utterance_pitch_track(utterance_id, [{'time':x['x'], 'F0':x['y']} for x in data])
+        c.update_utterance_pitch_track(utterance_id, [{'time': x['x'], 'F0': x['y']} for x in data])
     return JsonResponse(data={'success': True})
+
 
 def sound_file(request, corpus, utterance_id):
     corpus = Corpus.objects.get(name=corpus)
     with CorpusContext(corpus.config) as c:
-        q = c.query_graph(c.utterance).filter(c.utterance.id == utterance_id).columns(c.utterance.begin.column_name('begin'),
-                                                                                      c.utterance.end.column_name('end'),
-                                                                                      c.utterance.discourse.name.column_name('discourse'),
-                                                                                      c.utterance.pitch.track)
-        utterance_info = q.all()[0]
-        fname = c.discourse_sound_file(utterance_info['discourse'])["consonant_file_path"]
+        fname = c.utterance_sound_file(utterance_id, 'consonant')
+
     response = FileResponse(open(fname, "rb"))
-    # response['Content-Type'] = 'audio/wav'
+        # response['Content-Type'] = 'audio/wav'
     # response['Content-Length'] = os.path.getsize(fname)
     return response
+
+
+def export_pitch_tracks(request, corpus):
+    import csv
+    corpus = Corpus.objects.get(name=corpus)
+    with CorpusContext(corpus.config) as c:
+        q = c.query_graph(c.word).columns(c.word.speaker.name.column_name('speaker'),
+                                          c.word.speaker.gender.column_name('speaker_gender'),
+                                          c.word.discourse.name.column_name('filename'),
+                                          c.word.discourse.context.column_name('context'),
+                                          c.word.discourse.item.column_name('item'),
+                                          c.word.discourse.condition.column_name('condition'),
+                                          c.word.discourse.contour.column_name('contour'),
+                                          c.word.label.column_name('word'),
+                                          c.word.begin.column_name('begin'),
+                                          c.word.end.column_name('end'),
+                                          c.word.utterance.begin.column_name('utterance_begin'),
+                                          c.word.utterance.end.column_name('utterance_end'),
+                                          c.word.pitch.track
+                                          )
+        response = HttpResponse(content_type='text/csv')
+        response['Content-Disposition'] = 'attachment; filename="F0_tracks.csv"'
+
+        writer = csv.writer(response)
+        q.to_csv(writer)
+        return response

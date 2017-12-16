@@ -2,110 +2,121 @@
 {% load static %}
 
 {% block extrahead %}
-<style>
-    .svg-container {
-    display: inline-block;
-    position: relative;
-    width: 100%;
-    //padding-bottom: 100%; /* aspect ratio */
-    vertical-align: top;
-    overflow: hidden;
-}
-.svg-content-responsive {
-    display: inline-block;
-    position: absolute;
-    top: 10px;
-    left: 0;
-}
-.row {
-    white-space: nowrap;
-}
+    <style>
+        .svg-container {
+            display: inline-block;
+            position: relative;
+            width: 100%;
+        / / padding-bottom: 100 %; /* aspect ratio */
+            vertical-align: top;
+            overflow: hidden;
+        }
 
-#chart{
-    overflow:scroll;
-}
+        .svg-content-responsive {
+            display: inline-block;
+            position: absolute;
+            top: 10px;
+            left: 0;
+        }
 
-#filters,#facets{
+        .row {
+            white-space: nowrap;
+        }
 
-  height: 30%;
-  overflow: auto;
- float: top;
-}
+        #chart {
+            overflow: scroll;
+        }
 
+        #filters, #facets {
 
-.filter{
+            height: 30%;
+            overflow: auto;
+            float: top;
+        }
 
-  width: 100%;
-  height: 10%;
-  overflow: auto;
- float: top;
-}
+        .filter {
 
-.facet{
-  width: 100%;
-  height: 10%;
-  overflow: auto;
+            width: 100%;
+            height: 10%;
+            overflow: auto;
+            float: top;
+        }
 
-}
-</style>
-<!--<script src="{% static "intonation/js/d3.min.js" %}" charset="utf-8"></script>-->
-<script src="{% static "intonation/js/d3.min.js" %}" charset="utf-8"></script>
-<script src="{% static "intonation/js/bestiary.js" %}" charset="utf-8"></script>
+        .facet {
+            width: 100%;
+            height: 10%;
+            overflow: auto;
+
+        }
+    </style>
+    <!--<script src="{% static "intonation/js/d3.min.js" %}" charset="utf-8"></script>-->
+    <script src="{% static "intonation/js/d3.min.js" %}" charset="utf-8"></script>
+    <script src="{% static "intonation/js/bestiary.js" %}" charset="utf-8"></script>
 
 {% endblock %}
 
 {% block content %}
-<div id="chart">
-</div>
+    <div id="chart">
+    </div>
 {% endblock %}
 
 {% block sidebar %}
     <div id="filters"></div>
     <div id="facets"></div>
-            <script>
-            function generate_sound_file_url(name){
-    return "{% url 'intonation:sound_file' corpus=111222 utterance_id=112233 %}".replace("112233", name).replace("111222", "{{corpus}}");
-}
-            function generate_view_url(name){
-    return "{% url 'intonation:view_utterance' corpus=111222 utterance_id=112233 %}".replace("112233", name).replace("111222", "{{corpus}}");
-}
+    <div id="export">
+
+    </div>
+    <script>
+        function generate_sound_file_url(name) {
+            return "{% url 'intonation:sound_file' corpus=111222 utterance_id=112233 %}".replace("112233", name).replace("111222", "{{corpus}}");
+        }
+
+        function generate_view_url(name) {
+            return "{% url 'intonation:view_utterance' corpus=111222 utterance_id=112233 %}".replace("112233", name).replace("111222", "{{corpus}}");
+        }
+
         var color = d3.scaleOrdinal(d3.schemeCategory20);
-            var margin = {top: 1, right: 30, bottom: 55, left: 40};
-    var width = parseInt(d3.select('#chart').style('width'), 10);
-    width = width - margin.left - margin.right;
-    var height = 400;
-                    var metadata = {{metadata|safe}};
-                    var extents = {{extents|safe}};
+        var margin = {top: 1, right: 30, bottom: 55, left: 40};
+        var width = parseInt(d3.select('#chart').style('width'), 10);
+        width = width - margin.left - margin.right;
+        var height = 400;
+        var metadata = {{metadata|safe}};
+        var extents = {{extents|safe}};
 
-                    var x = d3.scaleLinear().range([0, width]).nice();
-                        // Adjusted Close
-                    var y = d3.scaleLinear().range([height, 0]).nice();
+        var x = d3.scaleLinear().range([0, width]).nice();
+        // Adjusted Close
+        var y = d3.scaleLinear().range([height, 0]).nice();
 
-                    x.domain([extents['min_x'], extents['max_x']]);
-                    y.domain([extents['min_y'], extents['max_y']]);
+        x.domain([extents['min_x'], extents['max_x']]);
+        y.domain([extents['min_y'], extents['max_y']]);
 
-                    // Make x axis
-                    var xaxis = d3.axisBottom()
-                                      .scale(x)
-                                      .ticks(10);
+        // Make x axis
+        var xaxis = d3.axisBottom()
+            .scale(x)
+            .ticks(10);
 
-                    // Make y axis
-                    var yaxis = d3.axisLeft()
-                                      .scale(y)
-                                      .ticks(5);
+        // Make y axis
+        var yaxis = d3.axisLeft()
+            .scale(y)
+            .ticks(5);
 
-    var valueline = d3.line().defined(function(d) { return d.y!=null; })
-                          .x( function(d) { return x(d.x); })
-                          .y( function(d) { return y(d.y); })
-                    InitSelects(metadata);
+        var valueline = d3.line().defined(function (d) {
+            return d.y != null;
+        })
+            .x(function (d) {
+                return x(d.x);
+            })
+            .y(function (d) {
+                return y(d.y);
+            })
+        InitSelects(metadata);
 
-    var column = d3.select("#Column").node().value;
-    var row = d3.select("#Row").node().value;
-    var color_attribute = d3.select("#Color").node().value;
-                    var data = {{time_series|safe}};
-                    InitFacets();
+        var column = d3.select("#Column").node().value;
+        var row = d3.select("#Row").node().value;
+        var color_attribute = d3.select("#Color").node().value;
+        var data = {{time_series|safe}};
+        InitFacets();
 
 
-
-            </script>
+    </script>
 {% endblock %}

@@ -11,4 +11,6 @@ urlpatterns = [
     url(r'^(?P<corpus>\w+)/save/pitch/(?P<utterance_id>[-\w]+)/$', views.save_pitch_track, name='save_pitch'),
     url(r'^(?P<corpus>\w+)/wav_file/(?P<utterance_id>[-\w]+)/$', views.sound_file, name='sound_file'),
     url(r'^(?P<corpus>\w+)/annotate/(?P<utterance_id>[-\w]+)$', views.DetailView.as_view(), name='annotate'),
+    url(r'^(?P<corpus>\w+)/export_pitch/$', views.export_pitch_tracks, name='export_pitch'),
+
 ]

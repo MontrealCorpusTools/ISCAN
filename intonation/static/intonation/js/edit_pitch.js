@@ -17,6 +17,9 @@ pulse_x_function = function(d){ return xt(d.x);};
       .x(waveform_x_function);
   pitch_x_function = function(d) { return xt(d.x); };
     pitch_valueline = pitch_valueline.x(pitch_x_function);
+        waveform_playline.attr("x1", xt(selection_begin))
+            .attr("x2", xt(selection_begin));
+    waveform_viewplot.select("rect.selection").attr('x', xt(selection_begin)).attr('width', xt(selection_end) - xt(selection_begin));
   draw();
 }
 

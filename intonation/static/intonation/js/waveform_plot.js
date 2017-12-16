@@ -3,6 +3,8 @@ var waveform_y = d3.scaleLinear().range([waveform_height, 0]).nice();
 waveform_y.domain(d3.extent(waveform, function (d) {
     return d.y;
 }));
+var selection_begin = null;
+var selection_end = null;
 var waveform_padding = (waveform_y.domain()[1] - waveform_y.domain()[0]) * 0.05;
 waveform_y.domain([waveform_y.domain()[0] - waveform_padding, waveform_y.domain()[1] + waveform_padding]);
 
@@ -78,24 +80,78 @@ var waveform_pane = waveform_vis.append("rect")
     .attr("width", width)
     .attr("height", waveform_height);
 
+var drag = d3.drag()
+    .on("start", function () {
+        if (!snd.playing()) {
+            waveform_viewplot.selectAll('rect.selection').remove();
+            var coords = d3.mouse(this);
+            selection_begin = xt.invert(coords[0]);
+            waveform_playline.attr("x1", xt(selection_begin))
+                .attr("x2", xt(selection_begin));
+            snd.seek(selection_begin - begin_time);
+            waveform_viewplot.append("rect")
+                .attr('class', "selection")
+                .attr('x', coords[0])
+                .attr('y', 0)
+                .attr('width', 0)
+                .attr('height', waveform_height)
+                .attr('fill', 'red')
+                .attr('opacity', 0.3);
+        }
+    })
+    .on("drag", function () {
+        var p = d3.mouse(this);
+        var diff = p[0] - xt(selection_begin);
+        if (diff < 0) {
+            selection_begin = xt.invert(p[0]);
+            waveform_playline.attr("x1", xt(selection_begin))
+                .attr("x2", xt(selection_begin));
+            snd.seek(selection_begin - begin_time);
+            if (selection_end == null) {
+                selection_end = selection_begin + xt.invert(diff);
+            }
+            waveform_viewplot.select("rect.selection").attr('x', p[0]).attr('width', xt(selection_end) - xt(selection_begin));
+        }
+        else {
+            waveform_viewplot.select("rect.selection").attr('width', diff);
+            selection_end = xt.invert(p[0]);
+        }
+    });
+
 waveform_vis.call(d3.zoom()
     .scaleExtent(zoom_scales)
     .translateExtent([[0, 0], [width, waveform_height]])
     .on("zoom", zoomed)
-    .on('end', zoomended));
-
-function zoomended(){
-    var e = d3.event.sourceEvent;
-    if (e.button == 0 && e.movementX < 10){
+    .on('end', zoomended))
+    .on("mousedown.zoom", null)
+    .on("touchstart.zoom", null)
+    .on("touchmove.zoom", null)
+    .on("touchend.zoom", null)
+    .on('click', function () {
+        if (d3.event.defaultPrevented) return; // click suppressed
         if (!snd.playing()) {
             var coords = d3.mouse(this);
-            var time = xt.invert(coords[0]);
-            waveform_playline.attr("x1", xt(time))
-                .attr("x2", xt(time));
-            snd.seek(time);
+            var selection_begin = xt.invert(coords[0]);
+            selection_end = null;
+            waveform_playline.attr("x1", xt(selection_begin))
+                .attr("x2", xt(selection_begin));
+            snd.seek(selection_begin - begin_time);
+        }
+    })
+    .call(drag);
+
+function zoomended() {
+    var e = d3.event.sourceEvent;
+    console.log(e);
+    if (e != null && e.button == 0 && e.movementX < 10) {
+        if (!snd.playing()) {
+            var coords = d3.mouse(this);
+            selection_begin = xt.invert(coords[0]);
+            waveform_playline.attr("x1", xt(selection_begin))
+                .attr("x2", xt(selection_begin));
+            snd.seek(selection_begin - begin_time);
         }
     }
-    console.log(e);
 }
 
 function drawWaveform() {
@@ -120,7 +176,6 @@ function resizeWaveform() {
         .scaleExtent(zoom_scales)
         .translateExtent([[0, 0], [width, waveform_height]])
         .on("zoom", zoomed));
-
     waveform_height = parseInt(d3.select('#waveform').style('height'), 10) - margin.top - margin.bottom;
     d3.select('#waveform').select('svg').attr('height', waveform_height + margin.top + margin.bottom).attr('width', width + margin.right + margin.left);
     d3.select('#waveform_clip').attr('height', waveform_height).attr('width', width);
@@ -131,9 +186,14 @@ function resizeWaveform() {
 }
 
 function updatePlayLine() {
-    waveform_playline.attr('x1', xt(snd.seek()))
-        .attr('x2', xt(snd.seek()));
-        if (snd.playing()) {
-            requestAnimationFrame(updatePlayLine)
+    var actual_time = snd.seek() + begin_time
+    waveform_playline.attr('x1', xt(actual_time))
+        .attr('x2', xt(actual_time));
+    if (snd.playing()) {
+        if (selection_end != null && actual_time > selection_end - 0.1) {
+            snd.stop();
+            snd.seek(selection_begin - begin_time);
         }
+        requestAnimationFrame(updatePlayLine);
+    }
 }
