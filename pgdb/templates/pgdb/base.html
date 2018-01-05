@@ -1,17 +1,47 @@
+{% load static sekizai_tags %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <title>{% block title %} {{ title }}{% endblock %}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    {% render_block "css" %}
 
-{% block extrahead %}
-{% endblock %}
 </head>
+
+
+{% addtoblock "css" %}
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet"/>{% endaddtoblock %}
+{% addtoblock "css" %}
+    <link rel="stylesheet" href="{% static "css/main.css" %}"/>{% endaddtoblock %}
+
+{% addtoblock "js" %}
+    <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+{% endaddtoblock %}
+
+
+
 <body>
 
-{% block content %}
+{% block all-content %}
+    {% block header %}
+    {% endblock %}
+
+    <div class="container-fluid">
+        <div class="row">
+            <main>
+                {% block main-content %}
+
+                {% endblock %}
+            </main>
+        </div>
+    </div>
 {% endblock %}
-{% block scripts %}
-{% endblock %}
+
+
+{% render_block "js" %}
+
+
 </body>
 </html>

@@ -4,6 +4,8 @@ from . import views
 
 app_name = 'intonation'
 urlpatterns = [
+
+    url(r'^$', views.index, name='index'),
     url(r'^(?P<corpus>\w+)/$', views.IntonationView.as_view(), name='bestiary'),
     url(r'^(?P<corpus>\w+)/detail/(?P<utterance_id>[-\w]+)/$', views.DetailView.as_view(), name='view_utterance'),
     url(r'^(?P<corpus>\w+)/edit/pitch/(?P<utterance_id>[-\w]+)/$', views.EditPitchView.as_view(), name='edit_pitch'),

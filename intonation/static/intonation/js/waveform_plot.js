@@ -186,7 +186,7 @@ function resizeWaveform() {
 }
 
 function updatePlayLine() {
-    var actual_time = snd.seek() + begin_time
+    var actual_time = snd.seek() + begin_time;
     waveform_playline.attr('x1', xt(actual_time))
         .attr('x2', xt(actual_time));
     if (snd.playing()) {

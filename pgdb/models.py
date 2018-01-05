@@ -14,7 +14,8 @@ import polyglotdb.io as pgio
 from polyglotdb.config import CorpusConfig
 from polyglotdb.utils import get_corpora_list
 
-from .utils import download_influxdb, download_neo4j, extract_influxdb, extract_neo4j, make_influxdb_safe, get_pids, get_used_ports
+from .utils import download_influxdb, download_neo4j, extract_influxdb, extract_neo4j, make_influxdb_safe, get_pids, \
+    get_used_ports
 
 
 # Create your models here.
@@ -50,6 +51,10 @@ class Database(models.Model):
 
     def __str__(self):
         return self.name
+
+    @property
+    def num_corpora(self):
+        return self.corpora.count()
 
     @property
     def directory(self):
@@ -239,22 +244,27 @@ class Database(models.Model):
         try:
             os.kill(self.influxdb_pid, signal.SIGINT)
         except ProcessLookupError:
-            with open(self.log_path, 'a') as f:
-                f.write('Could not find influxdb running with PID {}\n'.format(self.influxdb_pid))
+            if os.path.exists(self.log_path):
+                with open(self.log_path, 'a') as f:
+                    f.write('Could not find influxdb running with PID {}\n'.format(self.influxdb_pid))
         except Exception as e:
-            with open(self.log_path, 'a') as f:
-                exc_type, exc_value, exc_traceback = sys.exc_info()
-                traceback.print_tb(exc_traceback, limit=1, file=f)
-        with open(self.neo4j_log_path, 'a') as logf:
-            neo4j_proc = subprocess.Popen([self.neo4j_exe_path, 'stop'],
-                                          stdout=logf,
-                                          stderr=logf,
-                                          stdin=subprocess.DEVNULL)
-            neo4j_proc.communicate()
-        while True:
-            pids = get_pids()
-            if self.influxdb_pid not in pids and self.neo4j_pid not in pids:
-                break
+            if os.path.exists(self.log_path):
+                with open(self.log_path, 'a') as f:
+                    exc_type, exc_value, exc_traceback = sys.exc_info()
+                    traceback.print_tb(exc_traceback, limit=1, file=f)
+
+        if os.path.exists(self.log_path):
+            with open(self.neo4j_log_path, 'a') as logf:
+                neo4j_proc = subprocess.Popen([self.neo4j_exe_path, 'stop'],
+                                              stdout=logf,
+                                              stderr=logf,
+                                              stdin=subprocess.DEVNULL)
+                neo4j_proc.communicate()
+
+            while True:
+                pids = get_pids()
+                if self.influxdb_pid not in pids and self.neo4j_pid not in pids:
+                    break
 
         self.influxdb_pid = None
         self.neo4j_pid = None

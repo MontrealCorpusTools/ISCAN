@@ -39,9 +39,12 @@ INSTALLED_APPS = [
     'django_celery_results',
     'pgdb',
     'intonation',
+    'corsheaders',
+    'sekizai',
 ]
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -64,6 +67,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'sekizai.context_processors.sekizai',
             ],
         },
     },
@@ -117,6 +121,13 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 
+STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+
+STATICFILES_DIRS = [
+    # os.path.join(ANGULAR_APP_DIR),
+    ('node_modules', os.path.join(BASE_DIR, 'node_modules')),
+]
+CORS_ORIGIN_ALLOW_ALL = True
 ## Polyglot-server settings
 
 SOURCE_DATA_DIRECTORY = os.path.join(BASE_DIR, 'test_data', 'source')

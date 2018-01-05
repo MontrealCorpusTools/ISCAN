@@ -15,6 +15,8 @@ from .models import ItemType
 
 from rest_framework import status
 
+def index(request):
+    return render(request, 'intonation/app.html')
 
 class IntonationView(TemplateView):
     template_name = 'intonation/bestiary_plot.html'

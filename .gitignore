@@ -12,6 +12,7 @@ __pycache__/
 *.sqlite3
 test_data/data/
 
+node_modules/
 # Distribution / packaging
 .Python
 env/

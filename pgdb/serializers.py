@@ -1,9 +1,20 @@
 from rest_framework import serializers
-from .models import Database
+from . import models
 
 
 class DatabaseSerializer(serializers.ModelSerializer):
+    status = serializers.SerializerMethodField()
+    num_corpora = serializers.ReadOnlyField()
+
     class Meta:
-        model = Database
-        fields = ('id', 'name', 'neo4j_http_port', 'neo4j_https_port', 'neo4j_bolt_port', 'neo4j_admin_port',
-                  'influxdb_http_port', 'influxdb_meta_port', 'influxdb_udp_port', 'influxdb_admin_port')
+        model = models.Database
+        fields = ('id', 'name', 'status', 'num_corpora', 'neo4j_http_port', 'influxdb_admin_port')
+
+    def get_status(self,obj):
+        return obj.get_status_display()
+
+
+class CorpusSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.Corpus
+        fields = '__all__'
