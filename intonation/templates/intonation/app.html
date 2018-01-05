@@ -88,21 +88,13 @@
     {% addtoblock "js" %}
         <script>
 
-    var STATIC_URL = '{{ STATIC_URL|escapejs }}';
-
-    var MEDIA_URL  = '{{ MEDIA_URL|escapejs }}';
 
     function static(path) {
 
-        return STATIC_URL + path;
+        return {% static "/" %} + path;
 
     }
 
-    function static_media(path) {
-
-        return MEDIA_URL + path;
-
-    }
 
 </script>
     <script src="{% static "intonation/js/d3.min.js" %}"></script>
