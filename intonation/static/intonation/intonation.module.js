@@ -14,8 +14,8 @@ var app = angular.module('intonation', [
     });
 
 
-app.constant('BASE_URL', 'http://127.0.0.1:8080/api/');
-app.constant('INTONATION_URL', 'http://127.0.0.1:8080/intonation/');
+app.constant('BASE_URL', 'http://prosodylab.org/pg/api/');
+app.constant('INTONATION_URL', 'http://prosodylab.org/pg/intonation/');
 
 app.config(function ($stateProvider, $urlRouterProvider) {
     $stateProvider
