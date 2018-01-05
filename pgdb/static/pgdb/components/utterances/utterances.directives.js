@@ -411,7 +411,7 @@ angular.module('pgdb.utterances')
     return {
         restrict: 'E',
         replace: true,
-        templateUrl: '/static/pgdb/components/utterances/pitch_plot.html',
+        templateUrl: static('pgdb/components/utterances/pitch_plot.html'),
         scope: {
             height: '=height',
             data: '=data',
