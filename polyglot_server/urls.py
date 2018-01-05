@@ -22,4 +22,4 @@ urlpatterns = [
                   path('admin/', admin.site.urls),
                   path('', include('pgdb.urls')),
                   path('intonation/', include('intonation.urls')),
-              ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+              ] + static('/static/', document_root=settings.STATIC_ROOT)
