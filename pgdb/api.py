@@ -200,6 +200,10 @@ class CorpusViewSet(viewsets.ModelViewSet):
             if res is None:
                 return Response([])
             for x in res:
+                if x['item'] is None:
+                    continue
+                if x['context'] is None:
+                    continue
                 d = {k: v for k, v in zip(x.columns, x.values)}
                 d['pitch_track'] = []
                 d['pitch_track'] = [ ]
