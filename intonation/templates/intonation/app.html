@@ -86,6 +86,25 @@
     </div>
 
     {% addtoblock "js" %}
+        <script>
+
+    var STATIC_URL = '{{ STATIC_URL|escapejs }}';
+
+    var MEDIA_URL  = '{{ MEDIA_URL|escapejs }}';
+
+    function static(path) {
+
+        return STATIC_URL + path;
+
+    }
+
+    function static_media(path) {
+
+        return MEDIA_URL + path;
+
+    }
+
+</script>
     <script src="{% static "intonation/js/d3.min.js" %}"></script>
         <script src="{% static "node_modules/angular/angular.js" %}"></script>
         <script src="{% static "node_modules/angular-ui-router/release/angular-ui-router.js" %}"></script>

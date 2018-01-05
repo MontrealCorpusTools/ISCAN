@@ -21,11 +21,11 @@ app.config(function ($stateProvider, $urlRouterProvider) {
     $stateProvider
         .state('bestiary-plot', {
             url: '/bestiary/:corpus_id',
-            templateUrl: '/static/intonation/bestiary-plot/bestiary_plot.html',
+            templateUrl: static('intonation/bestiary-plot/bestiary_plot.html'),
             controller: 'BestiaryPlotCtrl'
         }).state('utterance-detail', {
         url: '/utterances/:corpus_id/:utterance_id',
-        templateUrl: '/static/intonation/utterance-detail/utterance_detail.html',
+        templateUrl: static('intonation/utterance-detail/utterance_detail.html'),
         controller: 'UtteranceDetailCtrl'
     });
 
