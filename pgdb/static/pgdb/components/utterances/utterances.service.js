@@ -1,10 +1,10 @@
 angular.module('pgdb.utterances')
-    .service('Utterances', function ($http, BASE_URL, INTONATION_URL) {
-        var base_url = BASE_URL + 'corpora/';
+    .service('Utterances', function ($http, $location, __env) {
+        var base_url = __env.apiUrl + 'corpora/';
         var Utterances = {};
 
         Utterances.sound_file_url = function(corpus_id, id){
-            return INTONATION_URL + corpus_id + '/wav_file/' + id + '/';
+            return __env.intontationUrl + corpus_id + '/wav_file/' + id + '/';
         };
 
         Utterances.all = function (corpus_id, with_pitch) {
@@ -28,7 +28,7 @@ angular.module('pgdb.utterances')
         };
 
         Utterances.save_pitch_track = function(corpus_id, id, new_track){
-            return $http.post(INTONATION_URL + corpus_id + '/save/pitch/' + id + '/', new_track);
+            return $http.post(__env.intontationUrl + corpus_id + '/save/pitch/' + id + '/', new_track);
 
         };
 

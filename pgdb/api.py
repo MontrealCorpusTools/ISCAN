@@ -5,6 +5,8 @@ from rest_framework import generics, permissions, viewsets, status
 from rest_framework.response import Response
 from rest_framework.decorators import detail_route
 
+from neo4j import exceptions as neo4j_exceptions
+
 from polyglotdb import CorpusContext
 
 from . import models
@@ -91,6 +93,13 @@ class CorpusViewSet(viewsets.ModelViewSet):
     queryset = models.Corpus.objects.all()
     serializer_class = serializers.CorpusSerializer
 
+    def create(self, request, *args, **kwargs):
+        data = {k: v for k,v in request.data.items()}
+        data['database'] = models.Database.objects.get(pk = int(data['database']))
+        data['source_directory'] = os.path.join(settings.SOURCE_DATA_DIRECTORY, data['source_directory'])
+        instance = models.Corpus.objects.create(name=data['name'], input_format=data['format'], source_directory=data['source_directory'], database=data['database'])
+        return Response(self.serializer_class(instance).data)
+
     @detail_route(methods=['get'])
     def hierarchy(self, request, pk=None):
         corpus = self.get_object()
@@ -102,6 +111,8 @@ class CorpusViewSet(viewsets.ModelViewSet):
     @detail_route(methods=['post'])
     def import_corpus(self, request, pk=None):
         corpus = self.get_object()
+        if corpus.database.status == 'S':
+            return Response('Database is unavailable', status=status.HTTP_400_BAD_REQUEST)
         if corpus.status != 'NI':
             return Response('The corpus has already been imported.', status=status.HTTP_400_BAD_REQUEST)
         corpus.status = 'IR'
@@ -113,7 +124,7 @@ class CorpusViewSet(viewsets.ModelViewSet):
             t = import_corpus_task.delay(corpus.pk)
         return Response(status=status.HTTP_202_ACCEPTED)
 
-    @detail_route(methods=['get'])
+    @detail_route(methods=['post'])
     def query(self, request, pk=None):
         corpus = self.get_object()
         data = request.data
@@ -236,50 +247,52 @@ class UtteranceViewSet(viewsets.ViewSet):
         with_pitch = request.query_params.get('with_pitch', False)
         with_waveform = request.query_params.get('with_waveform', False)
         with_spectrogram = request.query_params.get('with_spectrogram', False)
+        try:
+            with CorpusContext(corpus.config) as c:
+                q = c.query_graph(c.utterance)
+                q = q.filter(c.utterance.id == pk)
+                track_column = c.utterance.pitch.track
+                q = q.columns(c.utterance.id.column_name('utterance_id'),
+                              c.utterance.word.label.column_name('label'),
+                              c.utterance.discourse.name.column_name('discourse'),
+                              c.utterance.speaker.name.column_name('speaker'),
+                              c.utterance.discourse.context.column_name('context'),
+                              c.utterance.discourse.item.column_name('item'),
+                              c.utterance.end.column_name('end'),
+                              c.utterance.begin.column_name('begin'),
+                              )
+                if with_pitch:
+                    q = q.columns(track_column)
 
-        with CorpusContext(corpus.config) as c:
-            q = c.query_graph(c.utterance)
-            q = q.filter(c.utterance.id == pk)
-            track_column = c.utterance.pitch.track
-            q = q.columns(c.utterance.id.column_name('utterance_id'),
-                          c.utterance.word.label.column_name('label'),
-                          c.utterance.discourse.name.column_name('discourse'),
-                          c.utterance.speaker.name.column_name('speaker'),
-                          c.utterance.discourse.context.column_name('context'),
-                          c.utterance.discourse.item.column_name('item'),
-                          c.utterance.end.column_name('end'),
-                          c.utterance.begin.column_name('begin'),
-                          )
-            if with_pitch:
-                q = q.columns(track_column)
+                res = q.all()
+                if res is None:
+                    return Response(None)
+                for x in res:
+                    if x['item'] is None:
+                        continue
+                    if x['context'] is None:
+                        continue
+                    d = {k: v for k, v in zip(x.columns, x.values)}
+                    d['pitch_track'] = [{'x': round(float(k), 2), 'y': v['F0']} for k, v in x.track.items()]
+                    if with_waveform:
+                        signal, sr = c.load_waveform(x['discourse'], 'vowel', begin=x['begin'], end=x['end'])
+                        step = 1 / sr
+                        d['waveform'] = [{'y': float(p), 'x': i * step + x['begin']} for i, p in enumerate(signal)]
+                    if with_spectrogram:
+                        orig, time_step, freq_step = c.generate_spectrogram(x['discourse'], 'consonant', begin=x['begin'],
+                                                                            end=x['end'])
+                        reshaped = []
+                        for i in range(orig.shape[0]):
+                            for j in range(orig.shape[1]):
+                                reshaped.append({'time': j * time_step + x['begin'], 'frequency': i * freq_step,
+                                                 'power': float(orig[i, j])})
+                        d['spectrogram'] = {'values': reshaped,
+                                            'time_step': time_step,
+                                            'freq_step': freq_step,
+                                            'num_time_bins': orig.shape[1],
+                                            'num_freq_bins': orig.shape[0]}
 
-            res = q.all()
-            if res is None:
-                return Response(None)
-            for x in res:
-                if x['item'] is None:
-                    continue
-                if x['context'] is None:
-                    continue
-                d = {k: v for k, v in zip(x.columns, x.values)}
-                d['pitch_track'] = [{'x': round(float(k), 2), 'y': v['F0']} for k, v in x.track.items()]
-                if with_waveform:
-                    signal, sr = c.load_waveform(x['discourse'], 'vowel', begin=x['begin'], end=x['end'])
-                    step = 1 / sr
-                    d['waveform'] = [{'y': float(p), 'x': i * step + x['begin']} for i, p in enumerate(signal)]
-                if with_spectrogram:
-                    orig, time_step, freq_step = c.generate_spectrogram(x['discourse'], 'consonant', begin=x['begin'],
-                                                                        end=x['end'])
-                    reshaped = []
-                    for i in range(orig.shape[0]):
-                        for j in range(orig.shape[1]):
-                            reshaped.append({'time': j * time_step + x['begin'], 'frequency': i * freq_step,
-                                             'power': float(orig[i, j])})
-                    d['spectrogram'] = {'values': reshaped,
-                                        'time_step': time_step,
-                                        'freq_step': freq_step,
-                                        'num_time_bins': orig.shape[1],
-                                        'num_freq_bins': orig.shape[0]}
-
-                return Response(d)
+                    return Response(d)
             return Response(None)
+        except neo4j_exceptions.ServiceUnavailable:
+            return Response(None, status=status.HTTP_423_LOCKED)

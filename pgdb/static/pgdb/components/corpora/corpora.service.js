@@ -1,7 +1,7 @@
 
 angular.module('pgdb.corpora')
-    .service('Corpora', function ($http, BASE_URL) {
-    var base_url = BASE_URL + 'corpora/';
+    .service('Corpora', function ($http, __env) {
+    var base_url = __env.apiUrl + 'corpora/';
     var Corpora = {};
 
     Corpora.all = function () {

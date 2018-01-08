@@ -1,7 +1,7 @@
 
 angular.module('pgdb.databases')
-    .service('Databases', function ($http, BASE_URL) {
-    var base_url = BASE_URL + 'databases/';
+    .service('Databases', function ($http, __env) {
+    var base_url = __env.apiUrl + 'databases/';
     var Databases = {};
 
     Databases.all = function () {

@@ -1,3 +1,10 @@
+var env = {};
+
+// Import variables if present (from env.js)
+if(window){
+  Object.assign(env, window.__env);
+}
+
 var app = angular.module('intonation', [
     'ui.router',
     'ngCookies',
@@ -14,8 +21,7 @@ var app = angular.module('intonation', [
     });
 
 
-app.constant('BASE_URL', 'http://prosodylab.org/pg/api/');
-app.constant('INTONATION_URL', 'http://prosodylab.org/pg/intonation/');
+app.constant('__env', env);
 
 app.config(function ($stateProvider, $urlRouterProvider) {
     $stateProvider

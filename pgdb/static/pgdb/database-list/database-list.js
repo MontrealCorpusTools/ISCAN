@@ -1,12 +1,18 @@
 angular.module('databaseList', [
     'pgdb.databases'
 ])
-    .controller('DatabaseListCtrl', function ($scope, Databases, $state, $location) {
+    .controller('DatabaseListCtrl', function ($scope, Databases, Corpora, $state, $location) {
         $scope.start_button = 'Start';
         $scope.stop_button = 'Stop';
         $scope.delete_button = 'Delete';
         $scope.host = $location.host();
         $scope.newDatabase = {};
+
+        Corpora.all().then(function (res){
+            $scope.corpora = res.data;
+            console.log($scope.corpora);
+        });
+
         $scope.addDatabase = function () {
             Databases.addOne($scope.newDatabase).then($scope.refreshDatabases);
             $scope.newDatabase = {}

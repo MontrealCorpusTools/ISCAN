@@ -15,9 +15,13 @@ class DatabaseSerializer(serializers.ModelSerializer):
 
 
 class CorpusSerializer(serializers.ModelSerializer):
+    status = serializers.SerializerMethodField()
     class Meta:
         model = models.Corpus
         fields = '__all__'
+
+    def get_status(self, obj):
+        return obj.get_status_display()
 
 
 class QueryResultsSerializer(object):

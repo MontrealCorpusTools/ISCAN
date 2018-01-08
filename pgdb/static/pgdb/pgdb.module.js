@@ -1,10 +1,21 @@
+var env = {};
+
+// Import variables if present (from env.js)
+if (window) {
+    Object.assign(env, window.__env);
+}
+
 var app = angular.module('pgdb', [
     'ui.router',
     'ngCookies',
     'ngMaterial',
+    'angular-mousetrap',
     'databaseList',
     'databaseDetail',
-    'corpusDetail'
+    'corpusDetail',
+    'bestiaryPlot',
+    'utteranceDetail',
+    'navbar'
 ]).run(
     function ($http, $cookies) {
         $http.defaults.headers.post['X-CSRFToken'] = $cookies.csrftoken;
@@ -14,7 +25,7 @@ var app = angular.module('pgdb', [
     });
 
 
-app.constant('BASE_URL', 'http://prosodylab.org/pg/api/');
+app.constant('__env', env);
 
 app.config(function ($stateProvider, $urlRouterProvider) {
     $stateProvider
@@ -30,6 +41,14 @@ app.config(function ($stateProvider, $urlRouterProvider) {
         url: '/corpora/:corpus_id',
         templateUrl: static('pgdb/corpus-detail/corpus_detail.html'),
         controller: 'CorpusDetailCtrl'
+    }).state('bestiary-plot', {
+        url: '/bestiary/:corpus_id',
+        templateUrl: static('intonation/bestiary-plot/bestiary_plot.html'),
+        controller: 'BestiaryPlotCtrl'
+    }).state('utterance-detail', {
+        url: '/utterances/:corpus_id/:utterance_id',
+        templateUrl: static('intonation/utterance-detail/utterance_detail.html'),
+        controller: 'UtteranceDetailCtrl'
     });
 
     $urlRouterProvider.otherwise('/');

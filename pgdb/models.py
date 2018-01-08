@@ -136,10 +136,8 @@ class Database(models.Model):
         :return:
         """
         if self.status in ['R']:
-            print('R status')
             return False
         if self.influxdb_pid is not None or self.neo4j_pid is not None:
-            print('pids are not None')
             return False
         try:
             with open(self.influxdb_log_path, 'a') as logf:
@@ -160,7 +158,6 @@ class Database(models.Model):
             stdout, stderr = proc.communicate()
             for line in stdout.decode('utf8').splitlines():
                 if 'neo4j' in line and 'java' in line:
-                    print(line.strip().split())
                     existing_neo4js.append(int(line.strip().split()[0]))
 
             with open(self.neo4j_log_path, 'a') as logf:
@@ -252,8 +249,9 @@ class Database(models.Model):
                 with open(self.log_path, 'a') as f:
                     exc_type, exc_value, exc_traceback = sys.exc_info()
                     traceback.print_tb(exc_traceback, limit=1, file=f)
-
-        if os.path.exists(self.log_path):
+        if not os.path.exists(self.neo4j_exe_path):
+            pass
+        elif os.path.exists(self.neo4j_log_path):
             with open(self.neo4j_log_path, 'a') as logf:
                 neo4j_proc = subprocess.Popen([self.neo4j_exe_path, 'stop'],
                                               stdout=logf,
@@ -265,7 +263,17 @@ class Database(models.Model):
                 pids = get_pids()
                 if self.influxdb_pid not in pids and self.neo4j_pid not in pids:
                     break
+        else:
+            neo4j_proc = subprocess.Popen([self.neo4j_exe_path, 'stop'],
+                                          stdout=subprocess.DEVNULL,
+                                          stderr=subprocess.DEVNULL,
+                                          stdin=subprocess.DEVNULL)
+            neo4j_proc.communicate()
 
+            while True:
+                pids = get_pids()
+                if self.influxdb_pid not in pids and self.neo4j_pid not in pids:
+                    break
         self.influxdb_pid = None
         self.neo4j_pid = None
         self.status = 'S'

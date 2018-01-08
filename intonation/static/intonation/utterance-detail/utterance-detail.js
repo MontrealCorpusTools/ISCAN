@@ -20,12 +20,15 @@ angular.module('utteranceDetail', [
             $scope.utterance = res.data;
             console.log($scope.utterance);
             $scope.initPlayer();
-        });
+        })
+            .catch(function (data) {
+                if (data.status === 423){
+                    $scope.utterance = {};
+                }
+            });
 
         Corpora.one($stateParams.corpus_id).then(function (res) {
             $scope.corpus = res.data;
-            console.log($scope.corpus);
-            $scope.initPlayer();
         });
 
         $scope.initPlayer = function () {
