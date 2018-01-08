@@ -8,13 +8,12 @@ angular.module('pgdb.utterances')
         };
 
         Utterances.all = function (corpus_id, with_pitch) {
-            return $http.get(base_url + corpus_id + '/utterances/');
+            return $http.get(base_url + corpus_id + '/utterances/', {params: {with_pitch: with_pitch}});
         };
 
         Utterances.one = function (corpus_id, id, with_pitch, with_waveform, with_spectrogram) {
-            return $http.get(base_url + corpus_id + '/utterances/', {
+            return $http.get(base_url + corpus_id + '/utterances/' + id + '/', {
                 params: {
-                    utterance_id: id,
                     with_pitch: with_pitch,
                     with_waveform: with_waveform,
                     with_spectrogram: with_spectrogram

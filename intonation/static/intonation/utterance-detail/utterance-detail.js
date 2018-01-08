@@ -17,7 +17,7 @@ angular.module('utteranceDetail', [
     .controller('UtteranceDetailCtrl', function ($scope, Utterances, Corpora, $state, $stateParams, $document) {
         $scope.selection_begin = 0;
         Utterances.one($stateParams.corpus_id, $stateParams.utterance_id, true, true, true).then(function (res) {
-            $scope.utterance = res.data.utterances[0];
+            $scope.utterance = res.data;
             console.log($scope.utterance);
             $scope.initPlayer();
         });

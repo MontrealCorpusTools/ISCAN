@@ -284,7 +284,6 @@ angular.module('pgdb.utterances')
                 x.domain([x.domain()[0], newVal]);
             });
             scope.$watch('data', function (newVal, oldVal) {
-                console.log(newVal);
                 vis.selectAll("*").remove();
                 //pitch_viewplot.append('g').selectAll("circle.original").remove();
                 if (!newVal) {
@@ -447,7 +446,6 @@ angular.module('pgdb.utterances')
             });
 
             scope.$watch('data', function (newVal, oldVal) {
-                console.log(newVal);
                 vis.selectAll("*").remove();
                 //pitch_viewplot.append('g').selectAll("circle.original").remove();
                 if (!newVal) {
@@ -577,7 +575,6 @@ angular.module('pgdb.utterances')
 
                 var drag = d3.drag()
                     .on("start", function () {
-                        console.log('drag started!');
                         pitch_viewplot.selectAll('rect.selection').remove();
                         var coords = d3.mouse(this);
                         selection_begin = xt.invert(coords[0]);
@@ -645,7 +642,6 @@ angular.module('pgdb.utterances')
 
                 var line = pitch_viewplot.append('g');
                 var circles = pitch_viewplot.append('g');
-                console.log(newVal);
 
                 function updateTrack() {
                     line.selectAll('path').remove();
@@ -718,8 +714,7 @@ angular.module('pgdb.utterances')
                             return e['x'] == d['x'];
                         });
                         if (ind != 0 && ind != all_data.length - 1) {
-                            d['y'] = (all_data[ind + 1]['y'] - all_data[ind - 1]['y']) / 2 + all_data[ind - 1]['y']
-                            console.log(d['y']);
+                            d['y'] = (all_data[ind + 1]['y'] - all_data[ind - 1]['y']) / 2 + all_data[ind - 1]['y'];
                         }
                     });
                     //pitch_viewplot.selectAll('circle.selected').style("fill", 'blue').classed("selected",false);
@@ -793,8 +788,75 @@ angular.module('pgdb.utterances')
                     return y(d.y);
                 });
             scope.$watch('data', function (newVal, oldVal) {
-                console.log(newVal);
+                vis.selectAll("*").remove();
+                //pitch_viewplot.append('g').selectAll("circle.original").remove();
+                if (!newVal) {
+                    return;
+                }
+
+                    y.domain([50, 500]);
+
+                var svg = vis.append("svg")
+                //responsive SVG needs these 2 attributes and no width and height attr
+                //.attr("preserveAspectRatio", "xMinYMin meet")
+                //.attr("viewBox", "0 0 600 400")
+                //class to make it responsive
+                //.classed("svg-content-responsive", true)
+                    .attr("width", width + margin.left + margin.right)
+                    .attr("height", height + margin.top + margin.bottom)
+                    .append("g")
+                    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+                // x axis
+                svg.append("g")
+                    .attr("class", "x axis")
+                    .attr("transform", "translate(0," + height + ")")
+                    .call(xaxis);
+
+                // y axis
+                svg.append("g")
+                    .attr("class", "y axis")
+                    .call(yaxis);
+
+                var parameter = svg.selectAll(".parameter")
+                    .data(newVal, function (d) {
+                        return d.discourse;
+                    })
+                    .enter().append("g")
+                    .attr("class", "parameter");
+
+                parameter.append("path")
+                    .attr("class", "line")
+                    .attr("d", function (d) {
+                        return valueline(d.pitch_track);
+                    })
+                    .style("stroke", "black")
+                    .style("opacity", "0.3")
+                    .on("mouseover", mouseover)
+                    .on("mouseout", mouseout)
+                    .on("click", click);
             });
+
+            function click(d) {
+                if (d3.event.ctrlKey) {
+                    scope.$emit('DETAIL_REQUESTED', d.utterance_id);
+                }
+                else {
+                    scope.$emit('SOUND_REQUESTED', d.utterance_id);
+                }
+            }
+
+            function mouseover(d, i) {
+
+                d3.select(this).style("stroke", "red")
+                    .style("opacity", "1");
+
+            }
+
+            function mouseout(d, i) {
+                d3.select(this).style("stroke", "black")
+                    .style("opacity", "0.3");
+
+            }
 
         }
     }

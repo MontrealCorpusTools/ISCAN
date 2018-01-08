@@ -161,26 +161,51 @@ class CorpusViewSet(viewsets.ModelViewSet):
         return Response(status=status.HTTP_202_ACCEPTED)
 
     @detail_route(methods=['get'])
-    def utterances(self, request, pk=None):
-        with_pitch = request.query_params.get('with_pitch', False)
-        with_waveform = request.query_params.get('with_waveform', False)
-        with_spectrogram = request.query_params.get('with_spectrogram', False)
+    def utterance_pitch_track(self, request, pk=None):
+        utterance_id = request.query_params.get('utterance_id', None)
+        if utterance_id is None:
+            return Response(None)
+
+        source = request.query_params.get('source', 'praat')
+        min_pitch = int(request.query_params.get('min_pitch', 50))
+        max_pitch = int(request.query_params.get('max_pitch', 500))
+        corpus = self.get_object()
+        with CorpusContext(corpus.config) as c:
+            results = c.analyze_utterance_pitch(utterance_id, source=source, min_pitch=min_pitch, max_pitch=max_pitch)
+        pitch_data = {}
+        track = []
+        for datapoint in results:
+            v = datapoint['F0']
+            k = datapoint['time']
+            if v is None or v < 1:
+                continue
+            track.append({'x': k, 'y': v})
+        pitch_data['pitch_track'] = track
+        return Response(pitch_data['pitch_track'])
+
+
+class SourceChoiceViewSet(viewsets.ViewSet):
+    def list(self, request):
+        choices = os.listdir(settings.SOURCE_DATA_DIRECTORY)
+        return Response(choices)
+
+
+class UtteranceViewSet(viewsets.ViewSet):
+    def list(self, request, corpus_pk=None):
+        corpus = models.Corpus.objects.get(pk=corpus_pk)
         discourse = request.query_params.get('discourse', None)
         speaker = request.query_params.get('speaker', None)
-        utterance_id = request.query_params.get('utterance_id', None)
-        #relative_time = request.query_params.get('relative_time', True)
-        corpus = self.get_object()
+        with_pitch = request.query_params.get('with_pitch', False)
+        relative_time = request.query_params.get('relative_time', True)
         with CorpusContext(corpus.config) as c:
             q = c.query_graph(c.utterance)
             if discourse is not None:
                 q = q.filter(c.utterance.discourse.name == discourse)
             if speaker is not None:
                 q = q.filter(c.utterance.speaker.name == speaker)
-            if utterance_id is not None:
-                q = q.filter(c.utterance.id == utterance_id)
             track_column = c.utterance.pitch.track
             # track_column.num_points = 100
-            #track_column.attribute.relative_time = relative_time
+            track_column.attribute.relative_time = relative_time
             q = q.columns(c.utterance.id.column_name('utterance_id'),
                           c.utterance.discourse.name.column_name('discourse'),
                           c.utterance.speaker.name.column_name('speaker'),
@@ -192,10 +217,7 @@ class CorpusViewSet(viewsets.ModelViewSet):
             if with_pitch:
                 q = q.columns(track_column)
 
-            data = {'utterances': [],
-                    'metadata': {'min_x': None, 'max_x': None,
-                       'min_y': None, 'max_y': None,
-                         'speaker': set(), 'context': set(), 'item': set()}}
+            data = []
             res = q.all()
             if res is None:
                 return Response([])
@@ -205,25 +227,42 @@ class CorpusViewSet(viewsets.ModelViewSet):
                 if x['context'] is None:
                     continue
                 d = {k: v for k, v in zip(x.columns, x.values)}
-                d['pitch_track'] = []
-                d['pitch_track'] = [ ]
-                for k, v in x.track.items():
-                    point = {'x': round(float(k), 2), 'y': v['F0']}
-                    if point['x'] is not None:
-                        if data['metadata']['min_x'] is None or point['x'] < data['metadata']['min_x']:
-                            data['metadata']['min_x'] = point['x']
-                        if data['metadata']['max_x'] is None or point['x'] > data['metadata']['max_x']:
-                            data['metadata']['max_x'] = point['x']
-                    if point['y'] is not None:
-                        if data['metadata']['min_y'] is None or point['y'] < data['metadata']['min_y']:
-                            data['metadata']['min_y'] = point['y']
-                        if data['metadata']['max_y'] is None or point['y'] > data['metadata']['max_y']:
-                            data['metadata']['max_y'] = point['y']
-                item = str(x['item']).replace('.', '_')
-                context = x['context'].replace(' ', '_')
-                data['metadata']['speaker'].add(x['speaker'])
-                data['metadata']['item'].add(item)
-                data['metadata']['context'].add(context)
+                d['pitch_track'] = [{'x': round(float(k), 2), 'y': v['F0']} for k, v in x.track.items()]
+                data.append(d)
+        return Response(data)
+
+    def retrieve(self, request, pk=None, corpus_pk=None):
+        corpus = models.Corpus.objects.get(pk=corpus_pk)
+        with_pitch = request.query_params.get('with_pitch', False)
+        with_waveform = request.query_params.get('with_waveform', False)
+        with_spectrogram = request.query_params.get('with_spectrogram', False)
+
+        with CorpusContext(corpus.config) as c:
+            q = c.query_graph(c.utterance)
+            q = q.filter(c.utterance.id == pk)
+            track_column = c.utterance.pitch.track
+            q = q.columns(c.utterance.id.column_name('utterance_id'),
+                          c.utterance.word.label.column_name('label'),
+                          c.utterance.discourse.name.column_name('discourse'),
+                          c.utterance.speaker.name.column_name('speaker'),
+                          c.utterance.discourse.context.column_name('context'),
+                          c.utterance.discourse.item.column_name('item'),
+                          c.utterance.end.column_name('end'),
+                          c.utterance.begin.column_name('begin'),
+                          )
+            if with_pitch:
+                q = q.columns(track_column)
+
+            res = q.all()
+            if res is None:
+                return Response(None)
+            for x in res:
+                if x['item'] is None:
+                    continue
+                if x['context'] is None:
+                    continue
+                d = {k: v for k, v in zip(x.columns, x.values)}
+                d['pitch_track'] = [{'x': round(float(k), 2), 'y': v['F0']} for k, v in x.track.items()]
                 if with_waveform:
                     signal, sr = c.load_waveform(x['discourse'], 'vowel', begin=x['begin'], end=x['end'])
                     step = 1 / sr
@@ -242,33 +281,5 @@ class CorpusViewSet(viewsets.ModelViewSet):
                                         'num_time_bins': orig.shape[1],
                                         'num_freq_bins': orig.shape[0]}
 
-                data['utterances'].append(d)
-        return Response(data)
-
-    @detail_route(methods=['get'])
-    def utterance_pitch_track(self,request, pk=None):
-        utterance_id = request.query_params.get('utterance_id', None)
-        if utterance_id is None:
+                return Response(d)
             return Response(None)
-
-        source = request.query_params.get('source', 'praat')
-        min_pitch = int(request.query_params.get('min_pitch', 50))
-        max_pitch = int(request.query_params.get('max_pitch', 500))
-        corpus = self.get_object()
-        with CorpusContext(corpus.config) as c:
-            results= c.analyze_utterance_pitch(utterance_id, source=source, min_pitch=min_pitch, max_pitch=max_pitch)
-        pitch_data = {}
-        track = []
-        for datapoint in results:
-            v = datapoint['F0']
-            k = datapoint['time']
-            if v is None or v < 1:
-                continue
-            track.append({'x': k, 'y': v})
-        pitch_data['pitch_track'] = track
-        return Response(pitch_data['pitch_track'])
-
-class SourceChoiceViewSet(viewsets.ViewSet):
-    def list(self, request):
-        choices = os.listdir(settings.SOURCE_DATA_DIRECTORY)
-        return Response(choices)
