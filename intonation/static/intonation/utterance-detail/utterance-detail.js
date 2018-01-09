@@ -86,7 +86,7 @@ angular.module('utteranceDetail', [
             var actual_time = $scope.player.seek() + $scope.utterance.begin;
             if ($scope.player.playing()) {
                 $scope.$broadcast('UPDATEPLAY', actual_time);
-                if ($scope.selection_end != null && actual_time > $scope.selection_end - 0.005) {
+                if ($scope.selection_end != null && $scope.selection_begin != $scope.selection_end && actual_time > $scope.selection_end - 0.005) {
                     $scope.player.stop();
                     $scope.player.seek($scope.selection_begin - $scope.utterance.begin);
                 }
