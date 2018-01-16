@@ -4,6 +4,7 @@ import os
 import time
 from django.views.generic import TemplateView
 from django.http import HttpResponse, JsonResponse, FileResponse
+from rest_framework.response import Response
 import json
 from polyglotdb import CorpusContext
 from pgdb.models import Corpus
@@ -261,3 +262,35 @@ def export_pitch_tracks(request, corpus):
         writer = csv.writer(response)
         q.to_csv(writer)
         return response
+
+def get_next_utterance(request, corpus, utterance_id):
+    corpus = Corpus.objects.get(pk=corpus)
+    with CorpusContext(corpus.config) as c:
+        utt = c.query_graph(c.utterance).filter(c.utterance.id == utterance_id).preload(c.utterance.discourse).all()[0]
+        q = c.query_graph(c.utterance).filter(c.utterance.begin >= utt.end).limit(1).all()
+        if len(q):
+            return JsonResponse({'id': q[0].id})
+        for i, d in enumerate(sorted(c.discourses)):
+            if d == utt.discourse.name and i < len(c.discourses)-1:
+                d_name = c.discourses[i+1]
+                break
+        else:
+            return JsonResponse({'id': None})
+        utt = c.query_graph(c.utterance).filter(c.utterance.discourse.name == d_name).order_by(c.utterance.begin).limit(1).all()[0]
+        return JsonResponse({'id': utt.id})
+
+def get_previous_utterance(request, corpus, utterance_id):
+    corpus = Corpus.objects.get(pk=corpus)
+    with CorpusContext(corpus.config) as c:
+        utt = c.query_graph(c.utterance).filter(c.utterance.id == utterance_id).preload(c.utterance.discourse).all()[0]
+        q = c.query_graph(c.utterance).filter(c.utterance.end <= utt.begin).limit(1).all()
+        if len(q):
+            return JsonResponse({'id': q[0].id})
+        for i, d in enumerate(sorted(c.discourses)):
+            if d == utt.discourse.name and i > 0:
+                d_name = c.discourses[i-1]
+                break
+        else:
+            return JsonResponse({'id': None})
+        utt = c.query_graph(c.utterance).filter(c.utterance.discourse.name == d_name).order_by(c.utterance.begin).limit(1).all()[0]
+        return JsonResponse({'id': utt.id})

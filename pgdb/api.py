@@ -1,7 +1,7 @@
 import os
 
 from django.conf import settings
-from rest_framework import generics, permissions, viewsets, status
+from rest_framework import generics, permissions, viewsets, status, pagination
 from rest_framework.response import Response
 from rest_framework.decorators import detail_route
 
@@ -202,44 +202,51 @@ class SourceChoiceViewSet(viewsets.ViewSet):
 
 
 class UtteranceViewSet(viewsets.ViewSet):
+
     def list(self, request, corpus_pk=None):
         corpus = models.Corpus.objects.get(pk=corpus_pk)
-        discourse = request.query_params.get('discourse', None)
-        speaker = request.query_params.get('speaker', None)
-        with_pitch = request.query_params.get('with_pitch', False)
-        relative_time = request.query_params.get('relative_time', True)
+        params = {**request.query_params}
+
+        limit = int(params.pop('limit', [100])[0])
+        offset = int(params.pop('offset', [0])[0])
+        ordering = params.pop('ordering', [''])[0]
+        search = params.pop('search', [''])[0]
+        data = {}
         with CorpusContext(corpus.config) as c:
             q = c.query_graph(c.utterance)
-            if discourse is not None:
-                q = q.filter(c.utterance.discourse.name == discourse)
-            if speaker is not None:
-                q = q.filter(c.utterance.speaker.name == speaker)
-            track_column = c.utterance.pitch.track
-            # track_column.num_points = 100
-            track_column.attribute.relative_time = relative_time
-            q = q.columns(c.utterance.id.column_name('utterance_id'),
-                          c.utterance.discourse.name.column_name('discourse'),
-                          c.utterance.speaker.name.column_name('speaker'),
-                          c.utterance.discourse.context.column_name('context'),
-                          c.utterance.discourse.item.column_name('item'),
-                          c.utterance.end.column_name('end'),
-                          c.utterance.begin.column_name('begin'),
-                          )
-            if with_pitch:
-                q = q.columns(track_column)
-
-            data = []
+            for k, v in params.items():
+                k = k.split('.')
+                att = c.utterance
+                for f in k:
+                    att = getattr(att, f)
+                q = q.filter(att == v[0])
+            data['count'] = q.count()
+            if ordering:
+                desc = False
+                if ordering.startswith('-'):
+                    desc = True
+                    ordering = ordering[1:]
+                ordering = ordering.split('.')
+                att = c.utterance
+                for o in ordering:
+                    att = getattr(att, o)
+                q = q.order_by(att, desc)
+            else:
+                q = q.order_by(c.utterance.id)
+            q = q.limit(limit).offset(offset).preload(c.utterance.discourse, c.utterance.speaker)
             res = q.all()
-            if res is None:
-                return Response([])
-            for x in res:
-                if x['item'] is None:
-                    continue
-                if x['context'] is None:
-                    continue
-                d = {k: v for k, v in zip(x.columns, x.values)}
-                d['pitch_track'] = [{'x': round(float(k), 2), 'y': v['F0']} for k, v in x.track.items()]
-                data.append(d)
+            serializer = serializers.UtteranceSerializer(res, many=True)
+            data['results'] = serializer.data
+        data['next'] = None
+        if offset + limit < data['count']:
+            url = request.build_absolute_uri()
+            url = pagination.replace_query_param(url,'limit', limit)
+            data['next'] = pagination.replace_query_param(url, 'offset', offset+limit)
+        data['previous'] = None
+        if offset - limit >= 0:
+            url = request.build_absolute_uri()
+            url = pagination.replace_query_param(url,'limit', limit)
+            data['previous'] = pagination.replace_query_param(url, 'offset', offset-limit)
         return Response(data)
 
     def retrieve(self, request, pk=None, corpus_pk=None):

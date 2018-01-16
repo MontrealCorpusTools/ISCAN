@@ -7,8 +7,9 @@ angular.module('pgdb.utterances')
             return __env.intontationUrl + corpus_id + '/wav_file/' + id + '/';
         };
 
-        Utterances.all = function (corpus_id, with_pitch) {
-            return $http.get(base_url + corpus_id + '/utterances/', {params: {with_pitch: with_pitch}});
+        Utterances.all = function (corpus_id, offset, ordering, search, with_pitch) {
+            return $http.get(base_url + corpus_id + '/utterances/', {params: {with_pitch: with_pitch,
+                offset: offset, ordering: ordering, search:search}});
         };
 
         Utterances.one = function (corpus_id, id, with_pitch, with_waveform, with_spectrogram) {
@@ -30,6 +31,14 @@ angular.module('pgdb.utterances')
         Utterances.save_pitch_track = function(corpus_id, id, new_track){
             return $http.post(__env.intontationUrl + corpus_id + '/save/pitch/' + id + '/', new_track);
 
+        };
+
+        Utterances.get_next = function(corpus_id, id) {
+            return $http.get(__env.intontationUrl + corpus_id + '/get_next_utterance/' + id + '/');
+        };
+
+        Utterances.get_previous = function(corpus_id, id) {
+            return $http.get(__env.intontationUrl + corpus_id + '/get_previous_utterance/' + id + '/');
         };
 
         return Utterances;

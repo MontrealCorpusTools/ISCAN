@@ -15,6 +15,7 @@ var app = angular.module('pgdb', [
     'corpusDetail',
     'bestiaryPlot',
     'utteranceDetail',
+    'utteranceList',
     'navbar'
 ]).run(
     function ($http, $cookies) {
@@ -49,6 +50,10 @@ app.config(function ($stateProvider, $urlRouterProvider) {
         url: '/utterances/:corpus_id/:utterance_id',
         templateUrl: static('intonation/utterance-detail/utterance_detail.html'),
         controller: 'UtteranceDetailCtrl'
+    }).state('utterance-list', {
+        url: '/utterances/:corpus_id',
+        templateUrl: static('pgdb/utterance-list/utterance_list.html'),
+        controller: 'UtteranceListCtrl'
     });
 
     $urlRouterProvider.otherwise('/');

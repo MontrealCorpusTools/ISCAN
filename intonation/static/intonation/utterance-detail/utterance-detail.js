@@ -27,6 +27,14 @@ angular.module('utteranceDetail', [
                 }
             });
 
+        Utterances.get_next($stateParams.corpus_id, $stateParams.utterance_id).then(function (res){
+           $scope.next_id = res.data.id;
+        });
+
+        Utterances.get_previous($stateParams.corpus_id, $stateParams.utterance_id).then(function (res){
+           $scope.previous_id = res.data.id;
+        });
+
         Corpora.one($stateParams.corpus_id).then(function (res) {
             $scope.corpus = res.data;
         });
@@ -41,8 +49,10 @@ angular.module('utteranceDetail', [
                     requestAnimationFrame($scope.updatePlayLine)
                 }
             });
-
         };
+        $scope.$on('$locationChangeStart', function( event ) {
+            Howler.unload();
+});
         $scope.playPause = function () {
             console.log('playpausing!');
             if ($scope.player.playing()) {

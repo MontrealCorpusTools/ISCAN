@@ -16,6 +16,7 @@ class DatabaseSerializer(serializers.ModelSerializer):
 
 class CorpusSerializer(serializers.ModelSerializer):
     status = serializers.SerializerMethodField()
+
     class Meta:
         model = models.Corpus
         fields = '__all__'
@@ -31,3 +32,23 @@ class QueryResultsSerializer(object):
     @property
     def data(self):
         return list(self.query.all().to_json())
+
+
+class SpeakerSerializer(serializers.Serializer):
+    name = serializers.CharField()
+
+
+class DiscourseSerializer(serializers.Serializer):
+    name = serializers.CharField()
+    item = serializers.CharField()
+    context = serializers.CharField()
+
+
+class UtteranceSerializer(serializers.Serializer):
+    id = serializers.CharField()
+    begin = serializers.FloatField()
+    end = serializers.FloatField()
+    discourse = DiscourseSerializer()
+    speaker = SpeakerSerializer()
+    pitch_last_edited = serializers.CharField()
+    # discourse =serializers.CharField()
