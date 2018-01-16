@@ -211,6 +211,7 @@ class UtteranceViewSet(viewsets.ViewSet):
         offset = int(params.pop('offset', [0])[0])
         ordering = params.pop('ordering', [''])[0]
         search = params.pop('search', [''])[0]
+        with_pitch = params.pop('with_pitch', [False])[0]
         data = {}
         with CorpusContext(corpus.config) as c:
             q = c.query_graph(c.utterance)
@@ -234,6 +235,8 @@ class UtteranceViewSet(viewsets.ViewSet):
             else:
                 q = q.order_by(c.utterance.id)
             q = q.limit(limit).offset(offset).preload(c.utterance.discourse, c.utterance.speaker)
+            if with_pitch:
+                q = q.preload_acoustics('pitch')
             res = q.all()
             serializer = serializers.UtteranceSerializer(res, many=True)
             data['results'] = serializer.data

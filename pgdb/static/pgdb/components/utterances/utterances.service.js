@@ -7,9 +7,9 @@ angular.module('pgdb.utterances')
             return __env.intontationUrl + corpus_id + '/wav_file/' + id + '/';
         };
 
-        Utterances.all = function (corpus_id, offset, ordering, search, with_pitch) {
+        Utterances.all = function (corpus_id, offset, ordering, with_pitch) {
             return $http.get(base_url + corpus_id + '/utterances/', {params: {with_pitch: with_pitch,
-                offset: offset, ordering: ordering, search:search}});
+                offset: offset, ordering: ordering}});
         };
 
         Utterances.one = function (corpus_id, id, with_pitch, with_waveform, with_spectrogram) {

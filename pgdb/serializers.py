@@ -43,6 +43,10 @@ class DiscourseSerializer(serializers.Serializer):
     item = serializers.CharField()
     context = serializers.CharField()
 
+class PointSerializer(serializers.Serializer):
+    time = serializers.FloatField()
+    F0 = serializers.FloatField()
+
 
 class UtteranceSerializer(serializers.Serializer):
     id = serializers.CharField()
@@ -50,5 +54,6 @@ class UtteranceSerializer(serializers.Serializer):
     end = serializers.FloatField()
     discourse = DiscourseSerializer()
     speaker = SpeakerSerializer()
+    pitch_track = PointSerializer(many=True)
     pitch_last_edited = serializers.CharField()
     # discourse =serializers.CharField()
