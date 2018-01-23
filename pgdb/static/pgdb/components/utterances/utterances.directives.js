@@ -788,13 +788,13 @@ angular.module('pgdb.utterances') .filter('secondsToDateTime', [function () {
                 .ticks(5);
 
             var valueline = d3.line().defined(function (d) {
-                return d.y != null;
+                return d.F0 != null;
             })
                 .x(function (d) {
-                    return x(d.x);
+                    return x(d.time);
                 })
                 .y(function (d) {
-                    return y(d.y);
+                    return y(d.F0);
                 });
             scope.$watch('data', function (newVal, oldVal) {
                 vis.selectAll("*").remove();

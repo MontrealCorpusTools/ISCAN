@@ -60,7 +60,6 @@ angular.module('utteranceList', [
                 }
             }
             $scope.pages.push($scope.numPages);
-            console.log($scope.pages);
         };
 
         $scope.next = function () {
