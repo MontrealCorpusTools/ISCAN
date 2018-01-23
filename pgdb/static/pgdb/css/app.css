@@ -1,0 +1,36 @@
+div {
+    max-height: 100%;
+}
+.scroll-container {
+    min-height: 800px;
+    max-height: 100%;
+    overflow: hidden;
+}
+tr {
+    width: 100%;
+    display: inline-table;
+    table-layout: fixed;
+}
+
+table{
+    max-height:100%;              // <-- Select the height of the table
+        table-layout:fixed;
+}
+tbody{
+    overflow-y: scroll;
+    height: 85%;            //  <-- Select the height of the body
+    width: 100%;
+    position: absolute;
+}
+
+main {
+    min-height: 800px;
+    max-height:85%;
+}
+main .container-fluid {
+    min-height: 800px;
+}
+
+.single-row {
+    height:100%;
+}

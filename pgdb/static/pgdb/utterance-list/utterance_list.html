@@ -1,5 +1,4 @@
-<div class="row text-center">
-    <div class="col-md-9 scrollable">
+    <div class="col-md-9 scroll-container text-center">
         <input type="text" class="form-control" placeholder="Search..." ng-model="searchText"
                dl-enter-key="refreshSearch();">
 
@@ -20,15 +19,12 @@
                 <a ng-click="last()">Last</a>
             </li>
         </ul>
-        <table class="table table-bordered table-striped">
+        <table class="table table-bordered table-striped scrollable-table">
 
             <thead>
             <tr>
-                <td ng-click="refreshOrdering('id')">
-
-                    ID
-                    <span ng-show="ordering == 'id'" class="fa fa-caret-down"></span>
-                    <span ng-show="ordering == '-id'" class="fa fa-caret-up"></span>
+                <td>
+                    Utterance
                 </td>
                 <td ng-click="refreshOrdering('discourse.name')">
                     Discourse
@@ -53,8 +49,8 @@
                 <td ng-click="refreshOrdering('pitch_last_edited')">
 
                     Pitch last edited
-                    <span ng-show="ordering == 'id'" class="fa fa-caret-down"></span>
-                    <span ng-show="ordering == '-id'" class="fa fa-caret-up"></span>
+                    <span ng-show="ordering == 'pitch_last_edited'" class="fa fa-caret-down"></span>
+                    <span ng-show="ordering == '-pitch_last_edited'" class="fa fa-caret-up"></span>
                 </td>
             </tr>
             </thead>
@@ -62,7 +58,7 @@
             <tr ng-repeat="utt in utterances">
                 <td>
 
-                    <a ui-sref="utterance-detail({corpus_id: corpus.id, utterance_id: utt.id})">{{ utt.id}}</a>
+                    <a ui-sref="utterance-detail({corpus_id: corpus.id, utterance_id: utt.id})">{{ utt.discourse.name}} ({{ utt.begin }} to {{ utt.end }})</a>
                 </td>
                 <td>
 
@@ -74,11 +70,10 @@
                 </td>
                 <td> {{ utt.discourse.item }}</td>
                 <td>{{ utt.discourse.context }}</td>
-                <td>{{ utt.pitch_last_edited }}</td>
+                <td>{{ utt.pitch_last_edited | secondsToDateTime | date:'MM/dd/yy hh:mm:ss a' : '-1000'}}</td>
             </tr>
             </tbody>
 
         </table>
 
     </div>
-</div>

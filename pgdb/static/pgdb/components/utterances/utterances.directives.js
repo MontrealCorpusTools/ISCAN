@@ -1,8 +1,12 @@
-angular.module('pgdb.utterances')
+angular.module('pgdb.utterances') .filter('secondsToDateTime', [function () {
+        return function (seconds) {
+            return new Date(1970, 0, 1).setSeconds(seconds);
+        };
+    }])
     .directive('waveformPlot', function () {
 
         var margin = {top: 40, right: 30, bottom: 40, left: 90},
-            height = 400;
+            height = 300;
         var width = 900;
 
         return {
@@ -252,7 +256,7 @@ angular.module('pgdb.utterances')
     }).directive('spectrogramPlot', function () {
 
     var margin = {top: 40, right: 30, bottom: 40, left: 90},
-        height = 400;
+        height = 300;
     var width = 900;
     return {
         restrict: 'E',
@@ -404,7 +408,7 @@ angular.module('pgdb.utterances')
 }).directive('pitchPlot', function () {
 
     var margin = {top: 40, right: 30, bottom: 40, left: 90},
-        height = 400;
+        height = 300;
     var width = 900;
 
     return {
@@ -413,9 +417,7 @@ angular.module('pgdb.utterances')
         templateUrl: static('pgdb/components/utterances/pitch_plot.html'),
         scope: {
             height: '=height',
-            data: '=data',
-            begin: '=',
-            end: '=',
+            utterance: '=utterance',
             hovered: '&hovered'
         },
         link: function (scope, element, attrs) {
@@ -424,26 +426,13 @@ angular.module('pgdb.utterances')
             var x = d3.scaleLinear().range([0, width]).nice();
             var xt = x;
             var selection_begin, selection_end, selection_anchor;
-
+            scope.savable = true;
+            scope.save_pitch_text = 'Save pitch';
             scope.available_pitch_sources = ['praat', 'reaper'];
             scope.newPitchSettings = {};
             scope.newPitchSettings.source = 'praat';
             scope.newPitchSettings.min_pitch = 50;
             scope.newPitchSettings.max_pitch = 500;
-
-            scope.$watch('begin', function (newVal, oldVal) {
-                if (!newVal) {
-                    return;
-                }
-                x.domain([newVal, x.domain()[1]]);
-            });
-
-            scope.$watch('end', function (newVal, oldVal) {
-                if (!newVal) {
-                    return;
-                }
-                x.domain([x.domain()[0], newVal]);
-            });
 
             scope.$watch('data', function (newVal, oldVal) {
                 vis.selectAll("*").remove();
@@ -454,11 +443,26 @@ angular.module('pgdb.utterances')
 
                 scope.generateNewTrack = function () {
                     scope.$emit('TRACK_REQUESTED', scope.newPitchSettings);
+                    scope.save_pitch_text = 'Save pitch';
                 };
 
                 scope.saveTrack = function () {
-                    scope.$emit('SAVE_TRACK', newVal);
+                    if (scope.savable) {
+                        scope.$emit('SAVE_TRACK', newVal.pitch_track);
+                        scope.save_pitch_text = 'Saving...';
+
+                    }
+
                 };
+                scope.$on('SAVE_RESPONSE', function (e, res) {
+
+                    if (res.data.success) {
+                        scope.save_pitch_text = 'Saved!';
+                    }
+                    else {
+                        scope.save_pitch_text = 'Error';
+                    }
+                });
 
                 var div = d3.select("body").append("div")
                     .attr("class", "tooltip")
@@ -647,12 +651,12 @@ angular.module('pgdb.utterances')
                     line.selectAll('path').remove();
                     line.append("path")
                         .attr("class", "line")
-                        .classed("original", true).data([newVal]).attr('d', function (d) {
+                        .classed("original", true).data([newVal.pitch_track]).attr('d', function (d) {
                         return pitch_valueline(d);
                     })
                         .style('stroke', 'blue');
                     circles.selectAll('circle').remove();
-                    circles.selectAll('circle').data(newVal)
+                    circles.selectAll('circle').data(newVal.pitch_track)
                         .enter().append("circle")
                         .classed("original", true)
                         .attr("r", 5)
@@ -667,9 +671,10 @@ angular.module('pgdb.utterances')
                             }
                             d3.select(this).attr('class', 'selected').style("fill", "red");
                         });
-                    pitch_y.domain(d3.extent(newVal, function (d) {
+                    pitch_y.domain(d3.extent(newVal.pitch_track, function (d) {
                         return d.y;
                     }));
+                    x.domain([newVal.begin, newVal.end]);
                     pitch_padding = (pitch_y.domain()[1] - pitch_y.domain()[0]) * 0.05;
                     pitch_y.domain([pitch_y.domain()[0] - pitch_padding, pitch_y.domain()[1] + pitch_padding]);
 
@@ -690,6 +695,7 @@ angular.module('pgdb.utterances')
                     pitch_padding = (new_domain[1] - new_domain[0]) * 0.05;
                     pitch_y.domain([new_domain[0] - pitch_padding, new_domain[1] + pitch_padding]);
                     drawPitchTrack();
+                    scope.save_pitch_text = 'Save pitch';
                 };
 
                 scope.halveSelected = function () {
@@ -705,6 +711,7 @@ angular.module('pgdb.utterances')
                     pitch_padding = (new_domain[1] - new_domain[0]) * 0.05;
                     pitch_y.domain([new_domain[0] - pitch_padding, new_domain[1] + pitch_padding]);
                     drawPitchTrack();
+                    scope.save_pitch_text = 'Save pitch';
                 };
 
                 scope.smoothSelected = function () {
@@ -726,20 +733,22 @@ angular.module('pgdb.utterances')
                     pitch_padding = (new_domain[1] - new_domain[0]) * 0.05;
                     pitch_y.domain([new_domain[0] - pitch_padding, new_domain[1] + pitch_padding]);
                     drawPitchTrack();
+                    scope.save_pitch_text = 'Save pitch';
                 };
 
                 scope.removeSelected = function () {
                     pitch_viewplot.selectAll('circle.selected').data().forEach(function (d) {
-                        var ind = newVal.findIndex(function (e) {
+                        var ind = newVal.pitch_track.findIndex(function (e) {
                             return e['x'] == d['x'];
                         });
-                        newVal.splice(ind, 1);
+                        newVal.pitch_track.splice(ind, 1);
                     });
                     updateTrack();
                     pitch_viewplot.selectAll('circle.selected').style("fill", 'blue').classed("selected", false);
                 };
 
                 drawPitchTrack();
+                scope.save_pitch_text = 'Save pitch';
 
             });
 
@@ -751,7 +760,7 @@ angular.module('pgdb.utterances')
 }).directive('bestiaryPlot', function () {
 
     var margin = {top: 40, right: 30, bottom: 40, left: 90},
-        height = 400;
+        height = 300;
     var width = 900;
     return {
         restrict: 'E',
@@ -794,7 +803,7 @@ angular.module('pgdb.utterances')
                     return;
                 }
 
-                    y.domain([50, 500]);
+                y.domain([50, 500]);
 
                 var svg = vis.append("svg")
                 //responsive SVG needs these 2 attributes and no width and height attr

@@ -89,6 +89,7 @@ angular.module('utteranceDetail', [
          $scope.$on('SAVE_TRACK', function (e, res){
              Utterances.save_pitch_track($scope.corpus.name, $stateParams.utterance_id, $scope.utterance.pitch_track).then(function (res) {
                  console.log(res.data);
+                 $scope.$broadcast('SAVE_RESPONSE', res);
              });
          });
 

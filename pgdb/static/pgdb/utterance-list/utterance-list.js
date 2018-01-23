@@ -18,7 +18,12 @@ angular.module('utteranceList', [
             }
         });
     };
-}).controller('UtteranceListCtrl', function ($scope, Utterances, Corpora, $state, $stateParams) {
+})
+    .filter('secondsToDateTime', [function () {
+        return function (seconds) {
+            return new Date(1970, 0, 1).setSeconds(seconds);
+        };
+    }]).controller('UtteranceListCtrl', function ($scope, Utterances, Corpora, $state, $stateParams) {
         $scope.ordering = '-discourse.name';
         $scope.currentPage = 1;
         $scope.resultsPerPage = 100;

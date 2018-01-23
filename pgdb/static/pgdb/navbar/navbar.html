@@ -38,6 +38,16 @@
                                             ui-sref="bestiary-plot({corpus_id: c.id})">{{ c.name }}</a></li>
                                 </ul>
                             </li>
+                            <li class="dropdown">
+                                <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button"
+                                   aria-haspopup="true"
+                                   aria-expanded="false">Utterances<span class="caret"></span></a>
+
+                                <ul class="dropdown-menu">
+                                    <li ng-repeat="c in corpora track by c.id" ui-sref-active="active"><a
+                                            ui-sref="utterance-list({corpus_id: c.id})">{{ c.name }}</a></li>
+                                </ul>
+                            </li>
                         </ul>
                         <form class="navbar-form navbar-left">
                             <div class="form-group">

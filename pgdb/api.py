@@ -267,6 +267,7 @@ class UtteranceViewSet(viewsets.ViewSet):
                               c.utterance.discourse.item.column_name('item'),
                               c.utterance.end.column_name('end'),
                               c.utterance.begin.column_name('begin'),
+                              c.utterance.pitch_last_edited.column_name('pitch_last_edited')
                               )
                 if with_pitch:
                     q = q.columns(track_column)
@@ -275,6 +276,7 @@ class UtteranceViewSet(viewsets.ViewSet):
                 if res is None:
                     return Response(None)
                 for x in res:
+
                     if x['item'] is None:
                         continue
                     if x['context'] is None:

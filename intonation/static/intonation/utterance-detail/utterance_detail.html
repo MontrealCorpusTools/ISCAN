@@ -1,6 +1,12 @@
-<div class="info">
+<div class="info text-center">
+    <div>
+        <span ng-bind="utterance.discourse"></span> (<span ng-bind="utterance.begin"></span>  to <span ng-bind="utterance.end"></span>)
+    </div>
+    <div>
     <a ui-sref="utterance-detail({corpus_id: corpus.id, utterance_id: previous_id})">Previous utterance</a>
+    <a ui-sref="utterance-list({corpus_id: corpus.id})">Utterance list</a>
     <a ui-sref="utterance-detail({corpus_id: corpus.id, utterance_id: next_id})">Next utterance</a>
+    </div>
 </div>
 <div class="row">
     <waveform-plot data="utterance.waveform" begin="utterance.begin" end="utterance.end"></waveform-plot>
@@ -10,5 +16,5 @@
     <spectrogram-plot data="utterance.spectrogram" begin="utterance.begin" end="utterance.end"></spectrogram-plot>
 </div>
 <div class="row">
-    <pitch-plot data="utterance.pitch_track" begin="utterance.begin" end="utterance.end"></pitch-plot>
+    <pitch-plot utterance="utterance"></pitch-plot>
 </div>
