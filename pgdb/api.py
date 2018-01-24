@@ -3,7 +3,7 @@ import os
 from django.conf import settings
 from rest_framework import generics, permissions, viewsets, status, pagination
 from rest_framework.response import Response
-from rest_framework.decorators import detail_route
+from rest_framework.decorators import detail_route, list_route
 
 from neo4j import exceptions as neo4j_exceptions
 
@@ -99,6 +99,14 @@ class CorpusViewSet(viewsets.ModelViewSet):
         data['source_directory'] = os.path.join(settings.SOURCE_DATA_DIRECTORY, data['source_directory'])
         instance = models.Corpus.objects.create(name=data['name'], input_format=data['format'], source_directory=data['source_directory'], database=data['database'])
         return Response(self.serializer_class(instance).data)
+
+    @detail_route(methods=['get'])
+    def speakers(self, request, pk=None):
+        corpus = self.get_object()
+        with CorpusContext(corpus.config) as c:
+            speakers = c.speakers
+
+        return Response(speakers)
 
     @detail_route(methods=['get'])
     def hierarchy(self, request, pk=None):
@@ -201,6 +209,25 @@ class SourceChoiceViewSet(viewsets.ViewSet):
         return Response(choices)
 
 
+class DiscourseViewSet(viewsets.ViewSet):
+    def list(self, request, corpus_pk=None):
+        corpus = models.Corpus.objects.get(pk=corpus_pk)
+        with CorpusContext(corpus.config) as c:
+            discourses = c.speakers
+
+        return Response(discourses)
+
+    @list_route(methods=['get'])
+    def properties(self, request, corpus_pk=None):
+        corpus = models.Corpus.objects.get(pk=corpus_pk)
+        with CorpusContext(corpus.config) as c:
+            props = c.query_metadata(c.discourse).grouping_factors()
+            data = []
+            for p in props:
+                data.append({'name': p, 'options': c.query_metadata(c.discourse).levels(getattr(c.discourse,p))})
+        return Response(data)
+
+
 class UtteranceViewSet(viewsets.ViewSet):
 
     def list(self, request, corpus_pk=None):
@@ -216,11 +243,15 @@ class UtteranceViewSet(viewsets.ViewSet):
         with CorpusContext(corpus.config) as c:
             q = c.query_graph(c.utterance)
             for k, v in params.items():
-                k = k.split('.')
+                if v[0] == 'null':
+                    v = None
+                else:
+                    v = v[0]
+                k = k.split('__')
                 att = c.utterance
                 for f in k:
                     att = getattr(att, f)
-                q = q.filter(att == v[0])
+                q = q.filter(att == v)
             data['count'] = q.count()
             if ordering:
                 desc = False
@@ -236,7 +267,10 @@ class UtteranceViewSet(viewsets.ViewSet):
                 q = q.order_by(c.utterance.id)
             q = q.limit(limit).offset(offset).preload(c.utterance.discourse, c.utterance.speaker)
             if with_pitch:
-                q = q.preload_acoustics('pitch')
+                pitch = c.utterance.pitch
+                pitch.relative_time = True
+                pitch.relative = True
+                q = q.preload_acoustics(pitch)
             res = q.all()
             serializer = serializers.UtteranceSerializer(res, many=True)
             data['results'] = serializer.data
@@ -285,7 +319,7 @@ class UtteranceViewSet(viewsets.ViewSet):
                     if x['context'] is None:
                         continue
                     d = {k: v for k, v in zip(x.columns, x.values)}
-                    d['pitch_track'] = [{'x': round(float(k), 2), 'y': v['F0']} for k, v in x.track.items()]
+                    d['pitch_track'] = serializers.PitchPointSerializer(x.track, many=True).data
                     if with_waveform:
                         signal, sr = c.load_waveform(x['discourse'], 'vowel', begin=x['begin'], end=x['end'])
                         step = 1 / sr

@@ -7,6 +7,18 @@ angular.module('pgdb.utterances')
             return __env.intontationUrl + corpus_id + '/wav_file/' + id + '/';
         };
 
+        Utterances.export_pitch_tracks = function(corpus_id){
+            return __env.intontationUrl + corpus_id + '/export_pitch/';
+
+        };
+
+
+        Utterances.subset = function(corpus_id, offset, ordering, with_pitch, params){
+            params = Object.assign({}, params, {with_pitch: with_pitch,
+                offset: offset, ordering: ordering});
+            return $http.get(base_url + corpus_id + '/utterances/', {params: params});
+        };
+
         Utterances.all = function (corpus_id, offset, ordering, with_pitch) {
             return $http.get(base_url + corpus_id + '/utterances/', {params: {with_pitch: with_pitch,
                 offset: offset, ordering: ordering}});

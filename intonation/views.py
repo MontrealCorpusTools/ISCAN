@@ -239,8 +239,9 @@ def sound_file(request, corpus, utterance_id):
 
 
 def export_pitch_tracks(request, corpus):
+    print(dir(request.GET))
     import csv
-    corpus = Corpus.objects.get(name=corpus)
+    corpus = Corpus.objects.get(pk=corpus)
     with CorpusContext(corpus.config) as c:
         q = c.query_graph(c.word).columns(c.word.speaker.name.column_name('speaker'),
                                           c.word.speaker.gender.column_name('speaker_gender'),

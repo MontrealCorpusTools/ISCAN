@@ -10,6 +10,7 @@ api_router.register(r'corpora', api.CorpusViewSet, base_name='corpora')
 api_router.register(r'source_directories', api.SourceChoiceViewSet, base_name='source_directories')
 corpora_router = routers.NestedSimpleRouter(api_router, r'corpora', lookup='corpus')
 corpora_router.register(r'utterances', api.UtteranceViewSet, base_name='corpus-utterances')
+corpora_router.register(r'discourses', api.DiscourseViewSet, base_name='corpus-discourses')
 #api_router.register(r'corpora', api.CorpusViewSet, base_name='corpora')
 
 urlpatterns = [

@@ -434,12 +434,13 @@ angular.module('pgdb.utterances') .filter('secondsToDateTime', [function () {
             scope.newPitchSettings.min_pitch = 50;
             scope.newPitchSettings.max_pitch = 500;
 
-            scope.$watch('data', function (newVal, oldVal) {
+            scope.$watch('utterance', function (newVal, oldVal) {
                 vis.selectAll("*").remove();
                 //pitch_viewplot.append('g').selectAll("circle.original").remove();
                 if (!newVal) {
                     return;
                 }
+                console.log(newVal);
 
                 scope.generateNewTrack = function () {
                     scope.$emit('TRACK_REQUESTED', scope.newPitchSettings);
@@ -479,10 +480,10 @@ angular.module('pgdb.utterances') .filter('secondsToDateTime', [function () {
                     xt = lastTransform.rescaleX(x);
                     pitch_vis.select('.xaxis').call(xaxis.scale(xt));
                     pulse_x_function = function (d) {
-                        return xt(d.x);
+                        return xt(d.time);
                     };
                     pitch_x_function = function (d) {
-                        return xt(d.x);
+                        return xt(d.time);
                     };
                     pitch_valueline = pitch_valueline.x(pitch_x_function);
                     drawPitchTrack();
@@ -505,13 +506,13 @@ angular.module('pgdb.utterances') .filter('secondsToDateTime', [function () {
                     pitch_vis.selectAll('circle')
                         .attr("cx", pitch_x_function)
                         .attr("cy", function (d) {
-                            return pitch_y(d.y);
+                            return pitch_y(d.F0);
                         })
                         .on("mouseover", function (d) {
                             div.transition()
                                 .duration(200)
                                 .style("opacity", .9);
-                            div.html(d.x + "<br/>" + d.y.toFixed(2))
+                            div.html(d.time + "<br/>" + d.F0.toFixed(2))
                                 .style("left", (d3.event.pageX) + "px")
                                 .style("top", (d3.event.pageY - 28) + "px");
                         })
@@ -527,11 +528,11 @@ angular.module('pgdb.utterances') .filter('secondsToDateTime', [function () {
                 pitch_y.domain([pitch_y.domain()[0] - pitch_padding, pitch_y.domain()[1] + pitch_padding]);
 
                 var pitch_x_function = function (d) {
-                    return x(d.x);
+                    return x(d.time);
                 };
                 var pitch_valueline = d3.line()
                     .x(pitch_x_function).y(function (d) {
-                        return pitch_y(d.y);
+                        return pitch_y(d.F0);
                     });
 
                 var pitch_yaxis = d3.axisLeft(pitch_y)
@@ -611,7 +612,7 @@ angular.module('pgdb.utterances') .filter('secondsToDateTime', [function () {
                             pitch_viewplot.selectAll('circle.selected').style("fill", 'blue').classed("selected", false);
                         }
                         pitch_viewplot.selectAll('circle').filter(function (d) {
-                            return (d.x >= selection_begin && d.x <= selection_end)
+                            return (d.time >= selection_begin && d.time <= selection_end)
                         }).style("fill", 'red').classed('selected', true);
                         pitch_viewplot.selectAll('rect.selection').remove();
                         selection_begin = null;
@@ -662,17 +663,17 @@ angular.module('pgdb.utterances') .filter('secondsToDateTime', [function () {
                         .attr("r", 5)
                         .attr("cx", pitch_x_function)
                         .attr("cy", function (d) {
-                            return pitch_y(d.y);
+                            return pitch_y(d.F0);
                         })
                         .style("fill", 'blue')
                         .on("click", function () {
-                            if (!d3.event.ctrlKey) {
+                            if (!d3.event.shiftKey) {
                                 pitch_viewplot.selectAll('circle.selected').style("fill", 'blue').classed("selected", false);
                             }
                             d3.select(this).attr('class', 'selected').style("fill", "red");
                         });
                     pitch_y.domain(d3.extent(newVal.pitch_track, function (d) {
-                        return d.y;
+                        return d.F0;
                     }));
                     x.domain([newVal.begin, newVal.end]);
                     pitch_padding = (pitch_y.domain()[1] - pitch_y.domain()[0]) * 0.05;
@@ -684,12 +685,12 @@ angular.module('pgdb.utterances') .filter('secondsToDateTime', [function () {
 
                 scope.doubleSelected = function () {
                     pitch_viewplot.selectAll('circle.selected').data().forEach(function (d) {
-                        d['y'] *= 2
+                        d['F0'] *= 2
                     });
                     pitch_viewplot.selectAll('circle.selected').style("fill", 'blue').classed("selected", false);
 
                     var new_domain = d3.extent(pitch_viewplot.selectAll('circle').data(), function (d) {
-                        return d.y;
+                        return d.F0;
                     });
 
                     pitch_padding = (new_domain[1] - new_domain[0]) * 0.05;
@@ -705,7 +706,7 @@ angular.module('pgdb.utterances') .filter('secondsToDateTime', [function () {
                     pitch_viewplot.selectAll('circle.selected').style("fill", 'blue').classed("selected", false);
 
                     var new_domain = d3.extent(pitch_viewplot.selectAll('circle').data(), function (d) {
-                        return d.y;
+                        return d.F0;
                     });
 
                     pitch_padding = (new_domain[1] - new_domain[0]) * 0.05;
@@ -718,16 +719,16 @@ angular.module('pgdb.utterances') .filter('secondsToDateTime', [function () {
                     var all_data = pitch_viewplot.selectAll('circle').data();
                     pitch_viewplot.selectAll('circle.selected').data().forEach(function (d) {
                         var ind = all_data.findIndex(function (e) {
-                            return e['x'] == d['x'];
+                            return e['time'] == d['time'];
                         });
                         if (ind != 0 && ind != all_data.length - 1) {
-                            d['y'] = (all_data[ind + 1]['y'] - all_data[ind - 1]['y']) / 2 + all_data[ind - 1]['y'];
+                            d['F0'] = (all_data[ind + 1]['F0'] - all_data[ind - 1]['F0']) / 2 + all_data[ind - 1]['F0'];
                         }
                     });
                     //pitch_viewplot.selectAll('circle.selected').style("fill", 'blue').classed("selected",false);
 
                     var new_domain = d3.extent(pitch_viewplot.selectAll('circle').data(), function (d) {
-                        return d.y;
+                        return d.F0;
                     });
 
                     pitch_padding = (new_domain[1] - new_domain[0]) * 0.05;
@@ -739,7 +740,7 @@ angular.module('pgdb.utterances') .filter('secondsToDateTime', [function () {
                 scope.removeSelected = function () {
                     pitch_viewplot.selectAll('circle.selected').data().forEach(function (d) {
                         var ind = newVal.pitch_track.findIndex(function (e) {
-                            return e['x'] == d['x'];
+                            return e['time'] == d['time'];
                         });
                         newVal.pitch_track.splice(ind, 1);
                     });
@@ -803,7 +804,9 @@ angular.module('pgdb.utterances') .filter('secondsToDateTime', [function () {
                     return;
                 }
 
-                y.domain([50, 500]);
+                y.domain([d3.min(newVal, function(d) { return d3.min(d.pitch_track, function (d2) { return d2.F0}); }), d3.max(newVal, function(d) { return d3.max(d.pitch_track, function (d2) { return d2.F0}); })]);
+                var padding = (y.domain()[1] - y.domain()[0]) * 0.05;
+                y.domain([y.domain()[0] - padding, y.domain()[1] + padding]);
 
                 var svg = vis.append("svg")
                 //responsive SVG needs these 2 attributes and no width and height attr
@@ -846,11 +849,11 @@ angular.module('pgdb.utterances') .filter('secondsToDateTime', [function () {
             });
 
             function click(d) {
-                if (d3.event.ctrlKey) {
-                    scope.$emit('DETAIL_REQUESTED', d.utterance_id);
+                if (d3.event.shiftKey) {
+                    scope.$emit('DETAIL_REQUESTED', d.id);
                 }
                 else {
-                    scope.$emit('SOUND_REQUESTED', d.utterance_id);
+                    scope.$emit('SOUND_REQUESTED', d.id);
                 }
             }
 

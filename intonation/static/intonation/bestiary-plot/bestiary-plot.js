@@ -2,12 +2,30 @@ angular.module('bestiaryPlot', [
     'pgdb.utterances'
 ])
     .controller('BestiaryPlotCtrl', function ($scope, Utterances, Corpora, $state, $stateParams) {
+        $scope.filters = {};
+        $scope.export = {};
+        $scope.filter_options = {};
         $scope.currentPage = 1;
         $scope.resultsPerPage = 100;
         $scope.offset = 0;
         $scope.numPages = 0;
         $scope.update = function () {
-            Utterances.all($stateParams.corpus_id, $scope.offset, $scope.ordering, true).then(function (res) {
+            var params = {};
+            for (var key in $scope.filters){
+                console.log(key);
+                var data = $scope.filters[key];
+                console.log(data);
+                for (var key2 in data){
+                    if (data[key2] == undefined){
+                    params[key + '__' + key2 ]= 'null';
+                    }
+                    else{
+                    params[key + '__' + key2 ]= data[key2];
+                    }
+                }
+            }
+            console.log(params);
+            Utterances.subset($stateParams.corpus_id, $scope.offset, $scope.ordering, true, params).then(function (res) {
                 console.log(res.data);
                 $scope.count = res.data.count;
                 $scope.numPages = Math.ceil($scope.count / $scope.resultsPerPage);
@@ -17,12 +35,24 @@ angular.module('bestiaryPlot', [
 
         };
 
+        Corpora.discourse_property_options($stateParams.corpus_id).then(function (res) {
+            $scope.filter_options.discourse = res.data;
+            console.log(res.data)
+        });
 
         Corpora.one($stateParams.corpus_id).then(function (res) {
             $scope.corpus = res.data;
         });
+        Corpora.speakers($stateParams.corpus_id).then(function (res) {
+            $scope.speakers = res.data;
+            $scope.update();
+        });
+        Corpora.discourses($stateParams.corpus_id).then(function (res) {
+            $scope.discourses = res.data;
+        });
 
         $scope.$on('DETAIL_REQUESTED', function (e, res) {
+            console.log($stateParams.corpus_id, res);
             $state.go('utterance-detail', {corpus_id: $stateParams.corpus_id, utterance_id:res});
         });
 
@@ -78,5 +108,5 @@ angular.module('bestiaryPlot', [
             $scope.update()
         };
 
-        $scope.update();
+        $scope.export_url = Utterances.export_pitch_tracks($stateParams.corpus_id);
     });
