@@ -195,35 +195,12 @@ class EditPitchView(DetailView):
         return context
 
 
-def generate_pitch_track(request, corpus, utterance_id):
-    form = PitchAnalysisForm(request.POST)
-    if form.is_valid():
-        print(form.cleaned_data)
-        corpus = Corpus.objects.get(name=corpus)
-        with CorpusContext(corpus.config) as c:
-            results, pulses = c.analyze_utterance_pitch(utterance_id, with_pulses=True, **form.cleaned_data)
-        pitch_data = {}
-        track = []
-        for datapoint in results:
-            v = datapoint['F0']
-            k = datapoint['time']
-            if v is None or v < 1:
-                continue
-            track.append({'x': k, 'y': v})
-        pitch_data['pitch_track'] = track
-        pitch_data['pulses'] = [{'x': x} for x in sorted(pulses)]
-        # pitch_data['pulses'] = []
-        return JsonResponse(pitch_data, safe=False)
-    else:
-        return JsonResponse(data=form.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
 def save_pitch_track(request, corpus, utterance_id):
     data = json.loads(request.body)
     print(data)
     corpus = Corpus.objects.get(name=corpus)
     with CorpusContext(corpus.config) as c:
-        c.update_utterance_pitch_track(utterance_id, [{'time': x['x'], 'F0': x['y']} for x in data])
+        c.update_utterance_pitch_track(utterance_id, data)
     return JsonResponse(data={'success': True})
 
 

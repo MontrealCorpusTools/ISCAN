@@ -192,14 +192,7 @@ class CorpusViewSet(viewsets.ModelViewSet):
         with CorpusContext(corpus.config) as c:
             results = c.analyze_utterance_pitch(utterance_id, source=source, min_pitch=min_pitch, max_pitch=max_pitch)
         pitch_data = {}
-        track = []
-        for datapoint in results:
-            v = datapoint['F0']
-            k = datapoint['time']
-            if v is None or v < 1:
-                continue
-            track.append({'x': k, 'y': v})
-        pitch_data['pitch_track'] = track
+        pitch_data['pitch_track'] = serializers.PitchPointSerializer([x for x in results if x.F0 != None], many=True).data
         return Response(pitch_data['pitch_track'])
 
 

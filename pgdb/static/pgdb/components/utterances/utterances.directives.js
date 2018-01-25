@@ -701,6 +701,9 @@ angular.module('pgdb.utterances').filter('secondsToDateTime', [function () {
                         .attr('x2', xt(time));
                 });
 
+                scope.$on('UPDATE_PITCH_TRACK', function(e, res){
+                updateTrack();
+                });
 
                 function updateTrack() {
                     line.selectAll('path').remove();
@@ -721,7 +724,6 @@ angular.module('pgdb.utterances').filter('secondsToDateTime', [function () {
                         })
                         .style("fill", 'blue')
                         .on("click", function () {
-                            console.log('circle click!')
                             if (!d3.event.shiftKey) {
                                 pitch_viewplot.selectAll('circle.selected').style("fill", 'blue').classed("selected", false);
                             }
@@ -733,7 +735,8 @@ angular.module('pgdb.utterances').filter('secondsToDateTime', [function () {
                     x.domain([newVal.begin, newVal.end]);
                     pitch_padding = (pitch_y.domain()[1] - pitch_y.domain()[0]) * 0.05;
                     pitch_y.domain([pitch_y.domain()[0] - pitch_padding, pitch_y.domain()[1] + pitch_padding]);
-
+                    console.log(pitch_y.domain());
+                    drawPitchTrack();
                 }
 
                 updateTrack();

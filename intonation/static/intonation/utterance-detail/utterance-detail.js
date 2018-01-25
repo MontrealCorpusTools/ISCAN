@@ -110,7 +110,9 @@ angular.module('utteranceDetail', [
             $scope.$on('TRACK_REQUESTED', function (e, res) {
                 Utterances.generate_pitch_track($stateParams.corpus_id, $stateParams.utterance_id, res).then(function (res) {
                     $scope.utterance.pitch_track = res.data;
+                    $scope.utterance = $scope.utterance;
                     console.log($scope.utterance.pitch_track);
+                    $scope.$broadcast('UPDATE_PITCH_TRACK', res.data);
                 });
             });
 
