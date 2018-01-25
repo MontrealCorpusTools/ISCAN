@@ -1,8 +1,8 @@
-angular.module('pgdb.utterances') .filter('secondsToDateTime', [function () {
-        return function (seconds) {
-            return new Date(1970, 0, 1).setSeconds(seconds);
-        };
-    }])
+angular.module('pgdb.utterances').filter('secondsToDateTime', [function () {
+    return function (seconds) {
+        return new Date(1970, 0, 1).setSeconds(seconds);
+    };
+}])
     .directive('waveformPlot', function () {
 
         var margin = {top: 40, right: 30, bottom: 40, left: 90},
@@ -12,7 +12,7 @@ angular.module('pgdb.utterances') .filter('secondsToDateTime', [function () {
         return {
             restrict: 'E',
             replace: true,
-            template: '<div class="chart"></div>',
+            templateUrl: static('pgdb/components/utterances/waveform_plot.html'),
 
             controllerAs: 'ctrl',
             scope: {
@@ -26,11 +26,15 @@ angular.module('pgdb.utterances') .filter('secondsToDateTime', [function () {
                 playFn: '&playFn'
             },
             link: function (scope, element, attrs) {
-                var vis = d3.select(element[0]);
+                var vis = d3.select(element[0]).select('.plot');
+
+                vis.on("contextmenu", function (d, i) {
+                    d3.event.preventDefault();
+                    // react on right-clicking
+                });
                 var x = d3.scaleLinear().range([0, width]).nice();
 
                 var xt = x;
-                var selection_begin, selection_end, selection_anchor;
 
                 scope.$watch('begin', function (newVal, oldVal) {
                     if (!newVal) {
@@ -117,8 +121,6 @@ angular.module('pgdb.utterances') .filter('secondsToDateTime', [function () {
 
                     var waveform_viewplot = waveform_vis.append("g").attr("clip-path", "url(#waveform_clip)");
 
-                    var waveform_playline_x = x(0);
-
                     var waveform_playline = waveform_viewplot.append('line').attr("class", "playline").style("stroke", "red")
                         .attr("x1", xt(0))
                         .attr("y1", 0)
@@ -136,66 +138,61 @@ angular.module('pgdb.utterances') .filter('secondsToDateTime', [function () {
                         .attr("width", width)
                         .attr("height", height);
 
+                    var selection_rect = waveform_viewplot.append("rect")
+                        .attr('class', "selection")
+                        .attr('x', 0)
+                        .attr('y', 0)
+                        .attr('width', 0)
+                        .attr('height', height)
+                        .attr('fill', 'red')
+                        .attr('opacity', 0);
+
                     var drag = d3.drag()
+                        .filter(function () {
+                            return event.button == 0;
+                        })
                         .on("start", function () {
-                            waveform_viewplot.selectAll('rect.selection').remove();
                             var coords = d3.mouse(this);
-                            selection_begin = xt.invert(coords[0]);
-                            selection_anchor = selection_begin;
-                            selection_end = null;
-                            scope.$emit('UPDATESELECT', selection_end);
-                            waveform_playline.attr("x1", xt(selection_begin))
-                                .attr("x2", xt(selection_begin));
-                            scope.$emit('SEEK', selection_begin);
-                            waveform_viewplot.append("rect")
-                                .attr('class', "selection")
-                                .attr('x', coords[0])
-                                .attr('y', 0)
-                                .attr('width', 0)
-                                .attr('height', height)
-                                .attr('fill', 'red')
-                                .attr('opacity', 0.3);
+                            var point_time = xt.invert(coords[0]);
+                            scope.$emit('BEGIN_SELECTION', point_time);
                         })
                         .on("drag", function () {
                             var p = d3.mouse(this);
                             var point_time = xt.invert(p[0]);
-
-                            if (point_time < selection_anchor) {
-                                selection_begin = point_time;
-                                selection_end = selection_anchor;
-                                selection_begin = point_time;
-                            }
-                            else {
-                                selection_begin = selection_anchor;
-                                selection_end = point_time;
-                            }
-                            waveform_viewplot.select("rect.selection").attr('x', xt(selection_begin)).attr('width', xt(selection_end) - xt(selection_begin));
-                            waveform_playline.attr("x1", xt(selection_begin))
-                                .attr("x2", xt(selection_begin));
-                            scope.$emit('UPDATESELECT', selection_end);
-                            scope.$emit('SEEK', selection_begin);
+                            scope.$emit('UPDATE_SELECTION', point_time);
 
 
                         });
 
+
+                    scope.$on('SELECTION_UPDATE', function (e, selection_begin, selection_end) {
+                        waveform_playline.attr("x1", xt(selection_begin))
+                            .attr("x2", xt(selection_begin));
+                        if (selection_end == null) {
+                            waveform_viewplot.select("rect.selection").attr('opacity', 0);
+                        }
+                        else {
+                            waveform_viewplot.select("rect.selection").attr('opacity', 0.3).attr('x', xt(selection_begin)).attr('width', xt(selection_end) - xt(selection_begin));
+                        }
+                    });
+
                     waveform_vis.call(d3.zoom()
                         .scaleExtent(zoom_scales)
                         .translateExtent([[0, 0], [width, height]])
+                        .filter(function () {
+                            return event.button == 2 || event.type == 'wheel';
+                        })
                         .on("zoom", zoomed)
                         .on('end', zoomended))
-                        .on("mousedown.zoom", null)
-                        .on("touchstart.zoom", null)
-                        .on("touchmove.zoom", null)
-                        .on("touchend.zoom", null)
+                    //.on("mousedown.zoom", null)
+                    //.on("touchstart.zoom", null)
+                    //.on("touchmove.zoom", null)
+                    //.on("touchend.zoom", null)
                         .on('click', function () {
                             if (d3.event.defaultPrevented) return; // click suppressed
                             var coords = d3.mouse(this);
-                            var selection_begin = xt.invert(coords[0]);
-                            scope.$emit('SEEK', selection_begin);
-                            selection_end = null;
-                            scope.$emit('UPDATESELECT', selection_end);
-                            waveform_playline.attr("x1", xt(selection_begin))
-                                .attr("x2", xt(selection_begin));
+                            var point_time = xt.invert(coords[0]);
+                            scope.$emit('BEGIN_SELECTION', point_time);
 
                         })
                         .call(drag);
@@ -206,9 +203,13 @@ angular.module('pgdb.utterances') .filter('secondsToDateTime', [function () {
                     });
 
                     function zoomFunc(transform) {
+                        var selection_begin = xt.invert(waveform_playline.attr("x1"));
+                        if (selection_rect.attr('opacity') != 0) {
+                            var selection_end = xt.invert(parseFloat(selection_rect.attr('width')) + parseFloat(selection_rect.attr('x')))
+                        }
                         transform.x = Math.min(transform.x, 0);
                         xt = transform.rescaleX(x);
-                        waveform_vis.select('.x.axis').call(xaxis.scale(xt));
+                        waveform_vis.select('.xaxis').call(xaxis.scale(xt));
 
                         waveform_valueline = d3.line()
                             .x(function (d) {
@@ -219,8 +220,9 @@ angular.module('pgdb.utterances') .filter('secondsToDateTime', [function () {
                             });
                         waveform_playline.attr("x1", xt(selection_begin))
                             .attr("x2", xt(selection_begin));
-                        if (selection_end != null) {
-                            waveform_viewplot.select("rect.selection").attr('x', xt(selection_begin)).attr('width', xt(selection_end) - xt(selection_begin));
+
+                        if (selection_rect.attr('opacity') != 0) {
+                            selection_rect.attr('x', xt(selection_begin)).attr('width', xt(selection_end) - xt(selection_begin));
                         }
                         drawWaveform();
                     }
@@ -255,13 +257,13 @@ angular.module('pgdb.utterances') .filter('secondsToDateTime', [function () {
         }
     }).directive('spectrogramPlot', function () {
 
-    var margin = {top: 40, right: 30, bottom: 40, left: 90},
+    var margin = {top: 0, right: 45, bottom: 40, left: 105},
         height = 300;
     var width = 900;
     return {
         restrict: 'E',
         replace: true,
-        template: '<div class="chart"></div>',
+        templateUrl: static('pgdb/components/utterances/spectrogram_plot.html'),
         scope: {
             height: '=height',
             data: '=data',
@@ -270,7 +272,12 @@ angular.module('pgdb.utterances') .filter('secondsToDateTime', [function () {
             hovered: '&hovered'
         },
         link: function (scope, element, attrs) {
-            var vis = d3.select(element[0]);
+            var vis = d3.select(element[0]).select('.plot');
+
+            vis.on("contextmenu", function (d, i) {
+                d3.event.preventDefault();
+                // react on right-clicking
+            });
 
             var x = d3.scaleLinear().range([0, width]).nice();
 
@@ -297,6 +304,7 @@ angular.module('pgdb.utterances') .filter('secondsToDateTime', [function () {
                 // Make x axis
                 var xaxis = d3.axisBottom(x)
                     .ticks(10);
+                var xt = x;
 
                 var zoom_scales = [1, 30];
                 var specgram_y = d3.scaleLinear().range([height, 0]),
@@ -364,7 +372,7 @@ angular.module('pgdb.utterances') .filter('secondsToDateTime', [function () {
 
                     lastTransform.x = Math.min(lastTransform.x, 0);
                     xt = lastTransform.rescaleX(x);
-                    specgram_svg.select('.x.axis').call(xaxis.scale(xt));
+                    specgram_svg.select('.xaxis').call(xaxis.scale(xt));
 
                     specgram_context.save();
                     specgram_context.clearRect(0, 0, width, height);
@@ -382,10 +390,32 @@ angular.module('pgdb.utterances') .filter('secondsToDateTime', [function () {
                 scope.$on('ZOOM', function (e, res) {
                     zoomFunc(res);
                 });
+
+
+                var drag = d3.drag()
+                    .filter(function () {
+                        return event.button == 0;
+                    })
+                    .on("start", function () {
+                        var coords = d3.mouse(this);
+                        var point_time = xt.invert(coords[0] - margin.left);
+                        scope.$emit('BEGIN_SELECTION', point_time);
+                    })
+                    .on("drag", function () {
+                        var p = d3.mouse(this);
+                        var point_time = xt.invert(p[0] - margin.left);
+                        scope.$emit('UPDATE_SELECTION', point_time);
+
+
+                    });
                 specgram_canvas.call(d3.zoom()
                     .scaleExtent(zoom_scales)
                     .translateExtent([[0, 0], [width, height]])
-                    .on("zoom", zoomed));
+                    .filter(function () {
+                        return event.button == 2 || event.type == 'wheel';
+                    })
+                    .on("zoom", zoomed))
+                    .call(drag);
 
                 function drawSpectrogram() {
                     specgram_svg.select('.yaxis').call(specgram_yaxis);
@@ -393,10 +423,13 @@ angular.module('pgdb.utterances') .filter('secondsToDateTime', [function () {
                 }
 
                 function drawRect(d) {
+                    var begin = xt.invert(0);
+                    var end = xt.invert(width);
                     //Draw the rectangle
-
-                    specgram_context.fillStyle = specgram_z(d.power);
-                    specgram_context.fillRect(x(d.time), specgram_y(d.frequency), xGridSize + 2, yGridSize);
+                    if (d.time >= begin - 0.01 && d.time <= end + 0.01) {
+                        specgram_context.fillStyle = specgram_z(d.power);
+                        specgram_context.fillRect(x(d.time), specgram_y(d.frequency), xGridSize + 2, yGridSize);
+                    }
                 }
 
                 drawSpectrogram();
@@ -423,6 +456,12 @@ angular.module('pgdb.utterances') .filter('secondsToDateTime', [function () {
         link: function (scope, element, attrs) {
             var vis = d3.select(element[0]).select('.plot');
 
+
+            vis.on("contextmenu", function (d, i) {
+                d3.event.preventDefault();
+                // react on right-clicking
+            });
+
             var x = d3.scaleLinear().range([0, width]).nice();
             var xt = x;
             var selection_begin, selection_end, selection_anchor;
@@ -441,6 +480,7 @@ angular.module('pgdb.utterances') .filter('secondsToDateTime', [function () {
                     return;
                 }
                 console.log(newVal);
+                x.domain([newVal.begin, newVal.end]);
 
                 scope.generateNewTrack = function () {
                     scope.$emit('TRACK_REQUESTED', scope.newPitchSettings);
@@ -476,6 +516,10 @@ angular.module('pgdb.utterances') .filter('secondsToDateTime', [function () {
                 var zoom_scales = [1, 30];
 
                 var zoomFunc = function (lastTransform) {
+                    var selection_begin = xt.invert(playline.attr("x1"));
+                    if (selection_rect.attr('opacity') != 0) {
+                        var selection_end = xt.invert(parseFloat(selection_rect.attr('width')) + parseFloat(selection_rect.attr('x')))
+                    }
                     lastTransform.x = Math.min(lastTransform.x, 0);
                     xt = lastTransform.rescaleX(x);
                     pitch_vis.select('.xaxis').call(xaxis.scale(xt));
@@ -486,6 +530,12 @@ angular.module('pgdb.utterances') .filter('secondsToDateTime', [function () {
                         return xt(d.time);
                     };
                     pitch_valueline = pitch_valueline.x(pitch_x_function);
+                    playline.attr("x1", xt(selection_begin))
+                        .attr("x2", xt(selection_begin));
+
+                    if (selection_rect.attr('opacity') != 0) {
+                        selection_rect.attr('x', xt(selection_begin)).attr('width', xt(selection_end) - xt(selection_begin));
+                    }
                     drawPitchTrack();
                 };
 
@@ -564,7 +614,7 @@ angular.module('pgdb.utterances') .filter('secondsToDateTime', [function () {
                     .style("font-size", "16px")
                     .text("F0");
 
-                var pitch_clippath = pitch_vis.append("clipPath")
+                pitch_vis.append("clipPath")
                     .attr("id", "pitch_clip")
                     .append("rect")
                     .attr("x", 0)
@@ -572,81 +622,85 @@ angular.module('pgdb.utterances') .filter('secondsToDateTime', [function () {
                     .attr("width", width)
                     .attr("height", height);
 
+
+                var pitch_viewplot = pitch_vis.append("g").attr("clip-path", "url(#pitch_clip)");
+
+                var playline = pitch_viewplot.append('line').attr("class", "playline").style("stroke", "red")
+                    .attr("x1", xt(0))
+                    .attr("y1", 0)
+                    .attr("x2", xt(0))
+                    .attr("y2", height);
+
+                var selection_rect = pitch_viewplot.append("rect")
+                    .attr('class', "selection")
+                    .attr('x', 0)
+                    .attr('y', 0)
+                    .attr('width', 0)
+                    .attr('height', height)
+                    .attr('fill', 'red')
+                    .attr('opacity', 0);
+
+
                 var pitch_pane = pitch_vis.append("rect")
                     .attr("class", "pane")
                     .attr("width", width)
                     .attr("height", height);
 
-
                 var drag = d3.drag()
+                    .filter(function () {
+                        return event.button == 0;
+                    })
                     .on("start", function () {
-                        pitch_viewplot.selectAll('rect.selection').remove();
+                        console.log('drag started!')
                         var coords = d3.mouse(this);
-                        selection_begin = xt.invert(coords[0]);
-                        selection_anchor = xt.invert(coords[0]);
-                        selection_end = null;
-                        pitch_viewplot.append("rect")
-                            .attr('class', "selection")
-                            .attr('x', coords[0])
-                            .attr('y', 0)
-                            .attr('width', 0)
-                            .attr('height', height)
-                            .attr('fill', 'red')
-                            .attr('opacity', 0.3);
+                        var point_time = xt.invert(coords[0]);
+                        scope.$emit('BEGIN_SELECTION', point_time);
                     })
                     .on("drag", function () {
                         var p = d3.mouse(this);
                         var point_time = xt.invert(p[0]);
-                        if (point_time < selection_anchor) {
-                            selection_begin = point_time;
-                            selection_end = selection_anchor;
-                            selection_begin = point_time;
-                        }
-                        else {
-                            selection_begin = selection_anchor;
-                            selection_end = point_time;
-                        }
-                        pitch_viewplot.select("rect.selection").attr('x', xt(selection_begin)).attr('width', xt(selection_end) - xt(selection_begin));
-                    }).on("end", function () {
-                        if (!d3.event.ctrlKey) {
-                            pitch_viewplot.selectAll('circle.selected').style("fill", 'blue').classed("selected", false);
-                        }
-                        pitch_viewplot.selectAll('circle').filter(function (d) {
-                            return (d.time >= selection_begin && d.time <= selection_end)
-                        }).style("fill", 'red').classed('selected', true);
-                        pitch_viewplot.selectAll('rect.selection').remove();
-                        selection_begin = null;
-                        selection_end = null;
-                        selection_anchor = null;
+                        scope.$emit('UPDATE_SELECTION', point_time);
                     });
-
-
-                pitch_pane.call(d3.zoom()
+                pitch_vis.call(d3.zoom()
                     .scaleExtent(zoom_scales)
                     .translateExtent([[0, 0], [width, height]])
+                    .filter(function () {
+                        return event.button == 2 || event.type == 'wheel';
+                    })
                     .on("zoom", zoomed))
-                    .on("mousedown.zoom", null)
-                    .on("touchstart.zoom", null)
-                    .on("touchmove.zoom", null)
-                    .on("touchend.zoom", null)
                     .on('click', function () {
-                        return;
-                        if (d3.event.defaultPrevented) return; // click suppressed
+                        //if (d3.event.defaultPrevented) return; // click suppressed
                         var coords = d3.mouse(this);
-                        var selection_begin = xt.invert(coords[0]);
-                        scope.$emit('SEEK', selection_begin);
-                        selection_end = null;
-                        scope.$emit('UPDATESELECT', selection_end);
-                        waveform_playline.attr("x1", xt(selection_begin))
-                            .attr("x2", xt(selection_begin));
+                        var point_time = xt.invert(coords[0]);
+                        scope.$emit('BEGIN_SELECTION', point_time);
 
                     })
                     .call(drag);
 
-                var pitch_viewplot = pitch_vis.append("g").attr("clip-path", "url(#pitch_clip)");
+                var line = pitch_viewplot;
+                var circles = pitch_viewplot;
 
-                var line = pitch_viewplot.append('g');
-                var circles = pitch_viewplot.append('g');
+
+                scope.$on('SELECTION_UPDATE', function (e, selection_begin, selection_end) {
+                    playline.attr("x1", xt(selection_begin))
+                        .attr("x2", xt(selection_begin));
+                    pitch_viewplot.selectAll('circle.selected').style("fill", 'blue').classed("selected", false);
+                    if (selection_end == null) {
+                        selection_rect.attr('opacity', 0).attr('x', 0).attr('y', 0);
+                    }
+                    else {
+                        selection_rect.attr('opacity', 0.3).attr('x', xt(selection_begin)).attr('width', xt(selection_end) - xt(selection_begin));
+                        pitch_viewplot.selectAll('circle').filter(function (d) {
+                            return (d.time >= selection_begin && d.time <= selection_end)
+                        }).style("fill", 'red').classed('selected', true);
+                    }
+                });
+                scope.$on('UPDATEPLAY', function (e, time) {
+
+                    playline.attr('x1', xt(time))
+                        .attr('x2', xt(time));
+                });
+
 
                 function updateTrack() {
                     line.selectAll('path').remove();
@@ -667,6 +721,7 @@ angular.module('pgdb.utterances') .filter('secondsToDateTime', [function () {
                         })
                         .style("fill", 'blue')
                         .on("click", function () {
+                            console.log('circle click!')
                             if (!d3.event.shiftKey) {
                                 pitch_viewplot.selectAll('circle.selected').style("fill", 'blue').classed("selected", false);
                             }
@@ -804,7 +859,15 @@ angular.module('pgdb.utterances') .filter('secondsToDateTime', [function () {
                     return;
                 }
 
-                y.domain([d3.min(newVal, function(d) { return d3.min(d.pitch_track, function (d2) { return d2.F0}); }), d3.max(newVal, function(d) { return d3.max(d.pitch_track, function (d2) { return d2.F0}); })]);
+                y.domain([d3.min(newVal, function (d) {
+                    return d3.min(d.pitch_track, function (d2) {
+                        return d2.F0
+                    });
+                }), d3.max(newVal, function (d) {
+                    return d3.max(d.pitch_track, function (d2) {
+                        return d2.F0
+                    });
+                })]);
                 var padding = (y.domain()[1] - y.domain()[0]) * 0.05;
                 y.domain([y.domain()[0] - padding, y.domain()[1] + padding]);
 
