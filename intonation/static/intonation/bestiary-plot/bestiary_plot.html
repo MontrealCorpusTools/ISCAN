@@ -7,11 +7,10 @@
         <div id="filters">
             <label>Speaker: <select ng-model="filters.speaker.name" class="form-control"
                                     ng-options="speaker for speaker in speakers" ng-change="update()">
-            <option  value="">All</option>
             </select></label>
             <div ng-repeat="p in filter_options.discourse">
                 <label>{{p.name}}: <select ng-model="filters.discourse[p.name]"  class="form-control" ng-options="speaker for speaker in p.options" ng-change="update()">
-            <option  value="">All</option></select></label>
+            </select></label>
             </div>
         </div>
         <div id="facets"></div>

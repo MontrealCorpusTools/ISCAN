@@ -2,7 +2,7 @@ angular.module('bestiaryPlot', [
     'pgdb.utterances'
 ])
     .controller('BestiaryPlotCtrl', function ($scope, Utterances, Corpora, $state, $stateParams) {
-        $scope.filters = {};
+        $scope.filters = {discourse: {}, speaker:{name: 'All'}};
         $scope.export = {};
         $scope.filter_options = {};
         $scope.currentPage = 1;
@@ -19,7 +19,7 @@ angular.module('bestiaryPlot', [
                     if (data[key2] == undefined){
                     params[key + '__' + key2 ]= 'null';
                     }
-                    else{
+                    else if (data[key2] != 'All'){
                     params[key + '__' + key2 ]= data[key2];
                     }
                 }
@@ -36,7 +36,12 @@ angular.module('bestiaryPlot', [
         };
 
         Corpora.discourse_property_options($stateParams.corpus_id).then(function (res) {
+            for (i =0; i < res.data.length; i ++){
+                res.data[i].options.unshift('All');
+                $scope.filters.discourse[res.data[i].name] = 'All';
+            }
             $scope.filter_options.discourse = res.data;
+
             console.log(res.data)
         });
 
@@ -44,6 +49,7 @@ angular.module('bestiaryPlot', [
             $scope.corpus = res.data;
         });
         Corpora.speakers($stateParams.corpus_id).then(function (res) {
+            res.data.unshift('All')
             $scope.speakers = res.data;
             $scope.update();
         });
