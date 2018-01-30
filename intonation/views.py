@@ -220,20 +220,18 @@ def export_pitch_tracks(request, corpus):
     import csv
     corpus = Corpus.objects.get(pk=corpus)
     with CorpusContext(corpus.config) as c:
-        q = c.query_graph(c.word).columns(c.word.speaker.name.column_name('speaker'),
-                                          c.word.speaker.gender.column_name('speaker_gender'),
-                                          c.word.discourse.name.column_name('filename'),
-                                          c.word.discourse.context.column_name('context'),
-                                          c.word.discourse.item.column_name('item'),
-                                          c.word.discourse.condition.column_name('condition'),
-                                          c.word.discourse.contour.column_name('contour'),
-                                          c.word.label.column_name('word'),
+        props = c.query_metadata(c.discourse).factors()+ c.query_metadata(c.discourse).numerics()
+        q = c.query_graph(c.word).columns(c.word.label.column_name('word'),
                                           c.word.begin.column_name('begin'),
                                           c.word.end.column_name('end'),
                                           c.word.utterance.begin.column_name('utterance_begin'),
                                           c.word.utterance.end.column_name('utterance_end'),
-                                          c.word.pitch.track
-                                          )
+                                          c.word.pitch.track)
+        for p in props:
+            q = q.columns(getattr(c.word.discourse, p).column_name('discourse_' + p))
+        props = c.query_metadata(c.speaker).factors() + c.query_metadata(c.speaker).numerics()
+        for p in props:
+            q = q.columns(getattr(c.word.speaker, p).column_name('speaker_' + p))
         response = HttpResponse(content_type='text/csv')
         response['Content-Disposition'] = 'attachment; filename="F0_tracks.csv"'
 

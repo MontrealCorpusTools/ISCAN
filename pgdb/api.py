@@ -206,7 +206,7 @@ class DiscourseViewSet(viewsets.ViewSet):
     def list(self, request, corpus_pk=None):
         corpus = models.Corpus.objects.get(pk=corpus_pk)
         with CorpusContext(corpus.config) as c:
-            discourses = c.speakers
+            discourses = c.discourses
 
         return Response(discourses)
 
@@ -218,6 +218,26 @@ class DiscourseViewSet(viewsets.ViewSet):
             data = []
             for p in props:
                 data.append({'name': p, 'options': c.query_metadata(c.discourse).levels(getattr(c.discourse,p))})
+        return Response(data)
+
+
+class SpeakerViewSet(viewsets.ViewSet):
+    def list(self, request, corpus_pk=None):
+        corpus = models.Corpus.objects.get(pk=corpus_pk)
+        with CorpusContext(corpus.config) as c:
+            speakers = c.speakers
+
+        return Response(speakers)
+
+    @list_route(methods=['get'])
+    def properties(self, request, corpus_pk=None):
+        corpus = models.Corpus.objects.get(pk=corpus_pk)
+        with CorpusContext(corpus.config) as c:
+            props = c.query_metadata(c.speaker).grouping_factors()
+            print(c.query_metadata(c.speaker).factors())
+            data = []
+            for p in props:
+                data.append({'name': p, 'options': c.query_metadata(c.speaker).levels(getattr(c.speaker,p))})
         return Response(data)
 
 
