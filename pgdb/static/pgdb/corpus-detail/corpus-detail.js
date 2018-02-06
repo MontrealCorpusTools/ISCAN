@@ -8,5 +8,6 @@ angular.module('corpusDetail', [
 
         Corpora.hierarchy($stateParams.corpus_id).then(function (res) {
             $scope.hierarchy = res.data;
+            console.log($scope.hierarchy)
         });
     });

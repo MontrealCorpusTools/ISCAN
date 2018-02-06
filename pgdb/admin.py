@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Database, Corpus
+from .models import Database, Corpus, CorpusPermissions
 
 admin.site.disable_action('delete_selected')
 
@@ -13,6 +13,9 @@ def delete_selected(self, request, queryset):
 class DatabaseAdmin(admin.ModelAdmin):
     actions = [delete_selected]
 
+class CorpusPermissionsAdmin(admin.ModelAdmin):
+    pass
 
 admin.site.register(Database, DatabaseAdmin)
+admin.site.register(CorpusPermissions, CorpusPermissionsAdmin)
 admin.site.register(Corpus)

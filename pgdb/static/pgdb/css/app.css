@@ -34,3 +34,6 @@ main .container-fluid {
 .single-row {
     height:100%;
 }
+.danger-text {
+    color: red;
+}

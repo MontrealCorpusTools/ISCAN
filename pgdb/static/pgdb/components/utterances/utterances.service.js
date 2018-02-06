@@ -4,11 +4,11 @@ angular.module('pgdb.utterances')
         var Utterances = {};
 
         Utterances.sound_file_url = function(corpus_id, id){
-            return __env.intontationUrl + corpus_id + '/wav_file/' + id + '/';
+            return __env.apiUrl + corpus_id + '/wav_file/' + id + '/';
         };
 
         Utterances.export_pitch_tracks = function(corpus_id){
-            return __env.intontationUrl + corpus_id + '/export_pitch/';
+            return __env.apiUrl + corpus_id + '/export_pitch/';
 
         };
 
@@ -41,16 +41,16 @@ angular.module('pgdb.utterances')
         };
 
         Utterances.save_pitch_track = function(corpus_id, id, new_track){
-            return $http.post(__env.intontationUrl + corpus_id + '/save/pitch/' + id + '/', new_track);
+            return $http.post(__env.apiUrl + corpus_id + '/save/pitch/' + id + '/', new_track);
 
         };
 
         Utterances.get_next = function(corpus_id, id) {
-            return $http.get(__env.intontationUrl + corpus_id + '/get_next_utterance/' + id + '/');
+            return $http.get(__env.apiUrl + corpus_id + '/get_next_utterance/' + id + '/');
         };
 
         Utterances.get_previous = function(corpus_id, id) {
-            return $http.get(__env.intontationUrl + corpus_id + '/get_previous_utterance/' + id + '/');
+            return $http.get(__env.apiUrl + corpus_id + '/get_previous_utterance/' + id + '/');
         };
 
         return Utterances;

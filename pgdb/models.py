@@ -8,6 +8,7 @@ import logging
 import shutil
 from django.db import models
 from django.conf import settings
+from django.contrib.auth.models import Group, User
 
 from polyglotdb import CorpusContext
 import polyglotdb.io as pgio
@@ -419,6 +420,8 @@ class Corpus(models.Model):
     status = models.CharField(max_length=2, default=NOT_IMPORTED, choices=STATUS_CHOICES)
     current_task_id = models.CharField(max_length=250, blank=True, null=True)
 
+    users = models.ManyToManyField(User, through='CorpusPermissions')
+
     def __str__(self):
         return self.name
 
@@ -587,6 +590,14 @@ class Corpus(models.Model):
         """
         with CorpusContext(self.config) as c:
             return c.has_syllables
+
+
+class CorpusPermissions(models.Model):
+    corpus = models.ForeignKey(Corpus, on_delete=models.CASCADE, related_name='user_permissions')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='corpus_permissions')
+    can_edit = models.BooleanField(default=False)
+    can_listen = models.BooleanField(default=False)
+    can_view_detail = models.BooleanField(default=False)
 
 
 class Speaker(models.Model):

@@ -1,5 +1,6 @@
 from django.conf.urls import url, include
 from rest_framework_nested import routers
+from rest_framework.authtoken.views import obtain_auth_token
 from . import api
 from . import views
 
@@ -16,7 +17,13 @@ corpora_router.register(r'speakers', api.SpeakerViewSet, base_name='corpus-speak
 
 urlpatterns = [
     url(r'^$', views.index, name='index'),
-
+    url(r'^api/api-token-auth/', obtain_auth_token),
+    url(r'^api/check-auth/', views.CheckAuthView.as_view()),
+    url(r'^api/(?P<corpus>\w+)/save/pitch/(?P<utterance_id>[-\w]+)/$', views.save_pitch_track, name='save_pitch'),
+    url(r'^api/(?P<corpus>\w+)/wav_file/(?P<utterance_id>[-\w]+)/$', views.sound_file, name='sound_file'),
+    url(r'^api/(?P<corpus>\d+)/export_pitch/$', views.export_pitch_tracks, name='export_pitch'),
+    url(r'^api/(?P<corpus>\w+)/get_next_utterance/(?P<utterance_id>[-\w]+)/$', views.get_next_utterance, name='get_next_utterance'),
+    url(r'^api/(?P<corpus>\w+)/get_previous_utterance/(?P<utterance_id>[-\w]+)/$', views.get_previous_utterance, name='get_previous_utterance'),
     url('^api/', include(api_router.urls)),
     url('^api/', include(corpora_router.urls)),
 ]

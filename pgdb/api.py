@@ -21,6 +21,10 @@ class DatabaseViewSet(viewsets.ModelViewSet):
     serializer_class = serializers.DatabaseSerializer
 
     def create(self, request, *args, **kwargs):
+        if request.auth is None:
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
+        if not request.user.is_superuser:
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
         used_ports = get_used_ports()
         current_ports = []
         data_dict = {'name': request.data.get('name'),
@@ -58,30 +62,50 @@ class DatabaseViewSet(viewsets.ModelViewSet):
 
     @detail_route(methods=['post'])
     def start(self, request, pk=None):
+        if request.auth is None:
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
+        if not request.user.is_superuser:
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
         database = self.get_object()
         success = database.start()
         return Response(data=success)
 
     @detail_route(methods=['post'])
     def stop(self, request, pk=None):
+        if request.auth is None:
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
+        if not request.user.is_superuser:
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
         database = self.get_object()
         success = database.stop()
         return Response(data=success)
 
     @detail_route(methods=['get'])
     def ports(self, request, pk=None):
+        if request.auth is None:
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
+        if not request.user.is_superuser:
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
         database = self.get_object()
         data = database.ports
         return Response(data)
 
     @detail_route(methods=['get'])
     def data_directory(self, request, pk=None):
+        if request.auth is None:
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
+        if not request.user.is_superuser:
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
         database = self.get_object()
         data = database.directory
         return Response(data)
 
     @detail_route(methods=['get'])
     def corpora(self, request, pk=None):
+        if request.auth is None:
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
+        if not request.user.is_superuser:
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
         database = self.get_object()
         corpora = models.Corpus.objects.filter(database=database)
         serializer = serializers.CorpusSerializer(corpora, many=True)
@@ -93,7 +117,20 @@ class CorpusViewSet(viewsets.ModelViewSet):
     queryset = models.Corpus.objects.all()
     serializer_class = serializers.CorpusSerializer
 
+    def list(self, request, *args, **kwargs):
+        if request.auth is None:
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
+        if request.user.is_superuser:
+            corpora = models.Corpus.objects.all()
+        else:
+            corpora = models.Corpus.objects.filter(user_permissions__user=request.user).all()
+        return Response(self.serializer_class(corpora, many=True).data)
+
     def create(self, request, *args, **kwargs):
+        if request.auth is None:
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
+        if not request.user.is_superuser:
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
         data = {k: v for k,v in request.data.items()}
         data['database'] = models.Database.objects.get(pk = int(data['database']))
         data['source_directory'] = os.path.join(settings.SOURCE_DATA_DIRECTORY, data['source_directory'])
@@ -102,7 +139,14 @@ class CorpusViewSet(viewsets.ModelViewSet):
 
     @detail_route(methods=['get'])
     def speakers(self, request, pk=None):
+        if request.auth is None:
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
         corpus = self.get_object()
+        if not request.user.is_superuser:
+            permissions = corpus.user_permissions.filter(user=request.user).all()
+            if not len(permissions):
+                return Response(status=status.HTTP_401_UNAUTHORIZED)
+
         with CorpusContext(corpus.config) as c:
             speakers = c.speakers
 
@@ -110,7 +154,13 @@ class CorpusViewSet(viewsets.ModelViewSet):
 
     @detail_route(methods=['get'])
     def hierarchy(self, request, pk=None):
+        if request.auth is None:
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
         corpus = self.get_object()
+        if not request.user.is_superuser:
+            permissions = corpus.user_permissions.filter(user=request.user).all()
+            if not len(permissions):
+                return Response(status=status.HTTP_401_UNAUTHORIZED)
         with CorpusContext(corpus.config) as c:
             hierarchy = c.hierarchy
 
@@ -118,6 +168,10 @@ class CorpusViewSet(viewsets.ModelViewSet):
 
     @detail_route(methods=['post'])
     def import_corpus(self, request, pk=None):
+        if request.auth is None:
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
+        if not request.user.is_superuser:
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
         corpus = self.get_object()
         if corpus.database.status == 'S':
             return Response('Database is unavailable', status=status.HTTP_400_BAD_REQUEST)
@@ -134,7 +188,13 @@ class CorpusViewSet(viewsets.ModelViewSet):
 
     @detail_route(methods=['post'])
     def query(self, request, pk=None):
+        if request.auth is None:
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
         corpus = self.get_object()
+        if not request.user.is_superuser:
+            permissions = corpus.user_permissions.filter(user=request.user).all()
+            if not len(permissions):
+                return Response(status=status.HTTP_401_UNAUTHORIZED)
         data = request.data
 
         if corpus.database.status != 'R':
@@ -159,7 +219,13 @@ class CorpusViewSet(viewsets.ModelViewSet):
 
     @detail_route(methods=['post'])
     def enrich(self, request, pk=None):
+        if request.auth is None:
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
         corpus = self.get_object()
+        if not request.user.is_superuser:
+            permissions = corpus.user_permissions.filter(user=request.user).all()
+            if not len(permissions):
+                return Response(status=status.HTTP_401_UNAUTHORIZED)
         data = request.data
 
         if corpus.database.status != 'R':
@@ -181,14 +247,20 @@ class CorpusViewSet(viewsets.ModelViewSet):
 
     @detail_route(methods=['get'])
     def utterance_pitch_track(self, request, pk=None):
+        if request.auth is None:
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
+        corpus = self.get_object()
+        if not request.user.is_superuser:
+            permissions = corpus.user_permissions.filter(user=request.user).all()
+            if not len(permissions):
+                return Response(status=status.HTTP_401_UNAUTHORIZED)
+
         utterance_id = request.query_params.get('utterance_id', None)
         if utterance_id is None:
             return Response(None)
-
         source = request.query_params.get('source', 'praat')
         min_pitch = int(request.query_params.get('min_pitch', 50))
         max_pitch = int(request.query_params.get('max_pitch', 500))
-        corpus = self.get_object()
         with CorpusContext(corpus.config) as c:
             results = c.analyze_utterance_pitch(utterance_id, source=source, min_pitch=min_pitch, max_pitch=max_pitch)
         pitch_data = {}
@@ -198,13 +270,21 @@ class CorpusViewSet(viewsets.ModelViewSet):
 
 class SourceChoiceViewSet(viewsets.ViewSet):
     def list(self, request):
+        if request.auth is None:
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
         choices = os.listdir(settings.SOURCE_DATA_DIRECTORY)
         return Response(choices)
 
 
 class DiscourseViewSet(viewsets.ViewSet):
     def list(self, request, corpus_pk=None):
+        if request.auth is None:
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
         corpus = models.Corpus.objects.get(pk=corpus_pk)
+        if not request.user.is_superuser:
+            permissions = corpus.user_permissions.filter(user=request.user).all()
+            if not len(permissions):
+                return Response(status=status.HTTP_401_UNAUTHORIZED)
         with CorpusContext(corpus.config) as c:
             discourses = c.discourses
 
@@ -212,7 +292,14 @@ class DiscourseViewSet(viewsets.ViewSet):
 
     @list_route(methods=['get'])
     def properties(self, request, corpus_pk=None):
+        if request.auth is None:
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
         corpus = models.Corpus.objects.get(pk=corpus_pk)
+        if not request.user.is_superuser:
+            permissions = corpus.user_permissions.filter(user=request.user).all()
+            if not len(permissions):
+                return Response(status=status.HTTP_401_UNAUTHORIZED)
+
         with CorpusContext(corpus.config) as c:
             props = c.query_metadata(c.discourse).grouping_factors()
             data = []
@@ -223,7 +310,14 @@ class DiscourseViewSet(viewsets.ViewSet):
 
 class SpeakerViewSet(viewsets.ViewSet):
     def list(self, request, corpus_pk=None):
+        if request.auth is None:
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
         corpus = models.Corpus.objects.get(pk=corpus_pk)
+        if not request.user.is_superuser:
+            permissions = corpus.user_permissions.filter(user=request.user).all()
+            if not len(permissions):
+                return Response(status=status.HTTP_401_UNAUTHORIZED)
+
         with CorpusContext(corpus.config) as c:
             speakers = c.speakers
 
@@ -231,7 +325,13 @@ class SpeakerViewSet(viewsets.ViewSet):
 
     @list_route(methods=['get'])
     def properties(self, request, corpus_pk=None):
+        if request.auth is None:
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
         corpus = models.Corpus.objects.get(pk=corpus_pk)
+        if not request.user.is_superuser:
+            permissions = corpus.user_permissions.filter(user=request.user).all()
+            if not len(permissions):
+                return Response(status=status.HTTP_401_UNAUTHORIZED)
         with CorpusContext(corpus.config) as c:
             props = c.query_metadata(c.speaker).grouping_factors()
             print(c.query_metadata(c.speaker).factors())
@@ -245,6 +345,10 @@ class UtteranceViewSet(viewsets.ViewSet):
 
     def list(self, request, corpus_pk=None):
         corpus = models.Corpus.objects.get(pk=corpus_pk)
+        if not request.user.is_superuser:
+            permissions = corpus.user_permissions.filter(user=request.user).all()
+            if not len(permissions):
+                return Response(status=status.HTTP_401_UNAUTHORIZED)
         params = {**request.query_params}
 
         limit = int(params.pop('limit', [100])[0])
@@ -301,6 +405,10 @@ class UtteranceViewSet(viewsets.ViewSet):
 
     def retrieve(self, request, pk=None, corpus_pk=None):
         corpus = models.Corpus.objects.get(pk=corpus_pk)
+        if not request.user.is_superuser:
+            permissions = corpus.user_permissions.filter(user=request.user).all()
+            if not len(permissions) or permissions[0].can_view_detail:
+                return Response(status=status.HTTP_401_UNAUTHORIZED)
         with_pitch = request.query_params.get('with_pitch', False)
         with_waveform = request.query_params.get('with_waveform', False)
         with_spectrogram = request.query_params.get('with_spectrogram', False)

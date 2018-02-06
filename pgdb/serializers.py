@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from django.contrib.auth.models import Group, User
 from . import models
 
 
@@ -43,6 +44,7 @@ class DiscourseSerializer(serializers.Serializer):
     item = serializers.CharField()
     context = serializers.CharField()
 
+
 class PitchPointSerializer(serializers.Serializer):
     time = serializers.FloatField()
     F0 = serializers.FloatField()
@@ -57,3 +59,30 @@ class UtteranceSerializer(serializers.Serializer):
     pitch_track = PitchPointSerializer(many=True)
     pitch_last_edited = serializers.CharField()
     # discourse =serializers.CharField()
+
+
+# AUTH
+
+class CorpusPermissionsSerializer(serializers.ModelSerializer):
+    #corpus = CorpusSerializer()
+
+    class Meta:
+        model = models.CorpusPermissions
+        fields = ('corpus', 'can_edit', 'can_listen', 'can_view_detail')
+
+
+class UserWithFullGroupsSerializer(serializers.ModelSerializer):
+    corpus_permissions = CorpusPermissionsSerializer(many=True)
+
+    class Meta:
+        model = User
+        depth = 2
+        fields = ('id', 'first_name', 'last_name', 'username', 'is_superuser',
+                  'corpus_permissions')
+
+
+class UnauthorizedUserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        depth = 2
+        fields = ('id', 'first_name', 'last_name', 'username', 'is_superuser')

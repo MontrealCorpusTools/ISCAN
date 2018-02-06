@@ -13,6 +13,7 @@ __pycache__/
 test_data/data/
 
 node_modules/
+bower_components/
 # Distribution / packaging
 .Python
 env/

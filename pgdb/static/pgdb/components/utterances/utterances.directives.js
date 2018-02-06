@@ -451,6 +451,7 @@ angular.module('pgdb.utterances').filter('secondsToDateTime', [function () {
         scope: {
             height: '=height',
             utterance: '=utterance',
+            editable: '=editable',
             hovered: '&hovered'
         },
         link: function (scope, element, attrs) {
