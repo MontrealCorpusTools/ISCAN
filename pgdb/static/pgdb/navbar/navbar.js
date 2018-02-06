@@ -1,6 +1,6 @@
 angular.module('navbar', [
     'pgdb.corpora',
-    'angularAuth'
+    'pgdb.auth'
 ])
     .controller('NavCtrl', function ($scope, $rootScope, Corpora, CookieService, $http, AuthService) {
         $scope.authenticated = false;

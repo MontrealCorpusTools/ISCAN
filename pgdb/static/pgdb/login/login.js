@@ -1,4 +1,4 @@
-angular.module("login", ['angularAuth']).controller("LoginCtrl", [
+angular.module("login", ['pgdb.auth']).controller("LoginCtrl", [
     '$scope', '$rootScope', '$state', 'Config', 'AuthService', 'CookieService', '$http', '$timeout', function($scope, $rootScope, $state, Config, AuthService, CookieService, $http, $timeout) {
       $scope.state = $state;
       $scope.Config = Config;

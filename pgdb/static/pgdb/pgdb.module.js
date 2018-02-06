@@ -17,7 +17,6 @@ var app = angular.module('pgdb', [
     'utteranceDetail',
     'utteranceList',
     'navbar',
-    'angularAuth',
     'login',
     'logout'
 ]).run(

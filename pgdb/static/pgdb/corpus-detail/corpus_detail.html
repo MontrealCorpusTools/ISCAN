@@ -5,6 +5,16 @@
         <div>
             <a ui-sref="utterance-list({corpus_id: corpus.id})">Utterances</a>
         </div>
+        <div>
+            <a ui-sref="utterance-list({corpus_id: corpus.id})">Words</a>
+        </div>
+        <div>
+
+            <a ui-sref="utterance-list({corpus_id: corpus.id})" ng-show="hierarchy.indexOf('syllables') != -1">Syllables</a>
+        </div>
+        <div>
+            <a ui-sref="utterance-list({corpus_id: corpus.id})">Phones</a>
+        </div>
     </ul>
     </div>
 </div>
