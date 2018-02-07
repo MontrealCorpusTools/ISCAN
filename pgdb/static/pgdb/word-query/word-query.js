@@ -1,6 +1,6 @@
-angular.module('utteranceList', [
+angular.module('wordQuery', [
     'pgdb.corpora',
-    'pgdb.utterances'
+    'pgdb.words'
 ]).directive('dlEnterKey', function () {
     return function (scope, element, attrs) {
 
@@ -23,18 +23,18 @@ angular.module('utteranceList', [
         return function (seconds) {
             return new Date(1970, 0, 1).setSeconds(seconds);
         };
-    }]).controller('UtteranceListCtrl', function ($scope, Utterances, Corpora, $state, $stateParams) {
+    }]).controller('WordQueryCtrl', function ($scope, Words, Corpora, $state, $stateParams) {
         $scope.ordering = '-discourse.name';
         $scope.currentPage = 1;
         $scope.resultsPerPage = 100;
         $scope.offset = 0;
         $scope.numPages = 0;
         $scope.update = function () {
-            Utterances.all($stateParams.corpus_id, $scope.offset, $scope.ordering, $scope.searchText).then(function (res) {
+            Words.all($stateParams.corpus_id, $scope.offset, $scope.ordering, $scope.searchText).then(function (res) {
                 console.log(res.data);
                 $scope.count = res.data.count;
                 $scope.numPages = Math.ceil($scope.count / $scope.resultsPerPage);
-                $scope.utterances = res.data.results;
+                $scope.words = res.data.results;
                 $scope.updatePagination();
             });
 

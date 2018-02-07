@@ -1,0 +1,79 @@
+    <div class="col-md-9 scroll-container text-center">
+        <input type="text" class="form-control" placeholder="Search..." ng-model="searchText"
+               dl-enter-key="refreshSearch();">
+
+        <ul ng-if="numPages" class="pagination">
+            <li ng-class="{disabled:currentPage === 1}">
+                <a ng-click="first()">First</a>
+            </li>
+            <li ng-class="{disabled:currentPage === 1}">
+                <a ng-click="previous()">Previous</a>
+            </li>
+            <li ng-repeat="page in pages  track by $index" ng-class="{active:currentPage === page, disabled:page === '...'}">
+                <a ng-click="refreshPagination(page)">{{ page }}</a>
+            </li>
+            <li ng-class="{disabled:currentPage === numPages}">
+                <a ng-click="next()">Next</a>
+            </li>
+            <li ng-class="{disabled:currentPage === numPages}">
+                <a ng-click="last()">Last</a>
+            </li>
+        </ul>
+        <table class="table table-bordered table-striped scrollable-table">
+
+            <thead>
+            <tr>
+                <td>
+                    Utterance
+                </td>
+                <td ng-click="refreshOrdering('discourse.name')">
+                    Discourse
+                    <span ng-show="ordering == 'discourse.name'" class="fa fa-caret-down"></span>
+                    <span ng-show="ordering == '-discourse.name'" class="fa fa-caret-up"></span>
+                </td>
+                <td ng-click="refreshOrdering('speaker.name')">
+                    Speaker
+                    <span ng-show="ordering == 'speaker.speaker.name'" class="fa fa-caret-down"></span>
+                    <span ng-show="ordering == '-game__game_number'" class="fa fa-caret-up"></span>
+                </td>
+                <td ng-click="refreshOrdering('discourse.item')">
+                    Item
+                    <span ng-show="ordering == 'discourse.item'" class="fa fa-caret-down"></span>
+                    <span ng-show="ordering == '-discourse.item'" class="fa fa-caret-up"></span>
+                </td>
+                <td ng-click="refreshOrdering('discourse.context')">
+                    Context
+                    <span ng-show="ordering == 'discourse.context'" class="fa fa-caret-down"></span>
+                    <span ng-show="ordering == '-discourse.context'" class="fa fa-caret-up"></span>
+                </td>
+                <td ng-click="refreshOrdering('pitch_last_edited')">
+
+                    Pitch last edited
+                    <span ng-show="ordering == 'pitch_last_edited'" class="fa fa-caret-down"></span>
+                    <span ng-show="ordering == '-pitch_last_edited'" class="fa fa-caret-up"></span>
+                </td>
+            </tr>
+            </thead>
+            <tbody>
+            <tr ng-repeat="utt in utterances">
+                <td>
+
+                    <a ui-sref="utterance-detail({corpus_id: corpus.id, utterance_id: utt.id})">{{ utt.discourse.name}} ({{ utt.begin }} to {{ utt.end }})</a>
+                </td>
+                <td>
+
+                    {{ utt.discourse.name }}
+                </td>
+                <td>
+                    {{ utt.speaker.name }}
+
+                </td>
+                <td> {{ utt.discourse.item }}</td>
+                <td>{{ utt.discourse.context }}</td>
+                <td>{{ utt.pitch_last_edited | secondsToDateTime | date:'MM/dd/yy hh:mm:ss a' : '-1000'}}</td>
+            </tr>
+            </tbody>
+
+        </table>
+
+    </div>

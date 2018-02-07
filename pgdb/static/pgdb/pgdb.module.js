@@ -15,7 +15,10 @@ var app = angular.module('pgdb', [
     'corpusDetail',
     'bestiaryPlot',
     'utteranceDetail',
-    'utteranceList',
+    'utteranceQuery',
+    'wordQuery',
+    'syllableQuery',
+    'phoneQuery',
     'navbar',
     'login',
     'logout'
@@ -61,10 +64,22 @@ app.config(function ($stateProvider, $urlRouterProvider) {
         url: '/utterances/:corpus_id/:utterance_id',
         templateUrl: static('pgdb/utterance-detail/utterance_detail.html'),
         controller: 'UtteranceDetailCtrl'
-    }).state('utterance-list', {
+    }).state('utterance-query', {
         url: '/utterances/:corpus_id',
-        templateUrl: static('pgdb/utterance-list/utterance_list.html'),
-        controller: 'UtteranceListCtrl'
+        templateUrl: static('pgdb/utterance-query/utterance_query.html'),
+        controller: 'UtteranceQueryCtrl'
+    }).state('word-query', {
+        url: '/words/:corpus_id',
+        templateUrl: static('pgdb/word-query/word_query.html'),
+        controller: 'WordQueryCtrl'
+    }).state('syllable-query', {
+        url: '/syllables/:corpus_id',
+        templateUrl: static('pgdb/syllable-query/syllable_query.html'),
+        controller: 'SyllableQueryCtrl'
+    }).state('phone-query', {
+        url: '/phones/:corpus_id',
+        templateUrl: static('pgdb/phone-query/phone_query.html'),
+        controller: 'PhoneQueryCtrl'
     }).state('check', {
             url: '/check'
         })

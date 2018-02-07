@@ -1,20 +1,97 @@
-<div class="row text-center">
+<div class="row">
     <h1>{{ corpus.name }}</h1>
     <div class="col-md-6">
-    <ul>
+        <h1>Linguistic Units</h1>
         <div>
-            <a ui-sref="utterance-list({corpus_id: corpus.id})">Utterances</a>
+            <h2>Utterances</h2>
+            <div ng-show="hierarchy.indexOf('utterance') != -1"></div>
+            <a ui-sref="utterance-query({corpus_id: corpus.id})">Query</a>
+            <div>
+                <p>Currently encoded properties</p>
+                <ul>
+                    <li ng-repeat="prop in properties.utterance">
+                    {{prop}}
+                    </li>
+                </ul>
+                <p>Currently encoded subsets</p>
+                <ul>
+                    <li ng-repeat="subset in subsets.utterance">
+                    {{subset}}
+                    </li>
+                </ul>
+            </div>
         </div>
         <div>
-            <a ui-sref="utterance-list({corpus_id: corpus.id})">Words</a>
+            <h2>Words</h2>
+            <a ui-sref="word-query({corpus_id: corpus.id})">Query</a>
+                <p>Currently encoded properties</p>
+                <ul>
+                    <li ng-repeat="prop in properties.word">
+                    {{prop}}
+                    </li>
+                </ul>
+                <p>Currently encoded subsets</p>
+                <ul>
+                    <li ng-repeat="subset in subsets.word">
+                    {{subset}}
+                    </li>
+                </ul>
         </div>
         <div>
+            <h2>Syllables</h2>
+            <div ng-show="hierarchy.indexOf('syllable') != -1">
+            <a ui-sref="syllable-query({corpus_id: corpus.id})">Query</a>
+                <p>Currently encoded properties</p>
+                <ul>
+                    <li ng-repeat="prop in properties.syllable">
+                    {{prop}}
+                    </li>
+                </ul>
+                <p>Currently encoded subsets</p>
+                <ul>
+                    <li ng-repeat="subset in subsets.syllable">
+                    {{subset}}
+                    </li>
+                </ul>
 
-            <a ui-sref="utterance-list({corpus_id: corpus.id})" ng-show="hierarchy.indexOf('syllables') != -1">Syllables</a>
+            </div>
         </div>
         <div>
-            <a ui-sref="utterance-list({corpus_id: corpus.id})">Phones</a>
+            <h2>Phones</h2>
+            <a ui-sref="phone-query({corpus_id: corpus.id})">Query</a>
+                <p>Currently encoded properties</p>
+                <ul>
+                    <li ng-repeat="prop in properties.phone">
+                    {{prop}}
+                    </li>
+                </ul>
+                <p>Currently encoded subsets</p>
+                <ul>
+                    <li ng-repeat="subset in subsets.phone">
+                    {{subset}}
+                    </li>
+                </ul>
         </div>
-    </ul>
+    </div>
+    <div class="col-md-6">
+        <h1>Metadata</h1>
+        <div>
+            <h2>Speakers</h2>
+                <p>Currently encoded properties</p>
+                <ul>
+                    <li ng-repeat="prop in hierarchy.speaker_properties">
+                    {{prop[0]}}
+                    </li>
+                </ul>
+        </div>
+        <div>
+            <h2>Sound files</h2>
+                <p>Currently encoded properties</p>
+                <ul>
+                    <li ng-repeat="prop in hierarchy.discourse_properties">
+                    {{prop[0]}}
+                    </li>
+                </ul>
+        </div>
     </div>
 </div>
