@@ -63,20 +63,20 @@ angular.module('pgdb.utterances').filter('secondsToDateTime', [function () {
                     var zoom_scales = [1, 30];
                     var waveform_y = d3.scaleLinear().range([height, 0]).nice();
                     waveform_y.domain(d3.extent(newVal, function (d) {
-                        return d.y;
+                        return d.amplitude;
                     }));
                     var waveform_padding = (waveform_y.domain()[1] - waveform_y.domain()[0]) * 0.05;
                     waveform_y.domain([waveform_y.domain()[0] - waveform_padding, waveform_y.domain()[1] + waveform_padding]);
 
                     var waveform_valueline = d3.line()
                         .x(function (d) {
-                            return x(d.x);
+                            return x(d.time);
                         }).y(function (d) {
-                            return waveform_y(d.y);
+                            return waveform_y(d.amplitude);
                         });
 
                     var waveform_x_function = function (d) {
-                        return x(d.x);
+                        return x(d.time);
                     };
                     var waveform_yaxis = d3.axisLeft(waveform_y)
                         .ticks(5);
@@ -213,10 +213,10 @@ angular.module('pgdb.utterances').filter('secondsToDateTime', [function () {
 
                         waveform_valueline = d3.line()
                             .x(function (d) {
-                                return xt(d.x);
+                                return xt(d.time);
                             })
                             .y(function (d) {
-                                return waveform_y(d.y);
+                                return waveform_y(d.amplitude);
                             });
                         waveform_playline.attr("x1", xt(selection_begin))
                             .attr("x2", xt(selection_begin));

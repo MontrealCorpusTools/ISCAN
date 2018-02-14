@@ -14,19 +14,19 @@
     </div>
 
     {% addtoblock "js" %}
-    <script src="{% static "pgdb/env.js" %}"></script>
+        <script src="{% static "pgdb/env.js" %}"></script>
         <script>
 
 
-    function static(path) {
+            function static(path) {
 
-        return "{% static "/" %}" + path;
+                return "{% static "/" %}" + path;
 
-    }
+            }
 
 
-</script>
-    <script src="{% static "pgdb/js/d3.min.js" %}"></script>
+        </script>
+        <script src="{% static "pgdb/js/d3.min.js" %}"></script>
         <script src="{% static "node_modules/angular/angular.js" %}"></script>
         <script src="{% static "node_modules/angular-ui-router/release/angular-ui-router.js" %}"></script>
         <script src="{% static "node_modules/angular-animate/angular-animate.js" %}"></script>
@@ -38,7 +38,7 @@
 
 
 
-    <script src="{% static "pgdb/js/howler.min.js" %}" charset="utf-8"></script>
+        <script src="{% static "pgdb/js/howler.min.js" %}" charset="utf-8"></script>
 
         <script src="{% static "pgdb/pgdb.module.js" %}"></script>
 
@@ -104,8 +104,8 @@
                 margin-top: 0;
             }
         </style>
-    <link rel="stylesheet" href="{% static "pgdb/css/plots.css" %}">
-    <link rel="stylesheet" href="{% static "pgdb/css/app.css" %}">
+        <link rel="stylesheet" href="{% static "pgdb/css/plots.css" %}">
+        <link rel="stylesheet" href="{% static "pgdb/css/app.css" %}">
 
     {% endaddtoblock %}
 {% endblock %}

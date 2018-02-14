@@ -4,7 +4,7 @@ angular.module('pgdb.utterances')
         var Utterances = {};
 
         Utterances.sound_file_url = function(corpus_id, id){
-            return __env.apiUrl + corpus_id + '/wav_file/' + id + '/';
+            return base_url + corpus_id + '/utterances/' + id + '/sound_file/';
         };
 
         Utterances.export_pitch_tracks = function(corpus_id){
@@ -46,11 +46,11 @@ angular.module('pgdb.utterances')
         };
 
         Utterances.get_next = function(corpus_id, id) {
-            return $http.get(__env.apiUrl + corpus_id + '/get_next_utterance/' + id + '/');
+            return $http.get(base_url + corpus_id + '/utterances/' + id + '/next/');
         };
 
         Utterances.get_previous = function(corpus_id, id) {
-            return $http.get(__env.apiUrl + corpus_id + '/get_previous_utterance/' + id + '/');
+            return $http.get(base_url + corpus_id + '/utterances/' + id + '/previous/');
         };
 
         return Utterances;

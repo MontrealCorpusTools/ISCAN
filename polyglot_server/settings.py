@@ -136,7 +136,13 @@ STATICFILES_DIRS = [
     ('node_modules', os.path.join(BASE_DIR, 'node_modules')),
     ('bower_components', os.path.join(BASE_DIR, 'bower_components')),
 ]
-CORS_ORIGIN_ALLOW_ALL = True
+CORS_ALLOW_CREDENTIALS = True
+
+#CORS_ORIGIN_ALLOW_ALL = True
+CORS_ORIGIN_WHITELIST = (
+    'localhost:8080',
+    '127.0.0.1:8080'
+)
 ## Polyglot-server settings
 
 SOURCE_DATA_DIRECTORY = os.path.join(BASE_DIR, 'test_data', 'source')

@@ -36,13 +36,11 @@ class QueryResultsSerializer(object):
 
 
 class SpeakerSerializer(serializers.Serializer):
-    name = serializers.CharField()
+    pass
 
 
 class DiscourseSerializer(serializers.Serializer):
-    name = serializers.CharField()
-    item = serializers.CharField()
-    context = serializers.CharField()
+    pass
 
 
 class PitchPointSerializer(serializers.Serializer):
@@ -51,15 +49,7 @@ class PitchPointSerializer(serializers.Serializer):
 
 
 class UtteranceSerializer(serializers.Serializer):
-    id = serializers.CharField()
-    begin = serializers.FloatField()
-    end = serializers.FloatField()
-    discourse = DiscourseSerializer()
-    speaker = SpeakerSerializer()
-    pitch_track = PitchPointSerializer(many=True)
-    pitch_last_edited = serializers.CharField()
-    # discourse =serializers.CharField()
-
+    pass
 
 # AUTH
 
@@ -86,3 +76,70 @@ class UnauthorizedUserSerializer(serializers.ModelSerializer):
         model = User
         depth = 2
         fields = ('id', 'first_name', 'last_name', 'username', 'is_superuser')
+
+def serializer_factory(hierarchy, a_type, exclude=None, with_pitch=False, with_waveform=False, with_spectrogram=False):
+    if exclude is None:
+        exclude = []
+    attrs = {}
+    if a_type == 'discourse':
+        base = DiscourseSerializer
+        print(hierarchy.discourse_properties)
+        for prop, t in hierarchy.discourse_properties:
+            if prop in exclude:
+                continue
+            if t == str:
+                field = serializers.CharField()
+            elif t == float:
+                field = serializers.FloatField()
+            elif t == int:
+                field = serializers.IntegerField()
+            attrs[prop] = field
+    elif a_type == 'speaker':
+        base = SpeakerSerializer
+        for prop, t in hierarchy.speaker_properties:
+            if prop in exclude:
+                continue
+            if t == str:
+                field = serializers.CharField()
+            elif t == float:
+                field = serializers.FloatField()
+            elif t == int:
+                field = serializers.IntegerField()
+            attrs[prop] = field
+    else:
+        print(hierarchy.type_properties[a_type])
+        for prop, t in hierarchy.type_properties[a_type]:
+            if prop in exclude:
+                continue
+            if t == str:
+                field = serializers.CharField()
+            elif t == float:
+                field = serializers.FloatField()
+            elif t == int:
+                field = serializers.IntegerField()
+            attrs[prop] = field
+        print(hierarchy.token_properties[a_type])
+        for prop, t in hierarchy.token_properties[a_type]:
+            if prop in exclude:
+                continue
+            if t == str:
+                field = serializers.CharField()
+            elif t == float:
+                field = serializers.FloatField()
+            elif t == int:
+                field = serializers.IntegerField()
+            attrs[prop] = field
+        attrs['speaker'] = serializer_factory(hierarchy, 'speaker')()
+        attrs['discourse'] = serializer_factory(hierarchy, 'discourse', exclude=['duration'])()
+        if with_pitch:
+            attrs['pitch_track'] = PitchPointSerializer(many=True)
+        if with_waveform:
+            attrs['waveform'] = serializers.ListField()
+        if with_spectrogram:
+            attrs['spectrogram'] = serializers.DictField()
+        if a_type == 'utterance':
+            base = UtteranceSerializer
+        print(attrs)
+    parent = (object,)
+    class_name = 'Serializer'
+    return type(base)(class_name, (base,), attrs)

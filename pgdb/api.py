@@ -1,6 +1,7 @@
 import os
 
 from django.conf import settings
+from django.http.response import FileResponse
 from rest_framework import generics, permissions, viewsets, status, pagination
 from rest_framework.response import Response
 from rest_framework.decorators import detail_route, list_route
@@ -389,7 +390,8 @@ class UtteranceViewSet(viewsets.ViewSet):
                 pitch.relative = True
                 q = q.preload_acoustics(pitch)
             res = q.all()
-            serializer = serializers.UtteranceSerializer(res, many=True)
+            serializer_class = serializers.serializer_factory(c.hierarchy, 'utterance')
+            serializer = serializer_class(res, many=True)
             data['results'] = serializer.data
         data['next'] = None
         if offset + limit < data['count']:
@@ -404,6 +406,8 @@ class UtteranceViewSet(viewsets.ViewSet):
         return Response(data)
 
     def retrieve(self, request, pk=None, corpus_pk=None):
+        if request.auth is None:
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
         corpus = models.Corpus.objects.get(pk=corpus_pk)
         if not request.user.is_superuser:
             permissions = corpus.user_permissions.filter(user=request.user).all()
@@ -416,50 +420,84 @@ class UtteranceViewSet(viewsets.ViewSet):
             with CorpusContext(corpus.config) as c:
                 q = c.query_graph(c.utterance)
                 q = q.filter(c.utterance.id == pk)
-                track_column = c.utterance.pitch.track
-                q = q.columns(c.utterance.id.column_name('utterance_id'),
-                              c.utterance.word.label.column_name('label'),
-                              c.utterance.discourse.name.column_name('discourse'),
-                              c.utterance.speaker.name.column_name('speaker'),
-                              c.utterance.discourse.context.column_name('context'),
-                              c.utterance.discourse.item.column_name('item'),
-                              c.utterance.end.column_name('end'),
-                              c.utterance.begin.column_name('begin'),
-                              c.utterance.pitch_last_edited.column_name('pitch_last_edited')
-                              )
+                q = q.preload(c.utterance.word)
+                q = q.preload(c.utterance.syllable)
+                q = q.preload(c.utterance.phone)
+                q = q.preload(c.utterance.speaker)
+                q = q.preload(c.utterance.discourse)
+
                 if with_pitch:
-                    q = q.columns(track_column)
+                    q = q.preload_acoustics(c.utterance.pitch)
 
-                res = q.all()
-                if res is None:
+                utterances = q.all()
+                if utterances is None:
                     return Response(None)
-                for x in res:
+                serializer = serializers.serializer_factory(c.hierarchy, 'utterance', with_pitch=with_pitch, with_waveform=with_waveform, with_spectrogram=with_spectrogram)
 
-                    if x['item'] is None:
-                        continue
-                    if x['context'] is None:
-                        continue
-                    d = {k: v for k, v in zip(x.columns, x.values)}
-                    d['pitch_track'] = serializers.PitchPointSerializer(x.track, many=True).data
-                    if with_waveform:
-                        signal, sr = c.load_waveform(x['discourse'], 'vowel', begin=x['begin'], end=x['end'])
-                        step = 1 / sr
-                        d['waveform'] = [{'y': float(p), 'x': i * step + x['begin']} for i, p in enumerate(signal)]
-                    if with_spectrogram:
-                        orig, time_step, freq_step = c.generate_spectrogram(x['discourse'], 'consonant', begin=x['begin'],
-                                                                            end=x['end'])
-                        reshaped = []
-                        for i in range(orig.shape[0]):
-                            for j in range(orig.shape[1]):
-                                reshaped.append({'time': j * time_step + x['begin'], 'frequency': i * freq_step,
-                                                 'power': float(orig[i, j])})
-                        d['spectrogram'] = {'values': reshaped,
-                                            'time_step': time_step,
-                                            'freq_step': freq_step,
-                                            'num_time_bins': orig.shape[1],
-                                            'num_freq_bins': orig.shape[0]}
-
-                    return Response(d)
+                return Response(serializer(utterances[0]).data)
             return Response(None)
         except neo4j_exceptions.ServiceUnavailable:
             return Response(None, status=status.HTTP_423_LOCKED)
+
+    @detail_route(methods=['get'])
+    def next(self, request, pk=None, corpus_pk=None):
+        if request.auth is None:
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
+        corpus = models.Corpus.objects.get(pk=corpus_pk)
+        if not request.user.is_superuser:
+            permissions = corpus.user_permissions.filter(user=request.user).all()
+            if not len(permissions) or permissions[0].can_view_detail:
+                return Response(status=status.HTTP_401_UNAUTHORIZED)
+        with CorpusContext(corpus.config) as c:
+            utt = c.query_graph(c.utterance).filter(c.utterance.id == pk).preload(c.utterance.discourse).all()[0]
+            q = c.query_graph(c.utterance).filter(c.utterance.begin >= utt.end).limit(1).all()
+            if len(q):
+                return Response(q[0].id)
+            for i, d in enumerate(sorted(c.discourses)):
+                if d == utt.discourse.name and i < len(c.discourses) - 1:
+                    d_name = c.discourses[i + 1]
+                    break
+            else:
+                return Response(None)
+            utt = c.query_graph(c.utterance).filter(c.utterance.discourse.name == d_name).order_by(c.utterance.begin).limit(1).all()[0]
+            return Response(utt.id)
+
+    @detail_route(methods=['get'])
+    def previous(self, request, pk=None, corpus_pk=None):
+        if request.auth is None:
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
+        corpus = models.Corpus.objects.get(pk=corpus_pk)
+        if not request.user.is_superuser:
+            permissions = corpus.user_permissions.filter(user=request.user).all()
+            if not len(permissions) or permissions[0].can_view_detail:
+                return Response(status=status.HTTP_401_UNAUTHORIZED)
+
+        with CorpusContext(corpus.config) as c:
+            utt = c.query_graph(c.utterance).filter(c.utterance.id == pk).preload(c.utterance.discourse).all()[0]
+            q = c.query_graph(c.utterance).filter(c.utterance.end <= utt.begin).limit(1).all()
+            if len(q):
+                return Response({'id': q[0].id})
+            for i, d in enumerate(sorted(c.discourses)):
+                if d == utt.discourse.name and i > 0:
+                    d_name = c.discourses[i - 1]
+                    break
+            else:
+                return Response({'id': None})
+            utt = c.query_graph(c.utterance).filter(c.utterance.discourse.name == d_name).order_by(c.utterance.begin).limit(
+                1).all()[0]
+            return Response({'id': utt.id})
+
+    @detail_route(methods=['get'])
+    def sound_file(self, request, pk=None, corpus_pk=None):
+        corpus = models.Corpus.objects.get(pk=corpus_pk)
+        #if not request.user.is_superuser: # FIXME Needs actual authentication
+        #    permissions = corpus.user_permissions.filter(user=request.user).all()
+        #    if not len(permissions) or permissions[0].can_listen:
+         #       return Response(status=status.HTTP_401_UNAUTHORIZED)
+        with CorpusContext(corpus.config) as c:
+            fname = c.utterance_sound_file(pk, 'consonant')
+
+        response = FileResponse(open(fname, "rb"), content_type='audio/wav')
+        # response['Content-Type'] = 'audio/wav'
+        # response['Content-Length'] = os.path.getsize(fname)
+        return response

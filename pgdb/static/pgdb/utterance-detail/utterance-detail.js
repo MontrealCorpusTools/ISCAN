@@ -26,18 +26,27 @@ angular.module('utteranceDetail', [
                 if ($scope.user.id == undefined) {
                     $state.go('home');
                 }
-                $scope.can_listen = false;
-                $scope.can_edit = false;
-                for (i=0; i<$scope.user.corpus_permissions.length; i++){
-                    if ($scope.user.corpus_permissions[i].corpus == $stateParams.corpus_id){
-                        $scope.can_listen = $scope.user.corpus_permissions[i].can_listen;
-                        $scope.can_edit = $scope.user.corpus_permissions[i].can_edit;
+                if ($scope.user.is_superuser) {
+
+                    $scope.can_listen = true;
+                    $scope.can_edit = true;
+
+                }
+                else {
+
+                    $scope.can_listen = false;
+                    $scope.can_edit = false;
+                    for (i = 0; i < $scope.user.corpus_permissions.length; i++) {
+                        if ($scope.user.corpus_permissions[i].corpus === $stateParams.corpus_id) {
+                            $scope.can_listen = $scope.user.corpus_permissions[i].can_listen;
+                            $scope.can_edit = $scope.user.corpus_permissions[i].can_edit;
+                        }
                     }
                 }
                 Utterances.one($stateParams.corpus_id, $stateParams.utterance_id, true, true, true).then(function (res) {
                     $scope.utterance = res.data;
                     console.log($scope.utterance);
-                    $scope.headline = $scope.utterance.discourse + ' (' + $scope.utterance.begin + ' to ' + $scope.utterance.end + ')';
+                    $scope.headline = $scope.utterance.discourse.name + ' (' + $scope.utterance.begin + ' to ' + $scope.utterance.end + ')';
                     console.log($scope.headline);
                     if ($scope.can_listen) {
                         $scope.initPlayer();
@@ -65,7 +74,7 @@ angular.module('utteranceDetail', [
             });
 
             $scope.initPlayer = function () {
-                $scope.wav_url = Utterances.sound_file_url($scope.corpus.name, $stateParams.utterance_id);
+                $scope.wav_url = Utterances.sound_file_url($scope.corpus.id, $stateParams.utterance_id);
                 $scope.player = new Howl({
                     src: [$scope.wav_url],
                     format: ['wav'],
@@ -74,12 +83,13 @@ angular.module('utteranceDetail', [
                     }
                 });
             };
+
             $scope.$on('$locationChangeStart', function (event) {
                 Howler.unload();
             });
+
             $scope.playPause = function () {
                 if ($scope.can_listen) {
-
                     console.log('playpausing!');
                     if ($scope.player.playing()) {
                         $scope.player.stop();
@@ -92,8 +102,8 @@ angular.module('utteranceDetail', [
 
             $scope.seek = function (time) {
                 $scope.selection_begin = time;
-                if ($scope.can_listen){
-                $scope.player.seek(time - $scope.utterance.begin);
+                if ($scope.can_listen) {
+                    $scope.player.seek(time - $scope.utterance.begin);
                 }
             };
             $scope.updateSelectionEnd = function (time) {
@@ -169,10 +179,10 @@ angular.module('utteranceDetail', [
                         }
                         else {
                             $scope.player.pause();
-
                         }
                     }
                 }
             });
+
         }
     );
