@@ -93,6 +93,8 @@ def serializer_factory(hierarchy, a_type, exclude=None, with_pitch=False, with_w
                 field = serializers.FloatField()
             elif t == int:
                 field = serializers.IntegerField()
+            elif t == bool:
+                field = serializers.BooleanField()
             attrs[prop] = field
     elif a_type == 'speaker':
         base = SpeakerSerializer
@@ -105,6 +107,8 @@ def serializer_factory(hierarchy, a_type, exclude=None, with_pitch=False, with_w
                 field = serializers.FloatField()
             elif t == int:
                 field = serializers.IntegerField()
+            elif t == bool:
+                field = serializers.BooleanField()
             attrs[prop] = field
     else:
         print(hierarchy.type_properties[a_type])
@@ -117,6 +121,8 @@ def serializer_factory(hierarchy, a_type, exclude=None, with_pitch=False, with_w
                 field = serializers.FloatField()
             elif t == int:
                 field = serializers.IntegerField()
+            elif t == bool:
+                field = serializers.BooleanField()
             attrs[prop] = field
         print(hierarchy.token_properties[a_type])
         for prop, t in hierarchy.token_properties[a_type]:
@@ -128,6 +134,8 @@ def serializer_factory(hierarchy, a_type, exclude=None, with_pitch=False, with_w
                 field = serializers.FloatField()
             elif t == int:
                 field = serializers.IntegerField()
+            elif t == bool:
+                field = serializers.BooleanField()
             attrs[prop] = field
         attrs['speaker'] = serializer_factory(hierarchy, 'speaker')()
         attrs['discourse'] = serializer_factory(hierarchy, 'discourse', exclude=['duration'])()

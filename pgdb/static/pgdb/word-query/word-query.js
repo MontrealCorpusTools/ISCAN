@@ -145,7 +145,7 @@ angular.module('wordQuery', [
             $scope.update()
         };
 
-        $scope.update();
+        //$scope.update();
 
         $scope.refreshOrdering = function (new_ordering) {
             if (new_ordering == $scope.ordering) {
