@@ -32,12 +32,7 @@ var app = angular.module('pgdb', [
 
 
 app.constant('__env', env);
-app.factory(
-  'Config', function() {
-    return {
-      apiRoot: 'http://localhost:8080/api'
-      };
-    });
+
 app.config(function ($stateProvider, $urlRouterProvider) {
     $stateProvider
         .state('home', {

@@ -1,14 +1,14 @@
 angular.module("pgdb.auth").factory("AuthService", [
-    'Config', 'HttpService', function(Config, HttpService) {
+    '__env', 'HttpService', function(__env, HttpService) {
       return {
         login: function(user) {
           var url;
-          url = Config.apiRoot + "/api-token-auth/";
+          url = __env.apiUrl + "api-token-auth/";
           return HttpService.post(url, user);
         },
         checkAuth: function() {
           var url;
-          url = Config.apiRoot + "/check-auth/";
+          url = __env.apiUrl + "check-auth/";
           return HttpService.get(url);
         },
         createSessionFor: function(user) {
