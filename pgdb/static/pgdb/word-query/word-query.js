@@ -30,8 +30,8 @@ angular.module('wordQuery', [
         $scope.resultsPerPage = 100;
         $scope.offset = 0;
         $scope.numPages = 0;
-        $scope.query_running = true;
-        $scope.query_text = 'Fetching results...';
+        $scope.query_running = false;
+        $scope.query_text = 'Run query';
 
         $scope.properties = [];
 
