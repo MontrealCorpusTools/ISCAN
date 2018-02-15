@@ -111,7 +111,6 @@ def serializer_factory(hierarchy, a_type, exclude=None, with_pitch=False, with_w
                 field = serializers.BooleanField()
             attrs[prop] = field
     else:
-        print(hierarchy.type_properties[a_type])
         for prop, t in hierarchy.type_properties[a_type]:
             if prop in exclude:
                 continue
@@ -124,7 +123,6 @@ def serializer_factory(hierarchy, a_type, exclude=None, with_pitch=False, with_w
             elif t == bool:
                 field = serializers.BooleanField()
             attrs[prop] = field
-        print(hierarchy.token_properties[a_type])
         for prop, t in hierarchy.token_properties[a_type]:
             if prop in exclude:
                 continue
@@ -150,7 +148,6 @@ def serializer_factory(hierarchy, a_type, exclude=None, with_pitch=False, with_w
         while supertype is not None:
             attrs[supertype] =serializer_factory(hierarchy, supertype)()
             supertype = hierarchy[supertype]
-        print(attrs)
     parent = (object,)
     class_name = 'Serializer'
     return type(base)(class_name, (base,), attrs)

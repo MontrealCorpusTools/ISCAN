@@ -335,7 +335,6 @@ class SpeakerViewSet(viewsets.ViewSet):
                 return Response(status=status.HTTP_401_UNAUTHORIZED)
         with CorpusContext(corpus.config) as c:
             props = c.query_metadata(c.speaker).grouping_factors()
-            print(c.query_metadata(c.speaker).factors())
             data = []
             for p in props:
                 data.append({'name': p, 'options': c.query_metadata(c.speaker).levels(getattr(c.speaker,p))})
