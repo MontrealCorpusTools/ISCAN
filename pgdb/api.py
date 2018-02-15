@@ -542,6 +542,7 @@ class WordViewSet(viewsets.ViewSet):
             else:
                 q = q.order_by(c.word.label)
             q = q.limit(limit).offset(offset).preload(c.word.utterance, c.word.discourse, c.word.speaker)
+            print(q.cypher())
             res = q.all()
             serializer_class = serializers.serializer_factory(c.hierarchy, 'word')
             serializer = serializer_class(res, many=True)
