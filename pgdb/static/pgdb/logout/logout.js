@@ -1,7 +1,6 @@
 angular.module("logout", ['pgdb.auth']).controller("LogoutCtrl", [
-    '$scope', '$rootScope', '$state', 'Config', 'AuthService', 'CookieService', '$http', '$timeout', function ($scope, $rootScope, $state, Config, AuthService, CookieService, $http, $timeout) {
+    '$scope', '$rootScope', '$state',  'AuthService', 'CookieService', '$http', '$timeout', function ($scope, $rootScope, $state, AuthService, CookieService, $http, $timeout) {
         $scope.state = $state;
-        $scope.Config = Config;
 
         CookieService.remove('token');
         CookieService.remove('sessionid');

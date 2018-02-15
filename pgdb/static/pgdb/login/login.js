@@ -1,7 +1,6 @@
 angular.module("login", ['pgdb.auth']).controller("LoginCtrl", [
-    '$scope', '$rootScope', '$state', 'Config', 'AuthService', 'CookieService', '$http', '$timeout', function($scope, $rootScope, $state, Config, AuthService, CookieService, $http, $timeout) {
+    '$scope', '$rootScope', '$state', 'AuthService', 'CookieService', '$http', '$timeout', function($scope, $rootScope, $state, AuthService, CookieService, $http, $timeout) {
       $scope.state = $state;
-      $scope.Config = Config;
       $scope.user = {
         username: "",
         password: ""
