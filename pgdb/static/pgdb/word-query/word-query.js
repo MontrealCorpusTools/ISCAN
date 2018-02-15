@@ -23,25 +23,80 @@ angular.module('wordQuery', [
         return function (seconds) {
             return new Date(1970, 0, 1).setSeconds(seconds);
         };
-    }]).controller('WordQueryCtrl', function ($scope, Words, Corpora, $state, $stateParams) {
+    }]).controller('WordQueryCtrl', function ($scope, $rootScope, Words, Corpora, $state, $stateParams) {
         $scope.ordering = '-discourse.name';
         $scope.currentPage = 1;
+        $scope.query = {};
         $scope.resultsPerPage = 100;
         $scope.offset = 0;
         $scope.numPages = 0;
+        $scope.query_running = true;
+        $scope.query_text = 'Fetching results...';
+
+        $scope.properties = [];
+
+            $scope.$on('authenticated', function (e, res) {
+                $scope.user = $rootScope.user;
+                $scope.authenticated = true;
+                if ($scope.user.id == undefined) {
+                    $state.go('home');
+                }
+                if ($scope.user.is_superuser) {
+
+                    $scope.can_view = true;
+
+                }
+                else {
+
+                    $scope.can_view = false;
+                    console.log($scope.user.corpus_permissions);
+                    for (i = 0; i < $scope.user.corpus_permissions.length; i++) {
+                        if ($scope.user.corpus_permissions[i].corpus === $stateParams.corpus_id) {
+                            $scope.can_view = $scope.user.corpus_permissions[i].can_view_detail;
+                        }
+                    }
+                }
+            });
+
+
         $scope.update = function () {
-            Words.all($stateParams.corpus_id, $scope.offset, $scope.ordering, $scope.searchText).then(function (res) {
+            $scope.query_running = true;
+            $scope.query_text = 'Fetching results...';
+            Words.all($stateParams.corpus_id, $scope.offset, $scope.ordering, $scope.query).then(function (res) {
                 console.log(res.data);
                 $scope.count = res.data.count;
                 $scope.numPages = Math.ceil($scope.count / $scope.resultsPerPage);
                 $scope.words = res.data.results;
                 $scope.updatePagination();
+                $scope.query_running = false;
+                $scope.query_text = 'Run query';
             });
 
         };
 
         Corpora.one($stateParams.corpus_id).then(function (res) {
             $scope.corpus = res.data;
+            console.log($scope.corpus)
+        });
+
+        Corpora.hierarchy($stateParams.corpus_id).then(function (res) {
+            $scope.hierarchy = res.data;
+            console.log($scope.hierarchy);
+            var prop;
+            $scope.properties = [];
+            for (i=0; i < $scope.hierarchy.type_properties.word.length; i++){
+                prop = $scope.hierarchy.type_properties.word[i][0];
+                if ($scope.properties.indexOf(prop) === -1 && prop !== 'label' && prop !== 'id'){
+                    $scope.properties.push(prop);
+                }
+            }
+            for (i=0; i < $scope.hierarchy.token_properties.word.length; i++){
+                prop = $scope.hierarchy.token_properties.word[i][0];
+                if ($scope.properties.indexOf(prop) === -1 && prop !== 'label' && prop !== 'id'){
+                    $scope.properties.push(prop);
+                }
+            }
+            console.log($scope.properties)
         });
 
 

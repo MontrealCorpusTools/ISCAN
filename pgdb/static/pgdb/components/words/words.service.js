@@ -3,9 +3,10 @@ angular.module('pgdb.words')
         var base_url = __env.apiUrl + 'corpora/';
         var Words = {};
 
-        Words.all = function (corpus_id, offset, ordering) {
-            return $http.get(base_url + corpus_id + '/words/', {params: {
-                offset: offset, ordering: ordering}});
+        Words.all = function (corpus_id, offset, ordering, query) {
+            query.ordering = ordering;
+            query.offset = offset;
+            return $http.get(base_url + corpus_id + '/words/', {params: query});
         };
 
 

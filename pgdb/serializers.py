@@ -48,7 +48,7 @@ class PitchPointSerializer(serializers.Serializer):
     F0 = serializers.FloatField()
 
 
-class UtteranceSerializer(serializers.Serializer):
+class AnnotationSerializer(serializers.Serializer):
     pass
 
 # AUTH
@@ -137,8 +137,11 @@ def serializer_factory(hierarchy, a_type, exclude=None, with_pitch=False, with_w
             attrs['waveform'] = serializers.ListField()
         if with_spectrogram:
             attrs['spectrogram'] = serializers.DictField()
-        if a_type == 'utterance':
-            base = UtteranceSerializer
+        base = AnnotationSerializer
+        supertype = hierarchy[a_type]
+        while supertype is not None:
+            attrs[supertype] =serializer_factory(hierarchy, supertype)()
+            supertype = hierarchy[supertype]
         print(attrs)
     parent = (object,)
     class_name = 'Serializer'
