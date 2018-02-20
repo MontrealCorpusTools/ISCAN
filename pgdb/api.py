@@ -431,7 +431,7 @@ class UtteranceViewSet(viewsets.ViewSet):
                 utterances = q.all()
                 if utterances is None:
                     return Response(None)
-                serializer = serializers.serializer_factory(c.hierarchy, 'utterance', with_pitch=with_pitch, with_waveform=with_waveform, with_spectrogram=with_spectrogram)
+                serializer = serializers.serializer_factory(c.hierarchy, 'utterance', with_pitch=with_pitch, with_waveform=with_waveform, with_spectrogram=with_spectrogram, with_annotations=True)
 
                 return Response(serializer(utterances[0]).data)
             return Response(None)

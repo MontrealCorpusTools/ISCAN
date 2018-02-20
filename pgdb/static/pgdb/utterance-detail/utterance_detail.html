@@ -8,6 +8,9 @@
     <a ui-sref="utterance-detail({corpus_id: corpus.id, utterance_id: next_id})">Next utterance</a>
     </div>
 </div>
+<div class="row" style="padding-bottom: 10px; height:175px">
+    <annotation-plot data="utterance" ></annotation-plot>
+</div>
 <div class="row" style="padding-bottom: 10px">
     <waveform-plot data="utterance.waveform" begin="utterance.begin" end="utterance.end"></waveform-plot>
 </div>

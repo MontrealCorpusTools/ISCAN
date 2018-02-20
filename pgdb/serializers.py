@@ -77,7 +77,7 @@ class UnauthorizedUserSerializer(serializers.ModelSerializer):
         depth = 2
         fields = ('id', 'first_name', 'last_name', 'username', 'is_superuser')
 
-def serializer_factory(hierarchy, a_type, exclude=None, with_pitch=False, with_waveform=False, with_spectrogram=False):
+def serializer_factory(hierarchy, a_type, exclude=None, with_pitch=False, with_waveform=False, with_spectrogram=False, with_annotations=False):
     if exclude is None:
         exclude = []
     attrs = {}
@@ -148,6 +148,12 @@ def serializer_factory(hierarchy, a_type, exclude=None, with_pitch=False, with_w
         while supertype is not None:
             attrs[supertype] =serializer_factory(hierarchy, supertype)()
             supertype = hierarchy[supertype]
+        if with_annotations:
+            subs = hierarchy.contains(a_type)
+
+            for s in subs:
+                attrs[s] = serializer_factory(hierarchy, s)(many=True)
+
     parent = (object,)
     class_name = 'Serializer'
     return type(base)(class_name, (base,), attrs)
