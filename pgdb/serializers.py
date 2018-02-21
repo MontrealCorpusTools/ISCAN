@@ -83,7 +83,6 @@ def serializer_factory(hierarchy, a_type, exclude=None, with_pitch=False, with_w
     attrs = {}
     if a_type == 'discourse':
         base = DiscourseSerializer
-        print(hierarchy.discourse_properties)
         for prop, t in hierarchy.discourse_properties:
             if prop in exclude:
                 continue
@@ -135,8 +134,6 @@ def serializer_factory(hierarchy, a_type, exclude=None, with_pitch=False, with_w
             elif t == bool:
                 field = serializers.BooleanField()
             attrs[prop] = field
-        attrs['speaker'] = serializer_factory(hierarchy, 'speaker')()
-        attrs['discourse'] = serializer_factory(hierarchy, 'discourse', exclude=['duration'])()
         if with_pitch:
             attrs['pitch_track'] = PitchPointSerializer(many=True)
         if with_waveform:
@@ -144,16 +141,17 @@ def serializer_factory(hierarchy, a_type, exclude=None, with_pitch=False, with_w
         if with_spectrogram:
             attrs['spectrogram'] = serializers.DictField()
         base = AnnotationSerializer
-        supertype = hierarchy[a_type]
-        while supertype is not None:
-            attrs[supertype] =serializer_factory(hierarchy, supertype)()
-            supertype = hierarchy[supertype]
         if with_annotations:
+            attrs['speaker'] = serializer_factory(hierarchy, 'speaker')()
+            attrs['discourse'] = serializer_factory(hierarchy, 'discourse', exclude=['duration'])()
+            supertype = hierarchy[a_type]
+            while supertype is not None:
+                attrs[supertype] =serializer_factory(hierarchy, supertype)()
+                supertype = hierarchy[supertype]
             subs = hierarchy.contains(a_type)
 
             for s in subs:
                 attrs[s] = serializer_factory(hierarchy, s)(many=True)
-
     parent = (object,)
     class_name = 'Serializer'
     return type(base)(class_name, (base,), attrs)

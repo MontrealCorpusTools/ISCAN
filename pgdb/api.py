@@ -405,6 +405,8 @@ class UtteranceViewSet(viewsets.ViewSet):
         return Response(data)
 
     def retrieve(self, request, pk=None, corpus_pk=None):
+        import time
+        begin_time = time.time()
         if request.auth is None:
             return Response(status=status.HTTP_401_UNAUTHORIZED)
         corpus = models.Corpus.objects.get(pk=corpus_pk)
@@ -427,13 +429,18 @@ class UtteranceViewSet(viewsets.ViewSet):
 
                 if with_pitch:
                     q = q.preload_acoustics(c.utterance.pitch)
-
+                print(q.cypher(), q.cypher_params())
                 utterances = q.all()
                 if utterances is None:
                     return Response(None)
                 serializer = serializers.serializer_factory(c.hierarchy, 'utterance', with_pitch=with_pitch, with_waveform=with_waveform, with_spectrogram=with_spectrogram, with_annotations=True)
+                utt = utterances[0]
+                print('query took', time.time()-begin_time)
 
-                return Response(serializer(utterances[0]).data)
+                begin_time = time.time()
+                data = serializer(utt).data
+                print('serializing took',time.time()-begin_time)
+                return Response(data)
             return Response(None)
         except neo4j_exceptions.ServiceUnavailable:
             return Response(None, status=status.HTTP_423_LOCKED)
