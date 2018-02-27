@@ -162,21 +162,27 @@
                     <span ng-show="ordering == 'label'" class="fa fa-caret-down"></span>
                     <span ng-show="ordering == '-label'" class="fa fa-caret-up"></span>
                 </td>
-                <td ng-repeat="prop in properties" ng-click="refreshOrdering(prop)" ng-show="columns[prop]">
+                <td ng-repeat="prop in properties.word" ng-click="refreshOrdering(prop)" ng-show="columns.word[prop]">
                     {{ prop }}
                     <span ng-show="ordering == prop" class="fa fa-caret-down"></span>
                     <span ng-show="ordering == '-' + prop" class="fa fa-caret-up"></span>
                 </td>
-                <td ng-click="refreshOrdering('discourse.name')">
-                    Discourse
-                    <span ng-show="ordering == 'discourse.name'" class="fa fa-caret-down"></span>
-                    <span ng-show="ordering == '-discourse.name'" class="fa fa-caret-up"></span>
+                <td ng-repeat="prop in properties.utterance" ng-click="refreshOrdering('utterance.' + prop)" ng-show="columns.utterance[prop]">
+                    {{ prop }}
+                    <span ng-show="ordering == 'utterance.' +prop" class="fa fa-caret-down"></span>
+                    <span ng-show="ordering == '-utterance.' + prop" class="fa fa-caret-up"></span>
                 </td>
-                <td ng-click="refreshOrdering('speaker.name')">
-                    Speaker
-                    <span ng-show="ordering == 'speaker.name'" class="fa fa-caret-down"></span>
-                    <span ng-show="ordering == '-peaker.name'" class="fa fa-caret-up"></span>
+                <td ng-repeat="prop in properties.discourse" ng-click="refreshOrdering('discourse.' + prop)" ng-show="columns.discourse[prop]">
+                    {{ prop }}
+                    <span ng-show="ordering == 'discourse.' +prop" class="fa fa-caret-down"></span>
+                    <span ng-show="ordering == '-discourse.' + prop" class="fa fa-caret-up"></span>
                 </td>
+                <td ng-repeat="prop in properties.speaker" ng-click="refreshOrdering('speaker.' + prop)" ng-show="columns.speaker[prop]">
+                    {{ prop }}
+                    <span ng-show="ordering == 'speaker.' + prop" class="fa fa-caret-down"></span>
+                    <span ng-show="ordering == '-speaker.' + prop" class="fa fa-caret-up"></span>
+                </td>
+
             </tr>
             </thead>
             <tbody style="height:50%">
@@ -187,16 +193,17 @@
                        ng-show="can_view">{{ word.label }}</a>
                     <span ng-show="!can_view">{{ word.label }}</span>
                 </td>
-                <td ng-repeat="prop in properties" ng-show="columns[prop]">
+                <td ng-repeat="prop in properties.word" ng-show="columns.word[prop]">
                     {{ word[prop] }}
                 </td>
-                <td>
-
-                    {{ word.discourse.name }}
+                <td ng-repeat="prop in properties.utterance" ng-show="columns.utterance[prop]">
+                    {{ word.utterance[prop] }}
                 </td>
-                <td>
-                    {{ word.speaker.name }}
-
+                <td ng-repeat="prop in properties.discourse" ng-show="columns.discourse[prop]">
+                    {{ word.discourse[prop] }}
+                </td>
+                <td ng-repeat="prop in properties.speaker" ng-show="columns.speaker[prop]">
+                    {{ word.speaker[prop] }}
                 </td>
             </tr>
             </tbody>
@@ -221,7 +228,7 @@
                             <tr ng-repeat="prop in properties.word">
                                 <td>{{ prop }}</td>
                                 <td>
-                                    <input type="checkbox" ng-model="columns[prop]">
+                                    <input type="checkbox" ng-model="columns.word[prop]">
                                 </td>
                             </tr>
                             </tbody>
@@ -240,7 +247,7 @@
                             <tr ng-repeat="prop in properties.utterance">
                                 <td>{{ prop }}</td>
                                 <td>
-                                    <input type="checkbox" ng-model="columns[prop]">
+                                    <input type="checkbox" ng-model="columns.utterance[prop]">
                                 </td>
                             </tr>
                             </tbody>
@@ -259,7 +266,7 @@
                             <tr ng-repeat="prop in properties.speaker">
                                 <td>{{ prop }}</td>
                                 <td>
-                                    <input type="checkbox" ng-model="columns[prop]">
+                                    <input type="checkbox" ng-model="columns.speaker[prop]">
                                 </td>
                             </tr>
                             </tbody>
@@ -278,7 +285,7 @@
                             <tr ng-repeat="prop in properties.discourse">
                                 <td>{{ prop }}</td>
                                 <td>
-                                    <input type="checkbox" ng-model="columns[prop]">
+                                    <input type="checkbox" ng-model="columns.discourse[prop]">
                                 </td>
                             </tr>
                             </tbody>
