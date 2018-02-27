@@ -1,22 +1,21 @@
-div {
-    max-height: 100%;
+html, body, .container-fluid{
+  height: 100%;
 }
 .scroll-container {
-    min-height: 800px;
-    max-height: 100%;
+    height: 100%;
     overflow: hidden;
 }
-tr {
+.scrollable-table tr {
     width: 100%;
     display: inline-table;
     table-layout: fixed;
 }
 
-table{
+.scrollable-table{
     max-height:100%;              // <-- Select the height of the table
         table-layout:fixed;
 }
-tbody{
+.scrollable-table tbody{
     overflow-y: scroll;
     height: 85%;            //  <-- Select the height of the body
     width: 100%;
@@ -24,11 +23,10 @@ tbody{
 }
 
 main {
-    min-height: 800px;
-    max-height:85%;
+    height:1280px;
 }
 main .container-fluid {
-    min-height: 800px;
+    height: 100%;
 }
 
 .single-row {
@@ -36,4 +34,28 @@ main .container-fluid {
 }
 .danger-text {
     color: red;
+}
+
+
+
+
+.col-md-3 .tabs {
+    height:76%;
+    width: 100%;
+    overflow-y: hidden;
+    overflow-x: visible;
+}
+
+md-tabs {
+    height: 100%;
+    overflow-y: hidden;
+    overflow-x: visible;
+}
+.col-md-3 md-content{
+    height:800px;
+    overflow-y: hidden;
+    overflow-x: visible;
+}
+md-tab-content div{
+    height:100%;
 }

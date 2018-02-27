@@ -26,10 +26,10 @@ def make_influxdb_safe(string):
 def download_neo4j():
     if sys.platform.startswith('win'):
         dist_string = 'windows.zip'
-        path = os.path.join(settings.POLYGLOT_TEMP_DIR, 'neo4j.zip')
+        path = os.path.join(settings.POLYGLOT_TEMP_DIR, 'neo4j-{}.zip'.format(settings.NEO4J_VERSION))
     else:
         dist_string = 'unix.tar.gz'
-        path = os.path.join(settings.POLYGLOT_TEMP_DIR, 'neo4j.tar.gz')
+        path = os.path.join(settings.POLYGLOT_TEMP_DIR, 'neo4j-{}.tar.gz'.format(settings.NEO4J_VERSION))
     if os.path.exists(path):
         return path
     os.makedirs(settings.POLYGLOT_TEMP_DIR, exist_ok=True)
@@ -56,10 +56,10 @@ def extract_neo4j(database_name, archive_path):
 def download_influxdb():
     if sys.platform.startswith('win'):
         dist_string = 'windows_amd64.zip'
-        path = os.path.join(settings.POLYGLOT_TEMP_DIR, 'influxdb.zip')
+        path = os.path.join(settings.POLYGLOT_TEMP_DIR, 'influxdb-{}.zip'.format(settings.INFLUXDB_VERSION))
     else:
         dist_string = 'linux_amd64.tar.gz'
-        path = os.path.join(settings.POLYGLOT_TEMP_DIR, 'influxdb.tar.gz')
+        path = os.path.join(settings.POLYGLOT_TEMP_DIR, 'influxdb-{}.tar.gz'.format(settings.INFLUXDB_VERSION))
     if os.path.exists(path):
         return path
     os.makedirs(settings.POLYGLOT_TEMP_DIR, exist_ok=True)

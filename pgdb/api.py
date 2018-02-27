@@ -132,10 +132,11 @@ class CorpusViewSet(viewsets.ModelViewSet):
             return Response(status=status.HTTP_401_UNAUTHORIZED)
         if not request.user.is_superuser:
             return Response(status=status.HTTP_401_UNAUTHORIZED)
-        data = {k: v for k,v in request.data.items()}
-        data['database'] = models.Database.objects.get(pk = int(data['database']))
+        data = {k: v for k, v in request.data.items()}
+        data['database'] = models.Database.objects.get(pk=int(data['database']))
         data['source_directory'] = os.path.join(settings.SOURCE_DATA_DIRECTORY, data['source_directory'])
-        instance = models.Corpus.objects.create(name=data['name'], input_format=data['format'], source_directory=data['source_directory'], database=data['database'])
+        instance = models.Corpus.objects.create(name=data['name'], input_format=data['format'],
+                                                source_directory=data['source_directory'], database=data['database'])
         return Response(self.serializer_class(instance).data)
 
     @detail_route(methods=['get'])
@@ -164,7 +165,7 @@ class CorpusViewSet(viewsets.ModelViewSet):
                 return Response(status=status.HTTP_401_UNAUTHORIZED)
         with CorpusContext(corpus.config) as c:
             hierarchy = c.hierarchy
-
+        print(hierarchy.to_json())
         return Response(hierarchy.to_json())
 
     @detail_route(methods=['post'])
@@ -265,7 +266,8 @@ class CorpusViewSet(viewsets.ModelViewSet):
         with CorpusContext(corpus.config) as c:
             results = c.analyze_utterance_pitch(utterance_id, source=source, min_pitch=min_pitch, max_pitch=max_pitch)
         pitch_data = {}
-        pitch_data['pitch_track'] = serializers.PitchPointSerializer([x for x in results if x.F0 != None], many=True).data
+        pitch_data['pitch_track'] = serializers.PitchPointSerializer([x for x in results if x.F0 != None],
+                                                                     many=True).data
         return Response(pitch_data['pitch_track'])
 
 
@@ -305,7 +307,7 @@ class DiscourseViewSet(viewsets.ViewSet):
             props = c.query_metadata(c.discourse).grouping_factors()
             data = []
             for p in props:
-                data.append({'name': p, 'options': c.query_metadata(c.discourse).levels(getattr(c.discourse,p))})
+                data.append({'name': p, 'options': c.query_metadata(c.discourse).levels(getattr(c.discourse, p))})
         return Response(data)
 
 
@@ -337,7 +339,7 @@ class SpeakerViewSet(viewsets.ViewSet):
             props = c.query_metadata(c.speaker).grouping_factors()
             data = []
             for p in props:
-                data.append({'name': p, 'options': c.query_metadata(c.speaker).levels(getattr(c.speaker,p))})
+                data.append({'name': p, 'options': c.query_metadata(c.speaker).levels(getattr(c.speaker, p))})
         return Response(data)
 
 
@@ -389,19 +391,19 @@ class UtteranceViewSet(viewsets.ViewSet):
                 pitch.relative = True
                 q = q.preload_acoustics(pitch)
             res = q.all()
-            serializer_class = serializers.serializer_factory(c.hierarchy, 'utterance')
+            serializer_class = serializers.serializer_factory(c.hierarchy, 'utterance', top_level=True)
             serializer = serializer_class(res, many=True)
             data['results'] = serializer.data
         data['next'] = None
         if offset + limit < data['count']:
             url = request.build_absolute_uri()
-            url = pagination.replace_query_param(url,'limit', limit)
-            data['next'] = pagination.replace_query_param(url, 'offset', offset+limit)
+            url = pagination.replace_query_param(url, 'limit', limit)
+            data['next'] = pagination.replace_query_param(url, 'offset', offset + limit)
         data['previous'] = None
         if offset - limit >= 0:
             url = request.build_absolute_uri()
-            url = pagination.replace_query_param(url,'limit', limit)
-            data['previous'] = pagination.replace_query_param(url, 'offset', offset-limit)
+            url = pagination.replace_query_param(url, 'limit', limit)
+            data['previous'] = pagination.replace_query_param(url, 'offset', offset - limit)
         return Response(data)
 
     def retrieve(self, request, pk=None, corpus_pk=None):
@@ -433,13 +435,17 @@ class UtteranceViewSet(viewsets.ViewSet):
                 utterances = q.all()
                 if utterances is None:
                     return Response(None)
-                serializer = serializers.serializer_factory(c.hierarchy, 'utterance', with_pitch=with_pitch, with_waveform=with_waveform, with_spectrogram=with_spectrogram, with_annotations=True)
+                serializer = serializers.serializer_factory(c.hierarchy, 'utterance', #with_pitch=with_pitch,
+                                                            with_waveform=with_waveform,
+                                                            with_spectrogram=with_spectrogram,
+                                                            top_level=True,
+                                                            with_lower_annotations=True)
                 utt = utterances[0]
-                print('query took', time.time()-begin_time)
+                print('query took', time.time() - begin_time)
 
                 begin_time = time.time()
                 data = serializer(utt).data
-                print('serializing took',time.time()-begin_time)
+                print('serializing took', time.time() - begin_time)
                 return Response(data)
             return Response(None)
         except neo4j_exceptions.ServiceUnavailable:
@@ -465,7 +471,9 @@ class UtteranceViewSet(viewsets.ViewSet):
                     break
             else:
                 return Response(None)
-            utt = c.query_graph(c.utterance).filter(c.utterance.discourse.name == d_name).order_by(c.utterance.begin).limit(1).all()[0]
+            utt = \
+            c.query_graph(c.utterance).filter(c.utterance.discourse.name == d_name).order_by(c.utterance.begin).limit(
+                1).all()[0]
             return Response(utt.id)
 
     @detail_route(methods=['get'])
@@ -489,17 +497,18 @@ class UtteranceViewSet(viewsets.ViewSet):
                     break
             else:
                 return Response({'id': None})
-            utt = c.query_graph(c.utterance).filter(c.utterance.discourse.name == d_name).order_by(c.utterance.begin).limit(
+            utt = \
+            c.query_graph(c.utterance).filter(c.utterance.discourse.name == d_name).order_by(c.utterance.begin).limit(
                 1).all()[0]
             return Response({'id': utt.id})
 
     @detail_route(methods=['get'])
     def sound_file(self, request, pk=None, corpus_pk=None):
         corpus = models.Corpus.objects.get(pk=corpus_pk)
-        #if not request.user.is_superuser: # FIXME Needs actual authentication
+        # if not request.user.is_superuser: # FIXME Needs actual authentication
         #    permissions = corpus.user_permissions.filter(user=request.user).all()
         #    if not len(permissions) or permissions[0].can_listen:
-         #       return Response(status=status.HTTP_401_UNAUTHORIZED)
+        #       return Response(status=status.HTTP_401_UNAUTHORIZED)
         with CorpusContext(corpus.config) as c:
             fname = c.utterance_sound_file(pk, 'consonant')
 
@@ -507,6 +516,7 @@ class UtteranceViewSet(viewsets.ViewSet):
         # response['Content-Type'] = 'audio/wav'
         # response['Content-Length'] = os.path.getsize(fname)
         return response
+
 
 class WordViewSet(viewsets.ViewSet):
     def list(self, request, corpus_pk=None):
@@ -529,7 +539,10 @@ class WordViewSet(viewsets.ViewSet):
                 if v[0] == 'null':
                     v = None
                 else:
-                    v = v[0]
+                    try:
+                        v = float(v[0])
+                    except ValueError:
+                        v = v[0]
                 k = k.split('__')
                 att = c.word
                 for f in k:
@@ -551,17 +564,18 @@ class WordViewSet(viewsets.ViewSet):
             q = q.limit(limit).offset(offset).preload(c.word.utterance, c.word.discourse, c.word.speaker)
             print(q.cypher(), q.cypher_params())
             res = q.all()
-            serializer_class = serializers.serializer_factory(c.hierarchy, 'word')
+            serializer_class = serializers.serializer_factory(c.hierarchy, 'word', top_level=True,
+                                                              with_higher_annotations=True)
             serializer = serializer_class(res, many=True)
             data['results'] = serializer.data
         data['next'] = None
         if offset + limit < data['count']:
             url = request.build_absolute_uri()
-            url = pagination.replace_query_param(url,'limit', limit)
-            data['next'] = pagination.replace_query_param(url, 'offset', offset+limit)
+            url = pagination.replace_query_param(url, 'limit', limit)
+            data['next'] = pagination.replace_query_param(url, 'offset', offset + limit)
         data['previous'] = None
         if offset - limit >= 0:
             url = request.build_absolute_uri()
-            url = pagination.replace_query_param(url,'limit', limit)
-            data['previous'] = pagination.replace_query_param(url, 'offset', offset-limit)
+            url = pagination.replace_query_param(url, 'limit', limit)
+            data['previous'] = pagination.replace_query_param(url, 'offset', offset - limit)
         return Response(data)

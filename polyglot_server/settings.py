@@ -134,7 +134,6 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 STATICFILES_DIRS = [
     # os.path.join(ANGULAR_APP_DIR),
     ('node_modules', os.path.join(BASE_DIR, 'node_modules')),
-    ('bower_components', os.path.join(BASE_DIR, 'bower_components')),
 ]
 CORS_ALLOW_CREDENTIALS = True
 
@@ -156,9 +155,9 @@ except ImportError:
 
 POLYGLOT_TEMP_DIR = os.path.join(POLYGLOT_DATA_DIRECTORY, 'downloads')
 
-NEO4J_VERSION = '3.2.1'
+NEO4J_VERSION = '3.3.3'
 
-INFLUXDB_VERSION = '1.1.0'
+INFLUXDB_VERSION = '1.4.0'
 
 BASE_NEO4J_PORT = 7400
 

@@ -20,13 +20,12 @@ angular.module('utteranceDetail', [
             $scope.selection_begin = 0;
             $scope.selection_end = null;
             $scope.selection_anchor = null;
-            $scope.$on('authenticated', function (e, res) {
-                $scope.user = $rootScope.user;
-                $scope.authenticated = true;
-                if ($scope.user.id == undefined) {
+
+            $scope.runQuery = function (){
+                if ($rootScope.user == undefined) {
                     $state.go('home');
                 }
-                if ($scope.user.is_superuser) {
+                if ($rootScope.user.is_superuser) {
 
                     $scope.can_listen = true;
                     $scope.can_edit = true;
@@ -36,10 +35,10 @@ angular.module('utteranceDetail', [
 
                     $scope.can_listen = false;
                     $scope.can_edit = false;
-                    for (i = 0; i < $scope.user.corpus_permissions.length; i++) {
-                        if ($scope.user.corpus_permissions[i].corpus === $stateParams.corpus_id) {
-                            $scope.can_listen = $scope.user.corpus_permissions[i].can_listen;
-                            $scope.can_edit = $scope.user.corpus_permissions[i].can_edit;
+                    for (i = 0; i < $rootScope.user.corpus_permissions.length; i++) {
+                        if ($rootScope.user.corpus_permissions[i].corpus === $stateParams.corpus_id) {
+                            $scope.can_listen = $rootScope.user.corpus_permissions[i].can_listen;
+                            $scope.can_edit = $rootScope.user.corpus_permissions[i].can_edit;
                         }
                     }
                 }
@@ -58,8 +57,17 @@ angular.module('utteranceDetail', [
                             $scope.headline = 'Could not load utterance';
                         }
                     });
-            });
+            };
 
+            $scope.$on('authenticated', function (e, res) {
+                $scope.user = $rootScope.user;
+                $rootScope.authenticated = true;
+                $scope.runQuery()
+            });
+            console.log($rootScope.authenticated)
+            if ($rootScope.authenticated){
+                $scope.runQuery()
+            }
 
             Utterances.get_next($stateParams.corpus_id, $stateParams.utterance_id).then(function (res) {
                 $scope.next_id = res.data.id;

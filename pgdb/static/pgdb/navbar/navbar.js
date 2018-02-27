@@ -3,7 +3,7 @@ angular.module('navbar', [
     'pgdb.auth'
 ])
     .controller('NavCtrl', function ($scope, $rootScope, Corpora, CookieService, $http, AuthService) {
-        $scope.authenticated = false;
+        $rootScope.authenticated = false;
 
         $scope.checkAuth = function (){
             $scope.token = CookieService.get('token');
@@ -13,6 +13,8 @@ angular.module('navbar', [
             }
             AuthService.checkAuth().then(function (user) {
                 $rootScope.user = user.data;
+                $rootScope.authenticated = true;
+                $scope.authenticated = true;
                 console.log(user.data);
                 $rootScope.session = AuthService.createSessionFor(user.data);
                 $rootScope.$broadcast("authenticated", user);
@@ -25,14 +27,16 @@ angular.module('navbar', [
         $scope.$on('logged_in', $scope.checkAuth);
         $scope.$on('authenticated', function (e, res) {
             $scope.user = $rootScope.user;
+            $rootScope.authenticated = true;
             $scope.authenticated = true;
+
             $scope.refreshCorpusList();
         });
         $scope.$on('logged_out', function (e, res){
            delete $scope.user;
            delete $scope.token;
             delete $http.defaults.headers.common["Authorization"];
-            $scope.authenticated = false;
+            $rootScope.authenticated = false;
             $scope.refreshCorpusList();
         });
         $scope.refreshCorpusList = function(){

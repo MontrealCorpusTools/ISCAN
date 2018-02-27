@@ -77,7 +77,7 @@ class UnauthorizedUserSerializer(serializers.ModelSerializer):
         depth = 2
         fields = ('id', 'first_name', 'last_name', 'username', 'is_superuser')
 
-def serializer_factory(hierarchy, a_type, exclude=None, with_pitch=False, with_waveform=False, with_spectrogram=False, with_annotations=False):
+def serializer_factory(hierarchy, a_type, exclude=None, with_pitch=False, with_waveform=False, with_spectrogram=False, with_higher_annotations=False,with_lower_annotations=False, top_level=False):
     if exclude is None:
         exclude = []
     attrs = {}
@@ -141,13 +141,15 @@ def serializer_factory(hierarchy, a_type, exclude=None, with_pitch=False, with_w
         if with_spectrogram:
             attrs['spectrogram'] = serializers.DictField()
         base = AnnotationSerializer
-        if with_annotations:
+        if top_level:
             attrs['speaker'] = serializer_factory(hierarchy, 'speaker')()
             attrs['discourse'] = serializer_factory(hierarchy, 'discourse', exclude=['duration'])()
+        if with_higher_annotations:
             supertype = hierarchy[a_type]
             while supertype is not None:
                 attrs[supertype] =serializer_factory(hierarchy, supertype)()
                 supertype = hierarchy[supertype]
+        if with_lower_annotations:
             subs = hierarchy.contains(a_type)
 
             for s in subs:
