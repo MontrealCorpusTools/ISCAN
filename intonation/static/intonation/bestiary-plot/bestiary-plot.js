@@ -64,7 +64,7 @@ angular.module('bestiaryPlot', [
 
         $scope.$on('SOUND_REQUESTED', function (e, res) {
 
-            var snd = new Audio(Utterances.sound_file_url($scope.corpus.name, res)); // buffers automatically when created
+            var snd = new Audio(Utterances.sound_file_url($scope.corpus.id, res)); // buffers automatically when created
             snd.play();
 
         });

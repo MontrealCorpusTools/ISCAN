@@ -343,6 +343,69 @@ class SpeakerViewSet(viewsets.ViewSet):
         return Response(data)
 
 
+class BestiaryViewSet(viewsets.ViewSet):
+    def list(self, request, corpus_pk=None):
+        corpus = models.Corpus.objects.get(pk=corpus_pk)
+        if not request.user.is_superuser:
+            permissions = corpus.user_permissions.filter(user=request.user).all()
+            if not len(permissions):
+                return Response(status=status.HTTP_401_UNAUTHORIZED)
+        params = {**request.query_params}
+
+        limit = int(params.pop('limit', [100])[0])
+        offset = int(params.pop('offset', [0])[0])
+        ordering = params.pop('ordering', [''])[0]
+        search = params.pop('search', [''])[0]
+        with_pitch = params.pop('with_pitch', [False])[0]
+        data = {}
+        with CorpusContext(corpus.config) as c:
+            q = c.query_graph(c.utterance)
+            for k, v in params.items():
+                if v[0] == 'null':
+                    v = None
+                else:
+                    v = v[0]
+                k = k.split('__')
+                att = c.utterance
+                for f in k:
+                    att = getattr(att, f)
+                q = q.filter(att == v)
+            data['count'] = q.count()
+            if ordering:
+                desc = False
+                if ordering.startswith('-'):
+                    desc = True
+                    ordering = ordering[1:]
+                ordering = ordering.split('.')
+                att = c.utterance
+                for o in ordering:
+                    att = getattr(att, o)
+                q = q.order_by(att, desc)
+            else:
+                q = q.order_by(c.utterance.id)
+            q = q.limit(limit).offset(offset).preload(c.utterance.discourse, c.utterance.speaker)
+            if with_pitch:
+                pitch = c.utterance.pitch
+                pitch.relative_time = True
+                pitch.relative = True
+                q = q.preload_acoustics(pitch)
+            res = q.all()
+            serializer_class = serializers.serializer_factory(c.hierarchy, 'utterance', top_level=True, with_pitch=True)
+            serializer = serializer_class(res, many=True)
+            data['results'] = serializer.data
+        data['next'] = None
+        if offset + limit < data['count']:
+            url = request.build_absolute_uri()
+            url = pagination.replace_query_param(url, 'limit', limit)
+            data['next'] = pagination.replace_query_param(url, 'offset', offset + limit)
+        data['previous'] = None
+        if offset - limit >= 0:
+            url = request.build_absolute_uri()
+            url = pagination.replace_query_param(url, 'limit', limit)
+            data['previous'] = pagination.replace_query_param(url, 'offset', offset - limit)
+        return Response(data)
+
+
 class UtteranceViewSet(viewsets.ViewSet):
 
     def list(self, request, corpus_pk=None):
@@ -391,7 +454,7 @@ class UtteranceViewSet(viewsets.ViewSet):
                 pitch.relative = True
                 q = q.preload_acoustics(pitch)
             res = q.all()
-            serializer_class = serializers.serializer_factory(c.hierarchy, 'utterance', top_level=True)
+            serializer_class = serializers.serializer_factory(c.hierarchy, 'utterance', top_level=True, with_pitch=with_pitch)
             serializer = serializer_class(res, many=True)
             data['results'] = serializer.data
         data['next'] = None
@@ -435,7 +498,7 @@ class UtteranceViewSet(viewsets.ViewSet):
                 utterances = q.all()
                 if utterances is None:
                     return Response(None)
-                serializer = serializers.serializer_factory(c.hierarchy, 'utterance', #with_pitch=with_pitch,
+                serializer = serializers.serializer_factory(c.hierarchy, 'utterance',  with_pitch=with_pitch,
                                                             with_waveform=with_waveform,
                                                             with_spectrogram=with_spectrogram,
                                                             top_level=True,
@@ -472,8 +535,9 @@ class UtteranceViewSet(viewsets.ViewSet):
             else:
                 return Response(None)
             utt = \
-            c.query_graph(c.utterance).filter(c.utterance.discourse.name == d_name).order_by(c.utterance.begin).limit(
-                1).all()[0]
+                c.query_graph(c.utterance).filter(c.utterance.discourse.name == d_name).order_by(
+                    c.utterance.begin).limit(
+                    1).all()[0]
             return Response(utt.id)
 
     @detail_route(methods=['get'])
@@ -498,8 +562,9 @@ class UtteranceViewSet(viewsets.ViewSet):
             else:
                 return Response({'id': None})
             utt = \
-            c.query_graph(c.utterance).filter(c.utterance.discourse.name == d_name).order_by(c.utterance.begin).limit(
-                1).all()[0]
+                c.query_graph(c.utterance).filter(c.utterance.discourse.name == d_name).order_by(
+                    c.utterance.begin).limit(
+                    1).all()[0]
             return Response({'id': utt.id})
 
     @detail_route(methods=['get'])
