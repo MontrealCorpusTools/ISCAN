@@ -4,22 +4,31 @@ angular.module('navbar', [
 ])
     .controller('NavCtrl', function ($scope, $rootScope, Corpora, CookieService, $http, AuthService) {
         $rootScope.authenticated = false;
+        $scope.authenticated = false;
 
         $scope.checkAuth = function (){
             $scope.token = CookieService.get('token');
             if ($scope.token != undefined){
-                console.log($scope.token);
                 $http.defaults.headers.common["Authorization"] = "Token " + $scope.token;
             }
             AuthService.checkAuth().then(function (user) {
+                if (user.data.id === null){
+                $rootScope.user = undefined;
+                $rootScope.authenticated = false;
+                $scope.authenticated = false;
+                }
+                else{
                 $rootScope.user = user.data;
+
                 $rootScope.authenticated = true;
                 $scope.authenticated = true;
-                console.log(user.data);
                 $rootScope.session = AuthService.createSessionFor(user.data);
                 $rootScope.$broadcast("authenticated", user);
+                }
             }).catch(function(res){
-                console.log(res);
+                $rootScope.user = undefined;
+                $rootScope.authenticated = false;
+                $scope.authenticated = false;
             });
 
         };
@@ -37,12 +46,14 @@ angular.module('navbar', [
            delete $scope.token;
             delete $http.defaults.headers.common["Authorization"];
             $rootScope.authenticated = false;
+            $scope.authenticated = false;
             $scope.refreshCorpusList();
         });
         $scope.refreshCorpusList = function(){
             Corpora.all().then(function (res) {
                 $scope.corpora = res.data;
-                console.log($scope.corpora);
+            }).catch(function(res){
+
             });
         }
     }).directive('navbar', function () {
