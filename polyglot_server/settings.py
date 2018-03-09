@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     'rest_framework.authtoken',
     'django_celery_results',
     'pgdb',
+    'annotator',
     'intonation',
     'corsheaders',
     'sekizai',

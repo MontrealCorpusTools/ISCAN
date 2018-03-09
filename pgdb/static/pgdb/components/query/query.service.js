@@ -1,20 +1,28 @@
 angular.module('pgdb.query').factory('QueryState', function () {
     return {
-        wordQuery: {
+        type: 'word',
+        query: {
             word: [],
             utterance: [],
             discourse: [],
             speaker: []
         },
-        wordQueryResults: [],
-        wordQueryResultCount: 0,
-        wordOrdering: '-discourse.name',
-        wordCurrentPage: 1,
-        wordResultsPerPage: 100,
-        wordOffset: 0,
-        wordNumPages: 0,
-        wordQueryRunning: false,
-        wordQueryText: 'Run query',
-        wordQueryColumns: {}
+        detailIndex: 0,
+        results: [],
+        count: 0,
+        ordering: '-discourse.name',
+        currentPage: 1,
+        resultsPerPage: 100,
+        offset: 0,
+        numPages: 0,
+        pages: [],
+        query_running: false,
+        query_text: 'Run query',
+        columns: {
+            word: {},
+            utterance: {},
+            discourse: {},
+            speaker: {}
+        }
     }
 });

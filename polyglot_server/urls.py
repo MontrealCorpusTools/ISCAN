@@ -22,4 +22,5 @@ urlpatterns = [
                   path('admin/', admin.site.urls),
                   path('', include('pgdb.urls')),
                   path('intonation/', include('intonation.urls')),
+                  path('annotator/', include('annotator.urls')),
               ] + static('/static/', document_root=settings.STATIC_ROOT)

@@ -4,6 +4,7 @@ from rest_framework.authtoken.views import obtain_auth_token
 from . import api
 from . import views
 
+
 app_name = 'pgdb'
 api_router = routers.SimpleRouter()
 api_router.register(r'databases', api.DatabaseViewSet, base_name='databases')

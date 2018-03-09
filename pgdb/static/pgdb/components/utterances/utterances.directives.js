@@ -598,7 +598,7 @@ angular.module('pgdb.utterances').filter('secondsToDateTime', [function () {
         }
     }).directive('spectrogramPlot', function () {
 
-    var margin = {top: 0, right: 45, bottom: 40, left: 105},
+    var margin = {top: 0, right: 45, bottom: 40, left: 90},
         height = 300;
     var width = 900;
     return {

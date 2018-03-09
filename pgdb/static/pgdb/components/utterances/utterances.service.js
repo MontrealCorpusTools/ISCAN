@@ -19,9 +19,41 @@ angular.module('pgdb.utterances')
             return $http.get(base_url + corpus_id + '/utterances/', {params: params});
         };
 
-        Utterances.all = function (corpus_id, offset, ordering, with_pitch) {
-            return $http.get(base_url + corpus_id + '/utterances/', {params: {with_pitch: with_pitch,
-                offset: offset, ordering: ordering}});
+        Utterances.all = function (corpus_id, offset, ordering, with_pitch, query) {
+            query_params = {};
+            for (i=0;i<query.utterance.length; i++){
+                if (query.utterance[i]['property'] === ''){
+                    continue
+                }
+                if (query.utterance[i]['value'] === ''){
+                    continue
+                }
+                query_params[query.utterance[i]['property']] = query.utterance[i]['value']
+            }
+
+            for (i=0;i<query.speaker.length; i++){
+                if (query.speaker[i]['property'] === ''){
+                    continue
+                }
+                if (query.speaker[i]['value'] === ''){
+                    continue
+                }
+                query_params['speaker__' + query.speaker[i]['property']] = query.speaker[i]['value']
+            }
+
+            for (i=0;i<query.discourse.length; i++){
+                if (query.discourse[i]['property'] === ''){
+                    continue
+                }
+                if (query.discourse[i]['value'] === ''){
+                    continue
+                }
+                query_params['discourse__' + query.discourse[i]['property']] = query.discourse[i]['value']
+            }
+            query_params.ordering = ordering;
+            query_params.offset = offset;
+            query_params.with_pitch = with_pitch;
+            return $http.get(base_url + corpus_id + '/utterances/', {params: query_params});
         };
 
         Utterances.one = function (corpus_id, id, with_pitch, with_waveform, with_spectrogram) {

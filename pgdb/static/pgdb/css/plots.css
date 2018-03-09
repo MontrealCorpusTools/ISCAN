@@ -24,18 +24,15 @@ rect.pane {
 
 .combined {
     position: absolute;
-    top: 0;
+    top: 30px;
     left: 0;
 }
 
-main .row{
-    height: 350px;
-}
 
 .chart {
     position: relative;
+    height: 350px;
     width: 100%;
-
 }
 
 div.tooltip {

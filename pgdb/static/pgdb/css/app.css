@@ -52,7 +52,7 @@ md-tabs {
     overflow-x: visible;
 }
 .col-md-3 md-content{
-    height:800px;
+    //height:800px;
     overflow-y: hidden;
     overflow-x: visible;
 }

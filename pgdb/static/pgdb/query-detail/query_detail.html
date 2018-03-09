@@ -1,0 +1,125 @@
+<div class="row">
+    <div class="info text-center">
+        <div>
+            <span ng-bind="headline"></span>
+        </div>
+        <div>
+            <button ng-click="get_previous()" class="btn"
+                    ng-disabled="queryState.detailIndex == 0 && queryState.currentPage==1" blur>Previous utterance
+            </button>
+            <a ui-sref="utterance-list({corpus_id: corpus.id})">Utterance list</a>
+            <button ng-click="get_next()" class="btn"
+                    ng-disabled="queryState.detailIndex == queryState.results.length -1 && queryState.currentPage==queryState.numPages"
+                    blur>Next utterance
+            </button>
+        </div>
+    </div>
+    <div class="col-md-9">
+        <annotation-plot data="utterance"></annotation-plot>
+        <waveform-plot data="utterance.waveform" begin="utterance.begin" end="utterance.end"></waveform-plot>
+        <spectrogram-plot data="utterance.spectrogram" begin="utterance.begin" end="utterance.end"></spectrogram-plot>
+    </div>
+    <div class="col-md-3">
+        <multiselect-dropdown class="tabs" ng-cloak style="max-height:100%">
+            <md-content>
+                <md-tabs md-border-bottom>
+
+                    <md-tab label="Utterance properties">
+                        <md-content class="md-padding">
+                            <table class="table table-striped">
+                                <thead>
+                                <td>Property</td>
+                                <td>Value</td>
+                                </thead>
+                                <tbody>
+                                <tr ng-repeat="prop in properties.utterance">
+                                    <td>{{ prop }}</td>
+                                    <td>
+                                        {{ propertyValues.utterance[prop] }}
+                                    </td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </md-content>
+                    </md-tab>
+
+                    <md-tab label="Speaker properties">
+                        <md-content class="md-padding">
+                            <table class="table table-striped">
+                                <thead>
+                                <td>Property</td>
+                                <td>Value</td>
+                                </thead>
+                                <tbody>
+                                <tr ng-repeat="prop in properties.speaker">
+                                    <td>{{ prop }}</td>
+                                    <td>
+                                        {{ propertyValues.speaker[prop] }}
+                                    </td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </md-content>
+                    </md-tab>
+
+                    <md-tab label="Discourse properties">
+                        <md-content class="md-padding">
+                            <table class="table table-striped">
+                                <thead>
+                                <td>Property</td>
+                                <td>Value</td>
+                                </thead>
+                                <tbody>
+                                <tr ng-repeat="prop in properties.discourse">
+                                    <td>{{ prop }}</td>
+                                    <td>
+                                        {{ propertyValues.discourse[prop] }}
+                                    </td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </md-content>
+                    </md-tab>
+
+                </md-tabs>
+            </md-content>
+        </multiselect-dropdown>
+        <div>
+            <h4>Annotate</h4>
+            <multiselect-dropdown class="tabs" ng-cloak style="max-height:100%">
+                <md-content>
+                    <md-tabs md-border-bottom>
+
+                        <md-tab ng-repeat="annotation in annotations" label="{{ annotation.label }}">
+                            <md-content class="md-padding">
+                                <table class="table table-striped">
+                                    <thead>
+                                    <td>Property</td>
+                                    <td>Value</td>
+                                    </thead>
+                                    <tbody>
+                                    <tr ng-repeat="field in annotation.fields">
+                                        <td>{{ field.label }}</td>
+                                        <td>
+                                            <select ng-model="newAnnotation[annotation.label]" ng-options="choice.id as choice.choice for choice in field.choices" ng-show="field.choices.length > 0">
+                                                <option value="">Select a value</option>
+                                            </select>
+                                            <input ng-model="newAnnotation[annotation.label]" ng-show="field.choices.length == 0"> </input>
+                                        </td>
+                                    </tr>
+                                    </tbody>
+                                </table>
+                                <button class="btn btn-success">Save {{ annotation.label }} annotation</button>
+                            </md-content>
+                        </md-tab>
+
+                    </md-tabs>
+                </md-content>
+            </multiselect-dropdown>
+        </div>
+
+    </div>
+</div>
+<div class="row" style="padding-top: 10px">
+    <pitch-plot utterance="utterance" editable="can_edit"></pitch-plot>
+</div>

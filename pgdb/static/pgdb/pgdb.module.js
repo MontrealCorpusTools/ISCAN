@@ -14,6 +14,7 @@ var app = angular.module('pgdb', [
     'databaseDetail',
     'corpusDetail',
     'bestiaryPlot',
+    'queryDetail',
     'utteranceDetail',
     'utteranceQuery',
     'wordQuery',
@@ -67,6 +68,10 @@ app.config(function ($stateProvider, $urlRouterProvider) {
         url: '/words/:corpus_id',
         templateUrl: static('pgdb/word-query/word_query.html'),
         controller: 'WordQueryCtrl'
+    }).state('query-detail', {
+        url: '/query_results/:corpus_id',
+        templateUrl: static('pgdb/query-detail/query_detail.html'),
+        controller: 'QueryDetailCtrl'
     }).state('syllable-query', {
         url: '/syllables/:corpus_id',
         templateUrl: static('pgdb/syllable-query/syllable_query.html'),
