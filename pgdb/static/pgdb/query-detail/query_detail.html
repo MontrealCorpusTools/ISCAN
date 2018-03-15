@@ -20,7 +20,7 @@
         <spectrogram-plot data="utterance.spectrogram" begin="utterance.begin" end="utterance.end"></spectrogram-plot>
     </div>
     <div class="col-md-3">
-        <div>
+        <div class="detail-container">
         <multiselect-dropdown class="tabs" ng-cloak style="max-height:100%">
             <md-content>
                 <md-tabs md-border-bottom>
@@ -86,7 +86,7 @@
             </md-content>
         </multiselect-dropdown>
             </div>
-        <div ng-show="can_view_annotations">
+        <div ng-show="can_view_annotations" class="detail-container">
             <h4>Annotate</h4>
             <multiselect-dropdown class="tabs" ng-cloak style="max-height:100%">
                 <md-content>

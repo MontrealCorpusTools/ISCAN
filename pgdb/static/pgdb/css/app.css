@@ -40,8 +40,8 @@ main .container-fluid {
 .col-md-3 {
     height:850px;
 }
-.col-md-3 md-content{
-    height:350px;
+.col-md-3 .detail-container{
+    height:400px;
 }
 
 .col-md-3 .tabs {
@@ -58,9 +58,15 @@ md-tabs {
 }
 .col-md-3 md-content{
     //height:800px;
+    height: 100%;
     overflow-y: hidden;
     overflow-x: visible;
 }
-md-tab-content div{
+
+.col-md-3 md-content div {
     height:100%;
+}
+
+.col-md-3 .detail-container md-content div {
+    height:auto;
 }
