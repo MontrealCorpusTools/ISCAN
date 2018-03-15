@@ -5,7 +5,7 @@
         <div>
             <h2>Utterances</h2>
             <div ng-show="hierarchy.indexOf('utterance') != -1"></div>
-            <a ui-sref="utterance-query({corpus_id: corpus.id})">Query</a>
+            <a ui-sref="query({corpus_id: corpus.id, type: 'utterance'})">Query</a>
             <div>
                 <p>Currently encoded properties</p>
                 <ul>
@@ -23,7 +23,7 @@
         </div>
         <div>
             <h2>Words</h2>
-            <a ui-sref="word-query({corpus_id: corpus.id})">Query</a>
+            <a ui-sref="query({corpus_id: corpus.id, type: 'word'})">Query</a>
                 <p>Currently encoded properties</p>
                 <ul>
                     <li ng-repeat="prop in properties.word">
@@ -40,7 +40,7 @@
         <div>
             <h2>Syllables</h2>
             <div ng-show="hierarchy.indexOf('syllable') != -1">
-            <a ui-sref="syllable-query({corpus_id: corpus.id})">Query</a>
+            <a ui-sref="query({corpus_id: corpus.id, type: 'syllable'})">Query</a>
                 <p>Currently encoded properties</p>
                 <ul>
                     <li ng-repeat="prop in properties.syllable">
@@ -58,7 +58,7 @@
         </div>
         <div>
             <h2>Phones</h2>
-            <a ui-sref="phone-query({corpus_id: corpus.id})">Query</a>
+            <a ui-sref="query({corpus_id: corpus.id, type: 'phone'})">Query</a>
                 <p>Currently encoded properties</p>
                 <ul>
                     <li ng-repeat="prop in properties.phone">

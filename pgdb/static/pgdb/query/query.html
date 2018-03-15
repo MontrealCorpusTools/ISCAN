@@ -1,10 +1,37 @@
 <div class="col-md-9 scroll-container text-center" style="height:1280px">
     <div>
-        <h4>Query words</h4>
+        <h4>Query {{ queryState.type }}s</h4>
         <multiselect-dropdown class="tabs" ng-cloak style="max-height:100%">
             <md-content>
                 <md-tabs md-border-bottom>
+                    <md-tab label="Word properties">
+                        <md-content class="md-padding">
+                            <table class="table table-bordered table-striped">
+                                <tbody>
+                                <tr ng-repeat="filter in queryState.query.word">
 
+                                    <td>
+                                        <select ng-model="filter.property">
+                                            <option value="">Select property</option>
+                                            <option ng-repeat="prop in properties.word">{{ prop }}</option>
+                                        </select>
+                                    </td>
+                                    <td>
+                                        <input type="checkbox" ng-show="propertyTypes.word[filter.property]=== false"
+                                               ng-model="filter.value">
+                                        <input ng-show="propertyTypes.word[filter.property] === '' || propertyTypes.word[filter.property] === 0"
+                                               ng-model="filter.value">
+                                    </td>
+                                    <td>
+                                        <span class='badge' ng-click="removeFilter('word', $index)">X</span>
+                                    </td>
+                                </tr>
+                                </tbody>
+                            </table>
+                            <button class='btn' ng-click="addFilter('word')" ng-disabled="queryState.query_running"><span>Add filter</span>
+                            </button>
+                        </md-content>
+                    </md-tab>
                     <md-tab label="Utterance properties">
                         <md-content class="md-padding">
                             <table class="table table-bordered table-striped">
@@ -131,12 +158,26 @@
             <thead>
             <tr>
                 <td ng-click="refreshOrdering('label')">
-                    Utterance
+                    {{ queryState.type|titlecase }}
                     <span ng-show="queryState.ordering == 'label'" class="fa fa-caret-down"></span>
                     <span ng-show="queryState.ordering == '-label'" class="fa fa-caret-up"></span>
                 </td>
-
-                <td ng-repeat="prop in properties.utterance" ng-click="refreshOrdering(prop)" ng-show="queryState.columns.utterance[prop]">
+                <td ng-repeat="prop in properties.phone" ng-click="refreshOrdering(prop)" ng-show="queryState.columns.phone[prop] && (queryState.type === 'phone')">
+                    {{ prop }}
+                    <span ng-show="queryState.ordering == 'phone.'+prop" class="fa fa-caret-down"></span>
+                    <span ng-show="queryState.ordering == '-phone.' + prop" class="fa fa-caret-up"></span>
+                </td>
+                <td ng-repeat="prop in properties.syllable" ng-click="refreshOrdering(prop)" ng-show="queryState.columns.syllable[prop] && (queryState.type === 'syllable' || queryState.type === 'phone')">
+                    {{ prop }}
+                    <span ng-show="queryState.ordering == 'syllable.'+prop" class="fa fa-caret-down"></span>
+                    <span ng-show="queryState.ordering == '-syllable.' + prop" class="fa fa-caret-up"></span>
+                </td>
+                <td ng-repeat="prop in properties.word" ng-click="refreshOrdering(prop)" ng-show="queryState.columns.word[prop] && (queryState.type === 'word' || queryState.type === 'syllable' || queryState.type === 'phone')">
+                    {{ prop }}
+                    <span ng-show="queryState.ordering == 'word.'+prop" class="fa fa-caret-down"></span>
+                    <span ng-show="queryState.ordering == '-word.' + prop" class="fa fa-caret-up"></span>
+                </td>
+                <td ng-repeat="prop in properties.utterance" ng-click="refreshOrdering('utterance.' + prop)" ng-show="queryState.columns.utterance[prop]">
                     {{ prop }}
                     <span ng-show="queryState.ordering == 'utterance.' +prop" class="fa fa-caret-down"></span>
                     <span ng-show="queryState.ordering == '-utterance.' + prop" class="fa fa-caret-up"></span>
@@ -155,21 +196,36 @@
             </tr>
             </thead>
             <tbody style="height:50%">
-            <tr ng-repeat="utterance in queryState.results">
-                <td>
+            <tr ng-repeat="result in queryState.results">
+                <td ng-show="queryState.type !== 'utterance'">
 
                     <a ui-sref="query-detail({corpus_id: corpus.id})"
-                       ng-show="can_view">{{ utterance.discourse.name }} ({{ utterance.begin }} to {{ utterance.end }})</a>
-                    <span ng-show="!can_view">{{ utterance.discourse.name }} ({{ utterance.begin }} to {{ utterance.end }})</span>
+                       ng-show="can_view">{{ result.label }}</a>
+                    <span ng-show="!can_view">{{ result.label }}</span>
+                </td>
+                <td ng-show="queryState.type === 'utterance'">
+
+                    <a ui-sref="query-detail({corpus_id: corpus.id})"
+                       ng-show="can_view">{{ result.discourse.name }} ({{ result.utterance.begin }} to {{ result.utterance.end }})</a>
+                    <span ng-show="!can_view">{{ result.discourse.name }} ({{ result.utterance.begin }} to {{ result.utterance.end }})</span>
+                </td>
+                <td ng-repeat="prop in properties.phone" ng-show="queryState.columns.phone[prop] && (queryState.type === 'phone')">
+                    {{ result.phone[prop] }}
+                </td>
+                <td ng-repeat="prop in properties.syllable" ng-show="queryState.columns.syllable[prop] && (queryState.type === 'syllable' || queryState.type === 'phone')">
+                    {{ result.syllable[prop] }}
+                </td>
+                <td ng-repeat="prop in properties.word" ng-show="queryState.columns.word[prop] && (queryState.type === 'word' || queryState.type === 'syllable' || queryState.type === 'phone')">
+                    {{ result.word[prop] }}
                 </td>
                 <td ng-repeat="prop in properties.utterance" ng-show="queryState.columns.utterance[prop]">
-                    {{ word.utterance[prop] }}
+                    {{ result.utterance[prop] }}
                 </td>
                 <td ng-repeat="prop in properties.discourse" ng-show="queryState.columns.discourse[prop]">
-                    {{ word.discourse[prop] }}
+                    {{ result.discourse[prop] }}
                 </td>
                 <td ng-repeat="prop in properties.speaker" ng-show="queryState.columns.speaker[prop]">
-                    {{ word.speaker[prop] }}
+                    {{ result.speaker[prop] }}
                 </td>
             </tr>
             </tbody>
@@ -183,10 +239,64 @@
     <multiselect-dropdown class="tabs" ng-cloak style="max-height:100%">
         <md-content>
             <md-tabs md-border-bottom>
+                <md-tab label="Phone" data-ng-if="queryState.type ==='phone'">
+                    <md-content class="md-padding">
+                        <table class="table table-striped scrollable-table">
+                            <thead>
+                            <td>Column</td>
+                            <td>Visble</td>
+                            </thead>
+                            <tbody>
+                            <tr ng-repeat="prop in properties.phone">
+                                <td>{{ prop }}</td>
+                                <td>
+                                    <input type="checkbox" ng-model="queryState.columns.phone[prop]">
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </md-content>
+                </md-tab>
+                <md-tab label="Syllable" data-ng-if="queryState.type ==='syllable' || queryState.type ==='phone' ">
+                    <md-content class="md-padding">
+                        <table class="table table-striped scrollable-table">
+                            <thead>
+                            <td>Column</td>
+                            <td>Visble</td>
+                            </thead>
+                            <tbody>
+                            <tr ng-repeat="prop in properties.syllable">
+                                <td>{{ prop }}</td>
+                                <td>
+                                    <input type="checkbox" ng-model="queryState.columns.syllable[prop]">
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </md-content>
+                </md-tab>
+                <md-tab label="Word" data-ng-if="queryState.type ==='word' ||queryState.type ==='syllable' || queryState.type ==='phone' ">
+                    <md-content class="md-padding">
+                        <table class="table table-striped scrollable-table">
+                            <thead>
+                            <td>Column</td>
+                            <td>Visble</td>
+                            </thead>
+                            <tbody>
+                            <tr ng-repeat="prop in properties.word">
+                                <td>{{ prop }}</td>
+                                <td>
+                                    <input type="checkbox" ng-model="queryState.columns.word[prop]">
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </md-content>
+                </md-tab>
 
                 <md-tab label="Utterance">
                     <md-content class="md-padding">
-                        <table class="table table-striped">
+                        <table class="table table-striped scrollable-table">
                             <thead>
                             <td>Column</td>
                             <td>Visble</td>
@@ -205,7 +315,7 @@
 
                 <md-tab label="Speaker">
                     <md-content class="md-padding">
-                        <table class="table table-striped">
+                        <table class="table table-striped scrollable-table">
                             <thead>
                             <td>Column</td>
                             <td>Visble</td>
@@ -224,7 +334,7 @@
 
                 <md-tab label="Discourse">
                     <md-content class="md-padding">
-                        <table class="table table-striped">
+                        <table class="table table-striped scrollable-table">
                             <thead>
                             <td>Column</td>
                             <td>Visble</td>

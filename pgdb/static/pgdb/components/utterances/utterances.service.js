@@ -50,7 +50,7 @@ angular.module('pgdb.utterances')
                 }
                 query_params['discourse__' + query.discourse[i]['property']] = query.discourse[i]['value']
             }
-            query_params.ordering = ordering;
+            query_params.ordering = ordering.replace('utterance.', '');
             query_params.offset = offset;
             query_params.with_pitch = with_pitch;
             return $http.get(base_url + corpus_id + '/utterances/', {params: query_params});

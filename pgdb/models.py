@@ -596,6 +596,8 @@ class CorpusPermissions(models.Model):
     corpus = models.ForeignKey(Corpus, on_delete=models.CASCADE, related_name='user_permissions')
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='corpus_permissions')
     can_edit = models.BooleanField(default=False)
+    can_annotate = models.BooleanField(default=False)
+    can_view_annotations = models.BooleanField(default=False)
     can_listen = models.BooleanField(default=False)
     can_view_detail = models.BooleanField(default=False)
 

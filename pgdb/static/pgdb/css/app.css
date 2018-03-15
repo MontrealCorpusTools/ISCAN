@@ -37,7 +37,12 @@ main .container-fluid {
 }
 
 
-
+.col-md-3 {
+    height:850px;
+}
+.col-md-3 md-content{
+    height:350px;
+}
 
 .col-md-3 .tabs {
     height:76%;

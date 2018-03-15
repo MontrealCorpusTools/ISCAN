@@ -406,6 +406,60 @@ class BestiaryViewSet(viewsets.ViewSet):
         return Response(data)
 
 
+class SubannotationViewSet(viewsets.ViewSet):
+    def create(self, request, corpus_pk=None):
+        corpus = models.Corpus.objects.get(pk=corpus_pk)
+        if not request.user.is_superuser:
+            permissions = corpus.user_permissions.filter(user=request.user).all()
+            if not len(permissions):
+                return Response(status=status.HTTP_401_UNAUTHORIZED)
+        print(request.data)
+        a_type = request.data.pop('annotation_type')
+        a_id = request.data.pop('annotation_id')
+        s_type = request.data.pop('subannotation_type')
+        data = request.data['subannotation']
+        with CorpusContext(corpus.config) as c:
+            att = getattr(c, a_type)
+            q = c.query_graph(att).filter(getattr(att, 'id') == a_id)
+            res = q.all()[0]
+            res.add_subannotation(s_type, **data)
+            print(getattr(res, s_type))
+            data = serializers.serializer_factory(c.hierarchy, a_type, top_level=True, with_subannotations=True)(res).data
+            data = data[a_type][s_type][-1]
+        return Response(data)
+
+    def update(self, request, pk=None, corpus_pk=None):
+        corpus = models.Corpus.objects.get(pk=corpus_pk)
+        if not request.user.is_superuser:
+            permissions = corpus.user_permissions.filter(user=request.user).all()
+            if not len(permissions):
+                return Response(status=status.HTTP_401_UNAUTHORIZED)
+        data = request.data
+        s_id = data.pop('id')
+        props = []
+        prop_template = 's.%s = {%s}'
+        for k,v in data.items():
+            props.append(prop_template % (k, k))
+        set_props = ',\n'.join(props)
+        with CorpusContext(corpus.config) as c:
+            statement = '''MATCH (s:{corpus_name}) WHERE s.id = {{s_id}}
+            SET {set_props}'''.format(corpus_name=c.cypher_safe_name, set_props=set_props)
+            c.execute_cypher(statement, s_id = s_id, **data)
+        return Response(None)
+
+    def destroy(self, request, pk=None, corpus_pk=None):
+        corpus = models.Corpus.objects.get(pk=corpus_pk)
+        if not request.user.is_superuser:
+            permissions = corpus.user_permissions.filter(user=request.user).all()
+            if not len(permissions):
+                return Response(status=status.HTTP_401_UNAUTHORIZED)
+        with CorpusContext(corpus.config) as c:
+            statement = '''MATCH (s:{corpus_name}) WHERE s.id = {{s_id}}
+            DETACH DELETE s'''.format(corpus_name=c.cypher_safe_name)
+            c.execute_cypher(statement, s_id = pk)
+        return Response(None)
+
+
 class UtteranceViewSet(viewsets.ViewSet):
 
     def list(self, request, corpus_pk=None):
@@ -419,7 +473,6 @@ class UtteranceViewSet(viewsets.ViewSet):
         limit = int(params.pop('limit', [100])[0])
         offset = int(params.pop('offset', [0])[0])
         ordering = params.pop('ordering', [''])[0]
-        search = params.pop('search', [''])[0]
         with_pitch = params.pop('with_pitch', [False])[0]
         data = {}
         with CorpusContext(corpus.config) as c:
@@ -453,9 +506,21 @@ class UtteranceViewSet(viewsets.ViewSet):
                 pitch.relative_time = True
                 pitch.relative = True
                 q = q.preload_acoustics(pitch)
+            for t in c.hierarchy.annotation_types:
+                if t in c.hierarchy.subannotations:
+                    for s in c.hierarchy.subannotations[t]:
+                        if t == 'utterance':
+                            q = q.preload(getattr(c.utterance, s))
+                        else:
+                            q = q.preload(getattr(getattr(c.utterance, t), s))
+            print(q.cypher())
             res = q.all()
-            serializer_class = serializers.serializer_factory(c.hierarchy, 'utterance', top_level=True, with_pitch=with_pitch)
+            serializer_class = serializers.serializer_factory(c.hierarchy, 'utterance', top_level=True,
+                                                              with_pitch=with_pitch, detail=False,
+                                                              with_subannotations=True)
             serializer = serializer_class(res, many=True)
+            print('intontation?', res[0].Intonation)
+            print(serializer_class(res[0]).data)
             data['results'] = serializer.data
         data['next'] = None
         if offset + limit < data['count']:
@@ -477,11 +542,12 @@ class UtteranceViewSet(viewsets.ViewSet):
         corpus = models.Corpus.objects.get(pk=corpus_pk)
         if not request.user.is_superuser:
             permissions = corpus.user_permissions.filter(user=request.user).all()
-            if not len(permissions) or permissions[0].can_view_detail:
+            if not len(permissions) or not permissions[0].can_view_detail:
                 return Response(status=status.HTTP_401_UNAUTHORIZED)
         with_pitch = request.query_params.get('with_pitch', False)
         with_waveform = request.query_params.get('with_waveform', False)
         with_spectrogram = request.query_params.get('with_spectrogram', False)
+        with_subannotations = request.query_params.get('with_subannotations', False)
         try:
             with CorpusContext(corpus.config) as c:
                 q = c.query_graph(c.utterance)
@@ -491,6 +557,13 @@ class UtteranceViewSet(viewsets.ViewSet):
                 q = q.preload(c.utterance.phone)
                 q = q.preload(c.utterance.speaker)
                 q = q.preload(c.utterance.discourse)
+                if with_subannotations:
+                    for t in c.hierarchy.annotation_types:
+                        for s in c.hierarchy.subannotations[t]:
+                            if t == 'utterance':
+                                q = q.preload(getattr(c.utterance, s))
+                            else:
+                                q = q.preload(getattr(getattr(c.utterance, t), s))
 
                 if with_pitch:
                     q = q.preload_acoustics(c.utterance.pitch)
@@ -498,11 +571,12 @@ class UtteranceViewSet(viewsets.ViewSet):
                 utterances = q.all()
                 if utterances is None:
                     return Response(None)
-                serializer = serializers.serializer_factory(c.hierarchy, 'utterance',  with_pitch=with_pitch,
+                serializer = serializers.serializer_factory(c.hierarchy, 'utterance', with_pitch=with_pitch,
                                                             with_waveform=with_waveform,
                                                             with_spectrogram=with_spectrogram,
                                                             top_level=True,
-                                                            with_lower_annotations=True)
+                                                            with_lower_annotations=True, detail=True,
+                                                            with_subannotations=True)
                 utt = utterances[0]
                 print('query took', time.time() - begin_time)
 

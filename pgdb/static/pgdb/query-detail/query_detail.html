@@ -7,7 +7,7 @@
             <button ng-click="get_previous()" class="btn"
                     ng-disabled="queryState.detailIndex == 0 && queryState.currentPage==1" blur>Previous utterance
             </button>
-            <a ui-sref="utterance-list({corpus_id: corpus.id})">Utterance list</a>
+            <a ui-sref="query({corpus_id: corpus.id, type: queryState.type})">Back to query</a>
             <button ng-click="get_next()" class="btn"
                     ng-disabled="queryState.detailIndex == queryState.results.length -1 && queryState.currentPage==queryState.numPages"
                     blur>Next utterance
@@ -20,6 +20,7 @@
         <spectrogram-plot data="utterance.spectrogram" begin="utterance.begin" end="utterance.end"></spectrogram-plot>
     </div>
     <div class="col-md-3">
+        <div>
         <multiselect-dropdown class="tabs" ng-cloak style="max-height:100%">
             <md-content>
                 <md-tabs md-border-bottom>
@@ -84,7 +85,8 @@
                 </md-tabs>
             </md-content>
         </multiselect-dropdown>
-        <div>
+            </div>
+        <div ng-show="can_view_annotations">
             <h4>Annotate</h4>
             <multiselect-dropdown class="tabs" ng-cloak style="max-height:100%">
                 <md-content>
@@ -92,6 +94,7 @@
 
                         <md-tab ng-repeat="annotation in annotations" label="{{ annotation.label }}">
                             <md-content class="md-padding">
+                                <div ng-repeat="cur in currentAnnotations[annotation.label]">
                                 <table class="table table-striped">
                                     <thead>
                                     <td>Property</td>
@@ -101,15 +104,41 @@
                                     <tr ng-repeat="field in annotation.fields">
                                         <td>{{ field.label }}</td>
                                         <td>
-                                            <select ng-model="newAnnotation[annotation.label]" ng-options="choice.id as choice.choice for choice in field.choices" ng-show="field.choices.length > 0">
-                                                <option value="">Select a value</option>
+                                            <select ng-model="cur[field.label]" ng-options="choice.choice as choice.choice for choice in field.choices" ng-show="can_annotate && field.choices.length > 0">
                                             </select>
-                                            <input ng-model="newAnnotation[annotation.label]" ng-show="field.choices.length == 0"> </input>
+                                            <input ng-model="cur[field.label]" ng-show="can_annotate && field.choices.length == 0 && field.annotation_choice != 'B'"> </input>
+                                            <input type='checkbox' ng-model="cur[field.label]" ng-show="can_annotate && field.annotation_choice == 'B'"> </input>
+                                            <span ng-show="!can_annotate">{{ cur[field.label] }}</span>
                                         </td>
                                     </tr>
                                     </tbody>
                                 </table>
-                                <button class="btn btn-success">Save {{ annotation.label }} annotation</button>
+                                            <button class="btn btn-success" ng-click="updateAnnotation(cur)" ng-show="can_annotate">Update</button>
+
+                                            <button class="btn btn-danger" ng-click="deleteAnnotation(cur['id'])" ng-show="can_annotate">Delete</button>
+                                </div>
+                                <div ng-show="can_annotate">
+
+                                <table class="table table-striped">
+                                    <thead>
+                                    <td>Property</td>
+                                    <td>Value</td>
+                                    </thead>
+                                    <tbody>
+                                    <tr ng-repeat="field in annotation.fields">
+                                        <td>{{ field.label }}</td>
+                                        <td>
+                                            <select ng-model="newAnnotation[annotation.label][field.label]" ng-options="choice.choice as choice.choice for choice in field.choices" ng-show="field.choices.length > 0">
+                                                <option value="">Select a value</option>
+                                            </select>
+                                            <input ng-model="newAnnotation[annotation.label][field.label]" ng-show="field.choices.length == 0 && field.annotation_choice != 'B'"> </input>
+                                            <input type='checkbox' ng-model="newAnnotation[annotation.label][field.label]" ng-show="field.annotation_choice == 'B'"> </input>
+                                        </td>
+                                    </tr>
+                                    </tbody>
+                                </table>
+                                <button class="btn btn-success" ng-click="addAnnotation(annotation)">Add new {{ annotation.label }} annotation</button>
+                                </div>
                             </md-content>
                         </md-tab>
 

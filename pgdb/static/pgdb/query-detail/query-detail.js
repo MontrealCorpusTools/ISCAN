@@ -27,29 +27,36 @@ angular.module('queryDetail', [
     .controller('QueryDetailCtrl', function ($scope, $rootScope, Utterances, Corpora, $state, $stateParams, $document, QueryState, Annotations) {
             $scope.queryState = QueryState;
             $scope.newAnnotation = {};
-            $scope.selectedAnnotation = $scope.queryState.results[$scope.queryState.detailIndex];
+            $scope.currentAnnotations = {};
+            $scope.selectedAnnotation = $scope.queryState.results[$scope.queryState.detailIndex].utterance;
+            $scope.speaker = $scope.queryState.results[$scope.queryState.detailIndex].speaker;
+            $scope.discourse = $scope.queryState.results[$scope.queryState.detailIndex].discourse;
             $scope.selectedType = $scope.queryState.type;
-            if ($scope.queryState.type === 'word') {
-                $scope.utterance_id = $scope.selectedAnnotation.utterance.id;
-            }
-            else if ($scope.queryState.type === 'utterance') {
-                $scope.utterance_id = $scope.selectedAnnotation.id;
-            }
+            $scope.utterance_id = $scope.selectedAnnotation.id;
             $scope.headline = 'Loading detail...';
             $scope.selection_begin = 0;
             $scope.selection_end = null;
             $scope.selection_anchor = null;
 
-            Annotations.all().then(function (res){
-                $scope.annotations = res.data;
+            Annotations.all().then(function (res) {
+                    console.log('selectedannotation', $scope.selectedAnnotation)
+                    $scope.annotations = res.data;
+                    console.log($scope.annotations);
                     for (i = 0; i < $scope.annotations.length; i++) {
+                        console.log($scope.selectedAnnotation[$scope.annotations[i].label])
+                        if ($scope.selectedAnnotation[$scope.annotations[i].label] !== undefined) {
+                            $scope.currentAnnotations[$scope.annotations[i].label] = $scope.selectedAnnotation[$scope.annotations[i].label].filter(function (annotation) {
+                                return annotation.user == $rootScope.user.username
+                            });
+                        }
                         $scope.newAnnotation[$scope.annotations[i].label] = {};
+
                     }
-                console.log($scope.annotations)
-            }
+                    console.log('currentannotations', $scope.currentAnnotations)
+                }
             );
 
-            $scope.updateProperties = function(){
+            $scope.updateProperties = function () {
                 var prop;
                 $scope.properties = {
                     utterance: [],
@@ -61,7 +68,7 @@ angular.module('queryDetail', [
                     discourse: {},
                     speaker: {}
                 };
-                if ($scope.selectedType === 'word'){
+                if ($scope.selectedType === 'word') {
                     $scope.properties.word = [];
                     $scope.properties.word = {};
                     for (i = 0; i < $scope.hierarchy.token_properties.word.length; i++) {
@@ -100,7 +107,7 @@ angular.module('queryDetail', [
                     prop = $scope.hierarchy.discourse_properties[i][0];
                     if ($scope.properties.discourse.indexOf(prop) === -1 && prop !== 'id') {
                         $scope.properties.discourse.push(prop);
-                        $scope.propertyValues.discourse[prop] = $scope.selectedAnnotation.discourse[prop];
+                        $scope.propertyValues.discourse[prop] = $scope.discourse[prop];
                     }
                 }
 
@@ -108,7 +115,7 @@ angular.module('queryDetail', [
                     prop = $scope.hierarchy.speaker_properties[i][0];
                     if ($scope.properties.speaker.indexOf(prop) === -1 && prop !== 'id') {
                         $scope.properties.speaker.push(prop);
-                        $scope.propertyValues.speaker[prop] = $scope.selectedAnnotation.speaker[prop];
+                        $scope.propertyValues.speaker[prop] = $scope.speaker[prop];
                     }
                 }
             };
@@ -118,6 +125,38 @@ angular.module('queryDetail', [
                 $scope.hierarchy = res.data;
                 $scope.updateProperties();
             });
+
+            $scope.deleteAnnotation = function (id) {
+                Annotations.delete($stateParams.corpus_id, id).then(function (res) {
+                    for (i = 0; i < $scope.annotations.length; i++) {
+                        $scope.currentAnnotations[$scope.annotations[i].label] = $scope.currentAnnotations[$scope.annotations[i].label].filter(function (annotation) {
+                            return annotation.id !== id
+                        });
+                    }
+                });
+            };
+
+            $scope.updateAnnotation = function (annotation) {
+                Annotations.update($stateParams.corpus_id, annotation.id, annotation).then();
+            };
+
+            $scope.addAnnotation = function (annotation) {
+                console.log(annotation);
+                console.log($scope.selectedAnnotation)
+                var data = {};
+                data.annotation_type = $scope.selectedType;
+                data.annotation_id = $scope.selectedAnnotation.id;
+                data.subannotation_type = annotation.label;
+                data.subannotation = $scope.newAnnotation[annotation.label];
+
+                console.log($scope.annotations)
+                if (annotation.save_user) {
+                    data.subannotation.user = $rootScope.user.username;
+                }
+                Annotations.create($stateParams.corpus_id, data).then(function (res) {
+                    $scope.currentAnnotations[annotation.label].push(res.data);
+                })
+            };
 
 
             $scope.runQuery = function () {
@@ -129,23 +168,31 @@ angular.module('queryDetail', [
 
                     $scope.can_listen = true;
                     $scope.can_edit = true;
+                    $scope.can_view_annotations = true;
+                    $scope.can_annotate = true;
 
                 }
                 else {
 
                     $scope.can_listen = false;
                     $scope.can_edit = false;
+                    $scope.can_view_annotations = false;
+                    $scope.can_annotate = false;
                     for (i = 0; i < $rootScope.user.corpus_permissions.length; i++) {
-                        if ($rootScope.user.corpus_permissions[i].corpus === $stateParams.corpus_id) {
+                        if ($rootScope.user.corpus_permissions[i].corpus == $stateParams.corpus_id) {
+                            console.log($rootScope.user.corpus_permissions[i])
                             $scope.can_listen = $rootScope.user.corpus_permissions[i].can_listen;
                             $scope.can_edit = $rootScope.user.corpus_permissions[i].can_edit;
+                            $scope.can_view_annotations = $rootScope.user.corpus_permissions[i].can_view_annotations;
+                            $scope.can_annotate = $rootScope.user.corpus_permissions[i].can_annotate;
                         }
                     }
+                    console.log($scope.can_view_annotations, $scope.can_annotate)
                 }
                 Utterances.one($stateParams.corpus_id, $scope.utterance_id, true, true, true).then(function (res) {
                     $scope.utterance = res.data;
                     console.log($scope.utterance);
-                    $scope.headline = $scope.utterance.discourse.name + ' (' + $scope.utterance.begin + ' to ' + $scope.utterance.end + ')';
+                    $scope.headline = $scope.utterance.discourse.name + ' (' + $scope.utterance.utterance.begin + ' to ' + $scope.utterance.utterance.end + ')';
                     console.log($scope.headline);
                     if ($scope.can_listen) {
                         $scope.initPlayer();
