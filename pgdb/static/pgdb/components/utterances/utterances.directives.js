@@ -1203,13 +1203,12 @@ angular.module('pgdb.utterances').filter('secondsToDateTime', [function () {
                 if (!newVal) {
                     return;
                 }
-
                 y.domain([d3.min(newVal, function (d) {
-                    return d3.min(d.pitch_track, function (d2) {
+                    return d3.min(d.utterance.pitch_track, function (d2) {
                         return d2.F0
                     });
                 }), d3.max(newVal, function (d) {
-                    return d3.max(d.pitch_track, function (d2) {
+                    return d3.max(d.utterance.pitch_track, function (d2) {
                         return d2.F0
                     });
                 })]);
@@ -1239,7 +1238,7 @@ angular.module('pgdb.utterances').filter('secondsToDateTime', [function () {
 
                 var parameter = svg.selectAll(".parameter")
                     .data(newVal, function (d) {
-                        return d.discourse;
+                        return d.discourse.name;
                     })
                     .enter().append("g")
                     .attr("class", "parameter");
@@ -1247,7 +1246,7 @@ angular.module('pgdb.utterances').filter('secondsToDateTime', [function () {
                 parameter.append("path")
                     .attr("class", "line")
                     .attr("d", function (d) {
-                        return valueline(d.pitch_track);
+                        return valueline(d.utterance.pitch_track);
                     })
                     .style("stroke", "black")
                     .style("opacity", "0.3")
@@ -1258,10 +1257,10 @@ angular.module('pgdb.utterances').filter('secondsToDateTime', [function () {
 
             function click(d) {
                 if (d3.event.shiftKey) {
-                    scope.$emit('DETAIL_REQUESTED', d.id);
+                    scope.$emit('DETAIL_REQUESTED', d.utterance.id);
                 }
                 else {
-                    scope.$emit('SOUND_REQUESTED', d.id);
+                    scope.$emit('SOUND_REQUESTED', d.utterance.id);
                 }
             }
 
