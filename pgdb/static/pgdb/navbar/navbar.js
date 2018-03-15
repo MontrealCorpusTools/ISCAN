@@ -2,9 +2,10 @@ angular.module('navbar', [
     'pgdb.corpora',
     'pgdb.auth'
 ])
-    .controller('NavCtrl', function ($scope, $rootScope, Corpora, CookieService, $http, AuthService) {
+    .controller('NavCtrl', function ($scope, $rootScope, Corpora, CookieService, $http, AuthService, __env) {
         $rootScope.authenticated = false;
         $scope.authenticated = false;
+        $scope.siteName = __env.siteName;
 
         $scope.checkAuth = function (){
             $scope.token = CookieService.get('token');
