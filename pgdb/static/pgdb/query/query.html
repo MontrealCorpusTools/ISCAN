@@ -4,63 +4,36 @@
         <multiselect-dropdown class="tabs" ng-cloak style="max-height:100%">
             <md-content>
                 <md-tabs md-border-bottom>
-                    <md-tab label="Word properties">
-                        <md-content class="md-padding">
+
+                    <md-tab ng-repeat="t in annotation_types" label="{{ t|titlecase }} properties" data-ng-if="$index >=annotation_types.indexOf(selectedType)">
+                    <md-content class="md-padding">
                             <table class="table table-bordered table-striped">
                                 <tbody>
-                                <tr ng-repeat="filter in queryState.query.word">
+                                <tr ng-repeat="filter in queryState.query[t]">
 
                                     <td>
                                         <select ng-model="filter.property">
                                             <option value="">Select property</option>
-                                            <option ng-repeat="prop in properties.word">{{ prop }}</option>
+                                            <option ng-repeat="prop in properties[t]">{{ prop }}</option>
                                         </select>
                                     </td>
                                     <td>
-                                        <input type="checkbox" ng-show="propertyTypes.word[filter.property]=== false"
+                                        <input type="checkbox" ng-show="propertyTypes[t][filter.property]=== false"
                                                ng-model="filter.value">
-                                        <input ng-show="propertyTypes.word[filter.property] === '' || propertyTypes.word[filter.property] === 0"
+                                        <input ng-show="propertyTypes[t][filter.property] === '' || propertyTypes[t][filter.property] === 0"
                                                ng-model="filter.value">
                                     </td>
                                     <td>
-                                        <span class='badge' ng-click="removeFilter('word', $index)">X</span>
+                                        <span class='badge' ng-click="removeFilter(t, $index)">X</span>
                                     </td>
                                 </tr>
                                 </tbody>
                             </table>
-                            <button class='btn' ng-click="addFilter('word')" ng-disabled="queryState.query_running"><span>Add filter</span>
+                            <button class='btn' ng-click="addFilter(t)" ng-disabled="queryState.queryRunning"><span>Add filter</span>
                             </button>
                         </md-content>
                     </md-tab>
-                    <md-tab label="Utterance properties">
-                        <md-content class="md-padding">
-                            <table class="table table-bordered table-striped">
-                                <tbody>
-                                <tr ng-repeat="filter in queryState.query.utterance">
 
-                                    <td>
-                                        <select ng-model="filter.property">
-                                            <option value="">Select property</option>
-                                            <option ng-repeat="prop in properties.utterance">{{ prop }}</option>
-                                        </select>
-                                    </td>
-                                    <td>
-                                        <input type="checkbox"
-                                               ng-show="propertyTypes.utterance[filter.property]=== false"
-                                               ng-model="filter.value">
-                                        <input ng-show="propertyTypes.utterance[filter.property] === '' || propertyTypes.utterance[filter.property] === 0"
-                                               ng-model="filter.value">
-                                    </td>
-                                    <td>
-                                        <span class='badge' ng-click="removeFilter('utterance', $index)">X</span>
-                                    </td>
-                                </tr>
-                                </tbody>
-                            </table>
-                            <button class='btn' ng-click="addFilter('utterance')" ng-disabled="queryState.query_running"><span>Add filter</span>
-                            </button>
-                        </md-content>
-                    </md-tab>
                     <md-tab label="Speaker properties">
                         <md-content class="md-padding">
                             <table class="table table-bordered table-striped">
@@ -85,7 +58,7 @@
                                 </tr>
                                 </tbody>
                             </table>
-                            <button class='btn' ng-click="addFilter('speaker')" ng-disabled="queryState.query_running"><span>Add filter</span>
+                            <button class='btn' ng-click="addFilter('speaker')" ng-disabled="queryState.queryRunning"><span>Add filter</span>
                             </button>
                         </md-content>
                     </md-tab>
@@ -114,7 +87,7 @@
                                 </tr>
                                 </tbody>
                             </table>
-                            <button class='btn' ng-click="addFilter('discourse')" ng-disabled="queryState.query_running"><span>Add filter</span>
+                            <button class='btn' ng-click="addFilter('discourse')" ng-disabled="queryState.queryRunning"><span>Add filter</span>
                             </button>
                         </md-content>
                     </md-tab>
@@ -124,11 +97,12 @@
         </multiselect-dropdown>
 
 
-        <button class='btn btn-success' ng-click="update()" ng-disabled="queryState.query_running"><span
-                ng-bind="queryState.query_text"></span></button>
-        <button class='btn btn-danger' ng-click="clearFilters()" ng-disabled="queryState.query_running"><span>Clear filters</span>
+        <button class='btn btn-success' ng-click="update()" ng-disabled="queryState.queryRunning"><span
+                ng-bind="queryState.queryText"></span></button>
+        <button class='btn btn-danger' ng-click="clearFilters()" ng-disabled="queryState.queryRunning"><span>Clear filters</span>
         </button>
-
+<button class="btn" ng-click="export()" ng-disabled="queryState.queryRunning"><span
+                ng-bind="queryState.exportText"></span></button>
     </div>
     <div ng-show="queryState.count==0">
         <span>No results found</span>
@@ -200,8 +174,8 @@
                 <td ng-show="queryState.type !== 'utterance'">
 
                     <a ui-sref="query-detail({corpus_id: corpus.id})"
-                       ng-show="can_view">{{ result.label }}</a>
-                    <span ng-show="!can_view">{{ result.label }}</span>
+                       ng-show="can_view">{{ result[queryState.type].label }}</a>
+                    <span ng-show="!can_view">{{ result[queryState.type].label }}</span>
                 </td>
                 <td ng-show="queryState.type === 'utterance'">
 
@@ -239,62 +213,8 @@
     <multiselect-dropdown class="tabs" ng-cloak style="max-height:100%">
         <md-content>
             <md-tabs md-border-bottom>
-                <md-tab label="Phone" data-ng-if="queryState.type ==='phone'">
-                    <md-content class="md-padding">
-                        <table class="table table-striped scrollable-table">
-                            <thead>
-                            <td>Column</td>
-                            <td>Visble</td>
-                            </thead>
-                            <tbody>
-                            <tr ng-repeat="prop in properties.phone">
-                                <td>{{ prop }}</td>
-                                <td>
-                                    <input type="checkbox" ng-model="queryState.columns.phone[prop]">
-                                </td>
-                            </tr>
-                            </tbody>
-                        </table>
-                    </md-content>
-                </md-tab>
-                <md-tab label="Syllable" data-ng-if="queryState.type ==='syllable' || queryState.type ==='phone' ">
-                    <md-content class="md-padding">
-                        <table class="table table-striped scrollable-table">
-                            <thead>
-                            <td>Column</td>
-                            <td>Visble</td>
-                            </thead>
-                            <tbody>
-                            <tr ng-repeat="prop in properties.syllable">
-                                <td>{{ prop }}</td>
-                                <td>
-                                    <input type="checkbox" ng-model="queryState.columns.syllable[prop]">
-                                </td>
-                            </tr>
-                            </tbody>
-                        </table>
-                    </md-content>
-                </md-tab>
-                <md-tab label="Word" data-ng-if="queryState.type ==='word' ||queryState.type ==='syllable' || queryState.type ==='phone' ">
-                    <md-content class="md-padding">
-                        <table class="table table-striped scrollable-table">
-                            <thead>
-                            <td>Column</td>
-                            <td>Visble</td>
-                            </thead>
-                            <tbody>
-                            <tr ng-repeat="prop in properties.word">
-                                <td>{{ prop }}</td>
-                                <td>
-                                    <input type="checkbox" ng-model="queryState.columns.word[prop]">
-                                </td>
-                            </tr>
-                            </tbody>
-                        </table>
-                    </md-content>
-                </md-tab>
 
-                <md-tab label="Utterance">
+                    <md-tab ng-repeat="t in annotation_types" label="{{ t|titlecase }}" data-ng-if="$index >=annotation_types.indexOf(selectedType)">
                     <md-content class="md-padding">
                         <table class="table table-striped scrollable-table">
                             <thead>
@@ -302,16 +222,16 @@
                             <td>Visble</td>
                             </thead>
                             <tbody>
-                            <tr ng-repeat="prop in properties.utterance">
+                            <tr ng-repeat="prop in properties[t]">
                                 <td>{{ prop }}</td>
                                 <td>
-                                    <input type="checkbox" ng-model="queryState.columns.utterance[prop]">
+                                    <input type="checkbox" ng-model="queryState.columns[t][prop]">
                                 </td>
                             </tr>
                             </tbody>
                         </table>
                     </md-content>
-                </md-tab>
+                    </md-tab>
 
                 <md-tab label="Speaker">
                     <md-content class="md-padding">

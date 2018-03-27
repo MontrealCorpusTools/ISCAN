@@ -1,7 +1,7 @@
 angular.module('bestiaryPlot', [
-    'pgdb.utterances'
+    'pgdb.annotationQuery'
 ])
-    .controller('BestiaryPlotCtrl', function ($scope, Utterances, Corpora, $state, $stateParams) {
+    .controller('BestiaryPlotCtrl', function ($scope, AnnotationQuery, Corpora, $state, $stateParams) {
         $scope.filters = {discourse: {}, speaker:{name: 'All'}};
         $scope.export = {};
         $scope.filter_options = {};
@@ -25,7 +25,7 @@ angular.module('bestiaryPlot', [
                 }
             }
             console.log(params);
-            Utterances.subset($stateParams.corpus_id, $scope.offset, $scope.ordering, true, params).then(function (res) {
+            AnnotationQuery.subset($stateParams.corpus_id, 'utterance', $scope.offset, $scope.ordering, true, params).then(function (res) {
                 console.log(res.data);
                 $scope.count = res.data.count;
                 $scope.numPages = Math.ceil($scope.count / $scope.resultsPerPage);

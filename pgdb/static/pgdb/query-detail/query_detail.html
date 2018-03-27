@@ -15,8 +15,8 @@
         </div>
     </div>
     <div class="col-md-9">
-        <annotation-plot data="utterance"></annotation-plot>
-        <waveform-plot data="utterance.waveform" begin="utterance.begin" end="utterance.end"></waveform-plot>
+        <annotation-plot data="utterance" selected-annotation="selectedAnnotation"></annotation-plot>
+        <waveform-plot data="utterance.waveform" begin="utterance.begin" end="utterance.end" selected-annotation="selectedAnnotation"></waveform-plot>
         <spectrogram-plot data="utterance.spectrogram" begin="utterance.begin" end="utterance.end"></spectrogram-plot>
     </div>
     <div class="col-md-3">
@@ -25,7 +25,7 @@
             <md-content>
                 <md-tabs md-border-bottom>
 
-                    <md-tab label="Utterance properties">
+                    <md-tab ng-repeat="t in annotation_types" label="{{ t|titlecase }} properties" data-ng-if="$index >=annotation_types.indexOf(selectedType)">
                         <md-content class="md-padding">
                             <table class="table table-striped">
                                 <thead>
@@ -33,16 +33,17 @@
                                 <td>Value</td>
                                 </thead>
                                 <tbody>
-                                <tr ng-repeat="prop in properties.utterance">
+                                <tr ng-repeat="prop in properties[t]">
                                     <td>{{ prop }}</td>
                                     <td>
-                                        {{ propertyValues.utterance[prop] }}
+                                        {{ propertyValues[t][prop] }}
                                     </td>
                                 </tr>
                                 </tbody>
                             </table>
                         </md-content>
                     </md-tab>
+
 
                     <md-tab label="Speaker properties">
                         <md-content class="md-padding">
@@ -150,5 +151,5 @@
     </div>
 </div>
 <div class="row" style="padding-top: 10px">
-    <pitch-plot utterance="utterance" editable="can_edit"></pitch-plot>
+    <pitch-plot utterance="utterance" editable="can_edit" selected-annotation="selectedAnnotation"></pitch-plot>
 </div>

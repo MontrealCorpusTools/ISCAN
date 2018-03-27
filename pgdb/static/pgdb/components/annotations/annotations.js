@@ -1,3 +1,3 @@
 
-angular.module('annotations', [
+angular.module('pgdb.annotations', [
 ]);

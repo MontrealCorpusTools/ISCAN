@@ -1,9 +1,6 @@
 angular.module('query', [
     'pgdb.corpora',
-    'pgdb.utterances',
-    'pgdb.words',
-    'pgdb.syllables',
-    'pgdb.phones',
+    'pgdb.annotationQuery',
     'pgdb.query'
 ]).filter('titlecase', function() {
     return function (input) {
@@ -47,9 +44,14 @@ angular.module('query', [
         return function (seconds) {
             return new Date(1970, 0, 1).setSeconds(seconds);
         };
-    }]).controller('QueryCtrl', function ($scope, $rootScope, Utterances, Words, Syllables, Phones, Corpora, $state, $stateParams, QueryState) {
-    $scope.queryState = QueryState;
-    $scope.queryState.type = $stateParams.type;
+    }]).controller('QueryCtrl', function ($scope, $rootScope, AnnotationQuery, Corpora, $state, $stateParams, QueryState) {
+    $scope.queryState = QueryState.state;
+    $scope.selectedType = $stateParams.type;
+    if ($scope.queryState == undefined || $scope.queryState.type != $stateParams.type){
+        QueryState.reset($stateParams.type);
+        $scope.queryState = QueryState.state;
+    }
+    $scope.annotation_types = ['phone', 'syllable', 'word', 'utterance'];
     console.log($scope.queryState.columns);
 
 
@@ -79,57 +81,30 @@ angular.module('query', [
         }
     };
     $scope.update = function () {
-        $scope.queryState.query_running = true;
-        $scope.queryState.query_text = 'Fetching results...';
+        $scope.queryState.queryRunning = true;
+        $scope.queryState.queryText = 'Fetching results...';
         console.log($scope.queryState.query);
-        if ($scope.queryState.type === 'utterance') {
-            Utterances.all($stateParams.corpus_id, $scope.queryState.offset, $scope.queryState.ordering, false, $scope.queryState.query).then(function (res) {
+        AnnotationQuery.all($stateParams.corpus_id,$scope.queryState.type,  $scope.queryState.offset, $scope.queryState.ordering, false, $scope.queryState.query).then(function (res) {
                 console.log(res.data);
                 $scope.queryState.count = res.data.count;
                 $scope.queryState.numPages = Math.ceil($scope.queryState.count / $scope.queryState.resultsPerPage);
                 $scope.queryState.results = res.data.results;
                 $scope.updatePagination();
-                $scope.queryState.query_running = false;
-                $scope.queryState.query_text = 'Run query';
+                $scope.queryState.queryRunning = false;
+                $scope.queryState.queryText = 'Run query';
             });
 
-        }
-        else if ($scope.queryState.type === 'word') {
-            Words.all($stateParams.corpus_id, $scope.queryState.offset, $scope.queryState.ordering, $scope.queryState.query).then(function (res) {
-                console.log(res.data);
-                $scope.queryState.count = res.data.count;
-                $scope.queryState.numPages = Math.ceil($scope.queryState.count / $scope.queryState.resultsPerPage);
-                $scope.queryState.results = res.data.results;
-                $scope.updatePagination();
-                $scope.queryState.query_running = false;
-                $scope.queryState.query_text = 'Run query';
+    };
+
+    $scope.export = function(){
+        $scope.queryState.queryRunning = true;
+        $scope.queryState.queryText = 'Fetching results...';
+        console.log($scope.queryState.query);
+        AnnotationQuery.export($stateParams.corpus_id,$scope.queryState.type,   $scope.queryState.ordering, false, $scope.queryState).then(function (res) {
+                $scope.queryState.queryRunning = false;
+                $scope.queryState.queryText = 'Run query';
             });
 
-        }
-        else if ($scope.queryState.type === 'syllable') {
-            Syllables.all($stateParams.corpus_id, $scope.queryState.offset, $scope.queryState.ordering, $scope.queryState.query).then(function (res) {
-                console.log(res.data);
-                $scope.queryState.count = res.data.count;
-                $scope.queryState.numPages = Math.ceil($scope.queryState.count / $scope.queryState.resultsPerPage);
-                $scope.queryState.results = res.data.results;
-                $scope.updatePagination();
-                $scope.queryState.query_running = false;
-                $scope.queryState.query_text = 'Run query';
-            });
-
-        }
-        else if ($scope.queryState.type === 'phone') {
-            Phones.all($stateParams.corpus_id, $scope.queryState.offset, $scope.queryState.ordering, $scope.queryState.query).then(function (res) {
-                console.log(res.data);
-                $scope.queryState.count = res.data.count;
-                $scope.queryState.numPages = Math.ceil($scope.queryState.count / $scope.queryState.resultsPerPage);
-                $scope.queryState.results = res.data.results;
-                $scope.updatePagination();
-                $scope.queryState.query_running = false;
-                $scope.queryState.query_text = 'Run query';
-            });
-
-        }
 
     };
 
@@ -150,87 +125,37 @@ angular.module('query', [
         console.log($scope.hierarchy);
         var prop;
         $scope.properties = {
-            utterance: [],
             discourse: [],
             speaker: []
         };
         $scope.propertyTypes = {
-            utterance: {},
             discourse: {},
             speaker: {}
         };
-        if ($scope.queryState.type === 'word' || $scope.queryState.type === 'syllable' || $scope.queryState.type === 'phone') {
-            $scope.properties.word = [];
-            $scope.propertyTypes.word = {};
-        }
-        if ($scope.queryState.type === 'syllable' || $scope.queryState.type === 'phone') {
-            $scope.properties.syllable = [];
-            $scope.propertyTypes.syllable = {};
 
-        }
-        if ($scope.queryState.type === 'phone') {
-            $scope.properties.phone = [];
-            $scope.propertyTypes.phone = {};
 
-        }
-
-        for (i = 0; i < $scope.hierarchy.token_properties.utterance.length; i++) {
-            prop = $scope.hierarchy.token_properties.utterance[i][0];
-            $scope.propertyTypes.utterance[prop] = $scope.hierarchy.token_properties.utterance[i][1];
-            if ($scope.properties.utterance.indexOf(prop) === -1 && prop !== 'id') {
-                $scope.properties.utterance.push(prop);
+        var inc;
+        for (j=0; j< $scope.annotation_types.length; j++) {
+            inc = j >= $scope.annotation_types.indexOf($scope.selectedType);
+            if (!inc) {
+                continue
             }
-        }
-
-        if ($scope.queryState.type === 'word' || $scope.queryState.type === 'syllable' || $scope.queryState.type === 'phone') {
-            for (i = 0; i < $scope.hierarchy.type_properties.word.length; i++) {
-                prop = $scope.hierarchy.type_properties.word[i][0];
-                $scope.propertyTypes.word[prop] = $scope.hierarchy.type_properties.word[i][1];
-                if ($scope.properties.word.indexOf(prop) === -1 && prop !== 'id') {
-                    $scope.properties.word.push(prop);
+            $scope.properties[$scope.annotation_types[j]] = [];
+            $scope.propertyTypes[$scope.annotation_types[j]] = {};
+            for (i = 0; i < $scope.hierarchy.type_properties[$scope.annotation_types[j]].length; i++) {
+                prop = $scope.hierarchy.type_properties[$scope.annotation_types[j]][i][0];
+                $scope.propertyTypes[$scope.annotation_types[j]][prop] = $scope.hierarchy.type_properties[$scope.annotation_types[j]][i][1];
+                if ($scope.properties[$scope.annotation_types[j]].indexOf(prop) === -1 && prop !== 'id') {
+                    $scope.properties[$scope.annotation_types[j]].push(prop);
                 }
             }
-            for (i = 0; i < $scope.hierarchy.token_properties.word.length; i++) {
-                prop = $scope.hierarchy.token_properties.word[i][0];
-                $scope.propertyTypes.word[prop] = $scope.hierarchy.token_properties.word[i][1];
-                if ($scope.properties.word.indexOf(prop) === -1 && prop !== 'id') {
-                    $scope.properties.word.push(prop);
+            for (i = 0; i < $scope.hierarchy.token_properties[$scope.annotation_types[j]].length; i++) {
+                prop = $scope.hierarchy.token_properties[$scope.annotation_types[j]][i][0];
+                $scope.propertyTypes[$scope.annotation_types[j]][prop] = $scope.hierarchy.token_properties[$scope.annotation_types[j]][i][1];
+                if ($scope.properties[$scope.annotation_types[j]].indexOf(prop) === -1 && prop !== 'id') {
+                    $scope.properties[$scope.annotation_types[j]].push(prop);
                 }
             }
-        }
-        if ($scope.queryState.type === 'syllable' || $scope.queryState.type === 'phone') {
-            for (i = 0; i < $scope.hierarchy.type_properties.syllable.length; i++) {
-                prop = $scope.hierarchy.type_properties.syllable[i][0];
-                $scope.propertyTypes.syllable[prop] = $scope.hierarchy.type_properties.syllable[i][1];
-                if ($scope.properties.syllable.indexOf(prop) === -1 && prop !== 'id') {
-                    $scope.properties.syllable.push(prop);
-                }
-            }
-            for (i = 0; i < $scope.hierarchy.token_properties.syllable.length; i++) {
-                prop = $scope.hierarchy.token_properties.syllable[i][0];
-                $scope.propertyTypes.syllable[prop] = $scope.hierarchy.token_properties.syllable[i][1];
-                if ($scope.properties.syllable.indexOf(prop) === -1 && prop !== 'id') {
-                    $scope.properties.syllable.push(prop);
-                }
-            }
-
-        }
-        if ($scope.queryState.type === 'phone') {
-            for (i = 0; i < $scope.hierarchy.type_properties.phone.length; i++) {
-                prop = $scope.hierarchy.type_properties.phone[i][0];
-                $scope.propertyTypes.phone[prop] = $scope.hierarchy.type_properties.phone[i][1];
-                if ($scope.properties.phone.indexOf(prop) === -1 && prop !== 'id') {
-                    $scope.properties.phone.push(prop);
-                }
-            }
-            for (i = 0; i < $scope.hierarchy.token_properties.syllable.length; i++) {
-                prop = $scope.hierarchy.token_properties.phone[i][0];
-                $scope.propertyTypes.phone[prop] = $scope.hierarchy.token_properties.phone[i][1];
-                if ($scope.properties.phone.indexOf(prop) === -1 && prop !== 'id') {
-                    $scope.properties.phone.push(prop);
-                }
-            }
-
         }
 
         for (i = 0; i < $scope.hierarchy.discourse_properties.length; i++) {

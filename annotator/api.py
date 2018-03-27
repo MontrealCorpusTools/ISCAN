@@ -10,3 +10,9 @@ class AnnotationViewSet(viewsets.ModelViewSet):
     model = models.Annotation
     queryset = models.Annotation.objects.all()
     serializer_class = serializers.AnnotationSerializer
+
+    def get_queryset(self):
+        annotation_type = self.request.data.get('annotation_type', '')
+        if not annotation_type:
+            return models.Annotation.objects.all()
+        return models.Annotation.objects.filter(item_type=annotation_type[0].upper()).all()

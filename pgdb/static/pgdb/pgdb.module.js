@@ -21,7 +21,8 @@ var app = angular.module('pgdb', [
     'logout'
 ]).run(
     function ($http, $cookies) {
-        $http.defaults.headers.post['X-CSRFToken'] = $cookies.csrftoken;
+        //$http.defaults.headers.post['X-CSRFToken'] = $cookies.get('csrftoken');
+        //console.log($http.defaults.headers.post)
         // Add the following two lines
         $http.defaults.xsrfCookieName = 'csrftoken';
         $http.defaults.xsrfHeaderName = 'X-CSRFToken';

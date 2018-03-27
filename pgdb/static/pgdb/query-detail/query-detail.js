@@ -1,8 +1,28 @@
 angular.module('queryDetail', [
     'pgdb.corpora',
-    'pgdb.utterances',
-    'annotations'
-]).directive('myEnter', function () {
+    'pgdb.annotationQuery',
+    'pgdb.annotations'
+]).filter('titlecase', function() {
+    return function (input) {
+        var smallWords = /^(a|an|and|as|at|but|by|en|for|if|in|nor|of|on|or|per|the|to|vs?\.?|via)$/i;
+
+        input = input.toLowerCase();
+        return input.replace(/[A-Za-z0-9\u00C0-\u00FF]+[^\s-]*/g, function(match, index, title) {
+            if (index > 0 && index + match.length !== title.length &&
+                match.search(smallWords) > -1 && title.charAt(index - 2) !== ":" &&
+                (title.charAt(index + match.length) !== '-' || title.charAt(index - 1) === '-') &&
+                title.charAt(index - 1).search(/[^\s-]/) < 0) {
+                return match.toLowerCase();
+            }
+
+            if (match.substr(1).search(/[A-Z]|\../) > -1) {
+                return match;
+            }
+
+            return match.charAt(0).toUpperCase() + match.substr(1);
+        });
+    }
+}).directive('myEnter', function () {
     return function (scope, element, attrs) {
         element.bind("keydown keypress", function (event) {
             if (event.which === 13) {
@@ -24,21 +44,23 @@ angular.module('queryDetail', [
         }
     };
 }])
-    .controller('QueryDetailCtrl', function ($scope, $rootScope, Utterances, Corpora, $state, $stateParams, $document, QueryState, Annotations) {
-            $scope.queryState = QueryState;
+    .controller('QueryDetailCtrl', function ($scope, $rootScope, AnnotationQuery, Corpora, $state, $stateParams, $document, QueryState, Annotations) {
+            $scope.queryState = QueryState.state;
             $scope.newAnnotation = {};
             $scope.currentAnnotations = {};
-            $scope.selectedAnnotation = $scope.queryState.results[$scope.queryState.detailIndex].utterance;
-            $scope.speaker = $scope.queryState.results[$scope.queryState.detailIndex].speaker;
-            $scope.discourse = $scope.queryState.results[$scope.queryState.detailIndex].discourse;
             $scope.selectedType = $scope.queryState.type;
-            $scope.utterance_id = $scope.selectedAnnotation.id;
+            $scope.selectedResult = $scope.queryState.results[$scope.queryState.detailIndex]
+            $scope.selectedAnnotation = $scope.selectedResult[$scope.selectedType];
+            $scope.speaker = $scope.selectedResult.speaker;
+            $scope.discourse = $scope.selectedResult.discourse;
+            $scope.utterance_id = $scope.selectedResult.utterance.id;
             $scope.headline = 'Loading detail...';
             $scope.selection_begin = 0;
             $scope.selection_end = null;
             $scope.selection_anchor = null;
+            $scope.annotation_types = ['phone', 'syllable', 'word', 'utterance'];
 
-            Annotations.all().then(function (res) {
+            Annotations.all($scope.selectedType).then(function (res) {
                     console.log('selectedannotation', $scope.selectedAnnotation)
                     $scope.annotations = res.data;
                     console.log($scope.annotations);
@@ -59,49 +81,30 @@ angular.module('queryDetail', [
             $scope.updateProperties = function () {
                 var prop;
                 $scope.properties = {
-                    utterance: [],
                     discourse: [],
                     speaker: []
                 };
                 $scope.propertyValues = {
-                    utterance: {},
                     discourse: {},
                     speaker: {}
                 };
-                if ($scope.selectedType === 'word') {
-                    $scope.properties.word = [];
-                    $scope.properties.word = {};
-                    for (i = 0; i < $scope.hierarchy.token_properties.word.length; i++) {
-                        prop = $scope.hierarchy.token_properties.word[i][0];
-
-                        if ($scope.properties.word.indexOf(prop) === -1 && prop !== 'id') {
-                            $scope.properties.word.push(prop);
-                            $scope.propertyValues.word[prop] = $scope.selectedAnnotation[prop];
-                        }
+                var inc;
+                for (j=0; j< $scope.annotation_types.length; j++){
+                    inc = j >= $scope.annotation_types.indexOf($scope.selectedType);
+                    if (!inc){
+                        continue
                     }
-                    for (i = 0; i < $scope.hierarchy.type_properties.word.length; i++) {
-                        prop = $scope.hierarchy.type_properties.word[i][0];
+                    $scope.properties[$scope.annotation_types[j]] = [];
+                    $scope.propertyValues[$scope.annotation_types[j]] = {};
+                    for (i = 0; i < $scope.hierarchy.token_properties[$scope.annotation_types[j]].length; i++) {
+                        prop = $scope.hierarchy.token_properties[$scope.annotation_types[j]][i][0];
 
-                        if ($scope.properties.word.indexOf(prop) === -1 && prop !== 'id') {
-                            $scope.properties.word.push(prop);
-                            $scope.propertyValues.word[prop] = $scope.selectedAnnotation[prop];
+                        if ($scope.properties[$scope.annotation_types[j]].indexOf(prop) === -1 && prop !== 'id') {
+                            $scope.properties[$scope.annotation_types[j]].push(prop);
+                            $scope.propertyValues[$scope.annotation_types[j]][prop] = $scope.selectedResult[$scope.annotation_types[j]][prop];
                         }
-                    }
-
                 }
 
-                for (i = 0; i < $scope.hierarchy.token_properties.utterance.length; i++) {
-                    prop = $scope.hierarchy.token_properties.utterance[i][0];
-                    if ($scope.properties.utterance.indexOf(prop) === -1 && prop !== 'id') {
-                        $scope.properties.utterance.push(prop);
-                        if ($scope.selectedType === 'word') {
-                            $scope.propertyValues.utterance[prop] = $scope.selectedAnnotation.utterance[prop];
-                        }
-                        else if ($scope.selectedType === 'utterance') {
-                            $scope.propertyValues.utterance[prop] = $scope.selectedAnnotation[prop];
-                        }
-                    }
-                }
 
                 for (i = 0; i < $scope.hierarchy.discourse_properties.length; i++) {
                     prop = $scope.hierarchy.discourse_properties[i][0];
@@ -118,6 +121,7 @@ angular.module('queryDetail', [
                         $scope.propertyValues.speaker[prop] = $scope.speaker[prop];
                     }
                 }
+            }
             };
 
 
@@ -189,14 +193,15 @@ angular.module('queryDetail', [
                     }
                     console.log($scope.can_view_annotations, $scope.can_annotate)
                 }
-                Utterances.one($stateParams.corpus_id, $scope.utterance_id, true, true, true).then(function (res) {
+                AnnotationQuery.one($stateParams.corpus_id, 'utterance', $scope.utterance_id, true, true, true).then(function (res) {
                     $scope.utterance = res.data;
-                    console.log($scope.utterance);
-                    $scope.headline = $scope.utterance.discourse.name + ' (' + $scope.utterance.utterance.begin + ' to ' + $scope.utterance.utterance.end + ')';
-                    console.log($scope.headline);
+                    console.log('helloooooo', $scope.utterance);
+                    $scope.headline = $scope.utterance.discourse.name + ' (' + $scope.utterance.begin + ' to ' + $scope.utterance.end + ')';
+                    console.log($scope.headline, $scope.can_listen);
                     if ($scope.can_listen) {
                         $scope.initPlayer();
                     }
+                    $scope.$broadcast('SELECTED_ANNOTATION_UPDATE', $scope.selectedAnnotation.begin, $scope.selectedAnnotation.end);
                 })
                     .catch(function (data) {
                         if (data.status === 423) {
@@ -244,7 +249,8 @@ angular.module('queryDetail', [
 
             $scope.initPlayer = function () {
                 Howler.unload();
-                $scope.wav_url = Utterances.sound_file_url($scope.corpus.id, $scope.utterance_id);
+                $scope.wav_url = AnnotationQuery.sound_file_url($scope.corpus.id, $scope.utterance_id);
+                console.log($scope.wav_url)
                 $scope.player = new Howl({
                     src: [$scope.wav_url],
                     format: ['wav'],
@@ -252,6 +258,7 @@ angular.module('queryDetail', [
                         requestAnimationFrame($scope.updatePlayLine)
                     }
                 });
+                console.log($scope.player)
             };
 
             $scope.$on('$locationChangeStart', function (event) {
@@ -311,7 +318,7 @@ angular.module('queryDetail', [
             });
 
             $scope.$on('TRACK_REQUESTED', function (e, res) {
-                Utterances.generate_pitch_track($stateParams.corpus_id, $stateParams.utterance_id, res).then(function (res) {
+                AnnotationQuery.generate_pitch_track($stateParams.corpus_id, $stateParams.utterance_id, res).then(function (res) {
                     $scope.utterance.pitch_track = res.data;
                     $scope.utterance = $scope.utterance;
                     console.log($scope.utterance.pitch_track);
@@ -320,7 +327,7 @@ angular.module('queryDetail', [
             });
 
             $scope.$on('SAVE_TRACK', function (e, res) {
-                Utterances.save_pitch_track($scope.corpus.name, $stateParams.utterance_id, $scope.utterance.pitch_track).then(function (res) {
+                AnnotationQuery.save_pitch_track($scope.corpus.name, $stateParams.utterance_id, $scope.utterance.pitch_track).then(function (res) {
                     console.log(res.data);
                     $scope.$broadcast('SAVE_RESPONSE', res);
                 });

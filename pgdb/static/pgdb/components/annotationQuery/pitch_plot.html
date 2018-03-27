@@ -1,0 +1,29 @@
+<div class="pitch chart">
+    <div class="plot col-md-9"></div>
+    <div class="controls col-md-3" ng-show="editable">
+
+        <h1>Edit pitch</h1>
+
+        <div>
+            <label>Pitch source: <select ng-model="newPitchSettings.source" class="form-control"
+                                         ng-options="pitch_source for pitch_source in available_pitch_sources">
+                <option value="">Select source</option>
+
+            </select></label>
+            <label>Min pitch: <input type="text" ng-model="newPitchSettings.min_pitch"
+                                     class='form-control'/></label>
+
+            <label>Max pitch: <input type="text" ng-model="newPitchSettings.max_pitch"
+                                     class='form-control'/></label>
+            <button class='btn btn-success' ng-click="generateNewTrack()">Generate new pitch track</button>
+        </div>
+        <div>
+            <button class='btn' ng-click="doubleSelected()">Double selected points</button>
+            <button class='btn' ng-click="halveSelected()">Halve selected points</button>
+            <button class='btn' ng-click="smoothSelected()">Smooth selected points</button>
+            <button class='btn' ng-click="removeSelected()">Remove selected points</button>
+        </div>
+        <button class='btn btn-success' ng-click="saveTrack()" ng-bind="save_pitch_text"></button>
+        <label>Saved on: <span ng-bind="utterance.pitch_last_edited | secondsToDateTime | date:'MM/dd/yy hh:mm:ss a' : '-0500' "></span></label>
+    </div>
+</div>

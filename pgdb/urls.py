@@ -11,10 +11,9 @@ api_router.register(r'databases', api.DatabaseViewSet, base_name='databases')
 api_router.register(r'corpora', api.CorpusViewSet, base_name='corpora')
 api_router.register(r'source_directories', api.SourceChoiceViewSet, base_name='source_directories')
 corpora_router = routers.NestedSimpleRouter(api_router, r'corpora', lookup='corpus')
-corpora_router.register(r'utterances', api.UtteranceViewSet, base_name='corpus-utterances')
+corpora_router.register(r'annotations', api.AnnotationViewSet, base_name='corpus-annotations')
 corpora_router.register(r'subannotations', api.SubannotationViewSet, base_name='corpus-subannotations')
 corpora_router.register(r'bestiary-utterances', api.BestiaryViewSet, base_name='bestiary-utterances')
-corpora_router.register(r'words', api.WordViewSet, base_name='corpus-words')
 corpora_router.register(r'discourses', api.DiscourseViewSet, base_name='corpus-discourses')
 corpora_router.register(r'speakers', api.SpeakerViewSet, base_name='corpus-speakers')
 #api_router.register(r'corpora', api.CorpusViewSet, base_name='corpora')
@@ -28,4 +27,5 @@ urlpatterns = [
     url(r'^api/(?P<corpus>\d+)/export_pitch/$', views.export_pitch_tracks, name='export_pitch'),
     url('^api/', include(api_router.urls)),
     url('^api/', include(corpora_router.urls)),
+
 ]

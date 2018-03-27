@@ -1,12 +1,13 @@
 
-angular.module('annotations')
+angular.module('pgdb.annotations')
     .service('Annotations', function ($http, __env) {
     var base_url = __env.annotatorUrl + 'annotations/';
     var subannotation_url = __env.apiUrl + 'corpora/';
     var Annotations = {};
 
-    Annotations.all = function () {
-        return $http.get(base_url);
+    Annotations.all = function (annotation_type) {
+        var params = {annotation_type: annotation_type};
+        return $http.get(base_url, params);
     };
 
     Annotations.one = function (id) {
