@@ -1,15 +1,16 @@
 <div class="col-md-9 scroll-container text-center" style="height:1280px">
     <div>
-        <h4>Query {{ queryState.type }}s</h4>
+        <h4>Query <span ng-bind="query.annotation_type"></span>s</h4>
+        <label>Query name: <input ng-model="query.name"> </label>
         <multiselect-dropdown class="tabs" ng-cloak style="max-height:100%">
             <md-content>
                 <md-tabs md-border-bottom>
 
-                    <md-tab ng-repeat="t in annotation_types" label="{{ t|titlecase }} properties" data-ng-if="$index >=annotation_types.indexOf(selectedType)">
+                    <md-tab ng-repeat="t in annotation_types" label="{{ t|titlecase }} properties" data-ng-if="$index >=annotation_types.indexOf(query.annotation_type.toLowerCase())">
                     <md-content class="md-padding">
                             <table class="table table-bordered table-striped">
                                 <tbody>
-                                <tr ng-repeat="filter in queryState.query[t]">
+                                <tr ng-repeat="filter in query.filters[t]">
 
                                     <td>
                                         <select ng-model="filter.property">
@@ -38,7 +39,7 @@
                         <md-content class="md-padding">
                             <table class="table table-bordered table-striped">
                                 <tbody>
-                                <tr ng-repeat="filter in queryState.query.speaker">
+                                <tr ng-repeat="filter in query.filters.speaker">
 
                                     <td>
                                         <select ng-model="filter.property">
@@ -66,7 +67,7 @@
                         <md-content class="md-padding">
                             <table class="table table-bordered table-striped">
                                 <tbody>
-                                <tr ng-repeat="filter in queryState.query.discourse">
+                                <tr ng-repeat="filter in query.filters.discourse">
 
                                     <td>
                                         <select ng-model="filter.property">
@@ -97,17 +98,17 @@
         </multiselect-dropdown>
 
 
-        <button class='btn btn-success' ng-click="update()" ng-disabled="queryState.queryRunning"><span
+        <button class='btn btn-success' ng-click="updateQuery()" ng-disabled="queryState.queryRunning"><span
                 ng-bind="queryState.queryText"></span></button>
         <button class='btn btn-danger' ng-click="clearFilters()" ng-disabled="queryState.queryRunning"><span>Clear filters</span>
         </button>
-<button class="btn" ng-click="export()" ng-disabled="queryState.queryRunning"><span
+<button class="btn" href="{{ export_link }}" ng-disabled="queryState.queryRunning" ng-show="!newQuery"><span
                 ng-bind="queryState.exportText"></span></button>
     </div>
-    <div ng-show="queryState.count==0">
+    <div ng-show="query.result_count==0 && !newQuery">
         <span>No results found</span>
     </div>
-    <div ng-show="queryState.count>0">
+    <div ng-show="query.result_count>0">
 
         <ul ng-if="queryState.numPages" class="pagination">
             <li ng-class="{disabled:queryState.currentPage === 1}">
@@ -132,36 +133,36 @@
             <thead>
             <tr>
                 <td ng-click="refreshOrdering('label')">
-                    {{ queryState.type|titlecase }}
+                    {{ query.annotation_type|titlecase }}
                     <span ng-show="queryState.ordering == 'label'" class="fa fa-caret-down"></span>
                     <span ng-show="queryState.ordering == '-label'" class="fa fa-caret-up"></span>
                 </td>
-                <td ng-repeat="prop in properties.phone" ng-click="refreshOrdering(prop)" ng-show="queryState.columns.phone[prop] && (queryState.type === 'phone')">
+                <td ng-repeat="prop in properties.phone" ng-click="refreshOrdering(prop)" ng-show="query.columns.phone[prop] && (query.annotation_type === 'phone')">
                     {{ prop }}
                     <span ng-show="queryState.ordering == 'phone.'+prop" class="fa fa-caret-down"></span>
                     <span ng-show="queryState.ordering == '-phone.' + prop" class="fa fa-caret-up"></span>
                 </td>
-                <td ng-repeat="prop in properties.syllable" ng-click="refreshOrdering(prop)" ng-show="queryState.columns.syllable[prop] && (queryState.type === 'syllable' || queryState.type === 'phone')">
+                <td ng-repeat="prop in properties.syllable" ng-click="refreshOrdering(prop)" ng-show="query.columns.syllable[prop] && (query.annotation_type === 'syllable' || query.annotation_type === 'phone')">
                     {{ prop }}
                     <span ng-show="queryState.ordering == 'syllable.'+prop" class="fa fa-caret-down"></span>
                     <span ng-show="queryState.ordering == '-syllable.' + prop" class="fa fa-caret-up"></span>
                 </td>
-                <td ng-repeat="prop in properties.word" ng-click="refreshOrdering(prop)" ng-show="queryState.columns.word[prop] && (queryState.type === 'word' || queryState.type === 'syllable' || queryState.type === 'phone')">
+                <td ng-repeat="prop in properties.word" ng-click="refreshOrdering(prop)" ng-show="query.columns.word[prop] && (query.annotation_type === 'word' || query.annotation_type === 'syllable' || query.annotation_type === 'phone')">
                     {{ prop }}
                     <span ng-show="queryState.ordering == 'word.'+prop" class="fa fa-caret-down"></span>
                     <span ng-show="queryState.ordering == '-word.' + prop" class="fa fa-caret-up"></span>
                 </td>
-                <td ng-repeat="prop in properties.utterance" ng-click="refreshOrdering('utterance.' + prop)" ng-show="queryState.columns.utterance[prop]">
+                <td ng-repeat="prop in properties.utterance" ng-click="refreshOrdering('utterance.' + prop)" ng-show="query.columns.utterance[prop]">
                     {{ prop }}
                     <span ng-show="queryState.ordering == 'utterance.' +prop" class="fa fa-caret-down"></span>
                     <span ng-show="queryState.ordering == '-utterance.' + prop" class="fa fa-caret-up"></span>
                 </td>
-                <td ng-repeat="prop in properties.discourse" ng-click="refreshOrdering('discourse.' + prop)" ng-show="queryState.columns.discourse[prop]">
+                <td ng-repeat="prop in properties.discourse" ng-click="refreshOrdering('discourse.' + prop)" ng-show="query.columns.discourse[prop]">
                     {{ prop }}
                     <span ng-show="queryState.ordering == 'discourse.' +prop" class="fa fa-caret-down"></span>
                     <span ng-show="queryState.ordering == '-discourse.' + prop" class="fa fa-caret-up"></span>
                 </td>
-                <td ng-repeat="prop in properties.speaker" ng-click="refreshOrdering('speaker.' + prop)" ng-show="queryState.columns.speaker[prop]">
+                <td ng-repeat="prop in properties.speaker" ng-click="refreshOrdering('speaker.' + prop)" ng-show="query.columns.speaker[prop]">
                     {{ prop }}
                     <span ng-show="queryState.ordering == 'speaker.' + prop" class="fa fa-caret-down"></span>
                     <span ng-show="queryState.ordering == '-speaker.' + prop" class="fa fa-caret-up"></span>
@@ -171,34 +172,34 @@
             </thead>
             <tbody style="height:50%">
             <tr ng-repeat="result in queryState.results">
-                <td ng-show="queryState.type !== 'utterance'">
+                <td ng-show="query.annotation_type !== 'Utterance'">
 
-                    <a ui-sref="query-detail({corpus_id: corpus.id})"
-                       ng-show="can_view">{{ result[queryState.type].label }}</a>
-                    <span ng-show="!can_view">{{ result[queryState.type].label }}</span>
+                    <a ui-sref="query-detail({corpus_id: corpus.id, query_id:query.id})"
+                       ng-show="can_view">{{ result[query.annotation_type].label }}</a>
+                    <span ng-show="!can_view">{{ result[query.annotation_type].label }}</span>
                 </td>
-                <td ng-show="queryState.type === 'utterance'">
+                <td ng-show="query.annotation_type === 'Utterance'">
 
                     <a ui-sref="query-detail({corpus_id: corpus.id})"
                        ng-show="can_view">{{ result.discourse.name }} ({{ result.utterance.begin }} to {{ result.utterance.end }})</a>
                     <span ng-show="!can_view">{{ result.discourse.name }} ({{ result.utterance.begin }} to {{ result.utterance.end }})</span>
                 </td>
-                <td ng-repeat="prop in properties.phone" ng-show="queryState.columns.phone[prop] && (queryState.type === 'phone')">
+                <td ng-repeat="prop in properties.phone" ng-show="query.columns.phone[prop] && (query.annotation_type === 'phone')">
                     {{ result.phone[prop] }}
                 </td>
-                <td ng-repeat="prop in properties.syllable" ng-show="queryState.columns.syllable[prop] && (queryState.type === 'syllable' || queryState.type === 'phone')">
+                <td ng-repeat="prop in properties.syllable" ng-show="query.columns.syllable[prop] && (query.annotation_type === 'syllable' || query.annotation_type === 'phone')">
                     {{ result.syllable[prop] }}
                 </td>
-                <td ng-repeat="prop in properties.word" ng-show="queryState.columns.word[prop] && (queryState.type === 'word' || queryState.type === 'syllable' || queryState.type === 'phone')">
+                <td ng-repeat="prop in properties.word" ng-show="query.columns.word[prop] && (query.annotation_type === 'word' || query.annotation_type === 'syllable' || query.annotation_type === 'phone')">
                     {{ result.word[prop] }}
                 </td>
-                <td ng-repeat="prop in properties.utterance" ng-show="queryState.columns.utterance[prop]">
+                <td ng-repeat="prop in properties.utterance" ng-show="query.columns.utterance[prop]">
                     {{ result.utterance[prop] }}
                 </td>
-                <td ng-repeat="prop in properties.discourse" ng-show="queryState.columns.discourse[prop]">
+                <td ng-repeat="prop in properties.discourse" ng-show="query.columns.discourse[prop]">
                     {{ result.discourse[prop] }}
                 </td>
-                <td ng-repeat="prop in properties.speaker" ng-show="queryState.columns.speaker[prop]">
+                <td ng-repeat="prop in properties.speaker" ng-show="query.columns.speaker[prop]">
                     {{ result.speaker[prop] }}
                 </td>
             </tr>
@@ -210,11 +211,11 @@
 </div>
 
 <div class="col-md-3  scroll-container">
-    <multiselect-dropdown class="tabs" ng-cloak style="max-height:100%">
+    <multiselect-dropdown class="tabs" ng-cloak style="max-height:100%" ng-show="!newQuery">
         <md-content>
             <md-tabs md-border-bottom>
 
-                    <md-tab ng-repeat="t in annotation_types" label="{{ t|titlecase }}" data-ng-if="$index >=annotation_types.indexOf(selectedType)">
+                    <md-tab ng-repeat="t in annotation_types" label="{{ t|titlecase }}" data-ng-if="$index >=annotation_types.indexOf(query.annotation_type.toLowerCase())">
                     <md-content class="md-padding">
                         <table class="table table-striped scrollable-table">
                             <thead>
@@ -225,7 +226,7 @@
                             <tr ng-repeat="prop in properties[t]">
                                 <td>{{ prop }}</td>
                                 <td>
-                                    <input type="checkbox" ng-model="queryState.columns[t][prop]">
+                                    <input type="checkbox" ng-model="query.columns[t][prop]">
                                 </td>
                             </tr>
                             </tbody>
@@ -244,7 +245,7 @@
                             <tr ng-repeat="prop in properties.speaker">
                                 <td>{{ prop }}</td>
                                 <td>
-                                    <input type="checkbox" ng-model="queryState.columns.speaker[prop]">
+                                    <input type="checkbox" ng-model="query.columns.speaker[prop]">
                                 </td>
                             </tr>
                             </tbody>
@@ -263,7 +264,7 @@
                             <tr ng-repeat="prop in properties.discourse">
                                 <td>{{ prop }}</td>
                                 <td>
-                                    <input type="checkbox" ng-model="queryState.columns.discourse[prop]">
+                                    <input type="checkbox" ng-model="query.columns.discourse[prop]">
                                 </td>
                             </tr>
                             </tbody>

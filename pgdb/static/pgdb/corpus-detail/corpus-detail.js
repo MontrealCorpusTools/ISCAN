@@ -1,13 +1,34 @@
 angular.module('corpusDetail', [
     'pgdb.corpora'
 ])
-    .controller('CorpusDetailCtrl', function ($scope, Corpora, $state, $stateParams) {
+    .controller('CorpusDetailCtrl', function ($scope, Corpora, $state, $stateParams, Query) {
         $scope.properties = {};
         $scope.subsets = {};
+        $scope.queryIds = {};
+        $scope.available_queries = {};
         Corpora.one($stateParams.corpus_id).then(function (res) {
             $scope.corpus = res.data;
         });
-
+        Query.type_queries($stateParams.corpus_id, 'utterance').then(function (res) {
+            $scope.available_queries.utterance = res.data;
+            console.log($scope.available_queries)
+        });
+        Query.type_queries($stateParams.corpus_id, 'word').then(function (res) {
+            $scope.available_queries.word = res.data;
+            console.log($scope.available_queries)
+        });
+        Query.type_queries($stateParams.corpus_id, 'syllable').then(function (res) {
+            $scope.available_queries.syllable = res.data;
+            console.log($scope.available_queries)
+        });
+        Query.type_queries($stateParams.corpus_id, 'phone').then(function (res) {
+            $scope.available_queries.phone = res.data;
+            console.log($scope.available_queries)
+        });
+        $scope.openQuery = function(type){
+            console.log($scope.queryIds[type]);
+            $state.go('query', {corpus_id:$stateParams.corpus_id, query_id: $scope.queryIds[type]})
+        };
         Corpora.hierarchy($stateParams.corpus_id).then(function (res) {
             $scope.hierarchy = res.data;
             console.log($scope.hierarchy);

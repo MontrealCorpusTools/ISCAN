@@ -7,26 +7,26 @@ angular.module('navbar', [
         $scope.authenticated = false;
         $scope.siteName = __env.siteName;
 
-        $scope.checkAuth = function (){
+        $scope.checkAuth = function () {
             $scope.token = CookieService.get('token');
-            if ($scope.token != undefined){
+            if ($scope.token != undefined) {
                 $http.defaults.headers.common["Authorization"] = "Token " + $scope.token;
             }
             AuthService.checkAuth().then(function (user) {
-                if (user.data.id === null){
-                $rootScope.user = undefined;
-                $rootScope.authenticated = false;
-                $scope.authenticated = false;
+                if (user.data.id === null) {
+                    $rootScope.user = undefined;
+                    $rootScope.authenticated = false;
+                    $scope.authenticated = false;
                 }
-                else{
-                $rootScope.user = user.data;
+                else {
+                    $rootScope.user = user.data;
 
-                $rootScope.authenticated = true;
-                $scope.authenticated = true;
-                $rootScope.session = AuthService.createSessionFor(user.data);
-                $rootScope.$broadcast("authenticated", user);
+                    $rootScope.authenticated = true;
+                    $scope.authenticated = true;
+                    $rootScope.session = AuthService.createSessionFor(user.data);
+                    $rootScope.$broadcast("authenticated", user);
                 }
-            }).catch(function(res){
+            }).catch(function (res) {
                 $rootScope.user = undefined;
                 $rootScope.authenticated = false;
                 $scope.authenticated = false;
@@ -42,18 +42,18 @@ angular.module('navbar', [
 
             $scope.refreshCorpusList();
         });
-        $scope.$on('logged_out', function (e, res){
-           delete $scope.user;
-           delete $scope.token;
+        $scope.$on('logged_out', function (e, res) {
+            delete $scope.user;
+            delete $scope.token;
             delete $http.defaults.headers.common["Authorization"];
             $rootScope.authenticated = false;
             $scope.authenticated = false;
             $scope.refreshCorpusList();
         });
-        $scope.refreshCorpusList = function(){
+        $scope.refreshCorpusList = function () {
             Corpora.all().then(function (res) {
                 $scope.corpora = res.data;
-            }).catch(function(res){
+            }).catch(function (res) {
 
             });
         }

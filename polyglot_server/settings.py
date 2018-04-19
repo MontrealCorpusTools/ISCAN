@@ -156,6 +156,8 @@ except ImportError:
 
 POLYGLOT_TEMP_DIR = os.path.join(POLYGLOT_DATA_DIRECTORY, 'downloads')
 
+POLYGLOT_QUERY_DIRECTORY = os.path.join(POLYGLOT_DATA_DIRECTORY, 'downloads')
+
 NEO4J_VERSION = '3.3.3'
 
 INFLUXDB_VERSION = '1.2.4'

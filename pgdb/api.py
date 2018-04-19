@@ -191,7 +191,7 @@ class CorpusViewSet(viewsets.ModelViewSet):
         return Response(status=status.HTTP_202_ACCEPTED)
 
     @detail_route(methods=['post'])
-    def query(self, request, pk=None):
+    def query_other(self, request, pk=None):
         if request.auth is None:
             return Response(status=status.HTTP_401_UNAUTHORIZED)
         corpus = self.get_object()
@@ -248,71 +248,6 @@ class CorpusViewSet(viewsets.ModelViewSet):
         else:
             t = enrich_corpus_task.delay(corpus.pk, data)
         return Response(status=status.HTTP_202_ACCEPTED)
-
-    @detail_route(methods=['post'])
-    def export(self, request, pk=None):
-        print(request.auth)
-        print(request.user)
-        print(dir(request))
-        print(request.data)
-        print(request.query_params)
-        response = HttpResponse(content_type='text/csv')
-        a_type = request.data['annotation_type']
-        corpus = self.get_object()
-        print(corpus)
-        ordering = request.data.get('ordering', '')
-        filters = request.data['filters']
-        columns = request.data['columns']
-        response['Content-Disposition'] = 'attachment; filename="{}_query_export.csv"'.format(a_type)
-        print(filters)
-        print(columns)
-        with CorpusContext(corpus.config) as c:
-            print('speakers', c.speakers)
-            a = getattr(c, a_type)
-            q = c.query_graph(a)
-            for k, v in filters.items():
-                if v[0] == '':
-                    continue
-                if v[0] == 'null':
-                    v = None
-                else:
-                    try:
-                        v = float(v[0])
-                    except ValueError:
-                        v = v[0]
-                k = k.split('__')
-                att = a
-                for f in k:
-                    att = getattr(att, f)
-                q = q.filter(att == v)
-            if ordering:
-                desc = False
-                if ordering.startswith('-'):
-                    desc = True
-                    ordering = ordering[1:]
-                ordering = ordering.split('.')
-                att = a
-                for o in ordering:
-                    att = getattr(att, o)
-                q = q.order_by(att, desc)
-            else:
-                q = q.order_by(getattr(a, 'label'))
-
-            columns_for_export = []
-            for c in columns:
-                att = a
-                for f in c.split('__'):
-                    att = getattr(att, f)
-                columns_for_export.append(att)
-            q = q.columns(*columns_for_export)
-        path = r'E:\Data\Overwatch\oi_annotations\test.csv'
-        writer = csv.writer(response)
-        print(q.cypher(), q.cypher_params())
-        for r in q.all():
-            pass
-        #q.to_csv(path)
-
-        return response
 
     @detail_route(methods=['get'])
     def utterance_pitch_track(self, request, pk=None):
@@ -673,4 +608,176 @@ class AnnotationViewSet(viewsets.ViewSet):
         response = FileResponse(open(fname, "rb"), content_type='audio/wav')
         # response['Content-Type'] = 'audio/wav'
         # response['Content-Length'] = os.path.getsize(fname)
+        return response
+
+class QueryViewSet(viewsets.ModelViewSet):
+    model = models.Query
+    serializer_class = serializers.QuerySerializer
+
+    def get_queryset(self):
+        print('hellooooooo')
+        return models.Query.objects.filter(corpus__pk=self.kwargs['corpus_pk'])
+
+    def list(self, request, corpus_pk=None):
+        corpus = models.Corpus.objects.get(pk=corpus_pk)
+        if not request.user.is_superuser:
+            permissions = corpus.user_permissions.filter(user=request.user).all()
+            if not len(permissions):
+                return Response(status=status.HTTP_401_UNAUTHORIZED)
+            queries = models.Query.objects.filter(user=request.user).all()
+        else:
+            queries = models.Query.objects.all()
+        return Response(serializers.QuerySerializer(queries, many=True).data)
+
+    def create(self, request, corpus_pk=None, *args, **kwargs):
+        if request.auth is None:
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
+        corpus = models.Corpus.objects.get(pk=corpus_pk)
+        if not request.user.is_superuser:
+            permissions = corpus.user_permissions.filter(user=request.user).all()
+            if not len(permissions):
+                return Response(status=status.HTTP_401_UNAUTHORIZED)
+        print(request.data)
+        query = models.Query.objects.create(name=request.data['name'], user=request.user,
+                                            annotation_type=request.data['annotation_type'][0].upper(), corpus=corpus)
+        query.config = request.data
+        query.run_query()
+        return Response(serializers.QuerySerializer(query).data)
+
+    def update(self, request, pk=None, corpus_pk=None):
+        if request.auth is None:
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
+        corpus = models.Corpus.objects.get(pk=corpus_pk)
+        if not request.user.is_superuser:
+            permissions = corpus.user_permissions.filter(user=request.user).all()
+            if not len(permissions):
+                return Response(status=status.HTTP_401_UNAUTHORIZED)
+        print(request.data)
+        query = models.Query.objects.filter(pk=pk, corpus=corpus).get()
+        if query is None:
+            return Response(None, status=status.HTTP_400_BAD_REQUEST)
+        query.name = request.data.get('name')
+        do_run = query.config['filters'] != request.data['filters']
+        query.config = request.data
+        if do_run:
+            query.run_query()
+        query.save()
+        return Response(serializers.QuerySerializer(query).data)
+
+    @list_route(methods=['GET'])
+    def utterance(self, request, corpus_pk=None):
+        corpus = models.Corpus.objects.get(pk=corpus_pk)
+        if not request.user.is_superuser:
+            permissions = corpus.user_permissions.filter(user=request.user).all()
+            if not len(permissions):
+                return Response(status=status.HTTP_401_UNAUTHORIZED)
+            queries = models.Query.objects.filter(user=request.user).filter(annotation_type='U').all()
+        else:
+            queries = models.Query.objects.filter(annotation_type='U').all()
+        return Response(serializers.QuerySerializer(queries, many=True).data)
+
+    @list_route(methods=['GET'])
+    def word(self, request, corpus_pk=None):
+        corpus = models.Corpus.objects.get(pk=corpus_pk)
+        if not request.user.is_superuser:
+            permissions = corpus.user_permissions.filter(user=request.user).all()
+            if not len(permissions):
+                return Response(status=status.HTTP_401_UNAUTHORIZED)
+            queries = models.Query.objects.filter(user=request.user).filter(annotation_type='W').all()
+        else:
+            queries = models.Query.objects.filter(annotation_type='W').all()
+        return Response(serializers.QuerySerializer(queries, many=True).data)
+
+    @list_route(methods=['GET'])
+    def syllable(self, request, corpus_pk=None):
+        corpus = models.Corpus.objects.get(pk=corpus_pk)
+        if not request.user.is_superuser:
+            permissions = corpus.user_permissions.filter(user=request.user).all()
+            if not len(permissions):
+                return Response(status=status.HTTP_401_UNAUTHORIZED)
+            queries = models.Query.objects.filter(user=request.user).filter(annotation_type='S').all()
+        else:
+            queries = models.Query.objects.filter(annotation_type='S').all()
+        return Response(serializers.QuerySerializer(queries, many=True).data)
+
+    @list_route(methods=['GET'])
+    def phone(self, request, corpus_pk=None):
+        corpus = models.Corpus.objects.get(pk=corpus_pk)
+        if not request.user.is_superuser:
+            permissions = corpus.user_permissions.filter(user=request.user).all()
+            if not len(permissions):
+                return Response(status=status.HTTP_401_UNAUTHORIZED)
+            queries = models.Query.objects.filter(user=request.user).filter(annotation_type='P').all()
+        else:
+            queries = models.Query.objects.filter(annotation_type='P').all()
+        return Response(serializers.QuerySerializer(queries, many=True).data)
+
+    def retrieve(self, request, pk=None, corpus_pk=None):
+        if request.auth is None:
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
+        corpus = models.Corpus.objects.get(pk=corpus_pk)
+        if not request.user.is_superuser:
+            permissions = corpus.user_permissions.filter(user=request.user).all()
+            if not len(permissions) or not permissions[0].can_view_detail:
+                return Response(status=status.HTTP_401_UNAUTHORIZED)
+        query = models.Query.objects.filter(pk=pk, corpus=corpus).get()
+        if query is None:
+            return Response(None, status=status.HTTP_400_BAD_REQUEST)
+        return Response(serializers.QuerySerializer(query).data)
+
+    @detail_route(methods=['get'])
+    def results(self, request, pk=None, corpus_pk=None):
+        if request.auth is None:
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
+        corpus = models.Corpus.objects.get(pk=corpus_pk)
+        if not request.user.is_superuser:
+            permissions = corpus.user_permissions.filter(user=request.user).all()
+            if not len(permissions) or not permissions[0].can_view_detail:
+                return Response(status=status.HTTP_401_UNAUTHORIZED)
+        query = models.Query.objects.filter(pk=pk, corpus=corpus).get()
+        if query is None:
+            return Response(None, status=status.HTTP_400_BAD_REQUEST)
+        ordering = request.query_params.get('ordering', '')
+        offset = int(request.query_params.get('offset', 0))
+        limit = int(request.query_params.get('limit', 100))
+        results = query.get_results(ordering, limit, offset)
+        return Response(results)
+
+    @detail_route(methods=['get'])
+    def export(self, request, pk=None, corpus_pk=None):
+        response = HttpResponse(content_type='text/csv')
+        if request.auth is None:
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
+        corpus = models.Corpus.objects.get(pk=corpus_pk)
+        if not request.user.is_superuser:
+            permissions = corpus.user_permissions.filter(user=request.user).all()
+            if not len(permissions) or not permissions[0].can_view_detail:
+                return Response(status=status.HTTP_401_UNAUTHORIZED)
+        query = models.Query.objects.filter(pk=pk, corpus=corpus).get()
+        if query is None:
+            return Response(None, status=status.HTTP_400_BAD_REQUEST)
+        print(corpus)
+        columns = query.config['columns']
+        response['Content-Disposition'] = 'attachment; filename="{}_query_export.csv"'.format(query.get_annotation_type_display())
+        results = query.get_results(ordering='', offset=0, limit=None)
+        path = r'E:\Data\Overwatch\oi_annotations\test.csv'
+        with open(path, 'w') as f:
+            writer = csv.writer(f)
+            header = []
+            for f_a_type, a_columns in columns.items():
+                for field, val in a_columns.items():
+                    if not val:
+                        continue
+                    header.append('{}_{}'.format(f_a_type, field))
+            writer.writerow(header)
+            for r in results:
+                line = []
+                for f_a_type, a_columns in columns.items():
+                    for field, val in a_columns.items():
+                        if not val:
+                            continue
+                        line.append(r[f_a_type][field])
+                writer.writerow(line)
+
+
         return response

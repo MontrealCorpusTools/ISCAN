@@ -3,6 +3,7 @@ import sys
 import subprocess
 import traceback
 import signal
+import json
 import time
 import logging
 import shutil
@@ -685,6 +686,145 @@ class AcousticAnalysis(models.Model):
 
 
 class Query(models.Model):
+    ANNOTATION_TYPE_CHOICES = (('U', 'Utterance'),
+                               ('W', 'Word'),
+                               ('S', 'Syllable'),
+                               ('P', 'Phone'))
     name = models.CharField(unique=True, max_length=100)
-    export_file_name = models.CharField(max_length=250)
-    # query = models.
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    annotation_type = models.CharField(max_length=1, choices=ANNOTATION_TYPE_CHOICES)
+    corpus = models.ForeignKey(Corpus, on_delete=models.CASCADE)
+    running = models.BooleanField(default=False)
+    result_count = models.IntegerField(null=True, blank=True)
+
+    @property
+    def config(self):
+        with open(self.config_path, 'r') as f:
+            config = json.load(f)
+        return config
+
+    @config.setter
+    def config(self, new_config):
+        with open(self.config_path, 'w') as f:
+            json.dump(new_config, f)
+
+    def get_results(self, ordering, limit, offset):
+        if self.running:
+            return None
+        if not hasattr(self, '_results'):
+            self._results = None
+            self._count = 0
+            if os.path.exists(self.results_path):
+                with open(self.results_path, 'r') as f:
+                    self._results = json.load(f)
+                self._count = len(self._results)
+            else:
+                self.run_query()
+        if self._results is None:
+            return None
+        if not hasattr(self, '_ordering'):
+            self._ordering = None
+        if ordering != self._ordering and ordering:
+            ordering = ordering.replace(self.annotation_type.lower() + '.', '')
+            self._ordering = ordering
+
+            def order_function(input):
+                ordering = self._ordering.replace('-', '').split('.')
+                item = input
+                for o in ordering:
+                    item = item[o]
+                return item
+
+            self._results.sort(key=order_function, reverse=self._ordering.startswith('-'))
+        if limit is None:
+            return self._results[offset:]
+        return self._results[offset:offset + limit]
+
+    def run_query(self):
+        self.running = True
+        self.save()
+        from .serializers import serializer_factory
+        while os.path.exists(self.lockfile_path):
+            pass
+        with open(self.lockfile_path, 'w') as f:
+            pass
+        if os.path.exists(self.results_path):
+            os.remove(self.results_path)
+        try:
+            a_type = self.get_annotation_type_display().lower()
+            config = self.config
+            with_pitch = config.get('with_pitch', False)
+            with CorpusContext(self.corpus.config) as c:
+                a = getattr(c, a_type)
+                q = c.query_graph(a)
+                for f_a_type, a_filters in config['filters'].items():
+                    if f_a_type == a_type:
+                        ann = a
+                    else:
+                        ann = getattr(a, f_a_type)
+                    for d in a_filters:
+                        field, value = d['property'], d['value']
+                        if value == 'null':
+                            value = None
+                        else:
+                            try:
+                                value = float(value)
+                            except ValueError:
+                                value = value
+                        att = getattr(ann, field)
+                        q = q.filter(att == value)
+                self._count = q.count()
+                q = q.preload(getattr(a, 'discourse'), getattr(a, 'speaker'))
+                if with_pitch:
+                    pitch = getattr(a, 'pitch')
+                    pitch.relative_time = True
+                    pitch.relative = True
+                    q = q.preload_acoustics(pitch)
+                for t in c.hierarchy.annotation_types:
+                    if t in c.hierarchy.subannotations:
+                        for s in c.hierarchy.subannotations[t]:
+                            if t == a_type:
+                                q = q.preload(getattr(a, s))
+                            else:
+                                q = q.preload(getattr(getattr(a, t), s))
+                res = q.all()
+                serializer_class = serializer_factory(c.hierarchy, a_type, top_level=True,
+                                                      with_pitch=with_pitch, detail=False,
+                                                      with_higher_annotations=True,
+                                                      with_subannotations=True)
+                serializer = serializer_class(res, many=True)
+                self._results = serializer.data
+                self.result_count = len(self._results)
+                with open(self.results_path, 'w') as f:
+                    json.dump(self._results, f)
+            self.running = False
+            self.save()
+        except:
+            raise
+        finally:
+            os.remove(self.lockfile_path)
+
+    def save(self, force_insert=False, force_update=False, using=None,
+             update_fields=None):
+        super(Query, self).save(force_insert, force_update, using, update_fields)
+        os.makedirs(self.directory, exist_ok=True)
+
+    def delete(self, using=None, keep_parents=False):
+        shutil.rmtree(self.directory, ignore_errors=True)
+        super(Query, self).delete(using, keep_parents)
+
+    @property
+    def directory(self):
+        return os.path.join(settings.POLYGLOT_QUERY_DIRECTORY, str(self.pk))
+
+    @property
+    def lockfile_path(self):
+        return os.path.join(self.directory, 'lockfile')
+
+    @property
+    def config_path(self):
+        return os.path.join(self.directory, 'config.json')
+
+    @property
+    def results_path(self):
+        return os.path.join(self.directory, 'results.txt')

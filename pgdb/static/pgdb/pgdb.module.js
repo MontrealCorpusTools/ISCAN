@@ -57,12 +57,16 @@ app.config(function ($stateProvider, $urlRouterProvider) {
         url: '/utterances/:corpus_id/:utterance_id',
         templateUrl: static('pgdb/utterance-detail/utterance_detail.html'),
         controller: 'UtteranceDetailCtrl'
-    }).state('query', {
+    }).state('new_query', {
         url: '/query/:corpus_id/:type',
+        templateUrl: static('pgdb/query/query.html'),
+        controller: 'NewQueryCtrl'
+    }).state('query', {
+        url: '/query/:corpus_id/:query_id',
         templateUrl: static('pgdb/query/query.html'),
         controller: 'QueryCtrl'
     }).state('query-detail', {
-        url: '/query_results/:corpus_id',
+        url: '/query_results/:corpus_id/:query_id/:detail_index',
         templateUrl: static('pgdb/query-detail/query_detail.html'),
         controller: 'QueryDetailCtrl'
     }).state('check', {

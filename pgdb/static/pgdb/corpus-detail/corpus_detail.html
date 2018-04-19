@@ -5,7 +5,11 @@
         <div>
             <h2>Utterances</h2>
             <div ng-show="hierarchy.indexOf('utterance') != -1"></div>
-            <a ui-sref="query({corpus_id: corpus.id, type: 'utterance'})">Query</a>
+            <a ui-sref="new_query({corpus_id: corpus.id, type: 'utterance'})">New query</a> <label>Previous queries: <select ng-model="queryIds.utterance" class="form-control"
+                                                         ng-options="query.id as query.name for query in available_queries.utterance">
+                                    <option value="">Select query</option>
+
+                                </select></label> <button class="btn" ng-click="openQuery('utterance')">Open selected query</button>
             <div>
                 <p>Currently encoded properties</p>
                 <ul>

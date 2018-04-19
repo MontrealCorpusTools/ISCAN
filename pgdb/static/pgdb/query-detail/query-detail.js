@@ -1,6 +1,6 @@
 angular.module('queryDetail', [
     'pgdb.corpora',
-    'pgdb.annotationQuery',
+    'pgdb.query',
     'pgdb.annotations'
 ]).filter('titlecase', function() {
     return function (input) {
@@ -44,7 +44,7 @@ angular.module('queryDetail', [
         }
     };
 }])
-    .controller('QueryDetailCtrl', function ($scope, $rootScope, AnnotationQuery, Corpora, $state, $stateParams, $document, QueryState, Annotations) {
+    .controller('QueryDetailCtrl', function ($scope, $rootScope, Query, Corpora, $state, $stateParams, $document, Annotations) {
             $scope.queryState = QueryState.state;
             $scope.newAnnotation = {};
             $scope.currentAnnotations = {};

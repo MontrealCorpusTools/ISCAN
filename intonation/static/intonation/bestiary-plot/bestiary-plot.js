@@ -1,7 +1,7 @@
 angular.module('bestiaryPlot', [
-    'pgdb.annotationQuery'
+    'pgdb.query'
 ])
-    .controller('BestiaryPlotCtrl', function ($scope, AnnotationQuery, Corpora, $state, $stateParams) {
+    .controller('BestiaryPlotCtrl', function ($scope, Query, Corpora, $state, $stateParams) {
         $scope.filters = {discourse: {}, speaker:{name: 'All'}};
         $scope.export = {};
         $scope.filter_options = {};

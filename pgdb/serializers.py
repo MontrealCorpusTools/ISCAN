@@ -184,3 +184,20 @@ def serializer_factory(hierarchy, a_type, exclude=None, with_pitch=False, with_w
             for s in subs:
                 attrs[s] = serializer_factory(hierarchy, s, with_subannotations=with_subannotations)(many=True)
     return type(base)(class_name, (base,), attrs)
+
+class QuerySerializer(serializers.ModelSerializer):
+    annotation_type = serializers.SerializerMethodField()
+    filters = serializers.SerializerMethodField()
+    columns = serializers.SerializerMethodField()
+    class Meta:
+        model = models.Query
+        fields = ('id', 'name', 'user', 'corpus', 'annotation_type', 'result_count', 'running', 'filters', 'columns')
+
+    def get_annotation_type(self, obj):
+        return obj.get_annotation_type_display()
+
+    def get_filters(self, obj):
+        return obj.config['filters']
+
+    def get_columns(self, obj):
+        return obj.config['columns']
