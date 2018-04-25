@@ -49,10 +49,11 @@ angular.module('query', [
         $scope.annotation_types = ['phone', 'syllable', 'word', 'utterance'];
 
         $scope.queryState = {
+            queryRunning: false,
                 queryText: 'Save query'};
 
         $scope.query = {
-            annotation_type: $stateParams.type,
+            annotation_type: $stateParams.type.toLowerCase(),
             name: "New " + $stateParams.type + " query",
             filters: {
                 phone: [],
@@ -97,6 +98,8 @@ angular.module('query', [
             $scope.corpus = res.data;
         });
         $scope.updateQuery = function () {
+            $scope.queryState.queryRunning = true;
+            $scope.queryState.queryText = 'Running query...';
             Query.create($stateParams.corpus_id, $scope.query).then(function (res) {
                 $state.go('query', {corpus_id: $stateParams.corpus_id, query_id: res.data.id});
             });
@@ -192,6 +195,7 @@ angular.module('query', [
             }
             Query.one($stateParams.corpus_id, $stateParams.query_id).then(function (res) {
                 $scope.query = res.data;
+                $scope.query.annotation_type = $scope.query.annotation_type.toLowerCase();
                 Corpora.hierarchy($stateParams.corpus_id).then(function (res) {
                     $scope.hierarchy = res.data;
                     console.log($scope.hierarchy);
@@ -280,13 +284,28 @@ angular.module('query', [
         $scope.export = function () {
             $scope.queryState.queryRunning = true;
             $scope.queryState.queryText = 'Fetching results...';
-            console.log($scope.queryState.query);
-            Query.export($stateParams.corpus_id, $stateParams.query_id).then(function (res) {
+
+            Query.export($stateParams.corpus_id, $stateParams.query_id, $scope.query).then(function (res) {
+                var anchor = angular.element('<a/>');
+                anchor.css({display: 'none'}); // Make sure it's not visible
+                angular.element(document.body).append(anchor); // Attach to document
+
+                anchor.attr({
+                    href: 'data:attachment/csv;charset=utf-8,' + encodeURI(res.data),
+                    target: '_blank',
+                    download: $scope.query.name + ' export.csv'
+                })[0].click();
+
+                anchor.remove(); // Clean it up afterwards
                 $scope.queryState.queryRunning = false;
                 $scope.queryState.queryText = 'Run query';
             });
 
 
+        };
+
+        $scope.getDetail = function(index){
+            $state.go('query-detail', {corpus_id: $stateParams.corpus_id, query_id: $stateParams.query_id, detail_index:index+$scope.queryState.offset});
         };
 
         $scope.addFilter = function (a_type) {

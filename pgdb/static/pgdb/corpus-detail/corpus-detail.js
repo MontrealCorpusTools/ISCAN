@@ -29,6 +29,9 @@ angular.module('corpusDetail', [
             console.log($scope.queryIds[type]);
             $state.go('query', {corpus_id:$stateParams.corpus_id, query_id: $scope.queryIds[type]})
         };
+        $scope.newQuery = function(type){
+            $state.go('new_query', {corpus_id: $stateParams.corpus_id, type: type})
+        };
         Corpora.hierarchy($stateParams.corpus_id).then(function (res) {
             $scope.hierarchy = res.data;
             console.log($scope.hierarchy);

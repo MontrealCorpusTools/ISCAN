@@ -744,6 +744,70 @@ class QueryViewSet(viewsets.ModelViewSet):
         return Response(results)
 
     @detail_route(methods=['get'])
+    def result(self, request, pk=None, corpus_pk=None, index=None):
+        print(request.query_params)
+        if request.auth is None:
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
+        corpus = models.Corpus.objects.get(pk=corpus_pk)
+        if not request.user.is_superuser:
+            permissions = corpus.user_permissions.filter(user=request.user).all()
+            if not len(permissions) or not permissions[0].can_view_detail:
+                return Response(status=status.HTTP_401_UNAUTHORIZED)
+        query = models.Query.objects.filter(pk=pk, corpus=corpus).get()
+        if query is None:
+            return Response(None, status=status.HTTP_400_BAD_REQUEST)
+        ordering = request.query_params.get('ordering', '')
+        index = int(request.query_params.get('index', '0'))
+        limit = 1
+        offset = index
+        with_pitch = request.query_params.get('with_pitch', False)
+        with_waveform = request.query_params.get('with_waveform', False)
+        with_spectrogram = request.query_params.get('with_spectrogram', False)
+        with_subannotations = request.query_params.get('with_subannotations', False)
+        result = query.get_results(ordering, limit, offset)[0]
+        utterance_id = result['utterance']['id']
+        print(result)
+        print(utterance_id)
+        data = {'result': result}
+        try:
+            with CorpusContext(corpus.config) as c:
+                q = c.query_graph(c.utterance)
+                q = q.filter(c.utterance.id == utterance_id)
+                q = q.preload(c.utterance.word)
+                q = q.preload(c.utterance.syllable)
+                q = q.preload(c.utterance.phone)
+                q = q.preload(c.utterance.speaker)
+                q = q.preload(c.utterance.discourse)
+                if with_subannotations:
+                    for t in c.hierarchy.annotation_types:
+                        for s in c.hierarchy.subannotations[t]:
+                            if t == 'utterance':
+                                q = q.preload(getattr(c.utterance, s))
+                            else:
+                                q = q.preload(getattr(getattr(c.utterance, t), s))
+
+                if with_pitch:
+                    q = q.preload_acoustics(c.utterance.pitch)
+
+                utterances = q.all()
+                print(len(utterances))
+                if utterances is None:
+                    data['utterance'] = None
+                else:
+                    serializer = serializers.serializer_factory(c.hierarchy, 'utterance', with_pitch=with_pitch,
+                                                                with_waveform=with_waveform,
+                                                                with_spectrogram=with_spectrogram,
+                                                                top_level=True,
+                                                                with_lower_annotations=True, detail=True,
+                                                                with_subannotations=True)
+                    utt = utterances[0]
+                    data['utterance'] = serializer(utt).data
+
+        except neo4j_exceptions.ServiceUnavailable:
+            return Response(None, status=status.HTTP_423_LOCKED)
+        return Response(data)
+
+    @detail_route(methods=['post'])
     def export(self, request, pk=None, corpus_pk=None):
         response = HttpResponse(content_type='text/csv')
         if request.auth is None:
@@ -757,27 +821,33 @@ class QueryViewSet(viewsets.ModelViewSet):
         if query is None:
             return Response(None, status=status.HTTP_400_BAD_REQUEST)
         print(corpus)
+        do_run = query.config['filters'] != request.data['filters']
+        query.config = request.data
+        if do_run:
+            query.run_query()
+        query.save()
         columns = query.config['columns']
         response['Content-Disposition'] = 'attachment; filename="{}_query_export.csv"'.format(query.get_annotation_type_display())
         results = query.get_results(ordering='', offset=0, limit=None)
-        path = r'E:\Data\Overwatch\oi_annotations\test.csv'
-        with open(path, 'w') as f:
-            writer = csv.writer(f)
-            header = []
+        #path = r'E:\Data\Overwatch\oi_annotations\test.csv'
+        #with open(path, 'w') as f:
+        writer = csv.writer(response)
+        header = []
+        for f_a_type, a_columns in columns.items():
+            for field, val in a_columns.items():
+                if not val:
+                    continue
+                header.append('{}_{}'.format(f_a_type, field))
+        writer.writerow(header)
+        print(len(results))
+        for r in results:
+            line = []
             for f_a_type, a_columns in columns.items():
                 for field, val in a_columns.items():
                     if not val:
                         continue
-                    header.append('{}_{}'.format(f_a_type, field))
-            writer.writerow(header)
-            for r in results:
-                line = []
-                for f_a_type, a_columns in columns.items():
-                    for field, val in a_columns.items():
-                        if not val:
-                            continue
-                        line.append(r[f_a_type][field])
-                writer.writerow(line)
+                    line.append(r[f_a_type][field])
+            writer.writerow(line)
 
 
         return response

@@ -11,7 +11,7 @@ angular.module('pgdb.query').filter('secondsToDateTime', [function () {
         return {
             restrict: 'E',
             replace: true,
-            templateUrl: static('pgdb/components/annotationQuery/annotation_plot.html'),
+            templateUrl: static('pgdb/components/query/annotation_plot.html'),
 
             controllerAs: 'ctrl',
             scope: {
@@ -371,7 +371,7 @@ angular.module('pgdb.query').filter('secondsToDateTime', [function () {
         return {
             restrict: 'E',
             replace: true,
-            templateUrl: static('pgdb/components/annotationQuery/waveform_plot.html'),
+            templateUrl: static('pgdb/components/query/waveform_plot.html'),
 
             controllerAs: 'ctrl',
             scope: {
@@ -641,7 +641,7 @@ angular.module('pgdb.query').filter('secondsToDateTime', [function () {
     return {
         restrict: 'E',
         replace: true,
-        templateUrl: static('pgdb/components/annotationQuery/spectrogram_plot.html'),
+        templateUrl: static('pgdb/components/query/spectrogram_plot.html'),
         scope: {
             height: '=height',
             data: '=data',
@@ -825,7 +825,7 @@ angular.module('pgdb.query').filter('secondsToDateTime', [function () {
     return {
         restrict: 'E',
         replace: true,
-        templateUrl: static('pgdb/components/annotationQuery/pitch_plot.html'),
+        templateUrl: static('pgdb/components/query/pitch_plot.html'),
         scope: {
             height: '=height',
             utterance: '=utterance',

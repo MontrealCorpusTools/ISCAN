@@ -102,8 +102,8 @@
                 ng-bind="queryState.queryText"></span></button>
         <button class='btn btn-danger' ng-click="clearFilters()" ng-disabled="queryState.queryRunning"><span>Clear filters</span>
         </button>
-<button class="btn" href="{{ export_link }}" ng-disabled="queryState.queryRunning" ng-show="!newQuery"><span
-                ng-bind="queryState.exportText"></span></button>
+<button class="btn" ng-disabled="queryState.queryRunning" ng-show="!newQuery"><span
+                ng-bind="queryState.exportText" ng-click="export()"></span></button>
     </div>
     <div ng-show="query.result_count==0 && !newQuery">
         <span>No results found</span>
@@ -173,15 +173,14 @@
             <tbody style="height:50%">
             <tr ng-repeat="result in queryState.results">
                 <td ng-show="query.annotation_type !== 'Utterance'">
-
-                    <a ui-sref="query-detail({corpus_id: corpus.id, query_id:query.id})"
-                       ng-show="can_view">{{ result[query.annotation_type].label }}</a>
+                    <span
+                       ng-show="can_view" ng-click="getDetail($index)" class="link">{{ result[query.annotation_type].label }}</span>
                     <span ng-show="!can_view">{{ result[query.annotation_type].label }}</span>
                 </td>
                 <td ng-show="query.annotation_type === 'Utterance'">
 
-                    <a ui-sref="query-detail({corpus_id: corpus.id})"
-                       ng-show="can_view">{{ result.discourse.name }} ({{ result.utterance.begin }} to {{ result.utterance.end }})</a>
+                    <span
+                       ng-show="can_view" ng-click="getDetail($index)" class="link">{{ result.discourse.name }} ({{ result.utterance.begin }} to {{ result.utterance.end }})</span>
                     <span ng-show="!can_view">{{ result.discourse.name }} ({{ result.utterance.begin }} to {{ result.utterance.end }})</span>
                 </td>
                 <td ng-repeat="prop in properties.phone" ng-show="query.columns.phone[prop] && (query.annotation_type === 'phone')">

@@ -1,101 +1,194 @@
 <div class="row">
-    <h1>{{ corpus.name }}</h1>
-    <div class="col-md-6">
+    <h1>Summary of the {{ corpus.name }} corpus</h1>
+    <div class="col-md-9">
         <h1>Linguistic Units</h1>
-        <div>
+        <div class="row" style="min-height: 450px; padding: 40px">
             <h2>Utterances</h2>
-            <div ng-show="hierarchy.indexOf('utterance') != -1"></div>
-            <a ui-sref="new_query({corpus_id: corpus.id, type: 'utterance'})">New query</a> <label>Previous queries: <select ng-model="queryIds.utterance" class="form-control"
-                                                         ng-options="query.id as query.name for query in available_queries.utterance">
-                                    <option value="">Select query</option>
+            <div ng-show="hierarchy.indexOf('utterance') != -1" class="row" style="min-height:400px">
+                <div>
+                    <button class="btn" ng-click="newQuery('utterance')">New query</button>
+                </div>
+                <label>Previous queries:
+                    <select ng-model="queryIds.utterance" class="form-control"
+                            ng-options="query.id as query.name for query in available_queries.utterance">
+                        <option value="">Select query</option>
 
-                                </select></label> <button class="btn" ng-click="openQuery('utterance')">Open selected query</button>
-            <div>
-                <p>Currently encoded properties</p>
-                <ul>
-                    <li ng-repeat="prop in properties.utterance">
-                    {{prop}}
-                    </li>
-                </ul>
-                <p>Currently encoded subsets</p>
-                <ul>
-                    <li ng-repeat="subset in subsets.utterance">
-                    {{subset}}
-                    </li>
-                </ul>
+                    </select></label>
+                <button class="btn" ng-click="openQuery('utterance')">Open selected query</button>
+                <div>
+                    <p>Currently encoded properties</p>
+                    <ul>
+                        <li ng-repeat="prop in properties.utterance">
+                            {{ prop }}
+                        </li>
+                        <li>
+                            <button>Encode new property</button>
+                        </li>
+                    </ul>
+                    <p>Currently encoded subsets</p>
+                    <ul>
+                        <li ng-repeat="subset in subsets.utterance">
+                            {{ subset }}
+                        </li>
+                        <li>
+                            <button>Encode new subset</button>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            <div ng-show="hierarchy.indexOf('utterance') == -1">
+                <button>Encode pauses</button>
+                <button>Encode utterances</button>
             </div>
         </div>
-        <div>
+        <div class="row" style="min-height: 450px; padding: 40px">
             <h2>Words</h2>
-            <a ui-sref="query({corpus_id: corpus.id, type: 'word'})">Query</a>
-                <p>Currently encoded properties</p>
-                <ul>
-                    <li ng-repeat="prop in properties.word">
-                    {{prop}}
-                    </li>
-                </ul>
-                <p>Currently encoded subsets</p>
-                <ul>
-                    <li ng-repeat="subset in subsets.word">
-                    {{subset}}
-                    </li>
-                </ul>
+            <button class="btn" ng-click="newQuery('word')">New query</button>
+            <label>Previous queries:
+                <select ng-model="queryIds.word" class="form-control"
+                        ng-options="query.id as query.name for query in available_queries.word">
+                    <option value="">Select query</option>
+
+                </select></label>
+            <button class="btn" ng-click="openQuery('word')">Open selected query</button>
+            <div class="row" style="min-height:400px">
+
+                <div>
+                    <p>Currently encoded properties</p>
+                    <ul>
+                        <li ng-repeat="prop in properties.word">
+                            {{ prop }}
+                        </li>
+                        <li>
+                            <button>Encode new property</button>
+                        </li>
+                        <li>
+                            <button>Enrich words from CSV file</button>
+                        </li>
+                    </ul>
+                    <p>Currently encoded subsets</p>
+                    <ul>
+                        <li ng-repeat="subset in subsets.word">
+                            {{ subset }}
+                        </li>
+                        <li>
+                            <button>Encode new subset</button>
+                        </li>
+                    </ul>
+                </div>
+            </div>
         </div>
-        <div>
+        <div class="row" style="min-height: 450px; padding: 40px">
             <h2>Syllables</h2>
             <div ng-show="hierarchy.indexOf('syllable') != -1">
-            <a ui-sref="query({corpus_id: corpus.id, type: 'syllable'})">Query</a>
+                <button class="btn" ng-click="newQuery('syllable')">New query</button>
+                <label>Previous queries:
+                    <select ng-model="queryIds.syllable" class="form-control"
+                            ng-options="query.id as query.name for query in available_queries.syllable">
+                        <option value="">Select query</option>
+
+                    </select></label>
+                <button class="btn" ng-click="openQuery('syllable')">Open selected query</button>
                 <p>Currently encoded properties</p>
                 <ul>
                     <li ng-repeat="prop in properties.syllable">
-                    {{prop}}
+                        {{ prop }}
+                    </li>
+                    <li>
+                        <button>Encode new property</button>
                     </li>
                 </ul>
                 <p>Currently encoded subsets</p>
                 <ul>
                     <li ng-repeat="subset in subsets.syllable">
-                    {{subset}}
+                        {{ subset }}
+                    </li>
+                    <li>
+                        <button>Encode new subset</button>
                     </li>
                 </ul>
 
             </div>
         </div>
-        <div>
+        <div class="row" style="min-height: 450px; padding: 40px">
             <h2>Phones</h2>
-            <a ui-sref="query({corpus_id: corpus.id, type: 'phone'})">Query</a>
-                <p>Currently encoded properties</p>
-                <ul>
-                    <li ng-repeat="prop in properties.phone">
-                    {{prop}}
-                    </li>
-                </ul>
-                <p>Currently encoded subsets</p>
-                <ul>
-                    <li ng-repeat="subset in subsets.phone">
-                    {{subset}}
-                    </li>
-                </ul>
+            <button class="btn" ng-click="newQuery('phone')">New query</button>
+            <label>Previous queries:
+                <select ng-model="queryIds.phone" class="form-control"
+                        ng-options="query.id as query.name for query in available_queries.phone">
+                    <option value="">Select query</option>
+
+                </select></label>
+            <button class="btn" ng-click="openQuery('phone')">Open selected query</button>
+            <p>Currently encoded properties</p>
+            <ul>
+                <li ng-repeat="prop in properties.phone">
+                    {{ prop }}
+                </li>
+                <li>
+                    <button>Encode new property</button>
+                </li>
+                <li>
+                    <button>Enrich phones from CSV file</button>
+                </li>
+            </ul>
+            <p>Currently encoded subsets</p>
+            <ul>
+                <li ng-repeat="subset in subsets.phone">
+                    {{ subset }}
+                </li>
+                <li>
+                    <button>Encode new subset</button>
+                </li>
+            </ul>
         </div>
     </div>
-    <div class="col-md-6">
+    <div class="col-md-3">
         <h1>Metadata</h1>
         <div>
             <h2>Speakers</h2>
-                <p>Currently encoded properties</p>
-                <ul>
-                    <li ng-repeat="prop in hierarchy.speaker_properties">
-                    {{prop[0]}}
-                    </li>
-                </ul>
+            <p>Currently encoded properties</p>
+            <ul>
+                <li ng-repeat="prop in hierarchy.speaker_properties">
+                    {{ prop[0]}}
+                </li>
+                <li>
+                    <button>Encode property</button>
+                </li>
+                <li>
+                    <button>Enrich speakers from CSV file</button>
+                </li>
+            </ul>
         </div>
         <div>
             <h2>Sound files</h2>
-                <p>Currently encoded properties</p>
-                <ul>
-                    <li ng-repeat="prop in hierarchy.discourse_properties">
-                    {{prop[0]}}
-                    </li>
-                </ul>
+            <p>Currently encoded properties</p>
+            <ul>
+                <li ng-repeat="prop in hierarchy.discourse_properties">
+                    {{ prop[0]}}
+                </li>
+                <li>
+                    <button>Encode property</button>
+                </li>
+                <li>
+                    <button>Enrich sound files from CSV file</button>
+                </li>
+            </ul>
+        </div>
+        <div>
+            <h2>Acoustics</h2>
+            <p>Currently encoded acoustics</p>
+            <ul>
+                <li>
+                    <button>Encode pitch tracks</button>
+                </li>
+                <li>
+                    <button>Encode intensity tracks</button>
+                </li>
+                <li>
+                    <button>Encode formant tracks</button>
+                </li>
+            </ul>
         </div>
     </div>
 </div>
