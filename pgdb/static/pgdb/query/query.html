@@ -30,8 +30,12 @@
                                 </tr>
                                 </tbody>
                             </table>
-                            <button class='btn' ng-click="addFilter(t)" ng-disabled="queryState.queryRunning"><span>Add filter</span>
+                            <button class='btn' ng-click="addFilter(t)" ng-disabled="query.running"><span>Add filter</span>
                             </button>
+                        <multiselect class="input-small multiselect" ng-model="query.subsets[t]" options="s for s in subsets[t]"
+                                 header="All" selected-header="subsets" enable-check-all="false" enable-uncheck-all="true" multiple="true" enable-filter="false"
+                                              ng-init='e.initial = true'>
+                    </multiselect>
                         </md-content>
                     </md-tab>
 
@@ -59,7 +63,7 @@
                                 </tr>
                                 </tbody>
                             </table>
-                            <button class='btn' ng-click="addFilter('speaker')" ng-disabled="queryState.queryRunning"><span>Add filter</span>
+                            <button class='btn' ng-click="addFilter('speaker')" ng-disabled="query.running"><span>Add filter</span>
                             </button>
                         </md-content>
                     </md-tab>
@@ -88,7 +92,7 @@
                                 </tr>
                                 </tbody>
                             </table>
-                            <button class='btn' ng-click="addFilter('discourse')" ng-disabled="queryState.queryRunning"><span>Add filter</span>
+                            <button class='btn' ng-click="addFilter('discourse')" ng-disabled="query.running"><span>Add filter</span>
                             </button>
                         </md-content>
                     </md-tab>
@@ -98,11 +102,11 @@
         </multiselect-dropdown>
 
 
-        <button class='btn btn-success' ng-click="updateQuery()" ng-disabled="queryState.queryRunning"><span
+        <button class='btn btn-success' ng-click="updateQuery()" ng-disabled="query.running"><span
                 ng-bind="queryState.queryText"></span></button>
-        <button class='btn btn-danger' ng-click="clearFilters()" ng-disabled="queryState.queryRunning"><span>Clear filters</span>
+        <button class='btn btn-danger' ng-click="clearFilters()" ng-disabled="query.running"><span>Clear filters</span>
         </button>
-<button class="btn" ng-disabled="queryState.queryRunning" ng-show="!newQuery"><span
+<button class="btn" ng-disabled="query.running" ng-show="!newQuery"><span
                 ng-bind="queryState.exportText" ng-click="export()"></span></button>
     </div>
     <div ng-show="query.result_count==0 && !newQuery">
@@ -172,12 +176,12 @@
             </thead>
             <tbody style="height:50%">
             <tr ng-repeat="result in queryState.results">
-                <td ng-show="query.annotation_type !== 'Utterance'">
+                <td ng-show="query.annotation_type !== 'utterance'">
                     <span
                        ng-show="can_view" ng-click="getDetail($index)" class="link">{{ result[query.annotation_type].label }}</span>
                     <span ng-show="!can_view">{{ result[query.annotation_type].label }}</span>
                 </td>
-                <td ng-show="query.annotation_type === 'Utterance'">
+                <td ng-show="query.annotation_type === 'utterance'">
 
                     <span
                        ng-show="can_view" ng-click="getDetail($index)" class="link">{{ result.discourse.name }} ({{ result.utterance.begin }} to {{ result.utterance.end }})</span>

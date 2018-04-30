@@ -189,9 +189,11 @@ class QuerySerializer(serializers.ModelSerializer):
     annotation_type = serializers.SerializerMethodField()
     filters = serializers.SerializerMethodField()
     columns = serializers.SerializerMethodField()
+    subsets = serializers.SerializerMethodField()
+
     class Meta:
         model = models.Query
-        fields = ('id', 'name', 'user', 'corpus', 'annotation_type', 'result_count', 'running', 'filters', 'columns')
+        fields = ('id', 'name', 'user', 'corpus', 'annotation_type', 'result_count', 'running', 'filters', 'columns', 'subsets')
 
     def get_annotation_type(self, obj):
         return obj.get_annotation_type_display()
@@ -201,3 +203,6 @@ class QuerySerializer(serializers.ModelSerializer):
 
     def get_columns(self, obj):
         return obj.config['columns']
+
+    def get_subsets(self, obj):
+        return obj.config['subsets']

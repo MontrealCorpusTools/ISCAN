@@ -7,6 +7,9 @@ if (window) {
 
 var app = angular.module('pgdb', [
     'ui.router',
+    'long2know',
+    'ngResource',
+    'ui.bootstrap',
     'ngCookies',
     'ngMaterial',
     'angular-mousetrap',

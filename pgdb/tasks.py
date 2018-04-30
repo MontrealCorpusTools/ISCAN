@@ -1,6 +1,6 @@
 from celery import shared_task
 
-from .models import Corpus
+from .models import Corpus, Query
 
 
 @shared_task
@@ -16,6 +16,6 @@ def enrich_corpus_task(corpus_pk, enrichment_config):
 
 
 @shared_task
-def query_corpus_task(corpus_pk, query_config):
-    corpus = Corpus.objects.get(pk=corpus_pk)
-    return corpus.query_corpus(query_config)
+def run_query_task(query_id):
+    query = Query.objects.get(pk=query_id)
+    query.run_query()

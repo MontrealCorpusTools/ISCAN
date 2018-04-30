@@ -1,6 +1,6 @@
 import os
 import csv
-
+import time
 
 from django.conf import settings
 from django.http.response import FileResponse, HttpResponse
@@ -15,7 +15,7 @@ from polyglotdb import CorpusContext
 from . import models
 from . import serializers
 from .utils import get_used_ports
-from .tasks import import_corpus_task, enrich_corpus_task, query_corpus_task
+from .tasks import import_corpus_task, enrich_corpus_task, run_query_task
 
 
 class DatabaseViewSet(viewsets.ModelViewSet):
@@ -189,37 +189,6 @@ class CorpusViewSet(viewsets.ModelViewSet):
         else:
             t = import_corpus_task.delay(corpus.pk)
         return Response(status=status.HTTP_202_ACCEPTED)
-
-    @detail_route(methods=['post'])
-    def query_other(self, request, pk=None):
-        if request.auth is None:
-            return Response(status=status.HTTP_401_UNAUTHORIZED)
-        corpus = self.get_object()
-        if not request.user.is_superuser:
-            permissions = corpus.user_permissions.filter(user=request.user).all()
-            if not len(permissions):
-                return Response(status=status.HTTP_401_UNAUTHORIZED)
-        data = request.data
-
-        if corpus.database.status != 'R':
-            return Response("The corpus's database is not currently running.",
-                            status=status.HTTP_400_BAD_REQUEST)
-        if corpus.status == 'NI':
-            return Response('The corpus has not been imported yet.', status=status.HTTP_400_BAD_REQUEST)
-        if corpus.is_busy:
-            return Response('The corpus is currently busy, please try once the current process is finished.',
-                            status=status.HTTP_409_CONFLICT)
-        corpus.status = corpus.QUERY_RUNNING
-        corpus.save()
-        blocking = data.get('blocking', False)
-        if blocking:
-            results = query_corpus_task(corpus.pk, data)
-            results = list(results.to_json())
-            return Response(results, status=status.HTTP_200_OK)
-        else:
-            t = query_corpus_task.delay(corpus.pk, data)
-            corpus.current_task_id = t.task_id
-            return Response(status=status.HTTP_202_ACCEPTED)
 
     @detail_route(methods=['post'])
     def enrich(self, request, pk=None):
@@ -641,7 +610,8 @@ class QueryViewSet(viewsets.ModelViewSet):
         query = models.Query.objects.create(name=request.data['name'], user=request.user,
                                             annotation_type=request.data['annotation_type'][0].upper(), corpus=corpus)
         query.config = request.data
-        query.run_query()
+        run_query_task.delay(query.pk)
+        time.sleep(1)
         return Response(serializers.QuerySerializer(query).data)
 
     def update(self, request, pk=None, corpus_pk=None):
@@ -660,8 +630,8 @@ class QueryViewSet(viewsets.ModelViewSet):
         do_run = query.config['filters'] != request.data['filters']
         query.config = request.data
         if do_run:
-            query.run_query()
-        query.save()
+            run_query_task.delay(query.pk)
+            time.sleep(1)
         return Response(serializers.QuerySerializer(query).data)
 
     @list_route(methods=['GET'])
@@ -737,6 +707,8 @@ class QueryViewSet(viewsets.ModelViewSet):
         query = models.Query.objects.filter(pk=pk, corpus=corpus).get()
         if query is None:
             return Response(None, status=status.HTTP_400_BAD_REQUEST)
+        if query.running:
+            return Response(None)
         ordering = request.query_params.get('ordering', '')
         offset = int(request.query_params.get('offset', 0))
         limit = int(request.query_params.get('limit', 100))
@@ -756,6 +728,8 @@ class QueryViewSet(viewsets.ModelViewSet):
         query = models.Query.objects.filter(pk=pk, corpus=corpus).get()
         if query is None:
             return Response(None, status=status.HTTP_400_BAD_REQUEST)
+        if query.running:
+            return Response(None)
         ordering = request.query_params.get('ordering', '')
         index = int(request.query_params.get('index', '0'))
         limit = 1
@@ -820,17 +794,17 @@ class QueryViewSet(viewsets.ModelViewSet):
         query = models.Query.objects.filter(pk=pk, corpus=corpus).get()
         if query is None:
             return Response(None, status=status.HTTP_400_BAD_REQUEST)
+        if query.running:
+            return Response(None, status=status.HTTP_423_LOCKED)
         print(corpus)
         do_run = query.config['filters'] != request.data['filters']
-        query.config = request.data
         if do_run:
-            query.run_query()
-        query.save()
+            return Response(None, status=status.HTTP_405_METHOD_NOT_ALLOWED)
+
         columns = query.config['columns']
         response['Content-Disposition'] = 'attachment; filename="{}_query_export.csv"'.format(query.get_annotation_type_display())
         results = query.get_results(ordering='', offset=0, limit=None)
-        #path = r'E:\Data\Overwatch\oi_annotations\test.csv'
-        #with open(path, 'w') as f:
+
         writer = csv.writer(response)
         header = []
         for f_a_type, a_columns in columns.items():

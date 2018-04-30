@@ -742,6 +742,7 @@ class Query(models.Model):
 
     def run_query(self):
         self.running = True
+        self.result_count = None
         self.save()
         from .serializers import serializer_factory
         while os.path.exists(self.lockfile_path):
@@ -773,6 +774,13 @@ class Query(models.Model):
                                 value = value
                         att = getattr(ann, field)
                         q = q.filter(att == value)
+                for f_a_type, a_subsets in config['subsets'].items():
+                    if f_a_type == a_type:
+                        ann = a
+                    else:
+                        ann = getattr(a, f_a_type)
+                    for s in a_subsets:
+                        q = q.filter(ann.subset == s)
                 self._count = q.count()
                 q = q.preload(getattr(a, 'discourse'), getattr(a, 'speaker'))
                 if with_pitch:
@@ -787,6 +795,8 @@ class Query(models.Model):
                                 q = q.preload(getattr(a, s))
                             else:
                                 q = q.preload(getattr(getattr(a, t), s))
+                for t in c.hierarchy.get_higher_types(a_type):
+                    q = q.preload(getattr(a, t))
                 res = q.all()
                 serializer_class = serializer_factory(c.hierarchy, a_type, top_level=True,
                                                       with_pitch=with_pitch, detail=False,

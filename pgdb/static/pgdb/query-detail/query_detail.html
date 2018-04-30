@@ -7,7 +7,7 @@
             <button ng-click="get_previous()" class="btn"
                     ng-disabled="queryState.detailIndex == 0 && queryState.currentPage==1" blur>Previous utterance
             </button>
-            <a ui-sref="query({corpus_id: corpus.id, type: queryState.type})">Back to query</a>
+            <a ui-sref="query({corpus_id: corpus.id, query_id: query.id})">Back to query</a>
             <button ng-click="get_next()" class="btn"
                     ng-disabled="queryState.detailIndex == queryState.results.length -1 && queryState.currentPage==queryState.numPages"
                     blur>Next utterance

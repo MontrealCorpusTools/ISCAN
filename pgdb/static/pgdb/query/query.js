@@ -50,7 +50,8 @@ angular.module('query', [
 
         $scope.queryState = {
             queryRunning: false,
-                queryText: 'Save query'};
+            queryText: 'Save query'
+        };
 
         $scope.query = {
             annotation_type: $stateParams.type.toLowerCase(),
@@ -62,6 +63,12 @@ angular.module('query', [
                 utterance: [],
                 discourse: [],
                 speaker: []
+            },
+            subsets: {
+                phone: [],
+                syllable: [],
+                word: [],
+                utterance: []
             },
             columns: {
                 phone: {},
@@ -81,7 +88,7 @@ angular.module('query', [
             $scope.query.filters[a_type].splice(index, 1);
         };
 
-        $scope.clearFilters = function (){
+        $scope.clearFilters = function () {
             var inc;
             for (j = 0; j < Query.annotation_types.length; j++) {
                 inc = j >= Query.annotation_types.indexOf($scope.query.annotation_type);
@@ -119,13 +126,16 @@ angular.module('query', [
                 speaker: {}
             };
 
-
+            $scope.subsets = {};
             var inc;
             for (j = 0; j < Query.annotation_types.length; j++) {
                 inc = j >= Query.annotation_types.indexOf($scope.query.annotation_type);
                 if (!inc) {
                     continue
                 }
+                $scope.subsets[Query.annotation_types[j]] = [];
+                Array.prototype.push.apply($scope.subsets[Query.annotation_types[j]], $scope.hierarchy.subset_tokens[Query.annotation_types[j]]);
+                Array.prototype.push.apply($scope.subsets[Query.annotation_types[j]], $scope.hierarchy.subset_types[Query.annotation_types[j]]);
                 $scope.properties[Query.annotation_types[j]] = [];
                 $scope.propertyTypes[Query.annotation_types[j]] = {};
                 for (i = 0; i < $scope.hierarchy.type_properties[Query.annotation_types[j]].length; i++) {
@@ -143,7 +153,7 @@ angular.module('query', [
                     }
                 }
             }
-
+            console.log($scope.subsets);
             for (i = 0; i < $scope.hierarchy.discourse_properties.length; i++) {
                 prop = $scope.hierarchy.discourse_properties[i][0];
                 $scope.propertyTypes.discourse[prop] = $scope.hierarchy.discourse_properties[i][1];
@@ -162,7 +172,7 @@ angular.module('query', [
         });
     })
 
-    .controller('QueryCtrl', function ($scope, $rootScope, Query, Corpora, $state, $stateParams) {
+    .controller('QueryCtrl', function ($scope, $rootScope, Query, Corpora, $state, $stateParams, $interval) {
         Query.reset_state($stateParams.query_id);
         $scope.queryState = Query.state;
         $scope.annotation_types = Query.annotation_types;
@@ -209,6 +219,7 @@ angular.module('query', [
                         speaker: {}
                     };
 
+                    $scope.subsets = {};
 
                     var inc;
                     for (j = 0; j < Query.annotation_types.length; j++) {
@@ -216,6 +227,9 @@ angular.module('query', [
                         if (!inc) {
                             continue
                         }
+                        $scope.subsets[Query.annotation_types[j]] = [];
+                        Array.prototype.push.apply($scope.subsets[Query.annotation_types[j]], $scope.hierarchy.subset_tokens[Query.annotation_types[j]]);
+                        Array.prototype.push.apply($scope.subsets[Query.annotation_types[j]], $scope.hierarchy.subset_types[Query.annotation_types[j]]);
                         $scope.properties[Query.annotation_types[j]] = [];
                         $scope.propertyTypes[Query.annotation_types[j]] = {};
                         for (i = 0; i < $scope.hierarchy.type_properties[Query.annotation_types[j]].length; i++) {
@@ -259,7 +273,7 @@ angular.module('query', [
             $scope.queryState.queryRunning = true;
             $scope.queryState.queryText = 'Fetching results...';
             console.log($scope.queryState);
-            Query.update($stateParams.corpus_id, $stateParams.query_id, $scope.query).then(function(res){
+            Query.update($stateParams.corpus_id, $stateParams.query_id, $scope.query).then(function (res) {
                 $scope.query = res.data;
                 $scope.updatePagination();
                 $scope.refreshPagination(1);
@@ -270,14 +284,17 @@ angular.module('query', [
 
         };
 
-        $scope.getQueryResults = function(){
+        $scope.getQueryResults = function () {
             Query.getResults($stateParams.corpus_id, $stateParams.query_id, $scope.queryState.offset, $scope.queryState.ordering, $scope.queryState.resultsPerPage).then(function (res) {
-                    $scope.queryState.results = res.data;
-                    console.log($scope.query);
-                    console.log($scope.queryState.results);
-                    $scope.queryState.queryRunning = false;
-                    $scope.queryState.queryText = 'Run query';
-                });
+                $scope.queryState.results = res.data;
+                console.log($scope.query);
+                console.log($scope.queryState.results);
+                $scope.queryState.queryText = 'Run query';
+                $scope.updatePagination();
+                $scope.refreshPagination(1);
+            }).catch(function (res) {
+                console.log(res)
+            });
         };
 
 
@@ -304,8 +321,12 @@ angular.module('query', [
 
         };
 
-        $scope.getDetail = function(index){
-            $state.go('query-detail', {corpus_id: $stateParams.corpus_id, query_id: $stateParams.query_id, detail_index:index+$scope.queryState.offset});
+        $scope.getDetail = function (index) {
+            $state.go('query-detail', {
+                corpus_id: $stateParams.corpus_id,
+                query_id: $stateParams.query_id,
+                detail_index: index + $scope.queryState.offset
+            });
         };
 
         $scope.addFilter = function (a_type) {
@@ -316,7 +337,7 @@ angular.module('query', [
             $scope.query.filters[a_type].splice(index, 1);
         };
 
-        $scope.clearFilters = function (){
+        $scope.clearFilters = function () {
             var inc;
             for (j = 0; j < Query.annotation_types.length; j++) {
                 inc = j >= Query.annotation_types.indexOf($scope.query.annotation_type);
@@ -378,7 +399,6 @@ angular.module('query', [
         $scope.refreshPagination = function (newPage) {
             $scope.queryState.currentPage = newPage;
             $scope.queryState.offset = ($scope.queryState.currentPage - 1) * $scope.queryState.resultsPerPage;
-            $scope.getQueryResults();
         };
 
         $scope.refreshOrdering = function (new_ordering) {
@@ -394,4 +414,31 @@ angular.module('query', [
         };
 
         $scope.refreshPermissions();
+
+        $scope.intervalFunction = function () {
+            console.log('hellloooooooo')
+            console.log($scope.query)
+            if ($scope.query != undefined) {
+                if ($scope.query.running || $scope.query.result_count == null) {
+                    Query.one($stateParams.corpus_id, $stateParams.query_id).then(function (res) {
+                        $scope.query = res.data;
+                        $scope.query.annotation_type = $scope.query.annotation_type.toLowerCase();
+                        if (!$scope.query.running) {
+                            $scope.getQueryResults();
+                        }
+
+                    });
+                }
+            }
+        };
+        $scope.intervalFunction();
+        var promise = $interval($scope.intervalFunction, 5000);
+
+        // Cancel interval on page changes
+        $scope.$on('$destroy', function () {
+            if (angular.isDefined(promise)) {
+                $interval.cancel(promise);
+                promise = undefined;
+            }
+        });
     });
