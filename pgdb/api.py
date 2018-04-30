@@ -627,7 +627,7 @@ class QueryViewSet(viewsets.ModelViewSet):
         if query is None:
             return Response(None, status=status.HTTP_400_BAD_REQUEST)
         query.name = request.data.get('name')
-        do_run = query.config['filters'] != request.data['filters']
+        do_run = query.config['filters'] != request.data['filters'] or query.config['subsets'] != request.data['subsets']
         query.config = request.data
         if do_run:
             run_query_task.delay(query.pk)
@@ -797,10 +797,10 @@ class QueryViewSet(viewsets.ModelViewSet):
         if query.running:
             return Response(None, status=status.HTTP_423_LOCKED)
         print(corpus)
-        do_run = query.config['filters'] != request.data['filters']
+        do_run = query.config['filters'] != request.data['filters'] or query.config['subsets'] != request.data['subsets']
         if do_run:
             return Response(None, status=status.HTTP_405_METHOD_NOT_ALLOWED)
-
+        query.config = request.data
         columns = query.config['columns']
         response['Content-Disposition'] = 'attachment; filename="{}_query_export.csv"'.format(query.get_annotation_type_display())
         results = query.get_results(ordering='', offset=0, limit=None)
