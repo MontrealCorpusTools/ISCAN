@@ -53,6 +53,7 @@ angular.module('queryDetail', [
             $scope.selection_begin = 0;
             $scope.selection_end = null;
             $scope.selection_anchor = null;
+            $scope.detail_index = parseInt($stateParams.detail_index);
 
 
         $scope.refreshPermissions = function () {
@@ -173,7 +174,7 @@ angular.module('queryDetail', [
                 console.log(annotation);
                 console.log($scope.selectedAnnotation)
                 var data = {};
-                data.annotation_type = $scope.query.annotation_type;
+                data.annotation_type = $scope.query.annotation_type.toLowerCase();
                 data.annotation_id = $scope.selectedAnnotation.id;
                 data.subannotation_type = annotation.label;
                 data.subannotation = $scope.newAnnotation[annotation.label];
@@ -217,7 +218,7 @@ angular.module('queryDetail', [
                     }
                     console.log($scope.can_view_annotations, $scope.can_annotate)
                 }
-                Query.oneAnnotation($stateParams.corpus_id, $stateParams.query_id, $stateParams.detail_index, $scope.queryState.ordering, true, true, true).then(function (res) {
+                Query.oneAnnotation($stateParams.corpus_id, $stateParams.query_id, $scope.detail_index, $scope.queryState.ordering, true, true, true).then(function (res) {
                     $scope.utterance = res.data.utterance;
                     $scope.selectedResult = res.data.result;
                     $scope.speaker = $scope.selectedResult.speaker;
@@ -270,14 +271,16 @@ angular.module('queryDetail', [
             }
 
             $scope.get_next = function () {
-                if ($stateParams.detail_index < $scope.query.result_count - 1){
-                $state.go('query-detail', {corpus_id: $stateParams.corpus_id, query_id: $stateParams.query_id, detail_index:$stateParams.detail_index+1});
+                console.log('index', $scope.detail_index)
+                if ($scope.detail_index < $scope.query.result_count - 1){
+                $state.go('query-detail', {corpus_id: $stateParams.corpus_id, query_id: $stateParams.query_id, detail_index:$scope.detail_index+1});
                 }
             };
 
             $scope.get_previous = function () {
-                if ($stateParams.detail_index > 0){
-                $state.go('query-detail', {corpus_id: $stateParams.corpus_id, query_id: $stateParams.query_id, detail_index:$stateParams.detail_index-1});
+
+                if ($scope.detail_index > 0){
+                $state.go('query-detail', {corpus_id: $stateParams.corpus_id, query_id: $stateParams.query_id, detail_index:$scope.detail_index-1});
                 }
             };
 
@@ -356,16 +359,15 @@ angular.module('queryDetail', [
             });
 
             $scope.$on('TRACK_REQUESTED', function (e, res) {
-                AnnotationQuery.generate_pitch_track($stateParams.corpus_id, $stateParams.utterance_id, res).then(function (res) {
+                Query.generate_pitch_track($stateParams.corpus_id, $scope.utterance.id, res).then(function (res) {
                     $scope.utterance.pitch_track = res.data;
-                    $scope.utterance = $scope.utterance;
                     console.log($scope.utterance.pitch_track);
                     $scope.$broadcast('UPDATE_PITCH_TRACK', res.data);
                 });
             });
 
             $scope.$on('SAVE_TRACK', function (e, res) {
-                AnnotationQuery.save_pitch_track($scope.corpus.name, $stateParams.utterance_id, $scope.utterance.pitch_track).then(function (res) {
+                Query.save_pitch_track($scope.corpus.id, $scope.utterance.id, $scope.utterance.pitch_track).then(function (res) {
                     console.log(res.data);
                     $scope.$broadcast('SAVE_RESPONSE', res);
                 });

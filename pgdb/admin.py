@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Database, Corpus, CorpusPermissions, Query
+from .models import Database, Corpus, CorpusPermissions, Query, Enrichment
 
 admin.site.disable_action('delete_selected')
 
@@ -27,4 +27,9 @@ class CorpusPermissionsAdmin(admin.ModelAdmin):
 
 @admin.register(Query)
 class QueryAdmin(admin.ModelAdmin):
+    actions = [delete_selected]
+
+
+@admin.register(Enrichment)
+class EnrichmentAdmin(admin.ModelAdmin):
     actions = [delete_selected]

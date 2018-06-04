@@ -1,6 +1,6 @@
 <div class="row">
     <h1>Summary of the {{ corpus.name }} corpus</h1>
-    <div class="col-md-9">
+    <div class="col-md-3">
         <h1>Linguistic Units</h1>
         <div class="row" style="min-height: 450px; padding: 40px">
             <h2>Utterances</h2>
@@ -142,6 +142,15 @@
                 </li>
             </ul>
         </div>
+    </div>
+    <div class="col-md-3">
+        <h1>Enrichment</h1>
+        <ul>
+            <li ng-repeat="enrichment in enrichments">
+                <button ng-click="runEnrichment(enrichment.id)" ng-disabled="corpus_status != 'ready' && !enrichment.runnable"><span ng-if="enrichment.completed">Rerun</span>{{ enrichment.name }}</button>
+                <button ng-click="resetEnrichment(enrichment.id)" ng-show="enrichment.completed">Reset</button>
+            </li>
+        </ul>
     </div>
     <div class="col-md-3">
         <h1>Metadata</h1>

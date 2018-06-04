@@ -1,118 +1,155 @@
 angular.module('bestiaryPlot', [
-    'pgdb.query'
+    'intonation.query'
 ])
-    .controller('BestiaryPlotCtrl', function ($scope, Query, Corpora, $state, $stateParams) {
-        $scope.filters = {discourse: {}, speaker:{name: 'All'}};
-        $scope.export = {};
-        $scope.filter_options = {};
-        $scope.currentPage = 1;
-        $scope.resultsPerPage = 100;
-        $scope.offset = 0;
-        $scope.numPages = 0;
-        $scope.update = function () {
-            var params = {};
-            for (var key in $scope.filters){
-                console.log(key);
-                var data = $scope.filters[key];
-                console.log(data);
-                for (var key2 in data){
-                    if (data[key2] == undefined){
-                    params[key + '__' + key2 ]= 'null';
-                    }
-                    else if (data[key2] != 'All'){
-                    params[key + '__' + key2 ]= data[key2];
+    .controller('BestiaryPlotCtrl', function ($scope, BestiaryQuery, Corpora, $state, $stateParams, $interval, $rootScope) {
+        $scope.filter_options = {discourse:[], speaker:[]}
+        $scope.refreshPermissions = function () {
+            $scope.user = $rootScope.user;
+            $scope.authenticated = $rootScope.authenticated;
+            if ($scope.user == undefined) {
+                $state.go('home');
+            }
+            if ($scope.user.is_superuser) {
+
+                $scope.can_view = true;
+
+            }
+            else {
+
+                $scope.can_view = false;
+                for (i = 0; i < $scope.user.corpus_permissions.length; i++) {
+                    if ($scope.user.corpus_permissions[i].corpus == $stateParams.corpus_id) {
+                        $scope.can_view = $scope.user.corpus_permissions[i].can_view_detail;
                     }
                 }
             }
-            console.log(params);
-            AnnotationQuery.subset($stateParams.corpus_id, 'utterance', $scope.offset, $scope.ordering, true, params).then(function (res) {
-                console.log(res.data);
-                $scope.count = res.data.count;
-                $scope.numPages = Math.ceil($scope.count / $scope.resultsPerPage);
-                $scope.utterances = res.data.results;
-                $scope.updatePagination();
+            BestiaryQuery.getBestiaryQuery($stateParams.corpus_id).then(function (res) {
+                $scope.query = res.data;
+
+                $scope.export_link = BestiaryQuery.getExportLink($stateParams.corpus_id, $scope.query.id);
+                $scope.query.annotation_type = $scope.query.annotation_type.toLowerCase();
+                Corpora.hierarchy($stateParams.corpus_id).then(function (res) {
+                    $scope.hierarchy = res.data;
+                    console.log($scope.hierarchy);
+                    var prop;
+                    $scope.properties = {
+                        discourse: [],
+                        speaker: []
+                    };
+                    $scope.propertyTypes = {
+                        discourse: {},
+                        speaker: {}
+                    };
+
+
+                    for (i = 0; i < $scope.hierarchy.discourse_properties.length; i++) {
+                        prop = $scope.hierarchy.discourse_properties[i][0];
+                        $scope.propertyTypes.discourse[prop] = $scope.hierarchy.discourse_properties[i][1];
+                        if ($scope.properties.discourse.indexOf(prop) === -1 && prop !== 'id') {
+                            $scope.properties.discourse.push(prop);
+                        }
+                    }
+
+                    for (i = 0; i < $scope.hierarchy.speaker_properties.length; i++) {
+                        prop = $scope.hierarchy.speaker_properties[i][0];
+                        $scope.propertyTypes.speaker[prop] = $scope.hierarchy.speaker_properties[i][1];
+                        if ($scope.properties.speaker.indexOf(prop) === -1 && prop !== 'id') {
+                            $scope.properties.speaker.push(prop);
+                        }
+                    }
+                });
+
+                Corpora.discourse_property_options($stateParams.corpus_id).then(function (res) {
+                    for (i =0; i < res.data.length; i ++){
+                        res.data[i].options.unshift('All');
+                    }
+                    $scope.filter_options.discourse = res.data;
+
+                    console.log(res.data)
+                });
+
+                Corpora.one($stateParams.corpus_id).then(function (res) {
+                    $scope.corpus = res.data;
+                });
+                Corpora.speakers($stateParams.corpus_id).then(function (res) {
+                    res.data.unshift('All');
+                    $scope.speakers = res.data;
+                });
+                Corpora.discourses($stateParams.corpus_id).then(function (res) {
+                    $scope.discourses = res.data;
+                });
+                console.log($scope.query);
+                $scope.getQueryResults();
             });
+        };
+
+        $scope.getQueryResults = function () {
+            BestiaryQuery.getResults($stateParams.corpus_id, $scope.query.id).then(function (res) {
+                $scope.utterances = res.data;
+                console.log($scope.query);
+
+            }).catch(function (res) {
+                console.log(res)
+            });
+        };
+
+        $scope.clearFilters = function () {
+            $scope.query.filters.speaker = [];
+            $scope.query.filters.discourse = [];
+        };
+
+
+        $scope.updateQuery = function () {
+            $scope.queryState.queryText = 'Fetching results...';
+            console.log($scope.queryState);
+            BestiaryQuery.update($stateParams.corpus_id, $scope.query.id, $scope.query).then(function (res) {
+                $scope.query = res.data;
+
+            })
 
         };
 
-        Corpora.discourse_property_options($stateParams.corpus_id).then(function (res) {
-            for (i =0; i < res.data.length; i ++){
-                res.data[i].options.unshift('All');
-                $scope.filters.discourse[res.data[i].name] = 'All';
-            }
-            $scope.filter_options.discourse = res.data;
-
-            console.log(res.data)
-        });
-
-        Corpora.one($stateParams.corpus_id).then(function (res) {
-            $scope.corpus = res.data;
-        });
-        Corpora.speakers($stateParams.corpus_id).then(function (res) {
-            res.data.unshift('All')
-            $scope.speakers = res.data;
-            $scope.update();
-        });
-        Corpora.discourses($stateParams.corpus_id).then(function (res) {
-            $scope.discourses = res.data;
-        });
-
         $scope.$on('DETAIL_REQUESTED', function (e, res) {
             console.log($stateParams.corpus_id, res);
-            $state.go('utterance-detail', {corpus_id: $stateParams.corpus_id, utterance_id:res});
+            $state.go('query-detail', {corpus_id: $stateParams.corpus_id, query_id: $scope.query.id, detail_index: res});
         });
 
         $scope.$on('SOUND_REQUESTED', function (e, res) {
 
-            var snd = new Audio(Utterances.sound_file_url($scope.corpus.id, res)); // buffers automatically when created
+            var snd = new Audio(BestiaryQuery.sound_file_url($scope.corpus.id, res)); // buffers automatically when created
             snd.play();
 
         });
 
-        $scope.updatePagination = function () {
-            $scope.pages = [];
-            $scope.pages.push(1);
-            for (i = 2; i < $scope.numPages; i++) {
-                if (i === 2 && $scope.currentPage - i >= 3) {
-                    $scope.pages.push('...');
+        $scope.refreshPermissions();
+
+        $scope.intervalFunction = function () {
+            console.log('hellloooooooo')
+            console.log($scope.query)
+            if ($scope.query != undefined) {
+                if ($scope.query.running || $scope.query.result_count == null) {
+                    BestiaryQuery.getBestiaryQuery($stateParams.corpus_id).then(function (res) {
+                        $scope.query = res.data;
+                        $scope.query.annotation_type = $scope.query.annotation_type.toLowerCase();
+                        if (!$scope.query.running) {
+                            $scope.getQueryResults();
+                        }
+
+                    });
                 }
-                if (Math.abs($scope.currentPage - i) < 3) {
-                    $scope.pages.push(i);
-                }
-                if (i === $scope.numPages - 1 && $scope.numPages - 1 - $scope.currentPage >= 3) {
-                    $scope.pages.push('...');
-                }
             }
-            $scope.pages.push($scope.numPages);
         };
+        $scope.intervalFunction();
+        var promise = $interval($scope.intervalFunction, 5000);
 
-        $scope.next = function () {
-            if ($scope.currentPage != $scope.numPages) {
-                $scope.refreshPagination($scope.currentPage + 1);
+        // Cancel interval on page changes
+        $scope.$on('$destroy', function () {
+            if (angular.isDefined(promise)) {
+                $interval.cancel(promise);
+                promise = undefined;
             }
-        };
-        $scope.first = function () {
-            if ($scope.currentPage != 1) {
-            $scope.refreshPagination(1);
-            }
-        };
-        $scope.last = function () {
-            if ($scope.currentPage != $scope.numPages) {
-            $scope.refreshPagination($scope.numPages);
-            }
-        };
+        });
 
-        $scope.previous = function () {
-            if ($scope.currentPage != 1) {
-                $scope.refreshPagination($scope.currentPage - 1);
-            }
-        };
+        $scope.$on('authenticated', $scope.refreshPermissions);
 
-        $scope.refreshPagination = function (newPage) {
-            $scope.currentPage = newPage;
-            $scope.offset = ($scope.currentPage - 1) * $scope.resultsPerPage;
-            $scope.update()
-        };
-
-        $scope.export_url = Utterances.export_pitch_tracks($stateParams.corpus_id);
     });

@@ -185,6 +185,19 @@ def serializer_factory(hierarchy, a_type, exclude=None, with_pitch=False, with_w
                 attrs[s] = serializer_factory(hierarchy, s, with_subannotations=with_subannotations)(many=True)
     return type(base)(class_name, (base,), attrs)
 
+class EnrichmentSerializer(serializers.ModelSerializer):
+    enrichment_type = serializers.SerializerMethodField()
+    runnable = serializers.SerializerMethodField()
+    class Meta:
+        model = models.Enrichment
+        fields = ('id', 'name', 'corpus', 'enrichment_type', 'running', 'last_run', 'completed', 'runnable')
+
+    def get_enrichment_type(self, obj):
+        return obj.config['enrichment_type']
+
+    def get_runnable(self, obj):
+        return obj.runnable
+
 class QuerySerializer(serializers.ModelSerializer):
     annotation_type = serializers.SerializerMethodField()
     filters = serializers.SerializerMethodField()

@@ -7,6 +7,7 @@ import json
 import time
 import logging
 import shutil
+import datetime
 from django.db import models
 from django.conf import settings
 from django.contrib.auth.models import Group, User
@@ -685,12 +686,136 @@ class AcousticAnalysis(models.Model):
     type = models.CharField(max_length=1, choices=TYPE_CHOICES)
 
 
+class Enrichment(models.Model):
+    name = models.CharField(max_length=100)
+    corpus = models.ForeignKey(Corpus, on_delete=models.CASCADE)
+    running = models.BooleanField(default=False)
+    completed = models.BooleanField(default=False)
+    last_run = models.DateTimeField(null=True, blank=True)
+
+    @property
+    def config(self):
+        with open(self.config_path, 'r') as f:
+            config = json.load(f)
+        return config
+
+    @config.setter
+    def config(self, new_config):
+        with open(self.config_path, 'w') as f:
+            json.dump(new_config, f)
+
+    @property
+    def directory(self):
+        directory =os.path.join(settings.POLYGLOT_ENRICHMENT_DIRECTORY, str(self.pk))
+        os.makedirs(directory, exist_ok=True)
+        return directory
+
+    @property
+    def config_path(self):
+        return os.path.join(self.directory, 'config.json')
+
+    @property
+    def results_path(self):
+        return os.path.join(self.directory, 'results.txt')
+
+    @property
+    def runnable(self):
+        config = self.config
+        enrichment_type = config.get('enrichment_type')
+        with CorpusContext(self.corpus.config) as c:
+            if enrichment_type == 'subset':
+                annotation_type = config.get('annotation_type')
+                return annotation_type in c.hierarchy.annotation_types
+            elif enrichment_type == 'syllables':
+                return c.hierarchy.has_type_subset('phone', 'syllabic')
+            elif enrichment_type == 'utterances':
+                return c.hierarchy.has_token_subset('word', 'pause')
+            elif enrichment_type == 'hierarchical_property':
+                higher_annotation = config.get('higher_annotation')
+                lower_annotation = config.get('lower_annotation')
+                return higher_annotation in c.hierarchy.annotation_types and lower_annotation in c.hierarchy.annotation_types
+        return True
+
+    def reset_enrichment(self):
+        self.running = True
+        self.save()
+        config = self.config
+        enrichment_type = config.get('enrichment_type')
+        with CorpusContext(self.corpus.config) as c:
+            if enrichment_type == 'subset':
+                subset_label = config.get('subset_label')
+                c.reset_class(subset_label)
+            elif enrichment_type == 'syllables':
+                c.reset_syllables()
+            elif enrichment_type == 'pauses':
+                c.reset_pauses()
+            elif enrichment_type == 'utterances':
+                c.reset_utterances()
+            elif enrichment_type == 'hierarchical_property':
+                property_type = config.get('property_type')
+                higher_annotation = config.get('higher_annotation')
+                lower_annotation = config.get('lower_annotation')
+                property_label = config.get('property_label')
+                if property_type == 'rate':
+                    c.reset_property(higher_annotation, property_label)
+                elif property_type == 'count':
+                    c.reset_property(higher_annotation, property_label)
+                elif property_type == 'position':
+                    c.reset_property(lower_annotation, property_label)
+        self.running = False
+        self.completed = False
+        self.last_run = None
+        self.save()
+
+
+    def run_enrichment(self):
+        self.running = True
+        self.save()
+        config = self.config
+        enrichment_type = config.get('enrichment_type')
+        with CorpusContext(self.corpus.config) as c:
+            if enrichment_type == 'subset':
+                annotation_type = config.get('annotation_type')
+                annotation_labels = config.get('annotation_labels')
+                subset_label = config.get('subset_label')
+                if annotation_type == 'phone':
+                    c.encode_class(annotation_labels, subset_label)
+            elif enrichment_type == 'syllables':
+                if c.hierarchy.has_type_subset('phone', 'syllabic'):
+                    c.encode_syllables('maxonset')
+            elif enrichment_type == 'pauses':
+                pause_label = config.get('pause_label')
+                c.encode_pauses(pause_label)
+            elif enrichment_type == 'utterances':
+                pause_length = float(config.get('pause_length', 0.15))
+                c.encode_utterances(min_pause_length=pause_length)
+            elif enrichment_type == 'hierarchical_property':
+                property_type = config.get('property_type')
+                higher_annotation = config.get('higher_annotation')
+                lower_annotation = config.get('lower_annotation')
+                property_label = config.get('property_label')
+                subset_label = config.get('subset_label', '')
+                if not subset_label:
+                    subset_label = None
+                if property_type == 'rate':
+                    c.encode_rate(higher_annotation, lower_annotation, property_label, subset=subset_label)
+                elif property_type == 'count':
+                    c.encode_count(higher_annotation, lower_annotation, property_label, subset=subset_label)
+                elif property_type == 'position':
+                    c.encode_position(higher_annotation, lower_annotation, property_label, subset=subset_label)
+        self.running = False
+        self.completed = True
+        self.last_run = datetime.datetime.now()
+        self.save()
+
+
+
 class Query(models.Model):
     ANNOTATION_TYPE_CHOICES = (('U', 'Utterance'),
                                ('W', 'Word'),
                                ('S', 'Syllable'),
                                ('P', 'Phone'))
-    name = models.CharField(unique=True, max_length=100)
+    name = models.CharField(max_length=100)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     annotation_type = models.CharField(max_length=1, choices=ANNOTATION_TYPE_CHOICES)
     corpus = models.ForeignKey(Corpus, on_delete=models.CASCADE)
@@ -737,8 +862,14 @@ class Query(models.Model):
 
             self._results.sort(key=order_function, reverse=self._ordering.startswith('-'))
         if limit is None:
-            return self._results[offset:]
-        return self._results[offset:offset + limit]
+            res = self._results[offset:]
+        else:
+            res = self._results[offset:offset + limit]
+        ind = offset
+        for r in res:
+            r['index'] = ind
+            ind += 1
+        return res
 
     def run_query(self):
         self.running = True
@@ -825,7 +956,9 @@ class Query(models.Model):
 
     @property
     def directory(self):
-        return os.path.join(settings.POLYGLOT_QUERY_DIRECTORY, str(self.pk))
+        directory =os.path.join(settings.POLYGLOT_QUERY_DIRECTORY, str(self.pk))
+        os.makedirs(directory, exist_ok=True)
+        return directory
 
     @property
     def lockfile_path(self):

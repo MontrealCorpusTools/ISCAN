@@ -1,13 +1,18 @@
 angular.module('corpusDetail', [
-    'pgdb.corpora'
+    'pgdb.corpora',
+    'pgdb.enrichment',
+    'pgdb.query'
 ])
-    .controller('CorpusDetailCtrl', function ($scope, Corpora, $state, $stateParams, Query) {
+    .controller('CorpusDetailCtrl', function ($scope, Corpora, $state, $stateParams, Query, Enrichment) {
         $scope.properties = {};
         $scope.subsets = {};
         $scope.queryIds = {};
         $scope.available_queries = {};
         Corpora.one($stateParams.corpus_id).then(function (res) {
             $scope.corpus = res.data;
+        });
+        Corpora.status($stateParams.corpus_id).then(function(res) {
+           $scope.corpus_status = res.data;
         });
         Query.type_queries($stateParams.corpus_id, 'utterance').then(function (res) {
             $scope.available_queries.utterance = res.data;
@@ -25,12 +30,21 @@ angular.module('corpusDetail', [
             $scope.available_queries.phone = res.data;
             console.log($scope.available_queries)
         });
+
+        Enrichment.all($stateParams.corpus_id).then(function (res){
+            $scope.enrichments = res.data;
+        });
+
         $scope.openQuery = function(type){
             console.log($scope.queryIds[type]);
             $state.go('query', {corpus_id:$stateParams.corpus_id, query_id: $scope.queryIds[type]})
         };
         $scope.newQuery = function(type){
             $state.go('new_query', {corpus_id: $stateParams.corpus_id, type: type})
+        };
+
+        $scope.runEnrichment = function(enrichment_id){
+            Enrichment.run($stateParams.corpus_id, enrichment_id).then()
         };
         Corpora.hierarchy($stateParams.corpus_id).then(function (res) {
             $scope.hierarchy = res.data;

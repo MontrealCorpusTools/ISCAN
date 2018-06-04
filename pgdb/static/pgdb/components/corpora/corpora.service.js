@@ -12,6 +12,10 @@ angular.module('pgdb.corpora')
         return $http.get(base_url + id + '/');
     };
 
+    Corpora.status = function (id) {
+        return $http.get(base_url + id + '/status/');
+    };
+
     Corpora.hierarchy = function (id) {
         return $http.get(base_url + id + '/hierarchy/');
     };

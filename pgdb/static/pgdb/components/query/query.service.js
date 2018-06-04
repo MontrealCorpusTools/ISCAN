@@ -86,7 +86,8 @@ angular.module('pgdb.query')
         };
 
         Query.save_pitch_track = function (corpus_id, id, new_track) {
-            return $http.post(__env.apiUrl + corpus_id + '/save/pitch/' + id + '/', new_track);
+            var data = {id: id, track:new_track};
+            return $http.post(__env.apiUrl + 'corpora/' + corpus_id + '/save_utterance_pitch_track/', data);
 
         };
 

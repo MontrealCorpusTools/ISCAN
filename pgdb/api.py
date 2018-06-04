@@ -1,6 +1,7 @@
 import os
 import csv
 import time
+import json
 
 from django.conf import settings
 from django.http.response import FileResponse, HttpResponse
@@ -15,7 +16,7 @@ from polyglotdb import CorpusContext
 from . import models
 from . import serializers
 from .utils import get_used_ports
-from .tasks import import_corpus_task, enrich_corpus_task, run_query_task
+from .tasks import import_corpus_task, enrich_corpus_task, run_query_task, run_enrichment_task, reset_enrichment_task
 
 
 class DatabaseViewSet(viewsets.ModelViewSet):
@@ -142,6 +143,23 @@ class CorpusViewSet(viewsets.ModelViewSet):
         return Response(self.serializer_class(instance).data)
 
     @detail_route(methods=['get'])
+    def status(self, request, pk=None):
+        if request.auth is None:
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
+        corpus = self.get_object()
+        if not request.user.is_superuser:
+            permissions = corpus.user_permissions.filter(user=request.user).all()
+            if not len(permissions):
+                return Response(status=status.HTTP_401_UNAUTHORIZED)
+        running_enrichments = models.Enrichment.objects.filter(corpus=corpus, running=True).all()
+        if len(running_enrichments):
+            return Response('enrichment running')
+        running_queries = models.Query.objects.filter(corpus=corpus, running=True).all()
+        if len(running_queries):
+            return Response('query running')
+        return Response('ready')
+
+    @detail_route(methods=['get'])
     def speakers(self, request, pk=None):
         if request.auth is None:
             return Response(status=status.HTTP_401_UNAUTHORIZED)
@@ -240,6 +258,21 @@ class CorpusViewSet(viewsets.ModelViewSet):
         pitch_data['pitch_track'] = serializers.PitchPointSerializer([x for x in results if x.F0 != None],
                                                                      many=True).data
         return Response(pitch_data['pitch_track'])
+
+    @detail_route(methods=['post'])
+    def save_utterance_pitch_track(self, request, pk=None):
+        if request.auth is None:
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
+        corpus = self.get_object()
+        if not request.user.is_superuser:
+            permissions = corpus.user_permissions.filter(user=request.user).all()
+            if not len(permissions):
+                return Response(status=status.HTTP_401_UNAUTHORIZED)
+        id = request.data['id']
+        track = request.data['track']
+        with CorpusContext(corpus.config) as c:
+            c.update_utterance_pitch_track(id, track)
+        return Response({'success': True})
 
 
 class SourceChoiceViewSet(viewsets.ViewSet):
@@ -395,7 +428,8 @@ class SubannotationViewSet(viewsets.ViewSet):
             res = q.all()[0]
             res.add_subannotation(s_type, **data)
             print(getattr(res, s_type))
-            data = serializers.serializer_factory(c.hierarchy, a_type, top_level=True, with_subannotations=True)(res).data
+            data = serializers.serializer_factory(c.hierarchy, a_type, top_level=True, with_subannotations=True)(
+                res).data
             data = data[a_type][s_type][-1]
         return Response(data)
 
@@ -409,13 +443,13 @@ class SubannotationViewSet(viewsets.ViewSet):
         s_id = data.pop('id')
         props = []
         prop_template = 's.%s = {%s}'
-        for k,v in data.items():
+        for k, v in data.items():
             props.append(prop_template % (k, k))
         set_props = ',\n'.join(props)
         with CorpusContext(corpus.config) as c:
             statement = '''MATCH (s:{corpus_name}) WHERE s.id = {{s_id}}
             SET {set_props}'''.format(corpus_name=c.cypher_safe_name, set_props=set_props)
-            c.execute_cypher(statement, s_id = s_id, **data)
+            c.execute_cypher(statement, s_id=s_id, **data)
         return Response(None)
 
     def destroy(self, request, pk=None, corpus_pk=None):
@@ -427,7 +461,7 @@ class SubannotationViewSet(viewsets.ViewSet):
         with CorpusContext(corpus.config) as c:
             statement = '''MATCH (s:{corpus_name}) WHERE s.id = {{s_id}}
             DETACH DELETE s'''.format(corpus_name=c.cypher_safe_name)
-            c.execute_cypher(statement, s_id = pk)
+            c.execute_cypher(statement, s_id=pk)
         return Response(None)
 
 
@@ -478,7 +512,6 @@ class AnnotationViewSet(viewsets.ViewSet):
                 q = q.order_by(getattr(a, 'label'))
             q = q.limit(limit).offset(offset).preload(getattr(a, 'discourse'), getattr(a, 'speaker'))
             if with_pitch:
-
                 pitch = getattr(a, 'pitch')
                 pitch.relative_time = True
                 pitch.relative = True
@@ -579,6 +612,154 @@ class AnnotationViewSet(viewsets.ViewSet):
         # response['Content-Length'] = os.path.getsize(fname)
         return response
 
+
+class EnrichmentViewSet(viewsets.ModelViewSet):
+    model = models.Enrichment
+    serializer_class = serializers.EnrichmentSerializer
+
+    def get_queryset(self):
+        return models.Enrichment.objects.filter(corpus__pk=self.kwargs['corpus_pk'])
+
+    def list(self, request, corpus_pk=None):
+        corpus = models.Corpus.objects.get(pk=corpus_pk)
+        if not request.user.is_superuser:
+            permissions = corpus.user_permissions.filter(user=request.user).all()
+            if not len(permissions):
+                return Response(status=status.HTTP_401_UNAUTHORIZED)
+        enrichments = models.Enrichment.objects.filter(corpus=corpus).all()
+
+        # FIXME SO MUCH HARDCODING
+        names = [x.name for x in enrichments]
+        requery = False
+        if 'Encode syllabics' not in names:
+            if corpus.name == 'SCOTS':
+                syllabics = ["@", "@`", "e", "e`", "O`", "3`", "E", "E@", "E`", "I", "O", "O@`", "OI", "O`", "e", "e@",
+                  "e@`", "e`", "{`", "}", "}:", "}@", "}@`", "}`", "o:", "o@", "o@`", "o`", "V", "VU", "VU`", "Vi",
+                  "i", "i:", "i@", "i@`", "i`", "a", "a`", "ae", "l=", "m=", "n="]
+            elif corpus.name == 'Buckeye':
+                syllabics = ["aa", "ae", "ay", "aw", "ao", "oy", "ow", "eh", "ey", "er", "ah", "uw", "ih", "iy", "uh",
+                    "aan", "aen", "ayn", "awn", "aon", "oyn", "own", "ehn", "eyn", "ern", "ahn", "uwn", "ihn", "iyn", "uhn",
+                             "en", "em", "eng", "el"]
+            elif corpus.name == 'SOTC':
+                syllabics = ["I", "E", "{", "V", "Q", "U", "@", "i","#", "$", "u", "3", "1", "2","4", "5", "6", "7", "8",
+                             "9", "c","q", "O", "~", "B","F","H","L", "P", "C"]
+            else:
+                syllabics = ["ER0", "IH2", "EH1", "AE0", "UH1", "AY2", "AW2", "UW1", "OY2", "OY1", "AO0", "AH2", "ER1", "AW1",
+                   "OW0", "IY1", "IY2", "UW0", "AA1", "EY0", "AE1", "AA0", "OW1", "AW0", "AO1", "AO2", "IH0", "ER2",
+                   "UW2", "IY0", "AE2", "AH0", "AH1", "UH2", "EH2", "UH0", "EY1", "AY0", "AY1", "EH0", "EY2", "AA2",
+                   "OW2", "IH1"]
+            syllabic_enrichment = models.Enrichment.objects.create(name='Encode syllabics', corpus=corpus)
+            syllabic_enrichment.config = {'enrichment_type': 'subset',
+                                          'annotation_type': 'phone',
+                                          'annotation_labels': syllabics,
+                                          'subset_label': 'syllabic'}
+            requery = True
+        if 'Encode sibilants' not in names:
+            if corpus.name == 'SCOTS':
+                sibilants = ["s", "z", "S", "Z"]
+            elif corpus.name == 'Buckeye':
+                sibilants = ["s", "z", "sh", "zh"]
+            else:
+                sibilants = ["S", "Z", "SH", "ZH"]
+            sibilant_enrichment = models.Enrichment.objects.create(name='Encode sibilants', corpus=corpus)
+            sibilant_enrichment.config = {'enrichment_type': 'subset',
+                                          'annotation_type': 'phone',
+                                          'annotation_labels': sibilants,
+                                          'subset_label': 'sibilant'}
+            requery = True
+        if 'Encode syllables' not in names:
+            syllable_enrichment = models.Enrichment.objects.create(name='Encode syllables', corpus=corpus)
+            syllable_enrichment.config = {'enrichment_type': 'syllables'}
+            requery = True
+
+        if 'Encode pauses' not in names:
+            if corpus.name == 'Buckeye':
+                pause_label = '^[<{].*$'
+            else:
+                pause_label = '^<SIL>$'
+            pause_enrichment = models.Enrichment.objects.create(name='Encode pauses', corpus=corpus)
+            pause_enrichment.config = {'enrichment_type': 'pauses',
+                                       'pause_label': pause_label}
+            requery = True
+        if 'Encode utterances' not in names:
+            utterance_enrichment = models.Enrichment.objects.create(name='Encode utterances', corpus=corpus)
+            utterance_enrichment.config = {'enrichment_type': 'utterances',
+                                           'pause_length': 0.15}
+            requery = True
+        if 'Encode speech rate' not in names:
+            speechrate_enrichment = models.Enrichment.objects.create(name='Encode speech rate', corpus=corpus)
+            speechrate_enrichment.config = {'enrichment_type': 'hierarchical_property',
+                                            'property_type': 'rate',
+                                            'higher_annotation': 'utterance',
+                                            'lower_annotation': 'syllable',
+                                            'property_label': 'speech_rate'}
+            requery = True
+        if requery:
+            enrichments = models.Enrichment.objects.filter(corpus=corpus).all()
+        return Response(serializers.EnrichmentSerializer(enrichments, many=True).data)
+
+    def create(self, request, corpus_pk=None, *args, **kwargs):
+        if request.auth is None:
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
+        corpus = models.Corpus.objects.get(pk=corpus_pk)
+        if not request.user.is_superuser:
+            permissions = corpus.user_permissions.filter(user=request.user).all()
+            if not len(permissions):
+                return Response(status=status.HTTP_401_UNAUTHORIZED)
+        print(request.data)
+        enrichment = models.Enrichment.objects.create(name=request.data['name'], corpus=corpus)
+        enrichment.config = request.data
+        return Response(serializers.EnrichmentSerializer(enrichment).data)
+
+    @detail_route(methods=['post'])
+    def run(self, request, pk=None, corpus_pk=None):
+        if request.auth is None:
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
+        corpus = models.Corpus.objects.get(pk=corpus_pk)
+        if not request.user.is_superuser:
+            permissions = corpus.user_permissions.filter(user=request.user).all()
+            if not len(permissions):
+                return Response(status=status.HTTP_401_UNAUTHORIZED)
+        enrichment = models.Enrichment.objects.filter(pk=pk, corpus=corpus).get()
+        run_enrichment_task.delay(enrichment.pk)
+        time.sleep(1)
+        return Response(True)
+
+    @detail_route(methods=['post'])
+    def reset(self, request, pk=None, corpus_pk=None):
+        if request.auth is None:
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
+        corpus = models.Corpus.objects.get(pk=corpus_pk)
+        if not request.user.is_superuser:
+            permissions = corpus.user_permissions.filter(user=request.user).all()
+            if not len(permissions):
+                return Response(status=status.HTTP_401_UNAUTHORIZED)
+        enrichment = models.Enrichment.objects.filter(pk=pk, corpus=corpus).get()
+        reset_enrichment_task.delay(enrichment.pk)
+        time.sleep(1)
+        return Response(True)
+
+    def update(self, request, pk=None, corpus_pk=None):
+        if request.auth is None:
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
+        corpus = models.Corpus.objects.get(pk=corpus_pk)
+        if not request.user.is_superuser:
+            permissions = corpus.user_permissions.filter(user=request.user).all()
+            if not len(permissions):
+                return Response(status=status.HTTP_401_UNAUTHORIZED)
+        print(request.data)
+        enrichment = models.Enrichment.objects.filter(pk=pk, corpus=corpus).get()
+        if enrichment is None:
+            return Response(None, status=status.HTTP_400_BAD_REQUEST)
+        enrichment.name = request.data.get('name')
+        do_run = enrichment.config != request.data
+        enrichment.config = request.data
+        if do_run:
+            run_enrichment_task.delay(enrichment.pk)
+            time.sleep(1)
+        return Response(serializers.EnrichmentSerializer(enrichment).data)
+
+
 class QueryViewSet(viewsets.ModelViewSet):
     model = models.Query
     serializer_class = serializers.QuerySerializer
@@ -593,9 +774,9 @@ class QueryViewSet(viewsets.ModelViewSet):
             permissions = corpus.user_permissions.filter(user=request.user).all()
             if not len(permissions):
                 return Response(status=status.HTTP_401_UNAUTHORIZED)
-            queries = models.Query.objects.filter(user=request.user).all()
+            queries = models.Query.objects.filter(user=request.user, corpus=corpus).all()
         else:
-            queries = models.Query.objects.all()
+            queries = models.Query.objects.filter(corpus=corpus).all()
         return Response(serializers.QuerySerializer(queries, many=True).data)
 
     def create(self, request, corpus_pk=None, *args, **kwargs):
@@ -627,7 +808,8 @@ class QueryViewSet(viewsets.ModelViewSet):
         if query is None:
             return Response(None, status=status.HTTP_400_BAD_REQUEST)
         query.name = request.data.get('name')
-        do_run = query.config['filters'] != request.data['filters'] or query.config['subsets'] != request.data['subsets']
+        do_run = query.config['filters'] != request.data['filters'] or query.config['subsets'] != request.data[
+            'subsets']
         query.config = request.data
         if do_run:
             run_query_task.delay(query.pk)
@@ -797,12 +979,14 @@ class QueryViewSet(viewsets.ModelViewSet):
         if query.running:
             return Response(None, status=status.HTTP_423_LOCKED)
         print(corpus)
-        do_run = query.config['filters'] != request.data['filters'] or query.config['subsets'] != request.data['subsets']
+        do_run = query.config['filters'] != request.data['filters'] or query.config['subsets'] != request.data[
+            'subsets']
         if do_run:
             return Response(None, status=status.HTTP_405_METHOD_NOT_ALLOWED)
         query.config = request.data
         columns = query.config['columns']
-        response['Content-Disposition'] = 'attachment; filename="{}_query_export.csv"'.format(query.get_annotation_type_display())
+        response['Content-Disposition'] = 'attachment; filename="{}_query_export.csv"'.format(
+            query.get_annotation_type_display())
         results = query.get_results(ordering='', offset=0, limit=None)
 
         writer = csv.writer(response)
@@ -822,6 +1006,5 @@ class QueryViewSet(viewsets.ModelViewSet):
                         continue
                     line.append(r[f_a_type][field])
             writer.writerow(line)
-
 
         return response
