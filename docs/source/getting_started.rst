@@ -32,6 +32,34 @@ To install Java on Ubuntu, you can install the oracle version via:
    sudo apt-get update
    sudo apt-get install oracle-java8-installer
 
+
+RabbitMQ
+--------
+
+For working with asynchronous tasks, a message queue is needed, RabbitMQ is the default, installed as follows
+
+.. code-block:: bash
+
+   sudo apt-get install rabbitmq-server
+   sudo service rabbitmq-server start
+
+See https://simpleisbetterthancomplex.com/tutorial/2017/08/20/how-to-use-celery-with-django.html#installing-rabbitmq-on-ubuntu-1604
+for more details.
+
+Relational Database
+-------------------
+
+Polyglot-server can use a sqlite database, but in general a PostGreSQL database is recommended.  It can be installed via:
+
+.. code-block:: bash
+
+   sudo apt-get install postgresql postgresql-contrib libpq-dev
+   sudo service postgresql start
+
+The database will have to be set up with a user/password as well, see https://www.digitalocean.com/community/tutorials/how-to-use-postgresql-with-your-django-application-on-ubuntu-14-04
+for more instructions.
+
+
 Praat
 -----
 
@@ -63,13 +91,25 @@ Start by cloning the GitHub repository somewhere
 
 Once there, look in the polyglot-server/polyglot_server directory and create a file named local_settings.py.
 
-Add the following to it, replacing any paths with relevant paths for your system:
+Add the following to it, replacing any paths with relevant paths for your system,
+as well as information for the postgresql database:
 
 .. code-block:: python
 
    SOURCE_DATA_DIRECTORY = '/path/for/where/corpora/should/be/loaded/from'
 
    POLYGLOT_DATA_DIRECTORY = '/path/to/store/all/polyglot/data'
+
+   DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql_psycopg2',
+            'NAME': 'database_name',
+            'USER': 'user_name',
+            'PASSWORD': 'password',
+            'HOST': 'localhost',
+            'PORT': '5433',
+        }
+   }
 
 
 From the root of the server directory, install all of the server's dependencies:
@@ -78,6 +118,12 @@ From the root of the server directory, install all of the server's dependencies:
 
    pip install -r requirements.txt
 
+For development, getting the latest version of PolyglotDB is recommended via:
+
+.. code-block:: bash
+
+   pip install https://github.com/MontrealCorpusTools/PolyglotDB/archive/master.zip
+
 Then set up the server's database:
 
 .. code-block:: bash
@@ -85,8 +131,14 @@ Then set up the server's database:
    python manage.py makemigrations
    python manage.py migrate
 
+In a separate terminal, start the celery process (from the root of the polyglot-server server):
+
+.. code-block:: bash
+
+   celery -A polyglot_server worker -l info
+
 Finally, run the server:
 
 .. code-block:: bash
 
-   python manage.py runserver
+   python manage.py runserver 8080
