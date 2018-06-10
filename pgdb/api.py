@@ -840,9 +840,9 @@ class QueryViewSet(viewsets.ModelViewSet):
             permissions = corpus.user_permissions.filter(user=request.user).all()
             if not len(permissions):
                 return Response(status=status.HTTP_401_UNAUTHORIZED)
-            queries = models.Query.objects.filter(user=request.user).filter(annotation_type='U').all()
+            queries = models.Query.objects.filter(user=request.user, corpus=corpus,annotation_type='U').all()
         else:
-            queries = models.Query.objects.filter(annotation_type='U').all()
+            queries = models.Query.objects.filter(annotation_type='U', corpus=corpus).all()
         return Response(serializers.QuerySerializer(queries, many=True).data)
 
     @list_route(methods=['GET'])
@@ -852,9 +852,9 @@ class QueryViewSet(viewsets.ModelViewSet):
             permissions = corpus.user_permissions.filter(user=request.user).all()
             if not len(permissions):
                 return Response(status=status.HTTP_401_UNAUTHORIZED)
-            queries = models.Query.objects.filter(user=request.user).filter(annotation_type='W').all()
+            queries = models.Query.objects.filter(user=request.user,annotation_type='W', corpus=corpus).all()
         else:
-            queries = models.Query.objects.filter(annotation_type='W').all()
+            queries = models.Query.objects.filter(annotation_type='W', corpus=corpus).all()
         return Response(serializers.QuerySerializer(queries, many=True).data)
 
     @list_route(methods=['GET'])
@@ -864,9 +864,9 @@ class QueryViewSet(viewsets.ModelViewSet):
             permissions = corpus.user_permissions.filter(user=request.user).all()
             if not len(permissions):
                 return Response(status=status.HTTP_401_UNAUTHORIZED)
-            queries = models.Query.objects.filter(user=request.user).filter(annotation_type='S').all()
+            queries = models.Query.objects.filter(user=request.user,annotation_type='S', corpus=corpus).all()
         else:
-            queries = models.Query.objects.filter(annotation_type='S').all()
+            queries = models.Query.objects.filter(annotation_type='S', corpus=corpus).all()
         return Response(serializers.QuerySerializer(queries, many=True).data)
 
     @list_route(methods=['GET'])
@@ -876,9 +876,9 @@ class QueryViewSet(viewsets.ModelViewSet):
             permissions = corpus.user_permissions.filter(user=request.user).all()
             if not len(permissions):
                 return Response(status=status.HTTP_401_UNAUTHORIZED)
-            queries = models.Query.objects.filter(user=request.user).filter(annotation_type='P').all()
+            queries = models.Query.objects.filter(user=request.user,annotation_type='P', corpus=corpus).all()
         else:
-            queries = models.Query.objects.filter(annotation_type='P').all()
+            queries = models.Query.objects.filter(annotation_type='P', corpus=corpus).all()
         return Response(serializers.QuerySerializer(queries, many=True).data)
 
     def retrieve(self, request, pk=None, corpus_pk=None):
