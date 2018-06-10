@@ -1,4 +1,4 @@
-<div class="row">
+<div class="row" ng-show="corpus.imported">
     <h1>Summary of the {{ corpus.name }} corpus</h1>
     <div class="col-md-3">
         <h1>Linguistic Units</h1>
@@ -200,4 +200,8 @@
             </ul>
         </div>
     </div>
+</div>
+<div class="row" ng-show="!corpus.imported">
+    <h1>The {{ corpus.name }} corpus has not been imported yet</h1>
+    <button ng-click="importCorpus()">Begin import</button>
 </div>

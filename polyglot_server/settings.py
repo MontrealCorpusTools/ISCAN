@@ -156,7 +156,7 @@ except ImportError:
 
 POLYGLOT_TEMP_DIR = os.path.join(POLYGLOT_DATA_DIRECTORY, 'downloads')
 
-POLYGLOT_QUERY_DIRECTORY = os.path.join(POLYGLOT_DATA_DIRECTORY, 'downloads')
+POLYGLOT_QUERY_DIRECTORY = os.path.join(POLYGLOT_DATA_DIRECTORY, 'queries')
 
 POLYGLOT_ENRICHMENT_DIRECTORY = os.path.join(POLYGLOT_DATA_DIRECTORY, 'enrichments')
 

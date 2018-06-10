@@ -27,6 +27,9 @@ angular.module('navbar', [
                     $rootScope.$broadcast("authenticated", user);
                 }
             }).catch(function (res) {
+                delete $scope.user;
+                delete $scope.token;
+                delete $http.defaults.headers.common["Authorization"];
                 $rootScope.user = undefined;
                 $rootScope.authenticated = false;
                 $scope.authenticated = false;

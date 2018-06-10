@@ -80,6 +80,15 @@ Follow the instructions on Reaper's GitHub repository (https://github.com/google
 executable somewhere on the system path so that Polyglot can find it easily.
 
 
+NodeJS
+------
+
+Installation of the front end javascript and dependencies is handled by NPM, which is installed as follows:
+
+.. code-block:: bash
+
+   sudo apt-get install nodejs npm
+
 Installation
 ============
 
@@ -130,6 +139,18 @@ Then set up the server's database:
 
    python manage.py makemigrations
    python manage.py migrate
+
+To install all of the JavaScript dependencies for the front end, run:
+
+.. code-block:: bash
+
+   npm install
+
+To generate a superuser admin account for the server:
+
+.. code-block:: bash
+
+   python manage.py createsuperuser
 
 In a separate terminal, start the celery process (from the root of the polyglot-server server):
 

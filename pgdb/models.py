@@ -6,6 +6,7 @@ import signal
 import json
 import time
 import logging
+import yaml
 import shutil
 import datetime
 from django.db import models
@@ -400,32 +401,49 @@ class Corpus(models.Model):
         (BUCKEYE, 'Buckeye'),
     )
     name = models.CharField(max_length=100, unique=True)
-    source_directory = models.FilePathField(path=settings.SOURCE_DATA_DIRECTORY,
-                                            allow_files=False, allow_folders=True, default='')
     input_format = models.CharField(max_length=1, choices=FORMAT_CHOICES, default='M')
     database = models.ForeignKey(Database, on_delete=models.CASCADE, related_name='corpora')
 
-    NOT_IMPORTED = 'NI'
-    IMPORTED = 'I'
-    IMPORT_RUNNING = 'IR'
-    ENRICHMENT_RUNNING = 'ER'
-    ACOUSTICS_RUNNING = 'AR'
-    QUERY_RUNNING = 'QR'
-    STATUS_CHOICES = (
-        (NOT_IMPORTED, 'Not imported'),
-        (IMPORTED, 'Imported'),
-        (IMPORT_RUNNING, 'Import running'),
-        (ENRICHMENT_RUNNING, 'Enrichment running'),
-        (ACOUSTICS_RUNNING, 'Acoustics running'),
-        (QUERY_RUNNING, 'Query running'),
-    )
-    status = models.CharField(max_length=2, default=NOT_IMPORTED, choices=STATUS_CHOICES)
+    imported = models.BooleanField(default=False)
     current_task_id = models.CharField(max_length=250, blank=True, null=True)
 
     users = models.ManyToManyField(User, through='CorpusPermissions')
 
     def __str__(self):
         return self.name
+
+    @property
+    def config_path(self):
+        possible_configs = [os.path.join(self.source_directory, 'config'),
+                            os.path.join(self.source_directory, 'config.yaml'), ]
+        for p in possible_configs:
+            if os.path.exists(p):
+                return p
+        return None
+
+    @property
+    def configuration_data(self):
+        path = self.config_path
+        conf = {}
+        if path is not None and os.path.exists(path):
+            with open(path, 'r', encoding='utf8') as f:
+                conf = yaml.load(f)
+        return conf
+
+    @property
+    def import_directory(self):
+        tgwav = os.path.join(self.source_directory, 'textgrid-wav')
+        if os.path.exists(tgwav):
+            return tgwav
+        return self.source_directory
+
+    @property
+    def source_directory(self):
+        return os.path.join(settings.SOURCE_DATA_DIRECTORY, self.name)
+
+    @property
+    def enrichment_directory(self):
+        return os.path.join(self.source_directory, 'corpus-data', 'enrichment')
 
     @property
     def data_directory(self):
@@ -471,6 +489,8 @@ class Corpus(models.Model):
         Imports a corpus object into the PolyglotDB database using parameters from the object.
 
         """
+        self.imported = False
+        self.save()
         with CorpusContext(self.config) as c:
             c.reset()
             if self.input_format == 'B':
@@ -488,16 +508,60 @@ class Corpus(models.Model):
             else:
                 return False
             c.load(parser, self.source_directory)
-        self.status = 'I'
+        self.imported = True
         self.save()
 
-    @property
-    def is_busy(self):
-        """
-        Denotes whether the Corpus can be interacted with, or if it is currently running a task.
+    def generate_enrichments(self):
+        config = self.configuration_data
+        enrichments = Enrichment.objects.filter(corpus=self).all()
+        names = [x.name for x in enrichments]
+        if 'vowel_inventory' in config:
+            extra_syllabics = config.get('extra_syllabics', [])
+            syllabics = config['vowel_inventory'] + extra_syllabics
+            if 'Encode syllabics' not in names:
+                syllabic_enrichment = Enrichment.objects.create(name='Encode syllabics', corpus=self)
+                syllabic_enrichment.config = {'enrichment_type': 'subset',
+                                              'annotation_type': 'phone',
+                                              'annotation_labels': syllabics,
+                                              'subset_label': 'syllabic'}
+            if 'Encode syllables' not in names:
+                syllable_enrichment = Enrichment.objects.create(name='Encode syllables', corpus=self)
+                syllable_enrichment.config = {'enrichment_type': 'syllables'}
+        if 'pauses' in config:
+            if 'Encode pauses' not in names:
+                pause_enrichment = Enrichment.objects.create(name='Encode pauses', corpus=self)
+                pause_enrichment.config = {'enrichment_type': 'pauses',
+                                           'pause_label': config['pauses']}
+            if 'Encode utterances' not in names:
+                utterance_enrichment = Enrichment.objects.create(name='Encode utterances', corpus=self)
+                utterance_enrichment.config = {'enrichment_type': 'utterances',
+                                               'pause_length': 0.15}
+        if 'sibilant_segments' in config:
+            if 'Encode sibilants' not in names:
+                sibilant_enrichment = Enrichment.objects.create(name='Encode sibilants', corpus=self)
+                sibilant_enrichment.config = {'enrichment_type': 'subset',
+                                              'annotation_type': 'phone',
+                                              'annotation_labels': config['sibilant_segments'],
+                                              'subset_label': 'sibilant'}
+        if os.path.exists(self.enrichment_directory):
+            enrichment_files = os.listdir(self.enrichment_directory)
+            for p in enrichment_files:
+                if 'discourse' in p:
+                    if 'Enrich discourses from {}'.format(p) not in names:
+                        discourse_enrichment = Enrichment.objects.create(name='Enrich discourses from {}'.format(p), corpus=self)
+                        discourse_enrichment.config = {'enrichment_type': 'discourse_csv',
+                                                       'path': os.path.join(self.enrichment_directory, p)}
+                elif 'speaker' in p:
+                    if 'Enrich speakers from {}'.format(p) not in names:
+                        speaker_enrichment = Enrichment.objects.create(name='Enrich speakers from {}'.format(p), corpus=self)
+                        speaker_enrichment.config = {'enrichment_type': 'speaker_csv',
+                                                       'path': os.path.join(self.enrichment_directory, p)}
+                else:
+                    if  'Enrich words from {}'.format(p) not in names:
+                        lexicon_enrichment = Enrichment.objects.create(name='Enrich words from {}'.format(p), corpus=self)
+                        lexicon_enrichment.config = {'enrichment_type': 'lexicon_csv',
+                                                       'path': os.path.join(self.enrichment_directory, p)}
 
-        """
-        return 'R' in self.status
 
     def query_corpus(self, query_config):
         with CorpusContext(self.config) as c:
@@ -693,6 +757,9 @@ class Enrichment(models.Model):
     completed = models.BooleanField(default=False)
     last_run = models.DateTimeField(null=True, blank=True)
 
+    def __str__(self):
+        return '{} - {}'.format(self.corpus.name, self.name)
+
     @property
     def config(self):
         with open(self.config_path, 'r') as f:
@@ -767,12 +834,12 @@ class Enrichment(models.Model):
         self.last_run = None
         self.save()
 
-
     def run_enrichment(self):
         self.running = True
         self.save()
         config = self.config
         enrichment_type = config.get('enrichment_type')
+        print(config)
         with CorpusContext(self.corpus.config) as c:
             if enrichment_type == 'subset':
                 annotation_type = config.get('annotation_type')
@@ -803,11 +870,17 @@ class Enrichment(models.Model):
                     c.encode_count(higher_annotation, lower_annotation, property_label, subset=subset_label)
                 elif property_type == 'position':
                     c.encode_position(higher_annotation, lower_annotation, property_label, subset=subset_label)
+            elif enrichment_type == 'discourse_csv':
+                print(config.get('path'))
+                c.enrich_discourses_from_csv(config.get('path'))
+            elif enrichment_type == 'speaker_csv':
+                c.enrich_speakers_from_csv(config.get('path'))
+            elif enrichment_type == 'lexicon_csv':
+                c.enrich_lexicon_from_csv(config.get('path'))
         self.running = False
         self.completed = True
         self.last_run = datetime.datetime.now()
         self.save()
-
 
 
 class Query(models.Model):

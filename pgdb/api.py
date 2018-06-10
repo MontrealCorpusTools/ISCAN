@@ -128,6 +128,27 @@ class CorpusViewSet(viewsets.ModelViewSet):
             corpora = models.Corpus.objects.all()
         else:
             corpora = models.Corpus.objects.filter(user_permissions__user=request.user).all()
+
+        #FIXME TOO MUCH HARDCODING
+        corpus_names = [x.name for x in corpora]
+        requery = False
+        for dataset in os.listdir(settings.SOURCE_DATA_DIRECTORY):
+            if dataset not in corpus_names:
+                d = models.Database.objects.create(name=dataset)
+                c = models.Corpus.objects.create(name=dataset, database=d)
+                if 'input_format' in c.configuration_data:
+                    c.input_format = c.configuration_data['input_format'][0].upper()
+                    c.save()
+                requery = True
+        if requery:
+            if request.user.is_superuser:
+                corpora = models.Corpus.objects.all()
+            else:
+                corpora = models.Corpus.objects.filter(user_permissions__user=request.user).all()
+
+        for c in corpora:
+            c.generate_enrichments()
+
         return Response(self.serializer_class(corpora, many=True).data)
 
     def create(self, request, *args, **kwargs):
@@ -138,9 +159,21 @@ class CorpusViewSet(viewsets.ModelViewSet):
         data = {k: v for k, v in request.data.items()}
         data['database'] = models.Database.objects.get(pk=int(data['database']))
         data['source_directory'] = os.path.join(settings.SOURCE_DATA_DIRECTORY, data['source_directory'])
-        instance = models.Corpus.objects.create(name=data['name'], input_format=data['format'],
-                                                source_directory=data['source_directory'], database=data['database'])
+        instance = models.Corpus.objects.create(name=data['name'], database=data['database'])
         return Response(self.serializer_class(instance).data)
+
+    @detail_route(methods=['post'])
+    def import_corpus(self, request, pk=None):
+        if request.auth is None:
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
+        corpus = self.get_object()
+        if not request.user.is_superuser:
+            permissions = corpus.user_permissions.filter(user=request.user).all()
+            if not len(permissions):
+                return Response(status=status.HTTP_401_UNAUTHORIZED)
+        import_corpus_task.delay(corpus.pk)
+        time.sleep(1)
+        return Response()
 
     @detail_route(methods=['get'])
     def status(self, request, pk=None):
@@ -187,26 +220,6 @@ class CorpusViewSet(viewsets.ModelViewSet):
             hierarchy = c.hierarchy
         print(hierarchy.to_json())
         return Response(hierarchy.to_json())
-
-    @detail_route(methods=['post'])
-    def import_corpus(self, request, pk=None):
-        if request.auth is None:
-            return Response(status=status.HTTP_401_UNAUTHORIZED)
-        if not request.user.is_superuser:
-            return Response(status=status.HTTP_401_UNAUTHORIZED)
-        corpus = self.get_object()
-        if corpus.database.status == 'S':
-            return Response('Database is unavailable', status=status.HTTP_400_BAD_REQUEST)
-        if corpus.status != 'NI':
-            return Response('The corpus has already been imported.', status=status.HTTP_400_BAD_REQUEST)
-        corpus.status = 'IR'
-        corpus.save()
-        blocking = request.data.get('blocking', False)
-        if blocking:
-            import_corpus_task(corpus.pk)
-        else:
-            t = import_corpus_task.delay(corpus.pk)
-        return Response(status=status.HTTP_202_ACCEPTED)
 
     @detail_route(methods=['post'])
     def enrich(self, request, pk=None):
@@ -721,6 +734,7 @@ class EnrichmentViewSet(viewsets.ModelViewSet):
             if not len(permissions):
                 return Response(status=status.HTTP_401_UNAUTHORIZED)
         enrichment = models.Enrichment.objects.filter(pk=pk, corpus=corpus).get()
+        print(enrichment.config)
         run_enrichment_task.delay(enrichment.pk)
         time.sleep(1)
         return Response(True)

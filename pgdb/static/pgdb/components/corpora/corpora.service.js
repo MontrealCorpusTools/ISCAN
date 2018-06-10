@@ -12,6 +12,10 @@ angular.module('pgdb.corpora')
         return $http.get(base_url + id + '/');
     };
 
+    Corpora.importCorpus = function(id){
+        return $http.post(base_url + id +'/import_corpus/', {})
+    };
+
     Corpora.status = function (id) {
         return $http.get(base_url + id + '/status/');
     };
