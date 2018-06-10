@@ -536,6 +536,12 @@ class Corpus(models.Model):
                 utterance_enrichment = Enrichment.objects.create(name='Encode utterances', corpus=self)
                 utterance_enrichment.config = {'enrichment_type': 'utterances',
                                                'pause_length': 0.15}
+            if 'Encode pitch' not in names:
+                pitch_enrichment = Enrichment.objects.create(name='Encode pitch', corpus=self)
+                pitch_enrichment.config = {'enrichment_type': 'pitch'}
+            if 'Relativize pitch' not in names:
+                pitch_enrichment = Enrichment.objects.create(name='Relativize pitch', corpus=self)
+                pitch_enrichment.config = {'enrichment_type': 'relativize_pitch'}
         if 'sibilant_segments' in config:
             if 'Encode sibilants' not in names:
                 sibilant_enrichment = Enrichment.objects.create(name='Encode sibilants', corpus=self)
@@ -543,6 +549,7 @@ class Corpus(models.Model):
                                               'annotation_type': 'phone',
                                               'annotation_labels': config['sibilant_segments'],
                                               'subset_label': 'sibilant'}
+
         if os.path.exists(self.enrichment_directory):
             enrichment_files = os.listdir(self.enrichment_directory)
             for p in enrichment_files:
@@ -877,6 +884,10 @@ class Enrichment(models.Model):
                 c.enrich_speakers_from_csv(config.get('path'))
             elif enrichment_type == 'lexicon_csv':
                 c.enrich_lexicon_from_csv(config.get('path'))
+            elif enrichment_type == 'pitch':
+                c.analyze_pitch()
+            elif enrichment_type == 'relativize_pitch':
+                c.relativize_pitch(by_speaker=True)
         self.running = False
         self.completed = True
         self.last_run = datetime.datetime.now()

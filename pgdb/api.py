@@ -735,7 +735,10 @@ class EnrichmentViewSet(viewsets.ModelViewSet):
                 return Response(status=status.HTTP_401_UNAUTHORIZED)
         enrichment = models.Enrichment.objects.filter(pk=pk, corpus=corpus).get()
         print(enrichment.config)
-        run_enrichment_task.delay(enrichment.pk)
+        if 'pitch' in enrichment.config['enrichment_type']:
+            enrichment.run_enrichment()
+        else:
+            run_enrichment_task.delay(enrichment.pk)
         time.sleep(1)
         return Response(True)
 
