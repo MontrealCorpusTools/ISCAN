@@ -7,7 +7,7 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'polyglot_server.settings')
 from django.conf import settings  # noqa
 
 
-app = Celery('polyglot_server')
+app = Celery('polyglot_server', broker='amqp://guest:guest@172.21.0.1:5672//', backend="django-db")
 # Using a string here means the worker don't have to serialize
 # the configuration object to child processes.
 # - namespace='CELERY' means all celery-related configuration keys

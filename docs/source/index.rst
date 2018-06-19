@@ -10,6 +10,9 @@ Welcome to polyglot-server's documentation!
    :maxdepth: 2
    :caption: Contents:
 
+   introduction.rst
+   installation_via_docker.rst
+   use_via_docker.rst
    getting_started.rst
 
 

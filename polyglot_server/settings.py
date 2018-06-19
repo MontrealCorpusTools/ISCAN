@@ -24,7 +24,7 @@ SECRET_KEY = '@4yy_nnoo6)zbe*csn%o8oxvz4zg3qj!cq*um%p-0ppt8k5n3c'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'testserver']
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'testserver', '0.0.0.0', '132.206.84.241']
 
 # Application definition
 
@@ -171,4 +171,4 @@ BASE_INFLUXDB_PORT = 8400
 ## Celery settings
 CELERY_RESULT_BACKEND = 'django-db'
 
-CELERY_BROKER_URL = 'amqp://guest:guest@localhost:5672//'
+CELERY_BROKER_URL = 'amqp://guest:guest@172.21.0.1:5672//'

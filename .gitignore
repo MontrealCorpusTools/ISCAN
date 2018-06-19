@@ -60,7 +60,8 @@ coverage.xml
 
 # Django stuff:
 *.log
-local_settings.py
+#local_settings.py
+pgdb/migrations/*auto*.py
 
 # Flask stuff:
 instance/
