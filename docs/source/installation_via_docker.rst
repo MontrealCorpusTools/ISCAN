@@ -50,13 +50,15 @@ Included are a :code:`Dockerfile` and a `docker-compose.yml`. In order to build 
 	
 	docker-compose build
 
-Then, create the Docker containers and run the Docker image by running:
+Initial migrations
+------------------
+
+The first time you use polyglot-server, you will need to make database migrations. Run:
 
 .. code-block:: bash
+	docker-compose run app init
 
-	docker-compose up
-
-In your web brower, navigate to :code:`localhost:8080`. You should see the I-SCAN web page.
+The needed migrations to perform will be detected and made.
 
 Superuser creation
 ------------------

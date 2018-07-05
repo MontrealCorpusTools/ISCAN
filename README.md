@@ -66,7 +66,7 @@ To stop the server, press `Ctrl+C` only once. The terminal should show a `Gracef
 
 This Docker instance is configured so that the contents of certain directories persist between runs of the server, and so that contents are constant between the local directory and the directory in the container. These local directories, located in the root of the repository, are:
 
-* `polyglot_source/` - the directory containing corpora to be loaded. **Note:** if you ever need to re-build the image, *move the contents of this folder elsewhere*, rebuild the image, and then move them back. Otherwise, Docker will try to include your (large!) corpora files into the image and hang.
+* `polyglot_source/` - the directory containing corpora to be loaded.
 * `polyglot_data/` - the directory where corpus metadata will be stored
 * `pgdb/` - the directory where the front-end code is stored
 * `polyglot_server/` - the directory containing the Django project for the server
