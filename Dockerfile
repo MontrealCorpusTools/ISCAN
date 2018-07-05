@@ -1,43 +1,38 @@
-#==== Pre-installation ====
-
-# Create the image based on Ubuntu (we will install things on it)
+# Debian based image
 FROM ubuntu
-MAINTAINER Arlie Coles <arlie.coles@mail.mcgill.ca>
-ENV DEBIAN_FRONTEND noninteractive
-RUN apt-get update && apt-get install -y software-properties-common
-CMD /bin/bash
-EXPOSE 5432:5432
+RUN apt-get update && apt-get install -y \
+    software-properties-common \
+    build-essential \
+    git \
+    libjpeg-dev \
+    libfreetype6 \
+    libfreetype6-dev \
+    libpq-dev \
+    postgresql-client \
+    python3-dev \
+    python3-venv \
+    zlib1g-dev \
+    ruby-sass \
+    procps
 
-# Get git
-RUN apt-get update && apt-get install -y git
-
-# Get Python 3 and pip3
-RUN apt-get update && apt-get install -y python3.4 python3-pip
-
-# Get Java 8
 RUN add-apt-repository -y ppa:webupd8team/java && \
- apt-get update -y && \
-	echo oracle-java8-installer shared/accepted-oracle-license-v1-1 select true | /usr/bin/debconf-set-selections
-RUN apt-get install -y oracle-java8-installer
-
-# Get Django
-RUN pip3 install django psycopg2-binary
-RUN if [ ! -f /usr/local/bin/django-admin.py ]; then ln -s /home/docker/.local/bin/django-admin.py /usr/local/bin; fi
-RUN chmod +x /usr/local/bin/django-admin.py
+    apt-get update -y && \
+    echo oracle-java8-installer shared/accepted-oracle-license-v1-1 select true | /usr/bin/debconf-set-selections && \
+    apt-get install -y oracle-java8-installer
 
 # Get barren Praat and add it to the path
 RUN wget http://www.fon.hum.uva.nl/praat/praat6040_linux64barren.tar.gz && \
  gunzip praat6040_linux64barren.tar.gz && \
  tar xvf praat6040_linux64barren.tar && \
  mv praat_barren praat && \
-	export PATH=$PATH:/$PWD
+    export PATH=$PATH:/$PWD
 
 # Get Reaper (should already be on path)
 RUN apt-get update && apt-get install -y cmake
 RUN git clone https://github.com/google/REAPER.git && \
-	cd REAPER && \
+    cd REAPER && \
  mkdir build && \
-	cd build && \
+    cd build && \
  cmake .. && \
  make
 
@@ -47,22 +42,48 @@ ENV DOCKERIZE_VERSION v0.6.1
 RUN wget https://github.com/jwilder/dockerize/releases/download/$DOCKERIZE_VERSION/dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz \
     && tar -C /usr/local/bin -xzvf dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz \
     && rm dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz &&\
-	export PATH=$PATH:/$PWD
+    export PATH=$PATH:/$PWD
+
+# set the environment variable default; can be overridden by compose
+ENV SITE_DIR=/site/
+RUN mkdir -p $SITE_DIR
+WORKDIR $SITE_DIR
+RUN mkdir -p proj/ var/log/ htdocs/
+
+# create a virtualenv to separate app packages from system packages
+RUN python3 -mvenv env/
+COPY docker-utils/ssl/ ssl/
+
+# pre-install requirements; doing this sooner prevents unnecessary layer-building
+COPY requirements.txt requirements.txt
+RUN env/bin/pip install pip --upgrade
+RUN env/bin/pip install -r requirements.txt
+
+# Get django
+RUN find -L . -name . -o -type d -prune -o -type l -exec rm {} +
+RUN env/bin/pip install django psycopg2-binary
+RUN if [ ! -f /usr/local/bin/django-admin.py ]; then ln -s /home/docker/.local/bin/django-admin.py /usr/local/bin; fi
+
+# Set some environment variables; can be overridden by compose
+ENV NUM_THREADS=2
+ENV NUM_PROCS=2
+ENV DJANGO_DATABASE_URL=postgres://postgres@db/postgres
+
+# Copy in docker scripts
+COPY docker-utils/ docker-utils/
+
+# Copy in project files
+COPY . proj/
 
 # Get Node.js
-ADD . /polyglot-server-master
-WORKDIR /polyglot-server-master
-RUN DEBIAN_FRONTEND=noninteractive apt-get update && \
-	DEBIAN_FRONTEND=noninteractive apt-get install -y nodejs && \
-	DEBIAN_FRONTEND=noninteractive apt-get install -y npm && \
- 	DEBIAN_FRONTEND=noninteractive npm install -y && \
- 	npm install -y -g angular-cli
-ENV NODE_PATH /polyglot-server-master/node_modules
+WORKDIR proj/
+RUN DEBIAN_FRONTEND=noninteractive apt-get install -y nodejs npm && \
+    npm install -y
 
-#==== Installation ====
+# Put bin on path
+RUN export PATH=$PATH:/bin
 
-# Install the server's dependencies
-RUN pip3 install -r requirements.txt
+EXPOSE 8080
 
-# Get the latest version of PolyglotDB (useful for development)
-RUN pip3 install https://github.com/MontrealCorpusTools/PolyglotDB/archive/master.zip
+# Set a custom entrypoint to let us provide custom initialization behavior
+ENTRYPOINT ["./docker-utils/start.sh"]

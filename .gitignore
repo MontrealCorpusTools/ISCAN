@@ -14,6 +14,14 @@ test_data/data/
 
 node_modules/
 bower_components/
+
+# Docker volumes
+polyglot_data/*
+polyglot_source/*
+
+# Development PolyglotDB
+PolyglotDB/
+
 # Distribution / packaging
 .Python
 env/

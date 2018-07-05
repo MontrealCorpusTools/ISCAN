@@ -50,9 +50,11 @@ DATABASES = {'default': dj_database_url.parse(
 
 # Hosts/domain names that are valid for this site; required if DEBUG is False
 # See https://docs.djangoproject.com/en/1.5/ref/settings/#allowed-hosts
-ALLOWED_HOSTS = env_list("DJANGO_ALLOWED_HOSTS", '*')
+#ALLOWED_HOSTS = env_list("DJANGO_ALLOWED_HOSTS", '*')
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'testserver', '0.0.0.0', '132.206.84.241']
 
 INSTALLED_APPS = (
+    'corsheaders',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
@@ -73,7 +75,6 @@ INSTALLED_APPS = (
     'pgdb',
     'annotator',
     'intonation',
-    'corsheaders',
     'sekizai',
 
 )
@@ -180,6 +181,31 @@ CORS_ORIGIN_WHITELIST = (
    '127.0.0.1:8080'
 )
 
+## Polyglot-server settings
+
+SOURCE_DATA_DIRECTORY = os.path.join(BASE_DIR, 'test_data', 'source')
+
+POLYGLOT_DATA_DIRECTORY = os.path.join(BASE_DIR, 'test_data', 'data')
+
+try:
+    from .local_settings import *
+except ImportError:
+    pass
+
+POLYGLOT_TEMP_DIR = os.path.join(POLYGLOT_DATA_DIRECTORY, 'downloads')
+
+POLYGLOT_QUERY_DIRECTORY = os.path.join(POLYGLOT_DATA_DIRECTORY, 'queries')
+
+POLYGLOT_ENRICHMENT_DIRECTORY = os.path.join(POLYGLOT_DATA_DIRECTORY, 'enrichments')
+
+NEO4J_VERSION = '3.3.3'
+
+INFLUXDB_VERSION = '1.2.4'
+
+BASE_NEO4J_PORT = 7400
+
+BASE_INFLUXDB_PORT = 8400
+
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
@@ -225,3 +251,25 @@ CONTACT_EMAIL = "joe.jasinski@gmail.com"
 SOURCE_DATA_DIRECTORY = 'polyglot_source'
 
 POLYGLOT_DATA_DIRECTORY = 'polyglot_data'
+
+AUTH_PASSWORD_VALIDATORS = [
+    {
+        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
+    },
+]
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework.authentication.TokenAuthentication',
+        'rest_framework.authentication.BasicAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
+    )
+}

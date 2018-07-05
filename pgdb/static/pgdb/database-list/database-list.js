@@ -35,7 +35,7 @@ angular.module('databaseList', [
             db.start_button = 'Starting...';
             Databases.start(db.id).then(function (res) {
                 $scope.refreshDatabases();
-                db.start_button = 'Start';
+                db.start_button = 'Started';
             });
         };
 

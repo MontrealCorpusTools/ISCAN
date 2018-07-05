@@ -1,0 +1,102 @@
+version: '3'
+services:
+
+  db:
+    image: postgres:9.6
+    container_name: ps-postgres
+    hostname: db
+    expose:
+      - "5432"
+    networks:
+      - jaz
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: ps-rabbitmq
+    hostname: rabbitmq
+    expose:
+      - "5672"
+      - "15672"
+    environment:
+      - RABBITMQ_DEFAULT_USER=guest
+      - RABBITMQ_DEFAULT_PASS=guest
+    networks:
+      - jaz
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ps-app
+    hostname: app
+    command: /site/docker-utils/start.sh
+    volumes:
+      - static-volume:/site/htdocs/static/
+      - ./polyglot_source:/site/proj/polyglot_source
+      - ./polyglot_data:/site/proj/polyglot_data
+      - ./pgdb:/site/proj/pgdb
+      - ./polyglot_server:/site/proj/polyglot_server
+      - ./docker-utils:/site/docker-utils
+      - ../PolyglotDB:/site/proj/PolyglotDB
+    expose:
+      - "8080"
+    ports:
+      - 8080:8080
+      - 7400:7400
+    environment:
+      - DATABASE_URL=postgres://postgres@db/postgres
+      - CELERY_BROKER_URL=amqp://guest:guest@rabbitmq:5672//
+      - SITE_DIR=/site/
+      - PROJECT_NAME=polyglot_server
+      - DJANGO_DEBUG=True
+    depends_on:
+      - rabbitmq
+      - db
+    networks:
+      - jaz
+
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ps-worker
+    hostname: worker
+    command: /site/env/bin/celery worker -A polyglot_server --workdir /site/proj/ -l info
+    ports:
+      - 7402:7402
+    volumes:
+      - static-volume:/site/htdocs/static/
+      - ./polyglot_source:/site/proj/polyglot_source
+      - ./polyglot_data:/site/proj/polyglot_data
+      - ./pgdb:/site/proj/pgdb
+      - ./polyglot_server:/site/proj/polyglot_server
+      - ./docker-utils:/site/docker-utils
+      - ../PolyglotDB:/site/proj/PolyglotDB
+    environment:
+      - DATABASE_URL=postgres://postgres@db/postgres
+      - CELERY_BROKER_URL=amqp://guest:guest@rabbitmq:5672//
+      - SITE_DIR=/site/
+      - PROJECT_NAME=polyglot_server
+      - DJANGO_DEBUG=False
+    depends_on:
+      - rabbitmq
+    networks:
+      - jaz
+
+networks:
+  jaz:
+
+volumes:
+  static-volume:
+  polyglot_source:
+    driver: "local"
+  polyglot_data:
+    driver: "local"
+  pgdb:
+    driver: "local"
+  polyglot_server:
+    driver: "local"
+  docker-utils:
+    driver: "local"
+  PolyglotDB:
+    driver: "local"

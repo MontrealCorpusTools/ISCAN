@@ -6,6 +6,7 @@ import signal
 import json
 import time
 import logging
+import socket
 import yaml
 import shutil
 import datetime
@@ -13,9 +14,13 @@ from django.db import models
 from django.conf import settings
 from django.contrib.auth.models import Group, User
 
+# Comment out once PolyglotDB docker compatibility is merged
+sys.path.insert(0, '/site/proj/PolyglotDB')
+
 from polyglotdb import CorpusContext
 import polyglotdb.io as pgio
-from polyglotdb.config import CorpusConfig
+from polyglotdb\
+    .config import CorpusConfig
 from polyglotdb.utils import get_corpora_list
 
 from .utils import download_influxdb, download_neo4j, extract_influxdb, extract_neo4j, make_influxdb_safe, get_pids, \
@@ -79,7 +84,7 @@ class Database(models.Model):
         exe_name = 'neo4j'
         if sys.platform.startswith('win'):
             exe_name += '.bat'
-        return os.path.join(self.directory, 'neo4j', 'bin', exe_name)
+        return os.path.abspath(os.path.join(self.directory, 'neo4j', 'bin', exe_name))
 
     @property
     def influxdb_exe_path(self):
@@ -132,7 +137,7 @@ class Database(models.Model):
         """
         return os.path.join(self.directory, 'influxdb.log')
 
-    def start(self, timeout=60):
+    def start(self, timeout=20):
         """
         Function to start the components of a PolyglotDB database.  By the end both the Neo4j database and the InfluxDB
         database will be connectable.  This function blocks until connnections are made or until a timeout is reached.
@@ -156,7 +161,7 @@ class Database(models.Model):
             if sys.platform.startswith('win'):
                 neo4j_finder = 'WMIC PROCESS get Processid,Caption,Commandline'
             else:
-                neo4j_finder = 'ps S'
+                neo4j_finder = 'ps aux' #'ps S'
             proc = subprocess.Popen(neo4j_finder, shell=True,
                                     stdout=subprocess.PIPE)
             stdout, stderr = proc.communicate()
@@ -170,33 +175,34 @@ class Database(models.Model):
                                               stderr=logf,
                                               stdin=subprocess.DEVNULL)
                 neo4j_proc.communicate()
-            neo4j_pid = None
-            begin = time.time()
-            while neo4j_pid is None:
-                time.sleep(1)
-                if time.time() - begin > 10:
-                    return False
-                proc = subprocess.Popen(neo4j_finder, shell=True,
-                                        stdout=subprocess.PIPE)
-                stdout, stderr = proc.communicate()
-                for line in stdout.decode('utf8').splitlines():
-                    if 'neo4j' in line and 'java' in line:
-                        pid = int(line.strip().split()[0])
-                        if pid in existing_neo4js:
-                            continue
-                        neo4j_pid = pid
+
+                neo4j_pid = None
+                begin = time.time()
+                while neo4j_pid is None:
+                    time.sleep(1)
+                    if time.time() - begin > 20:
+                        return False
+                    proc = subprocess.Popen(neo4j_finder, shell=True,
+                                            stdout=subprocess.PIPE)
+                    stdout, stderr = proc.communicate()
+                    for line in stdout.decode('utf8').splitlines():
+                        if 'neo4j' in line and 'java' in line:
+                            pid = int(line.strip().split()[1])
+                            if pid in existing_neo4js:
+                                continue
+                            neo4j_pid = pid
+                            break
+                self.neo4j_pid = neo4j_pid
+                begin = time.time()
+                while True:
+                    time.sleep(1)
+                    if time.time() - begin > timeout:
+                        raise Exception(
+                            'Connection to the Neo4j database could not be established in the specified timeout.')
+                    if self.is_running:
                         break
-            self.neo4j_pid = neo4j_pid
-            begin = time.time()
-            while True:
-                time.sleep(1)
-                if time.time() - begin > timeout:
-                    raise Exception(
-                        'Connection to the Neo4j database could not be established in the specified timeout.')
-                if self.is_running:
-                    break
-            self.status = 'R'
-            self.save()
+                self.status = 'R'
+                self.save()
         except Exception as e:
             with open(self.log_path, 'a') as f:
                 exc_type, exc_value, exc_traceback = sys.exc_info()
@@ -219,7 +225,12 @@ class Database(models.Model):
         c = CorpusConfig('')
         c.acoustic_user = None
         c.acoustic_password = None
-        c.host = 'localhost'
+        # Dockerization: if accessing from the app container, put it up on all interfaces
+        # so other containers can connect to it from the app container's IP
+        if socket.gethostname() == 'app':
+            c.host = '0.0.0.0'
+        else:
+            c.host = 'app'
         c.acoustic_http_port = self.influxdb_http_port
         c.graph_user = None
         c.graph_password = None
@@ -228,7 +239,8 @@ class Database(models.Model):
         try:
             get_corpora_list(c)
             return True
-        except:
+        except Exception as e:
+            print(e)
             return False
 
     def stop(self):
@@ -320,6 +332,8 @@ class Database(models.Model):
                                     bolt_port=self.neo4j_bolt_port,
                                     auth_enabled='false'
                                     ))
+            # Make remote connections possible
+            f.write('\ndbms.connectors.default_listen_address=0.0.0.0')
 
         # INFLUXDB CONFIG
         influxdb_conf_path = os.path.join(self.directory, 'influxdb', 'influxdb.conf')
@@ -465,13 +479,17 @@ class Corpus(models.Model):
         c = CorpusConfig(str(self), data_dir=self.data_directory)
         c.acoustic_user = None
         c.acoustic_password = None
-        c.host = 'localhost'
+        # Dockerization: if accessing from the app container, put it up on all interfaces
+        # so other containers can connect to it from the app container's IP
+        if socket.gethostname() == 'app':
+            c.host = '0.0.0.0'
+        else:
+            c.host = 'app'
         c.acoustic_http_port = self.database.influxdb_http_port
         c.graph_user = None
         c.graph_password = None
         c.graph_http_port = self.database.neo4j_http_port
         c.graph_bolt_port = self.database.neo4j_bolt_port
-
         return c
 
     def delete(self, *args, **kwargs):
