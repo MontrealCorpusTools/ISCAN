@@ -87,6 +87,7 @@ angular.module('corpusDetail', [
             console.log($scope.queryIds[type]);
             $state.go('query', {corpus_id:$stateParams.corpus_id, query_id: $scope.queryIds[type]})
         };
+
         $scope.newQuery = function(type){
             $state.go('new_query', {corpus_id: $stateParams.corpus_id, type: type})
         };
@@ -94,5 +95,10 @@ angular.module('corpusDetail', [
         $scope.runEnrichment = function(enrichment_id){
             Enrichment.run($stateParams.corpus_id, enrichment_id).then()
         };
+
+        $scope.newSubset = function(type){
+            console.log('new subset hello world')
+            $state.go('new_subset', {corpus_id: $stateParams.corpus_id, type: type})
+        }
 
     });

@@ -50,7 +50,7 @@ angular.module('query', [
 
         $scope.queryState = {
             queryRunning: false,
-            queryText: 'Save query'
+            queryText: 'Save and run query'
         };
 
         $scope.query = {

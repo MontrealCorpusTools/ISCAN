@@ -29,26 +29,28 @@ Included are a `Dockerfile` and a `docker-compose.yml`. In order to build a Dock
 
 ``docker-compose build``
 
+Then, run:
+
+``docker-compose up``
+
+This will launch the containers.
+
 ### Initial migrations
 
-The first time you use polyglot-server, you will need to make database migrations. Run:
+The first time you use polyglot-server, you will need to make database migrations. In another terminal, while the containers are up, run:
 
 ``docker-compose run app init``
 
 The needed migrations to perform will be detected and made.
 
 ### Superuser creation
-The first time you use polyglot-server, you will need to set up a username and password to log in with. Run:
+The first time you use polyglot-server, you will need to set up a username and password to log in with. In another terminal, while the containers are up, run:
 
 ``docker-compose run app manage createsuperuser``
 
-This will start the containers and begin a prompt that asks you for a username, email address, and password. Once you have filled them out, the containers will close.
+This will begin a prompt that asks you for a username, email address, and password. Once you have filled them out, the prompt will close.
 
-Then, run:
-
-``docker-compose up``
-
-and log in with your credentials. You should only need to perform this step once; from now on, whenever you start the server, you should be able to log in with your defined username and password. When finished, press `Ctrl+C` to end the current server run.
+Then, you should be able to log in with your credentials. You should only need to perform this step once; from now on, whenever you start the server, you should be able to log in with your defined username and password. When finished, press :code:`Ctrl+C` to end the current server run.
 
 ## Use and workflow
 
