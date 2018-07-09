@@ -25,11 +25,12 @@ angular.module('intonation.query')
         };
 
         Query.update = function (corpus_id, id, queryData) {
+            queryData.refresh = true;
             return $http.put(base_url + corpus_id + '/query/' + id + '/', queryData);
         };
 
         Query.getResults = function(corpus_id, id){
-            return $http.get(base_url + corpus_id + '/query/' + id + '/results/');
+            return $http.get(base_url + corpus_id + '/query/' + id + '/results/', {params: {limit:0}});
 
         };
 

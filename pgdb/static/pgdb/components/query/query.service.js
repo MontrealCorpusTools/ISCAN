@@ -11,6 +11,7 @@ angular.module('pgdb.query')
                 pages: [],
                 queryRunning: false,
                 queryText: 'Save query',
+                refreshText: 'Refresh',
                 exportText: 'Export to csv'};
         Query.reset_state = function(id){
             if (id != Query.state.currentQueryId){
@@ -23,6 +24,7 @@ angular.module('pgdb.query')
                 pages: [],
                 queryRunning: false,
                 queryText: 'Save query',
+                refreshText: 'Refresh',
                 exportText: 'Export to csv'}
             }
         };
@@ -36,8 +38,14 @@ angular.module('pgdb.query')
             return $http.get(base_url + corpus_id + '/query/' + id + '/');
         };
 
-        Query.update = function (corpus_id, id, queryData) {
+        Query.update = function (corpus_id, id, queryData, refresh) {
+            queryData.refresh = refresh;
             return $http.put(base_url + corpus_id + '/query/' + id + '/', queryData);
+        };
+
+        Query.saveOrdering = function(corpus_id, id, ordering){
+
+            return $http.put(base_url + corpus_id + '/query/' + id + '/ordering/', {ordering: ordering});
         };
 
         Query.all = function (corpus_id) {

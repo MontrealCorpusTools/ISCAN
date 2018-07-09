@@ -2,7 +2,13 @@ angular.module('bestiaryPlot', [
     'intonation.query'
 ])
     .controller('BestiaryPlotCtrl', function ($scope, BestiaryQuery, Corpora, $state, $stateParams, $interval, $rootScope) {
-        $scope.filter_options = {discourse:[], speaker:[]}
+        $scope.filter_options = {discourse:[], speaker:[]};
+        $scope.facet_attribute = null;
+        $scope.color_attribute = null;
+        $scope.max_lines = 100;
+        $scope.queryText = 'Update';
+        $scope.refreshing = false;
+        $scope.color_options = [];
         $scope.refreshPermissions = function () {
             $scope.user = $rootScope.user;
             $scope.authenticated = $rootScope.authenticated;
@@ -42,19 +48,23 @@ angular.module('bestiaryPlot', [
                     };
 
 
-                    for (i = 0; i < $scope.hierarchy.discourse_properties.length; i++) {
-                        prop = $scope.hierarchy.discourse_properties[i][0];
-                        $scope.propertyTypes.discourse[prop] = $scope.hierarchy.discourse_properties[i][1];
-                        if ($scope.properties.discourse.indexOf(prop) === -1 && prop !== 'id') {
-                            $scope.properties.discourse.push(prop);
-                        }
-                    }
-
+                    $scope.color_options = [];
                     for (i = 0; i < $scope.hierarchy.speaker_properties.length; i++) {
                         prop = $scope.hierarchy.speaker_properties[i][0];
                         $scope.propertyTypes.speaker[prop] = $scope.hierarchy.speaker_properties[i][1];
                         if ($scope.properties.speaker.indexOf(prop) === -1 && prop !== 'id') {
                             $scope.properties.speaker.push(prop);
+                            $scope.color_options.push('speaker ' + prop);
+                        }
+                    }
+
+                    for (i = 0; i < $scope.hierarchy.discourse_properties.length; i++) {
+                        prop = $scope.hierarchy.discourse_properties[i][0];
+                        $scope.propertyTypes.discourse[prop] = $scope.hierarchy.discourse_properties[i][1];
+                        if ($scope.properties.discourse.indexOf(prop) === -1 && prop !== 'id') {
+                            $scope.properties.discourse.push(prop);
+                            $scope.color_options.push('discourse ' + prop);
+
                         }
                     }
                 });
@@ -87,6 +97,8 @@ angular.module('bestiaryPlot', [
             BestiaryQuery.getResults($stateParams.corpus_id, $scope.query.id).then(function (res) {
                 $scope.utterances = res.data;
                 console.log($scope.query);
+        $scope.queryText = 'Update';
+        $scope.refreshing = false;
 
             }).catch(function (res) {
                 console.log(res)
@@ -100,7 +112,8 @@ angular.module('bestiaryPlot', [
 
 
         $scope.updateQuery = function () {
-            $scope.queryState.queryText = 'Fetching results...';
+            $scope.queryText = 'Refreshing...';
+            $scope.refreshing = true;
             console.log($scope.queryState);
             BestiaryQuery.update($stateParams.corpus_id, $scope.query.id, $scope.query).then(function (res) {
                 $scope.query = res.data;
@@ -127,7 +140,7 @@ angular.module('bestiaryPlot', [
             console.log('hellloooooooo')
             console.log($scope.query)
             if ($scope.query != undefined) {
-                if ($scope.query.running || $scope.query.result_count == null) {
+                if ($scope.refreshing || $scope.query.running || $scope.query.result_count == null) {
                     BestiaryQuery.getBestiaryQuery($stateParams.corpus_id).then(function (res) {
                         $scope.query = res.data;
                         $scope.query.annotation_type = $scope.query.annotation_type.toLowerCase();

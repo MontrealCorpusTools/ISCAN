@@ -45,6 +45,11 @@ class PitchPointSerializer(serializers.Serializer):
     time = serializers.FloatField()
     F0 = serializers.FloatField()
 
+class FormantPointSerializer(serializers.Serializer):
+    time = serializers.FloatField()
+    F1 = serializers.FloatField()
+    F2 = serializers.FloatField()
+    F3 = serializers.FloatField()
 
 class AnnotationSerializer(serializers.Serializer):
     pass
@@ -75,8 +80,10 @@ class UnauthorizedUserSerializer(serializers.ModelSerializer):
         depth = 2
         fields = ('id', 'first_name', 'last_name', 'username', 'is_superuser')
 
-def serializer_factory(hierarchy, a_type, exclude=None, with_pitch=False, with_waveform=False, with_spectrogram=False, with_higher_annotations=False,with_lower_annotations=False, top_level=False, detail=False, with_subannotations=False):
+def serializer_factory(hierarchy, a_type, exclude=None, acoustic_columns=None, with_waveform=False, with_spectrogram=False, with_higher_annotations=False,with_lower_annotations=False, top_level=False, detail=False, with_subannotations=False):
     parent = (object,)
+    if acoustic_columns is None:
+        acoustic_columns = []
     class_name = 'Serializer'
     if exclude is None:
         exclude = []
@@ -135,8 +142,11 @@ def serializer_factory(hierarchy, a_type, exclude=None, with_pitch=False, with_w
             elif t == bool:
                 field = serializers.BooleanField()
             a_attrs[prop] = field
-        if with_pitch:
-            a_attrs['pitch_track'] = PitchPointSerializer(many=True)
+        for a_column in acoustic_columns:
+            if a_column == 'pitch':
+                a_attrs['pitch_track'] = PitchPointSerializer(many=True)
+            elif a_column == 'formants':
+                a_attrs['formant_track'] = FormantPointSerializer(many=True)
         if with_waveform:
             a_attrs['waveform'] = serializers.ListField()
         if with_spectrogram:
@@ -180,6 +190,7 @@ def serializer_factory(hierarchy, a_type, exclude=None, with_pitch=False, with_w
                 attrs[s] = serializer_factory(hierarchy, s, with_subannotations=with_subannotations)(many=True)
     return type(base)(class_name, (base,), attrs)
 
+
 class EnrichmentSerializer(serializers.ModelSerializer):
     enrichment_type = serializers.SerializerMethodField()
     runnable = serializers.SerializerMethodField()
@@ -193,15 +204,19 @@ class EnrichmentSerializer(serializers.ModelSerializer):
     def get_runnable(self, obj):
         return obj.runnable
 
+
 class QuerySerializer(serializers.ModelSerializer):
     annotation_type = serializers.SerializerMethodField()
     filters = serializers.SerializerMethodField()
     columns = serializers.SerializerMethodField()
+    acoustic_columns = serializers.SerializerMethodField()
     subsets = serializers.SerializerMethodField()
+    ordering = serializers.SerializerMethodField()
 
     class Meta:
         model = models.Query
-        fields = ('id', 'name', 'user', 'corpus', 'annotation_type', 'result_count', 'running', 'filters', 'columns', 'subsets')
+        fields = ('id', 'name', 'user', 'corpus', 'annotation_type', 'result_count', 'running', 'filters',
+                  'columns', 'acoustic_columns', 'subsets', 'ordering')
 
     def get_annotation_type(self, obj):
         return obj.get_annotation_type_display()
@@ -212,5 +227,11 @@ class QuerySerializer(serializers.ModelSerializer):
     def get_columns(self, obj):
         return obj.config['columns']
 
+    def get_acoustic_columns(self, obj):
+        return obj.config.get('acoustic_columns', {})
+
     def get_subsets(self, obj):
         return obj.config['subsets']
+
+    def get_ordering(self, obj):
+        return obj.config.get('ordering', '')

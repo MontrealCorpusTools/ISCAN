@@ -1,25 +1,101 @@
 <div class="row">
     <div class='col-md-9'>
-        <bestiary-plot data="utterances"></bestiary-plot>
+        <div ng-show="!query.running && !refreshing">
+        <bestiary-plot data="utterances" max_lines="max_lines"></bestiary-plot>
+        </div>
+        <div ng-show="query.running || refreshing">
+            <span>Query loading...</span>
+        </div>
     </div>
     <div class="col-md-3">
+<multiselect-dropdown class="tabs" ng-cloak style="max-height:100%">
+        <md-content>
+            <md-tabs md-border-bottom>
 
-        <div id="filters">
-            <label>Speaker: <select ng-model="query.filters.speaker.name" class="form-control"
-                                    ng-options="speaker for speaker in speakers" ng-change="update()">
+                <md-tab label="Filters">
+                    <md-content class="md-padding">
+                        <label>Speaker: <select ng-model="query.filters.speaker.name" class="form-control"
+                                    ng-options="speaker for speaker in speakers">
                 <option value="">All</option>
             </select></label>
-            <div ng-repeat="p in filter_options.discourse">
-                <label>{{p.name}}: <select ng-model="query.filters.discourse[p.name]"  class="form-control"
-                                           ng-options="speaker for speaker in p.options" ng-change="update()">
+            <div ng-repeat="p in filter_options.speakers">
+                <label>{{p.name}}: <select ng-model="query.filters.speaker[p.name]"  class="form-control"
+                                           ng-options="o for o in p.options">
 
                 <option value="">All</option>
                 </select></label>
             </div>
-        </div>
-        <div id="facets"></div>
-        <div id="export">
-            <a href="{{ export_url}}">Export all tracks</a>
-        </div>
+                        <label>Discourse: <select ng-model="query.filters.discourse.name" class="form-control"
+                                    ng-options="discourse for discourse in discourses">
+                <option value="">All</option>
+            </select></label>
+            <div ng-repeat="p in filter_options.discourse">
+                <label>{{p.name}}: <select ng-model="query.filters.discourse[p.name]"  class="form-control"
+                                           ng-options="o for o in p.options">
+
+                <option value="">All</option>
+                </select></label>
+            </div>
+                    </md-content>
+                </md-tab>
+
+                <md-tab label="Plotting">
+                    <md-content class="md-padding">
+                        <table class="table table-striped scrollable-table">
+                            <thead>
+                            </thead>
+                            <tbody>
+                            <tr>
+                                <td>Facet</td>
+                                <td>
+                                    <select ng-model="facet_attribute"  class="form-control"
+                                           ng-options="option for option in color_options">
+
+                <option value="">None</option>
+                </select>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>Color</td>
+                                <td>
+                                    <select ng-model="color_attribute"  class="form-control"
+                                           ng-options="option for option in color_options">
+
+                <option value="">None</option>
+                </select>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>Relative</td>
+                                <td>
+                                    <input type="checkbox" ng-model="query.acoustic_columns.pitch.relative">
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>Relative time</td>
+                                <td>
+                                    <input type="checkbox" ng-model="query.acoustic_columns.pitch.relative_time">
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>Max number of lines</td>
+                                <td>
+                                    <input ng-model="max_lines">
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </md-content>
+                </md-tab>
+
+            </md-tabs>
+        </md-content>
+    </multiselect-dropdown>
+
+        <button class='btn btn-success' ng-click="updateQuery()" ng-disabled="query.running"><span
+                ng-bind="queryText"></span></button>
+        <button class='btn btn-danger' ng-click="clearFilters()" ng-disabled="query.running"><span>Clear filters</span>
+        </button>
+<button class="btn" ng-disabled="query.running" ng-show="!newQuery" ng-click="export()"><span>Export as csv</span></button>
     </div>
 </div>

@@ -63,7 +63,7 @@ md-content {
 
 .col-md-3 md-content{
     //height:800px;
-    height: 100%;
+    //height: 100%;
     overflow-y: hidden;
     overflow-x: visible;
 }

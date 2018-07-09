@@ -3,17 +3,24 @@ angular.module('corpusDetail', [
     'pgdb.enrichment',
     'pgdb.query'
 ])
-    .controller('CorpusDetailCtrl', function ($scope, Corpora, $state, $stateParams, Query, Enrichment) {
+    .controller('CorpusDetailCtrl', function ($scope, Corpora, $state, $stateParams, Query, Enrichment, $timeout) {
+
+        var loadTime = 10000, //Load the data every second
+            errorCount = 0, //Counter for the server errors
+            loadPromise; //Pointer to the promise created by the Angular $timout service
+
         $scope.properties = {};
         $scope.subsets = {};
         $scope.queryIds = {};
         $scope.available_queries = {};
-        Corpora.one($stateParams.corpus_id).then(function (res) {
+
+        var getData = function () {
+            Corpora.one($stateParams.corpus_id).then(function (res) {
             $scope.corpus = res.data;
             console.log($scope.corpus);
             if ($scope.corpus.imported) {
-                Corpora.status($stateParams.corpus_id).then(function(res) {
-                   $scope.corpus_status = res.data;
+                Corpora.status($stateParams.corpus_id).then(function (res) {
+                    $scope.corpus_status = res.data;
                 });
                 Query.type_queries($stateParams.corpus_id, 'utterance').then(function (res) {
                     $scope.available_queries.utterance = res.data;
@@ -32,36 +39,36 @@ angular.module('corpusDetail', [
                     console.log($scope.available_queries)
                 });
 
-                Enrichment.all($stateParams.corpus_id).then(function (res){
+                Enrichment.all($stateParams.corpus_id).then(function (res) {
                     $scope.enrichments = res.data;
                 });
                 Corpora.hierarchy($stateParams.corpus_id).then(function (res) {
                     $scope.hierarchy = res.data;
                     console.log($scope.hierarchy);
-                    for (var atype in $scope.hierarchy._data){
+                    for (var atype in $scope.hierarchy._data) {
                         console.log(atype)
                         $scope.properties[atype] = [];
-                        for (j=0; j<$scope.hierarchy.type_properties[atype].length; j++){
+                        for (j = 0; j < $scope.hierarchy.type_properties[atype].length; j++) {
                             var prop = $scope.hierarchy.type_properties[atype][j][0];
-                            if ($scope.properties[atype].indexOf(prop) === -1){
+                            if ($scope.properties[atype].indexOf(prop) === -1) {
                                 $scope.properties[atype].push(prop)
                             }
                         }
-                        for (j=0; j<$scope.hierarchy.token_properties[atype].length; j++){
+                        for (j = 0; j < $scope.hierarchy.token_properties[atype].length; j++) {
                             var prop = $scope.hierarchy.token_properties[atype][j][0];
-                            if ($scope.properties[atype].indexOf(prop) === -1){
+                            if ($scope.properties[atype].indexOf(prop) === -1) {
                                 $scope.properties[atype].push(prop)
                             }
                         }
 
                         $scope.subsets[atype] = [];
-                        if ($scope.hierarchy.subset_types[atype] !== undefined){
-                        for (j=0; j<$scope.hierarchy.subset_types[atype].length; j++){
-                            var prop = $scope.hierarchy.subset_types[atype][j];
-                            if ($scope.subsets[atype].indexOf(prop) === -1){
-                                $scope.subsets[atype].push(prop)
+                        if ($scope.hierarchy.subset_types[atype] !== undefined) {
+                            for (j = 0; j < $scope.hierarchy.subset_types[atype].length; j++) {
+                                var prop = $scope.hierarchy.subset_types[atype][j];
+                                if ($scope.subsets[atype].indexOf(prop) === -1) {
+                                    $scope.subsets[atype].push(prop)
+                                }
                             }
-                        }
 
                         }
                         if ($scope.hierarchy.subset_tokens[atype] !== undefined) {
@@ -76,23 +83,64 @@ angular.module('corpusDetail', [
                     console.log($scope.properties)
                 });
             }
+            else if ($scope.corpus.busy){
+                
+
+            }
+            nextLoad(loadTime);
+        });
+        };
+
+        var cancelNextLoad = function () {
+            $timeout.cancel(loadPromise);
+        };
+
+        var nextLoad = function (mill) {
+            mill = mill || loadTime;
+
+            //Always make sure the last timeout is cleared before starting a new one
+            cancelNextLoad();
+            loadPromise = $timeout(getData, mill);
+        };
+
+
+        //Start polling the data from the server
+        getData();
+
+
+        //Always clear the timeout when the view is destroyed, otherwise it will keep polling and leak memory
+        $scope.$on('$destroy', function () {
+            cancelNextLoad();
         });
 
 
-        $scope.importCorpus = function(){
-            Corpora.importCorpus($stateParams.corpus_id)
+
+
+
+        $scope.importCorpus = function () {
+            Corpora.importCorpus($stateParams.corpus_id).then(function (res) {
+            getData();
+            });
         };
 
-        $scope.openQuery = function(type){
+        $scope.openQuery = function (type) {
             console.log($scope.queryIds[type]);
-            $state.go('query', {corpus_id:$stateParams.corpus_id, query_id: $scope.queryIds[type]})
+            $state.go('query', {corpus_id: $stateParams.corpus_id, query_id: $scope.queryIds[type]})
         };
-        $scope.newQuery = function(type){
+        $scope.newQuery = function (type) {
             $state.go('new_query', {corpus_id: $stateParams.corpus_id, type: type})
         };
 
-        $scope.runEnrichment = function(enrichment_id){
-            Enrichment.run($stateParams.corpus_id, enrichment_id).then()
+        $scope.runEnrichment = function (enrichment_id) {
+            Enrichment.run($stateParams.corpus_id, enrichment_id).then(function (res) {
+            getData();
+            });
+        };
+        $scope.resetEnrichment = function(enrichment_id){
+            Enrichment.reset($stateParams.corpus_id, enrichment_id).then(function (res) {
+            getData();
+            });
+
         };
 
     });
