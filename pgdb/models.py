@@ -962,17 +962,33 @@ class Query(models.Model):
                 ann = a
             else:
                 ann = getattr(a, f_a_type)
-            for d in a_filters:
-                field, value = d['property'], d['value']
-                if value == 'null':
-                    value = None
-                else:
-                    try:
-                        value = float(value)
-                    except ValueError:
-                        value = value
-                att = getattr(ann, field)
-                q = q.filter(att == value)
+            if isinstance(a_filters, dict):
+                for field, value in a_filters.items():
+                    if value == 'null':
+                        value = None
+                    else:
+                        try:
+                            value = float(value)
+                        except (ValueError, TypeError):
+                            value = value
+                    if value is None:
+                        continue
+                    att = getattr(ann, field)
+                    q = q.filter(att == value)
+            else:
+                for d in a_filters:
+                    field, value = d['property'], d['value']
+                    if value == 'null':
+                        value = None
+                    else:
+                        try:
+                            value = float(value)
+                        except (ValueError, TypeError):
+                            value = value
+                    if value is None:
+                        continue
+                    att = getattr(ann, field)
+                    q = q.filter(att == value)
         for f_a_type, a_subsets in config['subsets'].items():
             if f_a_type == a_type:
                 ann = a
