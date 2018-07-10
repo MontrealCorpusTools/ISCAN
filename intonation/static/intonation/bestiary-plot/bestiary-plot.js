@@ -2,7 +2,7 @@ angular.module('bestiaryPlot', [
     'intonation.query',
     'ngFileSaver'
 ])
-    .controller('BestiaryPlotCtrl', function ($scope, BestiaryQuery, Corpora, $state, $stateParams, $interval, $rootScope, FileSaver, Blob) {
+    .controller('BestiaryPlotCtrl', function ($scope, BestiaryQuery, Query, Corpora, $state, $stateParams, $interval, $rootScope, FileSaver, Blob) {
         $scope.filter_options = {discourse:[], speaker:[]};
         $scope.facet_attribute = null;
         $scope.color_attribute = null;
