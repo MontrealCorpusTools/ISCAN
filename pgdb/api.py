@@ -5,6 +5,7 @@ import json
 
 from django.conf import settings
 from django.http.response import FileResponse, HttpResponse
+from django.db.models import Q
 from rest_framework import generics, permissions, viewsets, status, pagination
 from rest_framework.response import Response
 from rest_framework.decorators import detail_route, list_route
@@ -820,9 +821,9 @@ class QueryViewSet(viewsets.ModelViewSet):
             permissions = corpus.user_permissions.filter(user=request.user).all()
             if not len(permissions):
                 return Response(status=status.HTTP_401_UNAUTHORIZED)
-            queries = models.Query.objects.filter(user=request.user, corpus=corpus,annotation_type='U').all()
+            queries = models.Query.objects.filter(user=request.user, corpus=corpus,annotation_type='U').filter(~Q(name='Bestiary query')).all()
         else:
-            queries = models.Query.objects.filter(annotation_type='U', corpus=corpus).all()
+            queries = models.Query.objects.filter(annotation_type='U', corpus=corpus).filter(~Q(name='Bestiary query')).all()
         return Response(serializers.QuerySerializer(queries, many=True).data)
 
     @list_route(methods=['GET'])

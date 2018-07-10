@@ -9,6 +9,7 @@ var app = angular.module('pgdb', [
     'ui.router',
     //'long2know',
     'ngResource',
+    'ngFileSaver',
     'ui.bootstrap',
     'ngCookies',
     'ngMaterial',

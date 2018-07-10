@@ -987,6 +987,8 @@ class Query(models.Model):
                 q = q.columns(att)
 
         for a_column, props in acoustic_columns.items():
+            if not props.get('include', False):
+                continue
             acoustic = getattr(a, a_column)
             acoustic.relative_time = props.get('relative_time', False)
             acoustic.relative = props.get('relative', False)
