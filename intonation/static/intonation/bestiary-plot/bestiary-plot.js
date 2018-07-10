@@ -107,8 +107,8 @@ angular.module('bestiaryPlot', [
         };
 
         $scope.clearFilters = function () {
-            $scope.query.filters.speaker = [];
-            $scope.query.filters.discourse = [];
+            $scope.query.filters.speaker.name = '';
+            $scope.query.filters.discourse.name = '';
         };
 
 
