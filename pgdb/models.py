@@ -964,30 +964,25 @@ class Query(models.Model):
                 ann = getattr(a, f_a_type)
             if isinstance(a_filters, dict):
                 for field, value in a_filters.items():
+                    att = getattr(ann, field)
                     if value == 'null':
                         value = None
                     else:
-                        try:
-                            value = float(value)
-                        except (ValueError, TypeError):
-                            value = value
+                        value = att.coerce_value(value)
                     if value is None:
                         continue
                     att = getattr(ann, field)
                     q = q.filter(att == value)
             else:
                 for d in a_filters:
+                    att = getattr(ann, field)
                     field, value = d['property'], d['value']
                     if value == 'null':
                         value = None
                     else:
-                        try:
-                            value = float(value)
-                        except (ValueError, TypeError):
-                            value = value
+                        value = att.coerce_value(value)
                     if value is None:
                         continue
-                    att = getattr(ann, field)
                     q = q.filter(att == value)
         for f_a_type, a_subsets in config['subsets'].items():
             if f_a_type == a_type:
@@ -1043,30 +1038,24 @@ class Query(models.Model):
                         ann = getattr(a, f_a_type)
                     if isinstance(a_filters, dict):
                         for field, value in a_filters.items():
+                            att = getattr(ann, field)
                             if value == 'null':
                                 value = None
                             else:
-                                try:
-                                    value = float(value)
-                                except (ValueError, TypeError):
-                                    value = value
+                                value = att.coerce_value(value)
                             if value is None:
                                 continue
-                            att = getattr(ann, field)
                             q = q.filter(att == value)
                     else:
                         for d in a_filters:
+                            att = getattr(ann, field)
                             field, value = d['property'], d['value']
                             if value == 'null':
                                 value = None
                             else:
-                                try:
-                                    value = float(value)
-                                except (ValueError, TypeError):
-                                    value = value
+                                value = att.coerce_value(value)
                             if value is None:
                                 continue
-                            att = getattr(ann, field)
                             q = q.filter(att == value)
                 for f_a_type, a_subsets in config['subsets'].items():
                     if f_a_type == a_type:
