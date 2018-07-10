@@ -870,6 +870,12 @@ class Query(models.Model):
     running = models.BooleanField(default=False)
     result_count = models.IntegerField(null=True, blank=True)
 
+    class Meta:
+        verbose_name_plural = 'Queries'
+
+    def __str__(self):
+        return '{} - {}'.format(self.corpus.name, self.name)
+
     @property
     def config(self):
         with open(self.config_path, 'r') as f:

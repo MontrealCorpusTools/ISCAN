@@ -28,6 +28,7 @@ class CorpusPermissionsAdmin(admin.ModelAdmin):
 @admin.register(Query)
 class QueryAdmin(admin.ModelAdmin):
     actions = [delete_selected]
+    list_display = ['name', 'corpus', 'user', 'running', 'result_count']
 
 
 @admin.register(Enrichment)
