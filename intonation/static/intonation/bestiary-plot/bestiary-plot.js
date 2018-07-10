@@ -1,7 +1,8 @@
 angular.module('bestiaryPlot', [
-    'intonation.query'
+    'intonation.query',
+    'ngFileSaver'
 ])
-    .controller('BestiaryPlotCtrl', function ($scope, BestiaryQuery, Corpora, $state, $stateParams, $interval, $rootScope) {
+    .controller('BestiaryPlotCtrl', function ($scope, BestiaryQuery, Corpora, $state, $stateParams, $interval, $rootScope, FileSaver, Blob) {
         $scope.filter_options = {discourse:[], speaker:[]};
         $scope.facet_attribute = null;
         $scope.color_attribute = null;
@@ -119,6 +120,22 @@ angular.module('bestiaryPlot', [
                 $scope.query = res.data;
 
             })
+
+        };
+
+        $scope.export = function () {
+            $scope.query.running = true;
+            $scope.refreshing = true;
+            $scope.queryText = 'Exporting...';
+
+            Query.export($stateParams.corpus_id, $scope.query.id, $scope.query).then(function (res) {
+                var data = new Blob([res.data], { type: 'text/plain;charset=utf-8' });
+                FileSaver.saveAs(data, $scope.query.name + ' export.csv');
+                $scope.query.running = false;
+            $scope.refreshing = false;
+            $scope.queryText = 'Update';
+            });
+
 
         };
 

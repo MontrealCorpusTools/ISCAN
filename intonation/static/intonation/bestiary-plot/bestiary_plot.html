@@ -1,7 +1,7 @@
 <div class="row">
     <div class='col-md-9'>
         <div ng-show="!query.running && !refreshing">
-        <bestiary-plot data="utterances" max_lines="max_lines"></bestiary-plot>
+        <bestiary-plot data="utterances"></bestiary-plot>
         </div>
         <div ng-show="query.running || refreshing">
             <span>Query loading...</span>
