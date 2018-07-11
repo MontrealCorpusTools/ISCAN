@@ -11,11 +11,11 @@
 
 
 {% addtoblock "css" %}
-    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet"/>{% endaddtoblock %}
+    <link href="{% static "node_modules/bootstrap/dist/css/bootstrap.css" %}" rel="stylesheet"/>{% endaddtoblock %}
 
 {% addtoblock "js" %}
     <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <script src="{% static "node_modules/bootstrap/dist/js/bootstrap.js" %}"></script>
 {% endaddtoblock %}
 
 

@@ -16,7 +16,7 @@ from polyglotdb import CorpusContext
 from . import models
 from . import serializers
 from .utils import get_used_ports
-from .tasks import import_corpus_task, enrich_corpus_task, run_query_task, run_enrichment_task, reset_enrichment_task
+from .tasks import import_corpus_task, run_query_task, run_enrichment_task, reset_enrichment_task
 
 
 class DatabaseViewSet(viewsets.ModelViewSet):
@@ -258,34 +258,6 @@ class CorpusViewSet(viewsets.ModelViewSet):
         print(hierarchy.to_json())
         return Response(hierarchy.to_json())
 
-    @detail_route(methods=['post'])
-    def enrich(self, request, pk=None):
-        if request.auth is None:
-            return Response(status=status.HTTP_401_UNAUTHORIZED)
-        corpus = self.get_object()
-        if not request.user.is_superuser:
-            permissions = corpus.user_permissions.filter(user=request.user).all()
-            if not len(permissions):
-                return Response(status=status.HTTP_401_UNAUTHORIZED)
-        data = request.data
-
-        if corpus.database.status != 'R':
-            return Response("The corpus's database is not currently running.",
-                            status=status.HTTP_400_BAD_REQUEST)
-        if corpus.status == 'NI':
-            return Response('The corpus has not been imported yet.', status=status.HTTP_400_BAD_REQUEST)
-        if corpus.is_busy:
-            return Response('The corpus is currently busy, please try once the current process is finished.',
-                            status=status.HTTP_409_CONFLICT)
-        corpus.status = 'ER'
-        corpus.save()
-        blocking = data.get('blocking', False)
-        if blocking:
-            enrich_corpus_task(corpus.pk, data)
-        else:
-            t = enrich_corpus_task.delay(corpus.pk, data)
-        return Response(status=status.HTTP_202_ACCEPTED)
-
     @detail_route(methods=['get'])
     def utterance_pitch_track(self, request, pk=None):
         if request.auth is None:
@@ -321,8 +293,9 @@ class CorpusViewSet(viewsets.ModelViewSet):
         id = request.data['id']
         track = request.data['track']
         with CorpusContext(corpus.config) as c:
-            c.update_utterance_pitch_track(id, track)
-        return Response({'success': True})
+            time_stamp = c.update_utterance_pitch_track(id, track)
+            print(time_stamp)
+        return Response({'success': True, 'time_stamp': time_stamp})
 
 
 class SourceChoiceViewSet(viewsets.ViewSet):
@@ -775,6 +748,14 @@ class EnrichmentViewSet(viewsets.ModelViewSet):
                                             'lower_annotation': 'syllable',
                                             'property_label': 'speech_rate'}
             requery = True
+        if 'Encode pitch' not in names:
+            pitch_enrichment = models.Enrichment.objects.create(name='Encode pitch', corpus=corpus)
+            pitch_enrichment.config = {'enrichment_type': 'pitch'}
+            requery = True
+        if 'Relativize pitch' not in names:
+            pitch_enrichment = models.Enrichment.objects.create(name='Relativize pitch', corpus=corpus)
+            pitch_enrichment.config = {'enrichment_type': 'relativize_pitch'}
+            requery = True
         if requery:
             enrichments = models.Enrichment.objects.filter(corpus=corpus).all()
         return Response(serializers.EnrichmentSerializer(enrichments, many=True).data)
@@ -802,11 +783,8 @@ class EnrichmentViewSet(viewsets.ModelViewSet):
             if not len(permissions):
                 return Response(status=status.HTTP_401_UNAUTHORIZED)
         enrichment = models.Enrichment.objects.filter(pk=pk, corpus=corpus).get()
-        print(enrichment.config)
-        if 'pitch' in enrichment.config['enrichment_type']:
-            enrichment.run_enrichment()
-        else:
-            run_enrichment_task.delay(enrichment.pk)
+
+        run_enrichment_task.delay(enrichment.pk)
         time.sleep(1)
         return Response(True)
 
@@ -850,7 +828,6 @@ class QueryViewSet(viewsets.ModelViewSet):
     serializer_class = serializers.QuerySerializer
 
     def get_queryset(self):
-        print('hellooooooo')
         return models.Query.objects.filter(corpus__pk=self.kwargs['corpus_pk'])
 
     def list(self, request, corpus_pk=None):
@@ -892,10 +869,13 @@ class QueryViewSet(viewsets.ModelViewSet):
         query = models.Query.objects.filter(pk=pk, corpus=corpus).get()
         if query is None:
             return Response(None, status=status.HTTP_400_BAD_REQUEST)
+        refresh = request.data.pop('refresh', False)
         query.name = request.data.get('name')
-        do_run = query.config['filters'] != request.data['filters'] or query.config['subsets'] != request.data[
-            'subsets']
-        query.config = request.data
+        do_run = refresh or (query.config['filters'] != request.data['filters'] or query.config['subsets'] != request.data[
+            'subsets'])
+        c = query.config
+        c.update(request.data)
+        query.config = c
         if do_run:
             run_query_task.delay(query.pk)
             time.sleep(1)
@@ -982,6 +962,26 @@ class QueryViewSet(viewsets.ModelViewSet):
         results = query.get_results(ordering, limit, offset)
         return Response(results)
 
+    @detail_route(methods=['put'])
+    def ordering(self, request, pk=None, corpus_pk=None, index=None):
+        print(request.query_params)
+        if request.auth is None:
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
+        corpus = models.Corpus.objects.get(pk=corpus_pk)
+        if not request.user.is_superuser:
+            permissions = corpus.user_permissions.filter(user=request.user).all()
+            if not len(permissions) or not permissions[0].can_view_detail:
+                return Response(status=status.HTTP_401_UNAUTHORIZED)
+        query = models.Query.objects.filter(pk=pk, corpus=corpus).get()
+        if query is None:
+            return Response(None, status=status.HTTP_400_BAD_REQUEST)
+        config = query.config
+        config['ordering'] = request.data.get('ordering')
+        query.resort(config['ordering'])
+        query.config = config
+
+        return Response(serializers.QuerySerializer(query).data)
+
     @detail_route(methods=['get'])
     def result(self, request, pk=None, corpus_pk=None, index=None):
         print(request.query_params)
@@ -1001,7 +1001,7 @@ class QueryViewSet(viewsets.ModelViewSet):
         index = int(request.query_params.get('index', '0'))
         limit = 1
         offset = index
-        with_pitch = request.query_params.get('with_pitch', False)
+
         with_waveform = request.query_params.get('with_waveform', False)
         with_spectrogram = request.query_params.get('with_spectrogram', False)
         with_subannotations = request.query_params.get('with_subannotations', False)
@@ -1026,16 +1026,23 @@ class QueryViewSet(viewsets.ModelViewSet):
                                 q = q.preload(getattr(c.utterance, s))
                             else:
                                 q = q.preload(getattr(getattr(c.utterance, t), s))
-
-                if with_pitch:
-                    q = q.preload_acoustics(c.utterance.pitch)
+                acoustic_columns = query.config.get('acoustic_columns', {})
+                acoustic_column_names = []
+                for a_column, props in acoustic_columns.items():
+                    if not props.get('include', False):
+                        continue
+                    acoustic = getattr(c.utterance, a_column)
+                    q = q.preload_acoustics(acoustic)
+                    acoustic_column_names.append(a_column)
 
                 utterances = q.all()
                 print(len(utterances))
                 if utterances is None:
                     data['utterance'] = None
                 else:
-                    serializer = serializers.serializer_factory(c.hierarchy, 'utterance', with_pitch=with_pitch,
+
+                    serializer = serializers.serializer_factory(c.hierarchy, 'utterance',
+                                                                acoustic_columns=acoustic_columns,
                                                                 with_waveform=with_waveform,
                                                                 with_spectrogram=with_spectrogram,
                                                                 top_level=True,
@@ -1069,27 +1076,13 @@ class QueryViewSet(viewsets.ModelViewSet):
         if do_run:
             return Response(None, status=status.HTTP_405_METHOD_NOT_ALLOWED)
         query.config = request.data
-        columns = query.config['columns']
         response['Content-Disposition'] = 'attachment; filename="{}_query_export.csv"'.format(
             query.get_annotation_type_display())
-        results = query.get_results(ordering='', offset=0, limit=None)
+        print(query.config)
+        with CorpusContext(corpus.config) as c:
+            q = query.generate_query(c)
 
-        writer = csv.writer(response)
-        header = []
-        for f_a_type, a_columns in columns.items():
-            for field, val in a_columns.items():
-                if not val:
-                    continue
-                header.append('{}_{}'.format(f_a_type, field))
-        writer.writerow(header)
-        print(len(results))
-        for r in results:
-            line = []
-            for f_a_type, a_columns in columns.items():
-                for field, val in a_columns.items():
-                    if not val:
-                        continue
-                    line.append(r[f_a_type][field])
-            writer.writerow(line)
+            writer = csv.writer(response)
+            q.to_csv(writer)
 
         return response

@@ -415,6 +415,8 @@ var pitch_y = d3.scaleLinear().range([height, 0]).nice();
         scope: {
             height: '=height',
             data: '=data',
+            relative_time: '=relative_time',
+            max_lines: '=max_lines',
             hovered: '&hovered'
         },
         link: function (scope, element, attrs) {
@@ -442,12 +444,17 @@ var pitch_y = d3.scaleLinear().range([height, 0]).nice();
                 .y(function (d) {
                     return y(d.F0);
                 });
+                console.log(scope.max_lines)
             scope.$watch('data', function (newVal, oldVal) {
                 vis.selectAll("*").remove();
                 //pitch_viewplot.append('g').selectAll("circle.original").remove();
                 if (!newVal) {
                     return;
                 }
+                if (scope.max_lines == undefined){
+                    scope.max_lines = 100;
+                }
+                newVal = newVal.slice(0,scope.max_lines);
                 y.domain([d3.min(newVal, function (d) {
                     return d3.min(d.utterance.pitch_track, function (d2) {
                         return d2.F0
@@ -457,6 +464,21 @@ var pitch_y = d3.scaleLinear().range([height, 0]).nice();
                         return d2.F0
                     });
                 })]);
+                if (scope.relative_time){
+                    x.domain([0, 1]);
+                }
+                else{
+
+                x.domain([d3.min(newVal, function (d) {
+                    return d3.min(d.utterance.pitch_track, function (d2) {
+                        return d2.time
+                    });
+                }), d3.max(newVal, function (d) {
+                    return d3.max(d.utterance.pitch_track, function (d2) {
+                        return d2.time
+                    });
+                })]);
+                }
                 var padding = (y.domain()[1] - y.domain()[0]) * 0.05;
                 y.domain([y.domain()[0] - padding, y.domain()[1] + padding]);
 

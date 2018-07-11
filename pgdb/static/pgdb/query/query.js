@@ -77,6 +77,10 @@ angular.module('query', [
                 utterance: {},
                 discourse: {},
                 speaker: {}
+            },
+            acoustic_columns: {
+                pitch: {include: false},
+                formants: {include: false}
             }
         };
 
@@ -176,6 +180,7 @@ angular.module('query', [
         Query.reset_state($stateParams.query_id);
         $scope.queryState = Query.state;
         $scope.annotation_types = Query.annotation_types;
+        $scope.refreshing = false;
 
         $scope.properties = [];
 
@@ -205,6 +210,7 @@ angular.module('query', [
             }
             Query.one($stateParams.corpus_id, $stateParams.query_id).then(function (res) {
                 $scope.query = res.data;
+                $scope.queryState.ordering = $scope.query.ordering;
                 $scope.query.annotation_type = $scope.query.annotation_type.toLowerCase();
                 Corpora.hierarchy($stateParams.corpus_id).then(function (res) {
                     $scope.hierarchy = res.data;
@@ -273,7 +279,22 @@ angular.module('query', [
             $scope.queryState.queryRunning = true;
             $scope.queryState.queryText = 'Fetching results...';
             console.log($scope.queryState);
-            Query.update($stateParams.corpus_id, $stateParams.query_id, $scope.query).then(function (res) {
+            Query.update($stateParams.corpus_id, $stateParams.query_id, $scope.query,false).then(function (res) {
+                $scope.query = res.data;
+                $scope.updatePagination();
+                $scope.refreshPagination(1);
+                console.log('LOOK HERE')
+                console.log($scope.query);
+                console.log($scope.queryState);
+            })
+
+        };
+        $scope.refreshQuery = function () {
+            $scope.queryState.queryRunning = true;
+            $scope.queryState.refreshText = 'Refreshing...';
+        $scope.refreshing = true;
+            console.log($scope.queryState);
+            Query.update($stateParams.corpus_id, $stateParams.query_id, $scope.query,true).then(function (res) {
                 $scope.query = res.data;
                 $scope.updatePagination();
                 $scope.refreshPagination(1);
@@ -284,12 +305,20 @@ angular.module('query', [
 
         };
 
+        $scope.updateOrdering = function(){
+            Query.saveOrdering($stateParams.corpus_id, $stateParams.query_id,$scope.queryState.ordering).then(function (res) {
+
+            });
+        };
+
         $scope.getQueryResults = function () {
             Query.getResults($stateParams.corpus_id, $stateParams.query_id, $scope.queryState.offset, $scope.queryState.ordering, $scope.queryState.resultsPerPage).then(function (res) {
                 $scope.queryState.results = res.data;
+                $scope.refreshing = false;
                 console.log($scope.query);
                 console.log($scope.queryState.results);
                 $scope.queryState.queryText = 'Run query';
+                $scope.queryState.refreshText = 'Refresh';
                 $scope.updatePagination();
                 $scope.refreshPagination(1);
             }).catch(function (res) {
@@ -419,7 +448,7 @@ angular.module('query', [
             console.log('hellloooooooo')
             console.log($scope.query)
             if ($scope.query != undefined) {
-                if ($scope.query.running || $scope.query.result_count == null) {
+                if ($scope.refreshing || $scope.query.running || $scope.query.result_count == null) {
                     Query.one($stateParams.corpus_id, $stateParams.query_id).then(function (res) {
                         $scope.query = res.data;
                         $scope.query.annotation_type = $scope.query.annotation_type.toLowerCase();

@@ -419,6 +419,7 @@ class Corpus(models.Model):
     database = models.ForeignKey(Database, on_delete=models.CASCADE, related_name='corpora')
 
     imported = models.BooleanField(default=False)
+    busy = models.BooleanField(default=False)
     current_task_id = models.CharField(max_length=250, blank=True, null=True)
 
     users = models.ManyToManyField(User, through='CorpusPermissions')
@@ -508,6 +509,7 @@ class Corpus(models.Model):
 
         """
         self.imported = False
+        self.busy = True
         self.save()
         with CorpusContext(self.config) as c:
             c.reset()
@@ -527,6 +529,7 @@ class Corpus(models.Model):
                 return False
             c.load(parser, self.source_directory)
         self.imported = True
+        self.busy = False
         self.save()
 
     def generate_enrichments(self):
@@ -594,57 +597,6 @@ class Corpus(models.Model):
             q.from_json(c, query_config)
             results = q.all()
         return results
-
-    def enrich_corpus(self, enrichment_config):
-        """
-        Function that enriches a Corpus with further information.  Several enrichments are predefined and parameters are
-        specified through the enrichment_config argument, which must have a key for 'type' of enrichment.  The enrichment
-        types currently supported are:
-
-        * pause
-          * Encodes pauses, requires a 'pause_words' key in `enrichment_config`
-        * utterance
-          * Encodes utterances, optionally can specify 'pause_length' to use in encoding
-        * syllabic
-          * Encodes syllabic segments, requires a 'phones' key in `enrichment_config`
-        * syllable
-          * Encodes syllables, optionally can specify 'algorithm' for which syllabification algorithm to use (defaults to
-            'maxonset')
-        * hierarchical
-          * Encodes properties based on the hierarchical structure, either 'count', 'rate', or 'position' must be specified
-            in `enrichment_config`, along with 'higher_annotation_type', 'lower_annotation_type', 'name' and (optionally)
-            'subset'.  See X in the PolyglotDB documentation for more information about hierarchical property encoding.
-
-        :param enrichment_config:
-        """
-        if enrichment_config['type'] == 'pause':
-            with CorpusContext(self.config) as c:
-                c.encode_pauses(enrichment_config['pause_words'])
-        elif enrichment_config['type'] == 'utterance':
-            with CorpusContext(self.config) as c:
-                c.encode_utterances(enrichment_config.get('pause_length', 0.5))
-        elif enrichment_config['type'] == 'syllabic':
-            with CorpusContext(self.config) as c:
-                c.encode_syllabic_segments(enrichment_config['phones'])
-        elif enrichment_config['type'] == 'syllable':
-            with CorpusContext(self.config) as c:
-                c.encode_syllables(enrichment_config.get('algorithm', 'maxonset'))
-        elif enrichment_config['type'] == 'hierarchical':
-            with CorpusContext(self.config) as c:
-                if enrichment_config['hierarchical_type'] == 'count':
-                    c.encode_count(enrichment_config['higher_annotation_type'],
-                                   enrichment_config['lower_annotation_type'], enrichment_config['name'],
-                                   enrichment_config.get('subset', None))
-                elif enrichment_config['hierarchical_type'] == 'rate':
-                    c.encode_rate(enrichment_config['higher_annotation_type'],
-                                  enrichment_config['lower_annotation_type'], enrichment_config['name'],
-                                  enrichment_config.get('subset', None))
-                elif enrichment_config['hierarchical_type'] == 'position':
-                    c.encode_position(enrichment_config['higher_annotation_type'],
-                                      enrichment_config['lower_annotation_type'], enrichment_config['name'],
-                                      enrichment_config.get('subset', None))
-        self.status = 'I'
-        self.save()
 
     @property
     def has_pauses(self):
@@ -831,6 +783,8 @@ class Enrichment(models.Model):
     def reset_enrichment(self):
         self.running = True
         self.save()
+        self.corpus.busy = True
+        self.corpus.save()
         config = self.config
         enrichment_type = config.get('enrichment_type')
         with CorpusContext(self.corpus.config) as c:
@@ -854,14 +808,22 @@ class Enrichment(models.Model):
                     c.reset_property(higher_annotation, property_label)
                 elif property_type == 'position':
                     c.reset_property(lower_annotation, property_label)
+            elif enrichment_type == 'pitch':
+                c.reset_pitch()
+            elif enrichment_type == 'relativize_pitch':
+                c.reset_relativized_pitch()
         self.running = False
         self.completed = False
         self.last_run = None
         self.save()
+        self.corpus.busy = False
+        self.corpus.save()
 
     def run_enrichment(self):
         self.running = True
         self.save()
+        self.corpus.busy = True
+        self.corpus.save()
         config = self.config
         enrichment_type = config.get('enrichment_type')
         print(config)
@@ -903,13 +865,15 @@ class Enrichment(models.Model):
             elif enrichment_type == 'lexicon_csv':
                 c.enrich_lexicon_from_csv(config.get('path'))
             elif enrichment_type == 'pitch':
-                c.analyze_pitch()
+                c.analyze_pitch(multiprocessing=False)
             elif enrichment_type == 'relativize_pitch':
                 c.relativize_pitch(by_speaker=True)
         self.running = False
         self.completed = True
         self.last_run = datetime.datetime.now()
         self.save()
+        self.corpus.busy = False
+        self.corpus.save()
 
 
 class Query(models.Model):
@@ -935,6 +899,32 @@ class Query(models.Model):
         with open(self.config_path, 'w') as f:
             json.dump(new_config, f)
 
+    def resort(self, ordering):
+        if not hasattr(self, '_results'):
+            self._results = None
+            self._count = 0
+            if os.path.exists(self.results_path):
+                with open(self.results_path, 'r') as f:
+                    self._results = json.load(f)
+                self._count = len(self._results)
+            else:
+                self.run_query()
+        self._ordering = self.config.get('ordering', None)
+        if ordering != self._ordering and ordering:
+            ordering = ordering.replace(self.annotation_type.lower() + '.', '')
+            self._ordering = ordering
+
+            def order_function(input):
+                ordering = self._ordering.replace('-', '').split('.')
+                item = input
+                for o in ordering:
+                    item = item[o]
+                return item
+
+            self._results.sort(key=order_function, reverse=self._ordering.startswith('-'))
+            with open(self.results_path, 'w') as f:
+                json.dump(self._results, f)
+
     def get_results(self, ordering, limit, offset):
         if self.running:
             return None
@@ -949,8 +939,7 @@ class Query(models.Model):
                 self.run_query()
         if self._results is None:
             return None
-        if not hasattr(self, '_ordering'):
-            self._ordering = None
+        self._ordering = self.config.get('ordering', None)
         if ordering != self._ordering and ordering:
             ordering = ordering.replace(self.annotation_type.lower() + '.', '')
             self._ordering = ordering
@@ -963,7 +952,7 @@ class Query(models.Model):
                 return item
 
             self._results.sort(key=order_function, reverse=self._ordering.startswith('-'))
-        if limit is None:
+        if limit is None or limit == 0:
             res = self._results[offset:]
         else:
             res = self._results[offset:offset + limit]
@@ -972,6 +961,56 @@ class Query(models.Model):
             r['index'] = ind
             ind += 1
         return res
+
+    def generate_query(self, corpus_context):
+        a_type = self.get_annotation_type_display().lower()
+        config = self.config
+        acoustic_columns = config.get('acoustic_columns', {})
+        columns = config.get('columns', {})
+        a = getattr(corpus_context, a_type)
+        q = corpus_context.query_graph(a)
+        for f_a_type, a_filters in config['filters'].items():
+            if f_a_type == a_type:
+                ann = a
+            else:
+                ann = getattr(a, f_a_type)
+            for d in a_filters:
+                field, value = d['property'], d['value']
+                if value == 'null':
+                    value = None
+                else:
+                    try:
+                        value = float(value)
+                    except ValueError:
+                        value = value
+                att = getattr(ann, field)
+                q = q.filter(att == value)
+        for f_a_type, a_subsets in config['subsets'].items():
+            if f_a_type == a_type:
+                ann = a
+            else:
+                ann = getattr(a, f_a_type)
+            for s in a_subsets:
+                q = q.filter(ann.subset == s)
+
+        for f_a_type, a_columns in columns.items():
+            for field, val in a_columns.items():
+                if not val:
+                    continue
+                if f_a_type == a_type:
+                    ann = a
+                else:
+                    ann = getattr(a, f_a_type)
+                att = getattr(ann, field)
+                q = q.columns(att)
+
+        for a_column, props in acoustic_columns.items():
+            acoustic = getattr(a, a_column)
+            acoustic.relative_time = props.get('relative_time', False)
+            acoustic.relative = props.get('relative', False)
+            acoustic = acoustic.track
+            q = q.columns(acoustic)
+        return q
 
     def run_query(self):
         self.running = True
@@ -987,7 +1026,7 @@ class Query(models.Model):
         try:
             a_type = self.get_annotation_type_display().lower()
             config = self.config
-            with_pitch = config.get('with_pitch', False)
+            acoustic_columns = config.get('acoustic_columns', {})
             with CorpusContext(self.corpus.config) as c:
                 a = getattr(c, a_type)
                 q = c.query_graph(a)
@@ -996,17 +1035,33 @@ class Query(models.Model):
                         ann = a
                     else:
                         ann = getattr(a, f_a_type)
-                    for d in a_filters:
-                        field, value = d['property'], d['value']
-                        if value == 'null':
-                            value = None
-                        else:
-                            try:
-                                value = float(value)
-                            except ValueError:
-                                value = value
-                        att = getattr(ann, field)
-                        q = q.filter(att == value)
+                    if isinstance(a_filters, dict):
+                        for field, value in a_filters.items():
+                            if value == 'null':
+                                value = None
+                            else:
+                                try:
+                                    value = float(value)
+                                except (ValueError, TypeError):
+                                    value = value
+                            if value is None:
+                                continue
+                            att = getattr(ann, field)
+                            q = q.filter(att == value)
+                    else:
+                        for d in a_filters:
+                            field, value = d['property'], d['value']
+                            if value == 'null':
+                                value = None
+                            else:
+                                try:
+                                    value = float(value)
+                                except (ValueError, TypeError):
+                                    value = value
+                            if value is None:
+                                continue
+                            att = getattr(ann, field)
+                            q = q.filter(att == value)
                 for f_a_type, a_subsets in config['subsets'].items():
                     if f_a_type == a_type:
                         ann = a
@@ -1016,11 +1071,15 @@ class Query(models.Model):
                         q = q.filter(ann.subset == s)
                 self._count = q.count()
                 q = q.preload(getattr(a, 'discourse'), getattr(a, 'speaker'))
-                if with_pitch:
-                    pitch = getattr(a, 'pitch')
-                    pitch.relative_time = True
-                    pitch.relative = True
-                    q = q.preload_acoustics(pitch)
+                acoustic_column_names = []
+                for a_column, props in acoustic_columns.items():
+                    if not props.get('include', False):
+                        continue
+                    acoustic = getattr(a, a_column)
+                    acoustic.relative_time = props.get('relative_time', False)
+                    acoustic.relative = props.get('relative', False)
+                    q = q.preload_acoustics(acoustic)
+                    acoustic_column_names.append(a_column)
                 for t in c.hierarchy.annotation_types:
                     if t in c.hierarchy.subannotations:
                         for s in c.hierarchy.subannotations[t]:
@@ -1032,14 +1091,28 @@ class Query(models.Model):
                     q = q.preload(getattr(a, t))
                 res = q.all()
                 serializer_class = serializer_factory(c.hierarchy, a_type, top_level=True,
-                                                      with_pitch=with_pitch, detail=False,
+                                                      acoustic_columns=acoustic_column_names, detail=False,
                                                       with_higher_annotations=True,
                                                       with_subannotations=True)
                 serializer = serializer_class(res, many=True)
                 self._results = serializer.data
-                self.result_count = len(self._results)
+                ordering = self.config.get('ordering', None)
+                if ordering:
+                    ordering = ordering.replace(self.annotation_type.lower() + '.', '')
+                    self._ordering = ordering
+
+                    def order_function(input):
+                        ordering = self._ordering.replace('-', '').split('.')
+                        item = input
+                        for o in ordering:
+                            item = item[o]
+                        return item
+
+                    self._results.sort(key=order_function, reverse=self._ordering.startswith('-'))
                 with open(self.results_path, 'w') as f:
                     json.dump(self._results, f)
+
+                self.result_count = len(self._results)
             self.running = False
             self.save()
         except:

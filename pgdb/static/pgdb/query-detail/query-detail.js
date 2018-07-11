@@ -369,6 +369,8 @@ angular.module('queryDetail', [
             $scope.$on('SAVE_TRACK', function (e, res) {
                 Query.save_pitch_track($scope.corpus.id, $scope.utterance.id, $scope.utterance.pitch_track).then(function (res) {
                     console.log(res.data);
+                    $scope.utterance.pitch_last_edited = res.data.time_stamp;
+                    $scope.propertyValues.utterance.pitch_last_edited = res.data.time_stamp;
                     $scope.$broadcast('SAVE_RESPONSE', res);
                 });
             });

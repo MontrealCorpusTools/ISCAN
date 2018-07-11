@@ -104,10 +104,14 @@
 
         <button class='btn btn-success' ng-click="updateQuery()" ng-disabled="query.running"><span
                 ng-bind="queryState.queryText"></span></button>
+        <button class='btn btn-success' ng-click="refreshQuery()" ng-disabled="query.running"><span
+                ng-bind="queryState.refreshText"></span></button>
+        <button class='btn btn-success' ng-click="updateOrdering()" ng-disabled="query.running">
+            <span>Save current ordering</span></button>
         <button class='btn btn-danger' ng-click="clearFilters()" ng-disabled="query.running"><span>Clear filters</span>
         </button>
-<button class="btn" ng-disabled="query.running" ng-show="!newQuery"><span
-                ng-bind="queryState.exportText" ng-click="export()"></span></button>
+<button class="btn" ng-disabled="query.running" ng-show="!newQuery" ng-click="export()"><span
+                ng-bind="queryState.exportText"></span></button>
     </div>
     <div ng-show="query.result_count==0 && !newQuery">
         <span>No results found</span>
@@ -214,7 +218,7 @@
 </div>
 
 <div class="col-md-3  scroll-container">
-    <multiselect-dropdown class="tabs" ng-cloak style="max-height:100%" ng-show="!newQuery">
+    <multiselect-dropdown class="tabs" ng-cloak style="height:50%" ng-show="!newQuery">
         <md-content>
             <md-tabs md-border-bottom>
 
@@ -278,4 +282,45 @@
             </md-tabs>
         </md-content>
     </multiselect-dropdown>
+    <div ng-show="!newQuery">
+    <h3>Exporting acoustic tracks</h3>
+    <multiselect-dropdown class="tabs" ng-cloak style="max-height:100%">
+        <md-content>
+            <md-tabs md-border-bottom>
+
+                <md-tab label="Pitch">
+                    <md-content class="md-padding">
+                        <table class="table table-striped scrollable-table">
+                            <thead>
+                            </thead>
+                            <tbody>
+                            <tr>
+                                <td>Include</td>
+                                <td>
+                                    <input type="checkbox" ng-model="query.acoustic_columns.pitch.include">
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>Relative</td>
+                                <td>
+                                    <input type="checkbox" ng-model="query.acoustic_columns.pitch.relative">
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>Relative time</td>
+                                <td>
+                                    <input type="checkbox" ng-model="query.acoustic_columns.pitch.relative_time">
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </md-content>
+                </md-tab>
+
+            </md-tabs>
+        </md-content>
+    </multiselect-dropdown>
+
+    </div>
+
 </div>

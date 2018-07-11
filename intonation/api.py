@@ -32,7 +32,8 @@ class BestiaryCorpusViewSet(api.CorpusViewSet):
             query = models.Query.objects.get(corpus=corpus, name='Bestiary query')
         except models.Query.DoesNotExist:
             query = models.Query.objects.create(corpus=corpus, name='Bestiary query', annotation_type='U', user=request.user)
-            query.config = {'with_pitch': True, 'filters':{}, 'columns':{}, 'subsets':{}}
+            query.config = {'with_pitch': True, 'filters':{}, 'columns':{}, 'subsets':{},
+                            'acoustic_columns':{'pitch':{'include': True, 'relative':True, 'relative_time':True}}}
             run_query_task.delay(query.pk)
             time.sleep(1)
         return Response(serializers.QuerySerializer(query).data)
