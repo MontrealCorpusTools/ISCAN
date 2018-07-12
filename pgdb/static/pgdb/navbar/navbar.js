@@ -17,6 +17,8 @@ angular.module('navbar', [
                     $rootScope.user = undefined;
                     $rootScope.authenticated = false;
                     $scope.authenticated = false;
+                    $rootScope.$broadcast("unauthenticated", user);
+
                 }
                 else {
                     $rootScope.user = user.data;
@@ -33,6 +35,7 @@ angular.module('navbar', [
                 $rootScope.user = undefined;
                 $rootScope.authenticated = false;
                 $scope.authenticated = false;
+                $rootScope.$broadcast("unauthenticated", user);
             });
 
         };

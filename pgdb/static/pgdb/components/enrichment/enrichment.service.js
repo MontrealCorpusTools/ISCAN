@@ -16,5 +16,9 @@ angular.module('pgdb.enrichment')
             return $http.post(base_url + corpus_id + '/enrichment/' + id + '/reset/', {});
         };
 
+        Enrichment.create = function(corpus_id, enrichmentData) {
+            return $http.post(base_url + corpus_id + '/enrichment/', enrichmentData);
+        };
+
         return Enrichment;
     });

@@ -151,7 +151,13 @@ angular.module('bestiaryPlot', [
 
         });
 
-        $scope.refreshPermissions();
+        $scope.$on('authenticated', $scope.refreshPermissions);
+        $scope.$on('unauthenticated', function(){
+            $state.go('home');
+        });
+        if ($rootScope.authenticated){
+            $scope.refreshPermissions();
+        }
 
         $scope.intervalFunction = function () {
             console.log('hellloooooooo')

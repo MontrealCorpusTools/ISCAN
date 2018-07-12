@@ -54,6 +54,10 @@ angular.module('query', [
             queryText: 'Save query'
         };
 
+        $scope.$on('unauthenticated', function(){
+            $state.go('home');
+        });
+
         $scope.query = {
             annotation_type: $stateParams.type.toLowerCase(),
             name: "New " + $stateParams.type + " query",
@@ -186,9 +190,9 @@ angular.module('query', [
 
         $scope.export_link = Query.getExportLink($stateParams.corpus_id, $stateParams.query_id);
 
-        $scope.$on('authenticated', $scope.refreshPermissions);
 
         $scope.refreshPermissions = function () {
+            console.log('REFRESHING');
             $scope.user = $rootScope.user;
             $scope.authenticated = $rootScope.authenticated;
             if ($scope.user == undefined) {
@@ -275,6 +279,7 @@ angular.module('query', [
                 $scope.getQueryResults();
             });
         };
+
         $scope.updateQuery = function () {
             $scope.queryState.queryRunning = true;
             $scope.queryState.queryText = 'Fetching results...';
@@ -433,7 +438,10 @@ angular.module('query', [
             $scope.getQueryResults()
         };
 
-        $scope.refreshPermissions();
+        $scope.$on('authenticated', $scope.refreshPermissions);
+        $scope.$on('unauthenticated', function(){
+            $state.go('home');
+        });
 
         $scope.intervalFunction = function () {
             console.log('hellloooooooo')

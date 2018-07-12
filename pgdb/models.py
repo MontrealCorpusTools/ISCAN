@@ -847,9 +847,26 @@ class Enrichment(models.Model):
             elif enrichment_type == 'lexicon_csv':
                 c.enrich_lexicon_from_csv(config.get('path'))
             elif enrichment_type == 'pitch':
-                c.analyze_pitch(multiprocessing=False)
+                c.analyze_pitch(source=config.get('source', 'praat'), multiprocessing=False)
+            elif enrichment_type == 'formants':
+                c.analyze_vowel_formant_tracks(source=config.get('source', 'praat'), multiprocessing=False)
+            elif enrichment_type == 'refined_formant_points':
+                from polyglotdb.acoustics.formants.refined import analyze_formant_points_refinement
+                duration_threshold = 0.01
+                nIterations = 5
+                vowel_prototypes_path = None
+                metadata = analyze_formant_points_refinement(c, None, duration_threshold=duration_threshold,
+                                                             num_iterations=nIterations,
+                                                             vowel_prototypes_path=vowel_prototypes_path
+                                                             )
+            elif enrichment_type == 'intensity':
+                c.analyze_intensity(source=config.get('source', 'praat'), multiprocessing=False)
             elif enrichment_type == 'relativize_pitch':
                 c.relativize_pitch(by_speaker=True)
+            elif enrichment_type == 'relativize_intensity':
+                c.relativize_intensity(by_speaker=True)
+            elif enrichment_type == 'relativize_formants':
+                c.relativize_formants(by_speaker=True)
         self.running = False
         self.completed = True
         self.last_run = datetime.datetime.now()

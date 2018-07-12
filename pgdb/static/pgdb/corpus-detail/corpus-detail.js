@@ -3,8 +3,11 @@ angular.module('corpusDetail', [
     'pgdb.enrichment',
     'pgdb.query'
 ])
-    .controller('CorpusDetailCtrl', function ($scope, Corpora, $state, $stateParams, Query, Enrichment, $timeout) {
+    .controller('CorpusDetailCtrl', function ($scope, Corpora, $state, $stateParams, Query, $timeout) {
 
+        $scope.$on('unauthenticated', function(){
+            $state.go('home');
+        });
         var loadTime = 10000, //Load the data every second
             errorCount = 0, //Counter for the server errors
             loadPromise; //Pointer to the promise created by the Angular $timout service
@@ -39,9 +42,6 @@ angular.module('corpusDetail', [
                     console.log($scope.available_queries)
                 });
 
-                Enrichment.all($stateParams.corpus_id).then(function (res) {
-                    $scope.enrichments = res.data;
-                });
                 Corpora.hierarchy($stateParams.corpus_id).then(function (res) {
                     $scope.hierarchy = res.data;
                     console.log($scope.hierarchy);
@@ -130,17 +130,8 @@ angular.module('corpusDetail', [
         $scope.newQuery = function (type) {
             $state.go('new_query', {corpus_id: $stateParams.corpus_id, type: type})
         };
-
-        $scope.runEnrichment = function (enrichment_id) {
-            Enrichment.run($stateParams.corpus_id, enrichment_id).then(function (res) {
-            getData();
-            });
-        };
-        $scope.resetEnrichment = function(enrichment_id){
-            Enrichment.reset($stateParams.corpus_id, enrichment_id).then(function (res) {
-            getData();
-            });
-
+        $scope.enrichment = function(){
+            $state.go('enrichment', {corpus_id: $stateParams.corpus_id})
         };
 
     });

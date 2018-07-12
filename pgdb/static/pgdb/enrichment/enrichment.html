@@ -1,0 +1,77 @@
+<h3 ng-if="corpus.busy" style="color: red">Corpus is currently busy!</h3>
+
+<div class="row" ng-show="corpus.imported">
+    <div class="col-md-9 scroll-container text-center" style="height:1280px">
+        <table class="table table-bordered table-striped scrollable-table">
+
+            <thead>
+            <tr>
+                <td>
+                    Name
+                </td>
+                <td>
+                    Enrichment type
+                </td>
+                <td>
+                    Runnable
+                </td>
+                <td>
+                    Running
+                </td>
+                <td>
+                    Completed
+                </td>
+                <td>
+                    Last run
+                </td>
+                <td>
+                    Actions
+                </td>
+            </tr>
+            </thead>
+            <tbody style="height:50%">
+            <tr ng-repeat="enrichment in enrichments">
+                <td>
+                    {{enrichment.name}}
+                </td>
+                <td>
+                    {{enrichment.enrichment_type}}
+                </td>
+                <td>
+                    {{enrichment.runnable}}
+                </td>
+                <td>
+                    {{enrichment.running}}
+                </td>
+                <td>
+                    {{enrichment.completed}}
+                </td>
+                <td>
+                    {{enrichment.last_run}}
+                </td>
+                <td>
+                    <button ng-if="!corpus.busy" ng-click="runEnrichment(enrichment.id)">Run</button>
+                    <button ng-if="!corpus.busy" ng-click="resetEnrichment(enrichment.id)">Reset</button>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+    <div class="col-md-3">
+        <h3>Create new enrichments</h3>
+        <ul>
+            <li>
+                <button>Phone subset</button>
+            </li>
+            <li>
+                <button>Hierarchical property</button>
+            </li>
+            <li>
+                <button>Properties from a CSV</button>
+            </li>
+            <li>
+                <button ng-click="createAcoustics()">Acoustics</button>
+            </li>
+        </ul>
+    </div>
+</div>
