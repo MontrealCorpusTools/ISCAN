@@ -209,6 +209,43 @@ class CorpusViewSet(viewsets.ModelViewSet):
         return Response(speakers)
 
     @detail_route(methods=['get'])
+    def phones(self, request, pk=None):
+        if request.auth is None:
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
+        corpus = self.get_object()
+        if not request.user.is_superuser:
+            permissions = corpus.user_permissions.filter(user=request.user).all()
+            if not len(permissions):
+                return Response(status=status.HTTP_401_UNAUTHORIZED)
+
+        with CorpusContext(corpus.config) as c:
+            phones = c.query_lexicon(c.phone).columns(c.phone.label).all()
+            print(phones.to_json())
+
+        return Response(phones.to_json())
+
+    @detail_route(methods=['get'])
+    def phone_set(self, request, pk=None):
+        if request.auth is None:
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
+        corpus = self.get_object()
+        if not request.user.is_superuser:
+            permissions = corpus.user_permissions.filter(user=request.user).all()
+            if not len(permissions):
+                return Response(status=status.HTTP_401_UNAUTHORIZED)
+
+        with CorpusContext(corpus.config) as c:
+            phones = c.query_lexicon(c.phone).columns(c.phone.label).all()
+            # Remove duplicates to get phone set
+            phones = phones.to_json()
+            phone_set = { each['node_phone_label'] : each for each in phones }.values()
+            # Sort alphabetically
+            phone_set = sorted(phone_set, key=lambda k: k['node_phone_label'])
+            print(phone_set)
+
+        return Response(phone_set)
+
+    @detail_route(methods=['get'])
     def hierarchy(self, request, pk=None):
         if request.auth is None:
             return Response(status=status.HTTP_401_UNAUTHORIZED)
@@ -269,6 +306,37 @@ class SourceChoiceViewSet(viewsets.ViewSet):
         choices = os.listdir(settings.SOURCE_DATA_DIRECTORY)
         return Response(choices)
 
+"""class PhoneViewSet(viewsets.ViewSet):
+    def list(self, request, corpus_pk=None):
+        if request.auth is None:
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
+        corpus = models.Corpus.objects.get(pk=corpus_pk)
+        if not request.user.is_superuser:
+            permissions = corpus.user_permissions.filter(user=request.user).all()
+            if not len(permissions):
+                return Response(status=status.HTTP_401_UNAUTHORIZED)
+        # Get phones
+        with CorpusContext(corpus.config) as c:
+            phones = c.phones
+
+        return Response(phones)
+
+    @list_route(methods=['get'])
+    def properties(self, request, corpus_pk=None):
+        if request.auth is None:
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
+        corpus = models.Corpus.objects.get(pk=corpus_pk)
+        if not request.user.is_superuser:
+            permissions = corpus.user_permissions.filter(user=request.user).all()
+            if not len(permissions):
+                return Response(status=status.HTTP_401_UNAUTHORIZED)
+
+        with CorpusContext(corpus.config) as c:
+            props = c.query_lexicon(c.phone).columns(c.phone.label).all()
+            data = []
+            for p in props:
+                data.append({'name': p, 'options': c.query_metadata(c.phone).levels(getattr(c.phone, p))})
+        return Response(data)"""
 
 class DiscourseViewSet(viewsets.ViewSet):
     def list(self, request, corpus_pk=None):

@@ -14,6 +14,14 @@ test_data/data/
 
 node_modules/
 bower_components/
+
+# Docker volumes
+polyglot_data/*
+polyglot_source/*
+
+# Development PolyglotDB
+PolyglotDB/
+
 # Distribution / packaging
 .Python
 env/
@@ -60,7 +68,8 @@ coverage.xml
 
 # Django stuff:
 *.log
-local_settings.py
+#local_settings.py
+pgdb/migrations/*auto*.py
 
 # Flask stuff:
 instance/
@@ -71,6 +80,7 @@ instance/
 
 # Sphinx documentation
 docs/_build/
+docs/html
 
 # PyBuilder
 target/

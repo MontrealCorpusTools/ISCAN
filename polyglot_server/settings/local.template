@@ -1,0 +1,4 @@
+"""
+To be used for local development only
+"""
+from polyglot_server.settings.base import *

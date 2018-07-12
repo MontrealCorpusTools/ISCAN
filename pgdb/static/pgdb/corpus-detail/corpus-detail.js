@@ -133,5 +133,4 @@ angular.module('corpusDetail', [
         $scope.enrichment = function(){
             $state.go('enrichment', {corpus_id: $stateParams.corpus_id})
         };
-
     });

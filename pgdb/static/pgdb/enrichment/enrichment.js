@@ -67,4 +67,9 @@ angular.module('enrichment', [
         $scope.createAcoustics = function(){
            $state.go('acoustic_enrichment', {corpus_id: $stateParams.corpus_id})
         };
+
+        $scope.newPhoneSubset = function(type){
+            console.log('Going to create a new phone subset...')
+            $state.go('new_subset', {corpus_id: $stateParams.corpus_id, type: 'phone'})
+        }
 });

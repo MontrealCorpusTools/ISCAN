@@ -2,9 +2,13 @@
 
 .. _getting_started:
 
-***************
-Getting started
-***************
+***********************************************
+Appendix: Getting started the old-fashioned way
+***********************************************
+
+.. note::
+
+   This page constitutes the old documentation for polyglot-server. It describes how to install all dependencies and launch a server locally (i.e. not using Docker). It should still work, but is not recommended to use this for general workflow.
 
 .. note::
 

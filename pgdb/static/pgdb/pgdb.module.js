@@ -24,7 +24,8 @@ var app = angular.module('pgdb', [
     'acoustics',
     'navbar',
     'login',
-    'logout'
+    'logout',
+    'subset'
 ]).run(
     function ($http, $cookies) {
         //$http.defaults.headers.post['X-CSRFToken'] = $cookies.get('csrftoken');
@@ -79,6 +80,10 @@ app.config(function ($stateProvider, $urlRouterProvider) {
         url: '/query_results/:corpus_id/:query_id/:detail_index',
         templateUrl: static('pgdb/query-detail/query_detail.html'),
         controller: 'QueryDetailCtrl'
+    }).state('new_subset', {
+        url: '/subset/:corpus_id/:type',
+        templateUrl: static('pgdb/subset/subset.html'),
+        controller: 'NewSubsetCtrl'
     }).state('check', {
             url: '/check'
         })

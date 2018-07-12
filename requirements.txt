@@ -1,7 +1,6 @@
 amqp>=2.1.1
 audioread>=2.1.5
 billiard>=3.5.0.3
-celery>=4.0.0
 certifi>=2017.7.27.1
 chardet>=3.0.4
 decorator>=4.1.2
@@ -39,3 +38,10 @@ TextGrid>=1.4
 tqdm>=4.19.4
 urllib3>=1.22
 vine>=1.1.4
+Pillow==4.1.1
+django-extensions==1.7.9
+django-htmlmin==0.10.0
+django-compressor==2.1.1
+psycopg2==2.7.1
+dj-database-url==0.4.2
+celery==4.1.1

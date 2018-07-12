@@ -8,7 +8,6 @@ def import_corpus_task(corpus_pk):
     corpus = Corpus.objects.get(pk=corpus_pk)
     corpus.import_corpus()
 
-
 @shared_task
 def run_query_task(query_id):
     query = Query.objects.get(pk=query_id)
