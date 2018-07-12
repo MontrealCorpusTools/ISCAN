@@ -133,10 +133,4 @@ angular.module('corpusDetail', [
         $scope.enrichment = function(){
             $state.go('enrichment', {corpus_id: $stateParams.corpus_id})
         };
-
-        $scope.newSubset = function(type){
-            console.log('Going to create a new subset...')
-            $state.go('new_subset', {corpus_id: $stateParams.corpus_id, type: type})
-        }
-
     });
