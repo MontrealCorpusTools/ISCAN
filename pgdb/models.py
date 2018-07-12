@@ -865,9 +865,26 @@ class Enrichment(models.Model):
             elif enrichment_type == 'lexicon_csv':
                 c.enrich_lexicon_from_csv(config.get('path'))
             elif enrichment_type == 'pitch':
-                c.analyze_pitch(multiprocessing=False)
+                c.analyze_pitch(source=config.get('source', 'praat'), multiprocessing=False)
+            elif enrichment_type == 'formants':
+                c.analyze_vowel_formant_tracks(source=config.get('source', 'praat'), multiprocessing=False)
+            elif enrichment_type == 'refined_formant_points':
+                from polyglotdb.acoustics.formants.refined import analyze_formant_points_refinement
+                duration_threshold = 0.01
+                nIterations = 5
+                vowel_prototypes_path = None
+                metadata = analyze_formant_points_refinement(c, None, duration_threshold=duration_threshold,
+                                                             num_iterations=nIterations,
+                                                             vowel_prototypes_path=vowel_prototypes_path
+                                                             )
+            elif enrichment_type == 'intensity':
+                c.analyze_intensity(source=config.get('source', 'praat'), multiprocessing=False)
             elif enrichment_type == 'relativize_pitch':
                 c.relativize_pitch(by_speaker=True)
+            elif enrichment_type == 'relativize_intensity':
+                c.relativize_intensity(by_speaker=True)
+            elif enrichment_type == 'relativize_formants':
+                c.relativize_formants(by_speaker=True)
         self.running = False
         self.completed = True
         self.last_run = datetime.datetime.now()
@@ -887,6 +904,12 @@ class Query(models.Model):
     corpus = models.ForeignKey(Corpus, on_delete=models.CASCADE)
     running = models.BooleanField(default=False)
     result_count = models.IntegerField(null=True, blank=True)
+
+    class Meta:
+        verbose_name_plural = 'Queries'
+
+    def __str__(self):
+        return '{} - {}'.format(self.corpus.name, self.name)
 
     @property
     def config(self):
@@ -974,17 +997,28 @@ class Query(models.Model):
                 ann = a
             else:
                 ann = getattr(a, f_a_type)
-            for d in a_filters:
-                field, value = d['property'], d['value']
-                if value == 'null':
-                    value = None
-                else:
-                    try:
-                        value = float(value)
-                    except ValueError:
-                        value = value
-                att = getattr(ann, field)
-                q = q.filter(att == value)
+            if isinstance(a_filters, dict):
+                for field, value in a_filters.items():
+                    att = getattr(ann, field)
+                    if value == 'null':
+                        value = None
+                    else:
+                        value = att.coerce_value(value)
+                    if value is None:
+                        continue
+                    att = getattr(ann, field)
+                    q = q.filter(att == value)
+            else:
+                for d in a_filters:
+                    att = getattr(ann, field)
+                    field, value = d['property'], d['value']
+                    if value == 'null':
+                        value = None
+                    else:
+                        value = att.coerce_value(value)
+                    if value is None:
+                        continue
+                    q = q.filter(att == value)
         for f_a_type, a_subsets in config['subsets'].items():
             if f_a_type == a_type:
                 ann = a
@@ -1005,6 +1039,8 @@ class Query(models.Model):
                 q = q.columns(att)
 
         for a_column, props in acoustic_columns.items():
+            if not props.get('include', False):
+                continue
             acoustic = getattr(a, a_column)
             acoustic.relative_time = props.get('relative_time', False)
             acoustic.relative = props.get('relative', False)
@@ -1037,30 +1073,24 @@ class Query(models.Model):
                         ann = getattr(a, f_a_type)
                     if isinstance(a_filters, dict):
                         for field, value in a_filters.items():
+                            att = getattr(ann, field)
                             if value == 'null':
                                 value = None
                             else:
-                                try:
-                                    value = float(value)
-                                except (ValueError, TypeError):
-                                    value = value
+                                value = att.coerce_value(value)
                             if value is None:
                                 continue
-                            att = getattr(ann, field)
                             q = q.filter(att == value)
                     else:
                         for d in a_filters:
+                            att = getattr(ann, field)
                             field, value = d['property'], d['value']
                             if value == 'null':
                                 value = None
                             else:
-                                try:
-                                    value = float(value)
-                                except (ValueError, TypeError):
-                                    value = value
+                                value = att.coerce_value(value)
                             if value is None:
                                 continue
-                            att = getattr(ann, field)
                             q = q.filter(att == value)
                 for f_a_type, a_subsets in config['subsets'].items():
                     if f_a_type == a_type:

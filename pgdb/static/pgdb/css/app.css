@@ -3,7 +3,7 @@ html, body, .container-fluid{
 }
 .scroll-container {
     height: 100%;
-    overflow: hidden;
+    overflow: auto;
 }
 .scrollable-table tr {
     width: 100%;

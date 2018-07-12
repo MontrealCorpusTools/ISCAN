@@ -104,9 +104,9 @@
 
         <button class='btn btn-success' ng-click="updateQuery()" ng-disabled="query.running"><span
                 ng-bind="queryState.queryText"></span></button>
-        <button class='btn btn-success' ng-click="refreshQuery()" ng-disabled="query.running"><span
+        <button class='btn btn-success' ng-show="!newQuery" ng-click="refreshQuery()" ng-disabled="query.running"><span
                 ng-bind="queryState.refreshText"></span></button>
-        <button class='btn btn-success' ng-click="updateOrdering()" ng-disabled="query.running">
+        <button class='btn btn-success' ng-show="!newQuery" ng-click="updateOrdering()" ng-disabled="query.running">
             <span>Save current ordering</span></button>
         <button class='btn btn-danger' ng-click="clearFilters()" ng-disabled="query.running"><span>Clear filters</span>
         </button>

@@ -1,6 +1,7 @@
 angular.module('query', [
     'pgdb.corpora',
-    'pgdb.query'
+    'pgdb.query',
+    'ngFileSaver'
 ]).filter('titlecase', function () {
     return function (input) {
         var smallWords = /^(a|an|and|as|at|but|by|en|for|if|in|nor|of|on|or|per|the|to|vs?\.?|via)$/i;
@@ -52,6 +53,10 @@ angular.module('query', [
             queryRunning: false,
             queryText: 'Save and run query'
         };
+
+        $scope.$on('unauthenticated', function(){
+            $state.go('home');
+        });
 
         $scope.query = {
             annotation_type: $stateParams.type.toLowerCase(),
@@ -176,19 +181,18 @@ angular.module('query', [
         });
     })
 
-    .controller('QueryCtrl', function ($scope, $rootScope, Query, Corpora, $state, $stateParams, $interval) {
+    .controller('QueryCtrl', function ($scope, $rootScope, Query, Corpora, $state, $stateParams, $interval, FileSaver, Blob) {
         Query.reset_state($stateParams.query_id);
         $scope.queryState = Query.state;
         $scope.annotation_types = Query.annotation_types;
         $scope.refreshing = false;
-
         $scope.properties = [];
 
         $scope.export_link = Query.getExportLink($stateParams.corpus_id, $stateParams.query_id);
 
-        $scope.$on('authenticated', $scope.refreshPermissions);
 
         $scope.refreshPermissions = function () {
+            console.log('REFRESHING');
             $scope.user = $rootScope.user;
             $scope.authenticated = $rootScope.authenticated;
             if ($scope.user == undefined) {
@@ -275,6 +279,7 @@ angular.module('query', [
                 $scope.getQueryResults();
             });
         };
+
         $scope.updateQuery = function () {
             $scope.queryState.queryRunning = true;
             $scope.queryState.queryText = 'Fetching results...';
@@ -328,22 +333,13 @@ angular.module('query', [
 
 
         $scope.export = function () {
-            $scope.queryState.queryRunning = true;
+            $scope.query.running = true;
             $scope.queryState.queryText = 'Fetching results...';
 
             Query.export($stateParams.corpus_id, $stateParams.query_id, $scope.query).then(function (res) {
-                var anchor = angular.element('<a/>');
-                anchor.css({display: 'none'}); // Make sure it's not visible
-                angular.element(document.body).append(anchor); // Attach to document
-
-                anchor.attr({
-                    href: 'data:attachment/csv;charset=utf-8,' + encodeURI(res.data),
-                    target: '_blank',
-                    download: $scope.query.name + ' export.csv'
-                })[0].click();
-
-                anchor.remove(); // Clean it up afterwards
-                $scope.queryState.queryRunning = false;
+                var data = new Blob([res.data], { type: 'text/plain;charset=utf-8' });
+                FileSaver.saveAs(data, $scope.query.name + ' export.csv');
+                $scope.query.running = false;
                 $scope.queryState.queryText = 'Run query';
             });
 
@@ -442,7 +438,10 @@ angular.module('query', [
             $scope.getQueryResults()
         };
 
-        $scope.refreshPermissions();
+        $scope.$on('authenticated', $scope.refreshPermissions);
+        $scope.$on('unauthenticated', function(){
+            $state.go('home');
+        });
 
         $scope.intervalFunction = function () {
             console.log('hellloooooooo')

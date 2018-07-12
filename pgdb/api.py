@@ -5,6 +5,7 @@ import json
 
 from django.conf import settings
 from django.http.response import FileResponse, HttpResponse
+from django.db.models import Q
 from rest_framework import generics, permissions, viewsets, status, pagination
 from rest_framework.response import Response
 from rest_framework.decorators import detail_route, list_route
@@ -769,6 +770,21 @@ class EnrichmentViewSet(viewsets.ModelViewSet):
             if not len(permissions):
                 return Response(status=status.HTTP_401_UNAUTHORIZED)
         print(request.data)
+        if not request.data.get('name', ''):
+            return Response(
+                'A name for this enrichment must be specified.',
+                status=status.HTTP_400_BAD_REQUEST)
+        if request.data['enrichment_type'] in ['pitch', 'formants', 'sibilant_script', 'refined_formant_points']:
+            q = models.Enrichment.objects.filter(corpus=corpus).all()
+            for r in q:
+                if r.config['enrichment_type'] == request.data['enrichment_type']:
+                    return Response(
+                        'There already exists a {} enrichment for this corpus.'.format(request.data['enrichment_type']),
+                        status=status.HTTP_409_CONFLICT)
+            if not request.data.get('source', ''):
+                return Response(
+                    'A program to use for this enrichment must be specified.',
+                    status=status.HTTP_400_BAD_REQUEST)
         enrichment = models.Enrichment.objects.create(name=request.data['name'], corpus=corpus)
         enrichment.config = request.data
         return Response(serializers.EnrichmentSerializer(enrichment).data)
@@ -888,9 +904,9 @@ class QueryViewSet(viewsets.ModelViewSet):
             permissions = corpus.user_permissions.filter(user=request.user).all()
             if not len(permissions):
                 return Response(status=status.HTTP_401_UNAUTHORIZED)
-            queries = models.Query.objects.filter(user=request.user, corpus=corpus,annotation_type='U').all()
+            queries = models.Query.objects.filter(user=request.user, corpus=corpus,annotation_type='U').filter(~Q(name='Bestiary query')).all()
         else:
-            queries = models.Query.objects.filter(annotation_type='U', corpus=corpus).all()
+            queries = models.Query.objects.filter(annotation_type='U', corpus=corpus).filter(~Q(name='Bestiary query')).all()
         return Response(serializers.QuerySerializer(queries, many=True).data)
 
     @list_route(methods=['GET'])

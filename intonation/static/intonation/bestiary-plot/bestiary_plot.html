@@ -1,7 +1,7 @@
 <div class="row">
     <div class='col-md-9'>
         <div ng-show="!query.running && !refreshing">
-        <bestiary-plot data="utterances" max_lines="max_lines"></bestiary-plot>
+        <bestiary-plot data="utterances"></bestiary-plot>
         </div>
         <div ng-show="query.running || refreshing">
             <span>Query loading...</span>
@@ -96,6 +96,5 @@
                 ng-bind="queryText"></span></button>
         <button class='btn btn-danger' ng-click="clearFilters()" ng-disabled="query.running"><span>Clear filters</span>
         </button>
-<button class="btn" ng-disabled="query.running" ng-show="!newQuery" ng-click="export()"><span>Export as csv</span></button>
     </div>
 </div>

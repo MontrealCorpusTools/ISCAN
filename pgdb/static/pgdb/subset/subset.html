@@ -13,27 +13,29 @@
 
 
 
-    <div class="col-md-12">
+    <div class="col-md-12 scroll-container" style="height:400px">
         <md-content>
             <md-content class="md-padding">
                 <table class="table table-striped">
                     <thead>
-                    <!--<td><span ng-bind="subset.annotation_type"></td>-->
-                    <td><b>Phone label</b></td>
-                    <td><b>Include</b></td>
+                        <td><b>Phone label</b></td>
+                        <td><b>Include</b></td>
                     </thead>
                     <tbody>
-                    <tr ng-repeat="label in phones">
-                        <td>{{ label.node_phone_label }}</td>
-                        <td>
-                            <input type="checkbox" ng-model="label.isChecked" ng-change="insertMember(label)">
-                        </td>
-                    </tr>
+                        <tr ng-repeat="label in phones">
+                            <td>{{ label.node_phone_label }}</td>
+                            <td>
+                                <input type="checkbox" ng-model="label.isChecked" ng-change="insertMember(label)">
+                            </td>
+                        </tr>
                     </tbody>
                 </table>
             </md-content>
         </md-content>
+    </div>
 
+    <div>
+        <b>Selected subset:</b> {{ subset.members }}
     </div>
 
 </div>

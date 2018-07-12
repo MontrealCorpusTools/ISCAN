@@ -1,6 +1,6 @@
 <div class="row" ng-show="corpus.imported">
-    <h1>Summary of the {{ corpus.name }} corpus</h1>
-    <div class="col-md-3">
+    <h1>Summary of the {{ corpus.name }} corpus</h1><button ng-click="enrichment()">Enrichment</button>
+    <div class="col-md-9">
         <h1>Linguistic Units</h1>
         <div class="row" style="min-height: 450px; padding: 40px">
             <h2>Utterances</h2>
@@ -21,24 +21,17 @@
                         <li ng-repeat="prop in properties.utterance">
                             {{ prop }}
                         </li>
-                        <li>
-                            <button>Encode new property</button>
-                        </li>
                     </ul>
                     <p>Currently encoded subsets</p>
                     <ul>
                         <li ng-repeat="subset in subsets.utterance">
                             {{ subset }}
                         </li>
-                        <li>
-                            <button>Encode new subset</button>
-                        </li>
                     </ul>
                 </div>
             </div>
             <div ng-show="hierarchy.indexOf('utterance') == -1">
-                <button>Encode pauses</button>
-                <button>Encode utterances</button>
+                Utterances are not encoded.
             </div>
         </div>
         <div class="row" style="min-height: 450px; padding: 40px">
@@ -59,20 +52,11 @@
                         <li ng-repeat="prop in properties.word">
                             {{ prop }}
                         </li>
-                        <li>
-                            <button>Encode new property</button>
-                        </li>
-                        <li>
-                            <button>Enrich words from CSV file</button>
-                        </li>
                     </ul>
                     <p>Currently encoded subsets</p>
                     <ul>
                         <li ng-repeat="subset in subsets.word">
                             {{ subset }}
-                        </li>
-                        <li>
-                            <button>Encode new subset</button>
                         </li>
                     </ul>
                 </div>
@@ -94,20 +78,17 @@
                     <li ng-repeat="prop in properties.syllable">
                         {{ prop }}
                     </li>
-                    <li>
-                        <button>Encode new property</button>
-                    </li>
                 </ul>
                 <p>Currently encoded subsets</p>
                 <ul>
                     <li ng-repeat="subset in subsets.syllable">
                         {{ subset }}
                     </li>
-                    <li>
-                        <button>Encode new subset</button>
-                    </li>
                 </ul>
 
+            </div>
+            <div ng-show="hierarchy.indexOf('syllable') == -1">
+                Syllables are not encoded.
             </div>
         </div>
         <div class="row" style="min-height: 450px; padding: 40px">
@@ -125,33 +106,14 @@
                 <li ng-repeat="prop in properties.phone">
                     {{ prop }}
                 </li>
-                <li>
-                    <button>Encode new property</button>
-                </li>
-                <li>
-                    <button>Enrich phones from CSV file</button>
-                </li>
             </ul>
             <p>Currently encoded subsets</p>
             <ul>
                 <li ng-repeat="subset in subsets.phone">
                     {{ subset }}
                 </li>
-                <li>
-                    <button ng-click="newSubset('phone')">Encode new subset</button>
-                </li>
             </ul>
         </div>
-    </div>
-    <div class="col-md-3">
-        <h1>Enrichment</h1>
-        <ul>
-            <li ng-repeat="enrichment in enrichments">
-                <span ng-show="enrichment.running">Currently running!</span>
-                <button ng-click="runEnrichment(enrichment.id)" ng-disabled="corpus.busy || !enrichment.runnable"><span ng-if="enrichment.completed">Rerun </span>{{ enrichment.name }}</button>
-                <button ng-click="resetEnrichment(enrichment.id)" ng-show="enrichment.completed" ng-disabled="corpus.busy">Reset</button>
-            </li>
-        </ul>
     </div>
     <div class="col-md-3">
         <h1>Metadata</h1>
@@ -162,12 +124,6 @@
                 <li ng-repeat="prop in hierarchy.speaker_properties">
                     {{ prop[0]}}
                 </li>
-                <li>
-                    <button>Encode property</button>
-                </li>
-                <li>
-                    <button>Enrich speakers from CSV file</button>
-                </li>
             </ul>
         </div>
         <div>
@@ -177,28 +133,11 @@
                 <li ng-repeat="prop in hierarchy.discourse_properties">
                     {{ prop[0]}}
                 </li>
-                <li>
-                    <button>Encode property</button>
-                </li>
-                <li>
-                    <button>Enrich sound files from CSV file</button>
-                </li>
             </ul>
         </div>
         <div>
             <h2>Acoustics</h2>
             <p>Currently encoded acoustics</p>
-            <ul>
-                <li>
-                    <button>Encode pitch tracks</button>
-                </li>
-                <li>
-                    <button>Encode intensity tracks</button>
-                </li>
-                <li>
-                    <button>Encode formant tracks</button>
-                </li>
-            </ul>
         </div>
     </div>
 </div>

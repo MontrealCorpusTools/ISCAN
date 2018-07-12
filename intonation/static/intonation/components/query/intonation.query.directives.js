@@ -416,7 +416,7 @@ var pitch_y = d3.scaleLinear().range([height, 0]).nice();
             height: '=height',
             data: '=data',
             relative_time: '=relative_time',
-            max_lines: '=max_lines',
+            //max_lines: '=',
             hovered: '&hovered'
         },
         link: function (scope, element, attrs) {
@@ -451,10 +451,11 @@ var pitch_y = d3.scaleLinear().range([height, 0]).nice();
                 if (!newVal) {
                     return;
                 }
-                if (scope.max_lines == undefined){
-                    scope.max_lines = 100;
-                }
-                newVal = newVal.slice(0,scope.max_lines);
+                //if (scope.max_lines == undefined){
+                //    scope.max_lines = 100;
+                //}
+                newVal = newVal.slice(0, 100);
+                //newVal = newVal.slice(0,scope.max_lines);
                 y.domain([d3.min(newVal, function (d) {
                     return d3.min(d.utterance.pitch_track, function (d2) {
                         return d2.F0

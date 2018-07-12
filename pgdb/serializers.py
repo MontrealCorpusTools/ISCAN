@@ -199,7 +199,7 @@ class EnrichmentSerializer(serializers.ModelSerializer):
         fields = ('id', 'name', 'corpus', 'enrichment_type', 'running', 'last_run', 'completed', 'runnable')
 
     def get_enrichment_type(self, obj):
-        return obj.config['enrichment_type']
+        return obj.config.get('enrichment_type', '')#['enrichment_type']
 
     def get_runnable(self, obj):
         return obj.runnable
