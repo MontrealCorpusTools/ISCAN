@@ -21,7 +21,8 @@ angular.module('subset', [
             annotation_type: $stateParams.type.toLowerCase(),
             enrichment_type: 'subset',
             name: "New " + $stateParams.type + " subset",
-            members: [],
+            annotation_labels: [],
+            subset_label: "New " + $stateParams.type + " subset",
         };
 
         $scope.createSubset = function() {
@@ -38,23 +39,23 @@ angular.module('subset', [
 
         $scope.insertMember = function(label) {
             if(label.isChecked) {
-                $scope.subset.members.push(label.node_phone_label);
+                $scope.subset.annotation_labels.push(label.node_phone_label);
                 console.log("Adding " + label.node_phone_label + " to subset...")
-                console.log("Members of subset: " + $scope.subset.members);
+                console.log("Members of subset: " + $scope.subset.annotation_labels);
             } else {
-                var toDel = $scope.subset.members.indexOf(label);
-                $scope.subset.members.splice(toDel);
+                var toDel = $scope.subset.annotation_labels.indexOf(label);
+                $scope.subset.annotation_labels.splice(toDel);
                 console.log("Removing " + label.node_phone_label + " from subset...")
-                console.log("Members of subset: " + $scope.subset.members);
+                console.log("Members of subset: " + $scope.subset.annotation_labels);
             }
-            console.log($scope.subset.members);
+            console.log($scope.subset.annotation_labels);
         };
 
         $scope.clearMembers = function () {
             console.log("Clearing members in subset...")
             // Clear the array
-            $scope.subset.members = [];
-            console.log("Members of subset: " + $scope.subset.members);
+            $scope.subset.annotation_labels = [];
+            console.log("Members of subset: " + $scope.subset.annotation_labels);
             // And uncheck all checkboxes
             angular.forEach($scope.phones, function(label) {
                 label.isChecked = false;

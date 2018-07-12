@@ -892,9 +892,10 @@ class Enrichment(models.Model):
             self.save()
             self.corpus.busy = False
             self.corpus.save()
-        except Exception as e:
-            print(e)
+        except Exception:
             self.corpus.busy = False # If it fails, don't stay busy and block everything
+            self.corpus.save()
+            print(traceback.format_exc())
 
 
 class Query(models.Model):

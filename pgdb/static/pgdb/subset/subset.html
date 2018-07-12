@@ -1,7 +1,7 @@
 <div class="col-md-9 text-center" style="height:1280px">
     <div>
         <h4>Encode a <span ng-bind="subset.annotation_type"></span> subset</h4>
-        <label>Subset name: <input ng-model="subset.name"> </label>
+        <label>Subset name: <input ng-model="subset.name" ng-change="subset.subset_label=subset.name"> </label>
 
         <button class='btn btn-success' ng-click="createSubset()">
             <span ng-bind="subsetState.subsetText"></span>
@@ -36,7 +36,7 @@
     </div>
 
     <div>
-        <b>Selected subset:</b> {{ subset.members }}
+        <b>Selected subset:</b> {{ subset.annotation_labels }}
     </div>
 
 </div>
