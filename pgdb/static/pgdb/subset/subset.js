@@ -14,22 +14,21 @@ angular.module('subset', [
 
         $scope.subsetState = {
             subsetRunning: false,
-            subsetText: 'Save and encode subset'
+            subsetText: 'Save subset'
         };
 
         $scope.subset = {
             annotation_type: $stateParams.type.toLowerCase(),
+            enrichment_type: 'subset',
             name: "New " + $stateParams.type + " subset",
             members: [],
-            checked: {},
-            test: [{
-                label: 1
-            }]
         };
 
-        Enrichment.all($stateParams.corpus_id).then(function (res){
-            $scope.enrichments = res.data;
-        });
+        $scope.createSubset = function() {
+            Enrichment.create($stateParams.corpus_id, $scope.subset).then(function (res) {
+                $state.go('enrichment', {corpus_id: $stateParams.corpus_id})
+            });
+        };
 
         Corpora.phone_set($stateParams.corpus_id).then(function (res) {
             $scope.phones = res.data;
