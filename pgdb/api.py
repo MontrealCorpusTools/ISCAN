@@ -787,6 +787,8 @@ class EnrichmentViewSet(viewsets.ModelViewSet):
                     status=status.HTTP_400_BAD_REQUEST)
         enrichment = models.Enrichment.objects.create(name=request.data['name'], corpus=corpus)
         enrichment.config = request.data
+        enrichment.corpus.busy = False
+        print("hello")
         return Response(serializers.EnrichmentSerializer(enrichment).data)
 
     @detail_route(methods=['post'])

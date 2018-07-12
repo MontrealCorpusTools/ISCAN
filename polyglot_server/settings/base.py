@@ -1,4 +1,4 @@
-# Django settings for joejasinski project.
+# Django settings for polyglot_server project.
 import os
 import sys
 import dj_database_url
@@ -55,6 +55,7 @@ ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'testserver', '0.0.0.0', '132.206.84.
 
 INSTALLED_APPS = (
     'corsheaders',
+    'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
@@ -62,9 +63,6 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.sitemaps',
-    'django.contrib.admin',
-
-    #'polyglot_server.apps.runit',
 
     'django_extensions',
     'compressor',
@@ -79,14 +77,14 @@ INSTALLED_APPS = (
 
 )
 
-MIDDLEWARE_CLASSES = (
+MIDDLEWARE = (
     'corsheaders.middleware.CorsMiddleware',
+    'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.middleware.common.CommonMiddleware',
     'htmlmin.middleware.HtmlMinifyMiddleware',
-    'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.middleware.locale.LocaleMiddleware',
-    'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django.middleware.security.SecurityMiddleware',
