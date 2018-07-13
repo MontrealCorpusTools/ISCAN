@@ -36,7 +36,6 @@ angular.module('csvProperties', [
 	    var f = document.getElementById('CSV-properties-file').files[0],
 	    r = new FileReader();
 	    var name = f.name;
-	    console.log("werewerer");
 	    r.onloadend = function(e) {
 		    var data = e.target.result;
 		    var resp = {text: data, file_name: name};
