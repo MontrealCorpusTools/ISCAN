@@ -8,13 +8,11 @@
             <option value="">Select analysis</option>
         </select></label>
 	<label ng-show="enrichment.enrichment_type == 'sibilant_script'">
-            Praat Script: <input custom-on-change="newFiles" type="file" id="CSV-properties-file" name="file"/>
+            Praat Script: <input type="file" id="CSV-properties-file" name="file"/>
 	</label>
                 <label>Program: <select ng-model="enrichment.source" ng-options="choice for choice in binary_options" >
                     <option value="">Select program</option>
         </select></label>
       <button ng-click="save()">Save enrichment</button>
-
-
     </div>
 </div>
