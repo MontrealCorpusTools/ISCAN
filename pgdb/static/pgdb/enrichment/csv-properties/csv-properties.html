@@ -1,20 +1,16 @@
 <div class="row">
     <div class="col-md-9">
-            <span ng-bind="error_message" style="color: red"></span>
-                <label>Name: <input ng-model="enrichment.name"></label>
-
-                <label>Analysis:
-        <select ng-model="enrichment.enrichment_type" ng-options="choice.type as choice.name for choice in csv_options" >
-            <option value="">Select analysis</option>
-        </select></label>
+        <span ng-bind="error_message" style="color: red"></span>
+            <label>Name: <input ng-model="enrichment.name"></label>
+        
+            <label>Analysis:
+                 <select ng-model="enrichment.enrichment_type" ng-options="choice.type as choice.name for choice in csv_options" >
+                     <option value="">Select analysis</option>
+                 </select>
+	    </label>
 	<label>File
-		<input type="file" id="CSV-properties-file" name="file"/>
+            <input custom-on-change="newFiles" type="file" id="CSV-properties-file" name="file"/>
 	</label>
-	<label>
-		<button ng-disabled="!hasFiles" ng-click="uploadCSVProperties()"> Upload  </button>
-	</label>
-      <button ng-click="save()">Save enrichment</button>
-
-    
+        <button ng-disabled="!hasFiles" ng-click="save()">Save enrichment</button>
     </div>
 </div>
