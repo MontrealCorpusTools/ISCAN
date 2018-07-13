@@ -194,15 +194,19 @@ def serializer_factory(hierarchy, a_type, exclude=None, acoustic_columns=None, w
 class EnrichmentSerializer(serializers.ModelSerializer):
     enrichment_type = serializers.SerializerMethodField()
     runnable = serializers.SerializerMethodField()
+    config = serializers.SerializerMethodField()
     class Meta:
         model = models.Enrichment
-        fields = ('id', 'name', 'corpus', 'enrichment_type', 'running', 'last_run', 'completed', 'runnable')
+        fields = ('id', 'name', 'corpus', 'enrichment_type', 'running', 'last_run', 'completed', 'runnable', 'config')
 
     def get_enrichment_type(self, obj):
         return obj.config.get('enrichment_type', '')#['enrichment_type']
 
     def get_runnable(self, obj):
         return obj.runnable
+
+    def get_config(self, obj):
+        return obj.config
 
 
 class QuerySerializer(serializers.ModelSerializer):

@@ -52,6 +52,7 @@
                 <td>
                     <button ng-if="!corpus.busy" ng-click="runEnrichment(enrichment.id)">Run</button>
                     <button ng-if="!corpus.busy" ng-click="resetEnrichment(enrichment.id)">Reset</button>
+                    <button ng-if="!corpus.busy" ng-click="editEnrichment(enrichment)">Edit</button>
                 </td>
             </tr>
             </tbody>

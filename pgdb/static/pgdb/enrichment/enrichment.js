@@ -64,6 +64,15 @@ angular.module('enrichment', [
             getData();
             });
         };
+
+        $scope.editEnrichment = function(enrichment) {
+            console.log(enrichment);
+            if (enrichment.enrichment_type == 'subset') {
+                $state.go('edit_subset', {corpus_id: $stateParams.corpus_id, enrichment_id: enrichment.id})
+            }
+            // Else, go to other relevant edit page that we'll build later
+        }
+
         $scope.createAcoustics = function(){
            $state.go('acoustic_enrichment', {corpus_id: $stateParams.corpus_id})
         };

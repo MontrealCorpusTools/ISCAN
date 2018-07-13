@@ -66,6 +66,7 @@ Initial migrations
 The first time you use polyglot-server, you will need to make database migrations. In another terminal, while the containers are up, run:
 
 .. code-block:: bash
+
 	docker-compose run app init
 
 The needed migrations to perform will be detected and made.

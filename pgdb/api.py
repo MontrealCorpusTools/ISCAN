@@ -785,6 +785,15 @@ class EnrichmentViewSet(viewsets.ModelViewSet):
                 return Response(
                     'A program to use for this enrichment must be specified.',
                     status=status.HTTP_400_BAD_REQUEST)
+        # Subset validation
+        elif request.data['enrichment_type'] in ['subset']:
+            q = models.Enrichment.objects.filter(corpus=corpus).all()
+            for r in q:
+                if not r.config['annotation_labels']:
+                    return Response(
+                        'The subset must have a name and cannot be empty.',
+                        status=status.HTTP_400_BAD_REQUEST)
+
         enrichment = models.Enrichment.objects.create(name=request.data['name'], corpus=corpus)
         enrichment.config = request.data
         return Response(serializers.EnrichmentSerializer(enrichment).data)
@@ -833,9 +842,10 @@ class EnrichmentViewSet(viewsets.ModelViewSet):
         enrichment.name = request.data.get('name')
         do_run = enrichment.config != request.data
         enrichment.config = request.data
-        if do_run:
-            run_enrichment_task.delay(enrichment.pk)
-            time.sleep(1)
+        # Dont do enrichment
+        #if do_run:
+        #    run_enrichment_task.delay(enrichment.pk)
+        #    time.sleep(1)
         return Response(serializers.EnrichmentSerializer(enrichment).data)
 
 
