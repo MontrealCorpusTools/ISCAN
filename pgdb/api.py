@@ -789,6 +789,27 @@ class EnrichmentViewSet(viewsets.ModelViewSet):
         enrichment.config = request.data
         return Response(serializers.EnrichmentSerializer(enrichment).data)
 
+    @detail_route(methods=["post"])
+    def create_csv(self, request, pk=None, corpus_pk=None, *args, **kwargs):
+        if request.auth is None:
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
+        corpus = models.Corpus.objects.get(pk=corpus_pk)
+        if not request.user.is_superuser:
+            permissions = corpus.user_permissions.filter(user=request.user).all()
+            if not len(permissions):
+                return Response(status=status.HTTP_401_UNAUTHORIZED)
+        enrichment = models.Enrichment.objects.filter(pk=pk, corpus=corpus).get()
+        if not request.data.get('text', ''):
+            return Response(
+                'A CSV file must be included.',
+                status=status.HTTP_400_BAD_REQUEST)
+        file_path = os.path.join(enrichment.directory, request.data["file_name"])
+        with open(file_path, "w") as f:
+            f.write(request.data["text"])
+        enrichment.config = {'enrichment_type': enrichment.config['enrichment_type'],
+                             'path': str(file_path)}
+        return Response(True)
+
     @detail_route(methods=['post'])
     def run(self, request, pk=None, corpus_pk=None):
         if request.auth is None:

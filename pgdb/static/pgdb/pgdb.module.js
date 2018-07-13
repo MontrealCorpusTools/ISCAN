@@ -25,7 +25,8 @@ var app = angular.module('pgdb', [
     'navbar',
     'login',
     'logout',
-    'subset'
+    'subset',
+    'csvProperties'
 ]).run(
     function ($http, $cookies) {
         //$http.defaults.headers.post['X-CSRFToken'] = $cookies.get('csrftoken');
@@ -103,6 +104,10 @@ app.config(function ($stateProvider, $urlRouterProvider) {
         url: '/corpora/:corpus_id/enrichment/acoustics',
         templateUrl: static('pgdb/enrichment/acoustics/acoustics.html'),
         controller: 'AcousticCtrl'
+        }).state('new_csv-properties', {
+        url: '/corpora/:corpus_id/enrichment/csv-properties',
+        templateUrl: static('pgdb/enrichment/csv-properties/csv-properties.html'),
+        controller: 'CSVPropertiesCtrl'
     });
 
     $urlRouterProvider.otherwise('/');
