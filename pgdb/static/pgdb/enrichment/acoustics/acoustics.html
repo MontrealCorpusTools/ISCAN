@@ -7,7 +7,9 @@
         <select ng-model="enrichment.enrichment_type" ng-options="choice.type as choice.name for choice in acoustic_options" >
             <option value="">Select analysis</option>
         </select></label>
-
+	<label ng-show="enrichment.enrichment_type == 'sibilant_script'">
+            Praat Script: <input custom-on-change="newFiles" type="file" id="CSV-properties-file" name="file"/>
+	</label>
                 <label>Program: <select ng-model="enrichment.source" ng-options="choice for choice in binary_options" >
                     <option value="">Select program</option>
         </select></label>

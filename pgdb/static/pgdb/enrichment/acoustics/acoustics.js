@@ -19,7 +19,7 @@ angular.module('acoustics', [
             type: 'refined_formant_points'
         },
         {
-            name: 'Sibilant analysis',
+            name: 'Custom praat script',
             type: 'sibilant_script'
         }];
     $scope.error_message = '';
