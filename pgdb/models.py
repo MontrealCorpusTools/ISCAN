@@ -227,10 +227,13 @@ class Database(models.Model):
         c.acoustic_password = None
         # Dockerization: if accessing from the app container, put it up on all interfaces
         # so other containers can connect to it from the app container's IP
-        if socket.gethostname() == 'app':
-            c.host = '0.0.0.0'
+        if settings.DOCKER:
+            if socket.gethostname() == 'app':
+                c.host = '0.0.0.0'
+            else:
+                c.host = 'app'
         else:
-            c.host = 'app'
+            c.host = 'localhost'
         c.acoustic_http_port = self.influxdb_http_port
         c.graph_user = None
         c.graph_password = None
@@ -482,10 +485,13 @@ class Corpus(models.Model):
         c.acoustic_password = None
         # Dockerization: if accessing from the app container, put it up on all interfaces
         # so other containers can connect to it from the app container's IP
-        if socket.gethostname() == 'app':
-            c.host = '0.0.0.0'
+        if settings.DOCKER:
+            if socket.gethostname() == 'app':
+                c.host = '0.0.0.0'
+            else:
+                c.host = 'app'
         else:
-            c.host = 'app'
+            c.host = 'localhost'
         c.acoustic_http_port = self.database.influxdb_http_port
         c.graph_user = None
         c.graph_password = None

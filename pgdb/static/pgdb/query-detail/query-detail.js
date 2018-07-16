@@ -220,12 +220,18 @@ angular.module('queryDetail', [
                 }
                 Query.oneAnnotation($stateParams.corpus_id, $stateParams.query_id, $scope.detail_index, $scope.queryState.ordering, true, true, true).then(function (res) {
                     $scope.utterance = res.data.utterance;
+                    console.log("SANITY", $scope.utterance);
                     $scope.selectedResult = res.data.result;
                     $scope.speaker = $scope.selectedResult.speaker;
                     $scope.discourse = $scope.selectedResult.discourse;
                     $scope.utterance_id = $scope.selectedResult.utterance.id;
                     console.log('helloooooo', $scope.utterance);
+                    if ($scope.selectedType == 'utterance'){
+                        $scope.selectedAnnotation = res.data.utterance;
+                    }
+                    else{
                     $scope.selectedAnnotation = $scope.selectedResult[$scope.selectedType];
+                    }
                     $scope.headline = $scope.utterance.discourse.name + ' (' + $scope.utterance.begin + ' to ' + $scope.utterance.end + ')';
                     console.log($scope.headline, $scope.can_listen);
                     $scope.updateProperties();
@@ -241,9 +247,15 @@ angular.module('queryDetail', [
                     for (i = 0; i < $scope.annotations.length; i++) {
                         console.log($scope.selectedAnnotation[$scope.annotations[i].label])
                         if ($scope.selectedAnnotation[$scope.annotations[i].label] !== undefined) {
+                            if ($scope.annotations[i].save_user){
                             $scope.currentAnnotations[$scope.annotations[i].label] = $scope.selectedAnnotation[$scope.annotations[i].label].filter(function (annotation) {
                                 return annotation.user == $rootScope.user.username
                             });
+
+                            }
+                            else {
+                                $scope.currentAnnotations[$scope.annotations[i].label] = $scope.selectedAnnotation[$scope.annotations[i].label]
+                            }
                         }
                         $scope.newAnnotation[$scope.annotations[i].label] = {};
 

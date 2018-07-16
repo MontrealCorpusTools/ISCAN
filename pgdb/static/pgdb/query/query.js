@@ -439,6 +439,9 @@ angular.module('query', [
         };
 
         $scope.$on('authenticated', $scope.refreshPermissions);
+        if ($rootScope.authenticated){
+             $scope.refreshPermissions();
+        }
         $scope.$on('unauthenticated', function(){
             $state.go('home');
         });

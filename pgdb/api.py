@@ -1069,11 +1069,9 @@ class QueryViewSet(viewsets.ModelViewSet):
 
         with_waveform = request.query_params.get('with_waveform', False)
         with_spectrogram = request.query_params.get('with_spectrogram', False)
-        with_subannotations = request.query_params.get('with_subannotations', False)
+        with_subannotations = request.query_params.get('with_subannotations', True)
         result = query.get_results(ordering, limit, offset)[0]
         utterance_id = result['utterance']['id']
-        print(result)
-        print(utterance_id)
         data = {'result': result}
         try:
             with CorpusContext(corpus.config) as c:
@@ -1086,11 +1084,12 @@ class QueryViewSet(viewsets.ModelViewSet):
                 q = q.preload(c.utterance.discourse)
                 if with_subannotations:
                     for t in c.hierarchy.annotation_types:
-                        for s in c.hierarchy.subannotations[t]:
-                            if t == 'utterance':
-                                q = q.preload(getattr(c.utterance, s))
-                            else:
-                                q = q.preload(getattr(getattr(c.utterance, t), s))
+                        if t in c.hierarchy.subannotations:
+                            for s in c.hierarchy.subannotations[t]:
+                                if t == 'utterance':
+                                    q = q.preload(getattr(c.utterance, s))
+                                else:
+                                    q = q.preload(getattr(getattr(c.utterance, t), s))
                 acoustic_columns = query.config.get('acoustic_columns', {})
                 acoustic_column_names = []
                 for a_column, props in acoustic_columns.items():
@@ -1101,7 +1100,6 @@ class QueryViewSet(viewsets.ModelViewSet):
                     acoustic_column_names.append(a_column)
 
                 utterances = q.all()
-                print(len(utterances))
                 if utterances is None:
                     data['utterance'] = None
                 else:

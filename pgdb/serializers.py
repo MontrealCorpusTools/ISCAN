@@ -80,7 +80,9 @@ class UnauthorizedUserSerializer(serializers.ModelSerializer):
         depth = 2
         fields = ('id', 'first_name', 'last_name', 'username', 'is_superuser')
 
-def serializer_factory(hierarchy, a_type, exclude=None, acoustic_columns=None, with_waveform=False, with_spectrogram=False, with_higher_annotations=False,with_lower_annotations=False, top_level=False, detail=False, with_subannotations=False):
+def serializer_factory(hierarchy, a_type, exclude=None, acoustic_columns=None,
+                       with_waveform=False, with_spectrogram=False, with_higher_annotations=False,
+                       with_lower_annotations=False, top_level=False, detail=False, with_subannotations=False):
     parent = (object,)
     if acoustic_columns is None:
         acoustic_columns = []
