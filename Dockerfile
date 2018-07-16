@@ -36,6 +36,7 @@ RUN git clone https://github.com/google/REAPER.git && \
  cmake .. && \
  make
 
+ENV PATH $PATH:/:/REAPER/build
 # Get Dockerize
 RUN apt-get update && apt-get install -y wget
 ENV DOCKERIZE_VERSION v0.6.1
