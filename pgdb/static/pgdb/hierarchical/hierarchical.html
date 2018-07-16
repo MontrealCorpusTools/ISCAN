@@ -1,0 +1,48 @@
+<div class="col-md-9 text-center" style="height:1280px">
+    <div>
+        <h4>Encode a <span ng-bind="subset.annotation_type"></span> subset</h4>
+        <label>Subset name: <input ng-model="subset.subset_label" ng-change="subset.name='Encode ' + subset.subset_label"> </label>
+
+
+        <button class='btn btn-success' ng-click="createSubset()">
+            <span>Save subset</span>
+        </button>
+        <button class='btn btn-danger' ng-click="clearMembers()" ng-disabled="">
+            <span>Clear members</span>
+        </button>
+
+        <p><span ng-bind="error_message" style="color: red"></span></p>
+
+    </div>
+
+    <div ng-if="dataLoading">
+        <i>Loading phones...</i>
+    </div>
+
+    <div class="col-md-12 scroll-container" style="height:400px">
+        <md-content>
+            <md-content class="md-padding">
+                <table class="table table-striped">
+                    <thead>
+                        <td><b>Phone label</b></td>
+                        <td><b>Include</b></td>
+                    </thead>
+                    <tbody>
+                        <tr ng-repeat="label in phones">
+                            <td>{{ label.node_phone_label }}</td>
+                            <td>
+                                <input type="checkbox" ng-model="label.isChecked" ng-change="insertMember(label)">
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </md-content>
+        </md-content>
+    </div>
+
+    <div ng-if="dataLoading==false">
+        <b>Selected subset:</b> {{ subset.annotation_labels }}
+    </div>
+
+</div>
+
