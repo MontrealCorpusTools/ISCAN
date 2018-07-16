@@ -17,7 +17,7 @@ from polyglotdb import CorpusContext
 from . import models
 from . import serializers
 from .utils import get_used_ports
-from .tasks import import_corpus_task, run_query_task, run_enrichment_task, reset_enrichment_task
+from .tasks import import_corpus_task, run_query_task, run_enrichment_task, reset_enrichment_task, delete_enrichment_task
 
 
 class DatabaseViewSet(viewsets.ModelViewSet):
@@ -787,12 +787,17 @@ class EnrichmentViewSet(viewsets.ModelViewSet):
                     status=status.HTTP_400_BAD_REQUEST)
         # Subset validation
         elif request.data['enrichment_type'] in ['subset']:
-            q = models.Enrichment.objects.filter(corpus=corpus).all()
-            for r in q:
-                if not r.config['annotation_labels']:
-                    return Response(
-                        'The subset must have a name and cannot be empty.',
-                        status=status.HTTP_400_BAD_REQUEST)
+            #q = models.Enrichment.objects.filter(corpus=corpus).all()
+            #for r in q:
+            r = request.data
+            if 'subset_label' not in r or not r['subset_label']:
+                return Response(
+                    str(r) + 'The subset must have a name.',
+                    status=status.HTTP_400_BAD_REQUEST)
+            if 'annotation_labels' not in r or not r['annotation_labels']:
+                return Response(
+                    str(r) + 'The subset cannot be empty.',
+                    status=status.HTTP_400_BAD_REQUEST)
 
         enrichment = models.Enrichment.objects.create(name=request.data['name'], corpus=corpus)
         enrichment.config = request.data
@@ -847,6 +852,19 @@ class EnrichmentViewSet(viewsets.ModelViewSet):
         #    run_enrichment_task.delay(enrichment.pk)
         #    time.sleep(1)
         return Response(serializers.EnrichmentSerializer(enrichment).data)
+
+    def destroy(self, request, pk=None, corpus_pk=None):
+        if request.auth is None:
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
+        corpus = models.Corpus.objects.get(pk=corpus_pk)
+        if not request.user.is_superuser:
+            permissions = corpus.user_permissions.filter(user=request.user).all()
+            if not len(permissions):
+                return Response(status=status.HTTP_401_UNAUTHORIZED)
+        enrichment = models.Enrichment.objects.filter(pk=pk, corpus=corpus).get()
+        delete_enrichment_task.delay(enrichment.pk)
+        time.sleep(1)
+        return Response(True)
 
 
 class QueryViewSet(viewsets.ModelViewSet):

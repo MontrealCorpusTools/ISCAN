@@ -16,8 +16,6 @@ angular.module('subset', [
         else {
             $scope.newSubset = false;
         }
-        
-        $scope.annotation_types = ['phone', 'syllable', 'word', 'utterance'];
 
         $scope.subsetState = {
             subsetRunning: false,
@@ -34,11 +32,6 @@ angular.module('subset', [
 
         // For loading message
         $scope.dataLoading = true;
-
-        // Get list of all phones in phone set
-        Corpora.phone_set($stateParams.corpus_id).then(function (res) {
-            $scope.phones = res.data;
-        });
 
         // If editing, load list of existing phones
         if ($scope.newSubset == false) {
@@ -62,12 +55,22 @@ angular.module('subset', [
                     $scope.dataLoading = false;
                 }); 
             });
-        };
+        }
+        // If starting from new, get list of all possible phones
+        else {
+            Corpora.phone_set($stateParams.corpus_id).then(function (res) {
+                $scope.phones = res.data;
+            }).finally(function() {
+                $scope.dataLoading = false;
+            }); 
+        }
 
 
         $scope.createSubset = function() {
             // Create from scratch
+            console.log($scope.subset);
             if ($scope.newSubset == true) {
+                console.log($scope.subset);
                 Enrichment.create($stateParams.corpus_id, $scope.subset).then(function (res) {
                     $state.go('enrichment', {corpus_id: $stateParams.corpus_id});
                 }).catch(function(res){

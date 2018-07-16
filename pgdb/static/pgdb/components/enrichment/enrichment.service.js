@@ -28,5 +28,9 @@ angular.module('pgdb.enrichment')
             return $http.put(base_url + corpus_id + '/enrichment/' + id + '/', enrichmentData);
         };
 
+        Enrichment.destroy = function (corpus_id, id) {
+            return $http.delete(base_url + corpus_id + '/enrichment/' + id + '/');
+        };
+
         return Enrichment;
     });

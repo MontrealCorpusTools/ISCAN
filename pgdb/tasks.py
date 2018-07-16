@@ -24,3 +24,13 @@ def run_enrichment_task(enrichment_id):
 def reset_enrichment_task(enrichment_id):
     enrichment = Enrichment.objects.get(pk=enrichment_id)
     enrichment.reset_enrichment()
+
+@shared_task
+def delete_enrichment_task(enrichment_id):
+	enrichment = Enrichment.objects.get(pk=enrichment_id)
+	# First reset, to "de-encode"
+	print("Resetting enrichment to remove encoding...")
+	enrichment.reset_enrichment()
+	# Then properly delete
+	print("Deleting enrichment...")
+	enrichment.delete()
