@@ -24,5 +24,17 @@ angular.module('pgdb.enrichment')
             return $http.post(base_url + corpus_id + '/enrichment/', enrichmentData);
         };
 
+        Enrichment.one = function (corpus_id, id) {
+            return $http.get(base_url + corpus_id + '/enrichment/' + id + '/');
+        };
+
+        Enrichment.update = function (corpus_id, id, enrichmentData) {
+            return $http.put(base_url + corpus_id + '/enrichment/' + id + '/', enrichmentData);
+        };
+
+        Enrichment.destroy = function (corpus_id, id) {
+            return $http.delete(base_url + corpus_id + '/enrichment/' + id + '/');
+        };
+
         return Enrichment;
     });

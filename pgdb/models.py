@@ -827,70 +827,75 @@ class Enrichment(models.Model):
         config = self.config
         enrichment_type = config.get('enrichment_type')
         print(config)
-        with CorpusContext(self.corpus.config) as c:
-            if enrichment_type == 'subset':
-                annotation_type = config.get('annotation_type')
-                annotation_labels = config.get('annotation_labels')
-                subset_label = config.get('subset_label')
-                if annotation_type == 'phone':
-                    c.encode_class(annotation_labels, subset_label)
-            elif enrichment_type == 'syllables':
-                if c.hierarchy.has_type_subset('phone', 'syllabic'):
-                    c.encode_syllables('maxonset')
-            elif enrichment_type == 'pauses':
-                pause_label = config.get('pause_label')
-                c.encode_pauses(pause_label)
-            elif enrichment_type == 'utterances':
-                pause_length = float(config.get('pause_length', 0.15))
-                c.encode_utterances(min_pause_length=pause_length)
-            elif enrichment_type == 'hierarchical_property':
-                property_type = config.get('property_type')
-                higher_annotation = config.get('higher_annotation')
-                lower_annotation = config.get('lower_annotation')
-                property_label = config.get('property_label')
-                subset_label = config.get('subset_label', '')
-                if not subset_label:
-                    subset_label = None
-                if property_type == 'rate':
-                    c.encode_rate(higher_annotation, lower_annotation, property_label, subset=subset_label)
-                elif property_type == 'count':
-                    c.encode_count(higher_annotation, lower_annotation, property_label, subset=subset_label)
-                elif property_type == 'position':
-                    c.encode_position(higher_annotation, lower_annotation, property_label, subset=subset_label)
-            elif enrichment_type == 'discourse_csv':
-                print(config.get('path'))
-                c.enrich_discourses_from_csv(config.get('path'))
-            elif enrichment_type == 'speaker_csv':
-                c.enrich_speakers_from_csv(config.get('path'))
-            elif enrichment_type == 'lexicon_csv':
-                c.enrich_lexicon_from_csv(config.get('path'))
-            elif enrichment_type == 'pitch':
-                c.analyze_pitch(source=config.get('source', 'praat'), multiprocessing=False)
-            elif enrichment_type == 'formants':
-                c.analyze_vowel_formant_tracks(source=config.get('source', 'praat'), multiprocessing=False)
-            elif enrichment_type == 'refined_formant_points':
-                from polyglotdb.acoustics.formants.refined import analyze_formant_points_refinement
-                duration_threshold = 0.01
-                nIterations = 5
-                vowel_prototypes_path = None
-                metadata = analyze_formant_points_refinement(c, None, duration_threshold=duration_threshold,
-                                                             num_iterations=nIterations,
-                                                             vowel_prototypes_path=vowel_prototypes_path
-                                                             )
-            elif enrichment_type == 'intensity':
-                c.analyze_intensity(source=config.get('source', 'praat'), multiprocessing=False)
-            elif enrichment_type == 'relativize_pitch':
-                c.relativize_pitch(by_speaker=True)
-            elif enrichment_type == 'relativize_intensity':
-                c.relativize_intensity(by_speaker=True)
-            elif enrichment_type == 'relativize_formants':
-                c.relativize_formants(by_speaker=True)
-        self.running = False
-        self.completed = True
-        self.last_run = datetime.datetime.now()
-        self.save()
-        self.corpus.busy = False
-        self.corpus.save()
+        try:
+            with CorpusContext(self.corpus.config) as c:
+                if enrichment_type == 'subset':
+                    annotation_type = config.get('annotation_type')
+                    annotation_labels = config.get('annotation_labels')
+                    subset_label = config.get('subset_label')
+                    if annotation_type == 'phone':
+                        c.encode_class(annotation_labels, subset_label)
+                elif enrichment_type == 'syllables':
+                    if c.hierarchy.has_type_subset('phone', 'syllabic'):
+                        c.encode_syllables('maxonset')
+                elif enrichment_type == 'pauses':
+                    pause_label = config.get('pause_label')
+                    c.encode_pauses(pause_label)
+                elif enrichment_type == 'utterances':
+                    pause_length = float(config.get('pause_length', 0.15))
+                    c.encode_utterances(min_pause_length=pause_length)
+                elif enrichment_type == 'hierarchical_property':
+                    property_type = config.get('property_type')
+                    higher_annotation = config.get('higher_annotation')
+                    lower_annotation = config.get('lower_annotation')
+                    property_label = config.get('property_label')
+                    subset_label = config.get('subset_label', '')
+                    if not subset_label:
+                        subset_label = None
+                    if property_type == 'rate':
+                        c.encode_rate(higher_annotation, lower_annotation, property_label, subset=subset_label)
+                    elif property_type == 'count':
+                        c.encode_count(higher_annotation, lower_annotation, property_label, subset=subset_label)
+                    elif property_type == 'position':
+                        c.encode_position(higher_annotation, lower_annotation, property_label, subset=subset_label)
+                elif enrichment_type == 'discourse_csv':
+                    print(config.get('path'))
+                    c.enrich_discourses_from_csv(config.get('path'))
+                elif enrichment_type == 'speaker_csv':
+                    c.enrich_speakers_from_csv(config.get('path'))
+                elif enrichment_type == 'lexicon_csv':
+                    c.enrich_lexicon_from_csv(config.get('path'))
+                elif enrichment_type == 'pitch':
+                    c.analyze_pitch(source=config.get('source', 'praat'), multiprocessing=False)
+                elif enrichment_type == 'formants':
+                    c.analyze_vowel_formant_tracks(source=config.get('source', 'praat'), multiprocessing=False)
+                elif enrichment_type == 'refined_formant_points':
+                    from polyglotdb.acoustics.formants.refined import analyze_formant_points_refinement
+                    duration_threshold = 0.01
+                    nIterations = 5
+                    vowel_prototypes_path = None
+                    metadata = analyze_formant_points_refinement(c, None, duration_threshold=duration_threshold,
+                                                                 num_iterations=nIterations,
+                                                                 vowel_prototypes_path=vowel_prototypes_path
+                                                                 )
+                elif enrichment_type == 'intensity':
+                    c.analyze_intensity(source=config.get('source', 'praat'), multiprocessing=False)
+                elif enrichment_type == 'relativize_pitch':
+                    c.relativize_pitch(by_speaker=True)
+                elif enrichment_type == 'relativize_intensity':
+                    c.relativize_intensity(by_speaker=True)
+                elif enrichment_type == 'relativize_formants':
+                    c.relativize_formants(by_speaker=True)
+            self.running = False
+            self.completed = True
+            self.last_run = datetime.datetime.now()
+            self.save()
+            self.corpus.busy = False
+            self.corpus.save()
+        except Exception:
+            self.corpus.busy = False # If it fails, don't stay busy and block everything
+            self.corpus.save()
+            print(traceback.format_exc())
 
 
 class Query(models.Model):

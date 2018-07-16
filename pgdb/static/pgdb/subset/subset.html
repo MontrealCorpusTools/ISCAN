@@ -1,17 +1,22 @@
 <div class="col-md-9 text-center" style="height:1280px">
     <div>
         <h4>Encode a <span ng-bind="subset.annotation_type"></span> subset</h4>
-        <label>Subset name: <input ng-model="subset.name"> </label>
+        <label>Subset name: <input ng-model="subset.subset_label" ng-change="subset.name='Encode ' + subset.subset_label"> </label>
+
 
         <button class='btn btn-success' ng-click="createSubset()">
-            <span ng-bind="subsetState.subsetText"></span>
+            <span>Save subset</span>
         </button>
         <button class='btn btn-danger' ng-click="clearMembers()" ng-disabled="">
             <span>Clear members</span>
         </button>
-        <button class="btn" ng-disabled="" ng-show=""><span
-                ng-bind="" ng-click="export()"></span></button>
 
+        <p><span ng-bind="error_message" style="color: red"></span></p>
+
+    </div>
+
+    <div ng-if="dataLoading">
+        <i>Loading phones...</i>
     </div>
 
     <div class="col-md-12 scroll-container" style="height:400px">
@@ -35,8 +40,8 @@
         </md-content>
     </div>
 
-    <div>
-        <b>Selected subset:</b> {{ subset.members }}
+    <div ng-if="dataLoading==false">
+        <b>Selected subset:</b> {{ subset.annotation_labels }}
     </div>
 
 </div>

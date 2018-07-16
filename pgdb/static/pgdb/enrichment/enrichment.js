@@ -64,6 +64,26 @@ angular.module('enrichment', [
             getData();
             });
         };
+
+        $scope.editEnrichment = function(enrichment) {
+            if (enrichment.enrichment_type == 'subset') {
+                $state.go('edit_subset', {corpus_id: $stateParams.corpus_id, enrichment_id: enrichment.id})
+            }
+            // Else, go to other relevant edit page that we'll build later
+        }
+
+        $scope.deleteEnrichment = function(enrichment) {
+            if (enrichment.enrichment_type == 'subset') {
+                if (confirm("Are you sure you want to delete the subset \"" + enrichment.name + "\" ?")) {
+                    console.log("Deleting " + enrichment.name + "...");
+                    Enrichment.delete($stateParams.corpus_id, enrichment.id)
+                }
+            }
+            else {
+                alert("You cannot delete this enrichment.")
+            }
+        }
+
         $scope.createAcoustics = function(){
            $state.go('acoustic_enrichment', {corpus_id: $stateParams.corpus_id})
         };
