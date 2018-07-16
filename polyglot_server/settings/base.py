@@ -1,7 +1,6 @@
 # Django settings for polyglot_server project.
 import os
 import sys
-import dj_database_url
 
 
 def env(key, default=None):
@@ -34,6 +33,7 @@ SITE_DIR = env(
 sys.path.insert(0, os.path.join(PROJECT_DIR, 'apps', ))
 
 DEBUG = env("DJANGO_DEBUG", False)
+DOCKER = True
 TEMPLATE_DEBUG = DEBUG
 
 ADMINS = (
@@ -43,10 +43,13 @@ ADMINS = (
 MANAGERS = ADMINS
 
 
-# FORMAT:    postgres://USER:PASSWORD@HOST:PORT/NAME
-DATABASES = {'default': dj_database_url.parse(
-    env("DJANGO_DATABASE_URL",
-        "postgres://user:password@localhost:/database"))}
+DATABASES = {'default': {
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': 'postgres',
+        'USER': 'postgres',
+        'PASSWORD': 'postgres',
+        'HOST': 'db',
+        'PORT': '5432'}}
 
 # Hosts/domain names that are valid for this site; required if DEBUG is False
 # See https://docs.djangoproject.com/en/1.5/ref/settings/#allowed-hosts
@@ -144,12 +147,6 @@ STATIC_ROOT = env(
 STATIC_URL = '/static/'
 
 # Additional locations of static files
-"""STATICFILES_DIRS = (
-    # Put strings here, like "/home/html/static" or "C:/www/django/static".
-    # Always use forward slashes, even on Windows.
-    # Don't forget to use absolute paths, not relative paths.
-    os.path.join(PROJECT_DIR, 'static'),
-)"""
 STATICFILES_DIRS = [
     # os.path.join(ANGULAR_APP_DIR),
     #os.path.join(PROJECT_DIR, 'static'),
@@ -245,10 +242,6 @@ CELERY_BROKER_URL = env("CELERY_BROKER_URL",
                         "amqp://guest:guest@localhost:5672//")
 
 CONTACT_EMAIL = "joe.jasinski@gmail.com"
-
-SOURCE_DATA_DIRECTORY = 'polyglot_source'
-
-POLYGLOT_DATA_DIRECTORY = 'polyglot_data'
 
 AUTH_PASSWORD_VALIDATORS = [
     {

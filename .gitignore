@@ -117,3 +117,7 @@ ENV/
 
 # mypy
 .mypy_cache/
+
+polyglot_server/settings/local_settings\.py
+
+polyglot_server/local_settings\.py
