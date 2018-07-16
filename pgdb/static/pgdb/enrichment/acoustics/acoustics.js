@@ -20,7 +20,7 @@ angular.module('acoustics', [
         },
         {
             name: 'Custom praat script',
-            type: 'sibilant_script'
+            type: 'praat_script'
         }];
     $scope.error_message = '';
     $scope.binary_options = ['praat'];
