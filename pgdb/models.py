@@ -893,7 +893,7 @@ class Enrichment(models.Model):
                 elif enrichment_type == 'relativize_formants':
                     c.relativize_formants(by_speaker=True)
                 elif enrichment_type == 'praat_script':
-                    c.analyze_script(phone_class=config.get('phone_class'), script_path=config.get('path'))
+                    c.analyze_script(phone_class=config.get('phone_class'), script_path=config.get('path'), multiprocessing=False)
             self.running = False
             self.completed = True
             self.last_run = datetime.datetime.now()
