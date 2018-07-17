@@ -824,9 +824,8 @@ class EnrichmentViewSet(viewsets.ModelViewSet):
         file_path = os.path.join(enrichment.directory, request.data["file_name"])
         with open(file_path, "w") as f:
             f.write(request.data["text"])
-        if "csv" in enrichment.config['enrichment_type']: 
-            enrichment.config = {'enrichment_type': enrichment.config['enrichment_type'],
-                                 'path': str(file_path)}
+        enrichment.config = {**enrichment.config,
+                             **{'path': str(file_path)}}
         return Response(True)
 
     @detail_route(methods=['post'])
