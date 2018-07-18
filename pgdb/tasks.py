@@ -2,6 +2,9 @@ from celery import shared_task
 
 from .models import Corpus, Query, Enrichment
 
+import logging
+log = logging.getLogger(__name__)
+
 
 @shared_task
 def import_corpus_task(corpus_pk):

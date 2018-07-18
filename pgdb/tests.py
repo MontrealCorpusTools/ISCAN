@@ -9,6 +9,9 @@ from django.urls import reverse
 from pgdb.models import Database, Corpus
 from django.test import override_settings
 
+import logging
+log = logging.getLogger(__name__)
+
 
 # Create your tests here.
 

@@ -20,6 +20,9 @@ from . import serializers
 from .utils import get_used_ports
 from .tasks import import_corpus_task, run_query_task, run_enrichment_task, reset_enrichment_task, delete_enrichment_task
 
+import logging
+log = logging.getLogger('polyglot_server')
+
 
 class DatabaseViewSet(viewsets.ModelViewSet):
     model = models.Database
@@ -783,6 +786,7 @@ class EnrichmentViewSet(viewsets.ModelViewSet):
         return Response(serializers.EnrichmentSerializer(enrichments, many=True).data)
 
     def create(self, request, corpus_pk=None, *args, **kwargs):
+        log.info("Creating an enrichment.")
         if request.auth is None:
             return Response(status=status.HTTP_401_UNAUTHORIZED)
         corpus = models.Corpus.objects.get(pk=corpus_pk)

@@ -2,6 +2,9 @@ from rest_framework import serializers
 from django.contrib.auth.models import Group, User
 from . import models
 
+import logging
+log = logging.getLogger(__name__)
+
 
 class DatabaseSerializer(serializers.ModelSerializer):
     status = serializers.SerializerMethodField()

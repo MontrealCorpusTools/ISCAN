@@ -26,6 +26,8 @@ from polyglotdb.utils import get_corpora_list
 from .utils import download_influxdb, download_neo4j, extract_influxdb, extract_neo4j, make_influxdb_safe, get_pids, \
     get_used_ports
 
+import logging
+log = logging.getLogger(__name__)
 
 # Create your models here.
 
