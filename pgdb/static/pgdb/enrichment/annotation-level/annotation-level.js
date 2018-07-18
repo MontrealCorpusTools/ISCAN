@@ -5,7 +5,7 @@ angular.module('annotationLevel', [
     $scope.annotation_options = [{name: "Utterances",
                                   type: "utterances"},
                                  {name: "Pauses",
-                                  type: "pauses";
+                                  type: "pauses"}];
     $scope.enrichment = {};
     $scope.save = function(){
 	$scope.enrichment.pause_length = $scope.enrichment.pause_length/1000;

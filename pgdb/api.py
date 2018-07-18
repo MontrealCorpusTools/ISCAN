@@ -13,6 +13,7 @@ from rest_framework.decorators import detail_route, list_route
 from neo4j import exceptions as neo4j_exceptions
 
 from polyglotdb import CorpusContext
+from polyglotdb.query.base.func import Count
 
 from . import models
 from . import serializers
@@ -207,6 +208,26 @@ class CorpusViewSet(viewsets.ModelViewSet):
             speakers = c.speakers
 
         return Response(speakers)
+
+    @detail_route(methods=['get'])
+    def words(self, request, pk=None):
+        count = request.GET.get('count', None)
+        if request.auth is None:
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
+        corpus = self.get_object()
+        if not request.user.is_superuser:
+            permissions = corpus.user_permissions.filter(user=request.user).all()
+            if not len(permissions):
+                return Response(status=status.HTTP_401_UNAUTHORIZED)
+        if count is None or not count.isdigit():
+            return Response(
+                'There must be a requested number of words',
+                status=status.HTTP_400_BAD_REQUEST)
+        with CorpusContext(corpus.config) as c:
+            #FIXME: currently choosing top n words is done here, would be much faster to do in PolyglotDB directly
+            q = c.query_graph(c.word).group_by(c.word.label.column_name('label')).order_by(Count(), descending=True)
+            results = [dict(x) for x in q.aggregate(Count())[:int(count)]]
+        return Response(json.dumps(results))
 
     @detail_route(methods=['get'])
     def phones(self, request, pk=None):
