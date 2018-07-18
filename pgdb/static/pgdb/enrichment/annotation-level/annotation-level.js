@@ -7,6 +7,18 @@ angular.module('annotationLevel', [
                                  {name: "Pauses",
                                   type: "pauses"}];
     $scope.enrichment = {};
+    Corpora.words($stateParams.corpus_id, 25).then(function(res){
+            $scope.words = JSON.parse(res.data);
+    }).catch(function(res){
+	    $scope.error_message = res.data
+    });
+    $scope.print = function(){
+	    for (var i = 0; i < $scope.words.length; i++) {   
+		    if($scope.words[i].checked){
+			    console.log($scope.words[i].label);
+		    }
+	    }
+    };
     $scope.save = function(){
 	$scope.enrichment.pause_length = $scope.enrichment.pause_length/1000;
         Enrichment.create($stateParams.corpus_id, $scope.enrichment).then(function (res){

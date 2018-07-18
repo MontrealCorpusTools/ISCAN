@@ -11,8 +11,8 @@
 		    <input  type="number" name="utterance_gap" ng-model="enrichment.pause_length" min="0" value="150">
 	    </label>
         <button ng-click="save()">Save enrichment</button>
+        <button ng-click="print()">print </button>
     </div>
-
     <div ng-show="enrichment.enrichment_type == 'pauses'" class="col-md-12 scroll-container" style="height:400px">
         <md-content>
             <md-content class="md-padding">
@@ -22,10 +22,10 @@
                         <td><b>Include</b></td>
                     </thead>
                     <tbody>
-                        <tr ng-repeat="label in phones">
-                            <td>{{ label.node_phone_label }}</td>
+                        <tr ng-repeat="word in words">
+                            <td>{{ word.label }}</td>
                             <td>
-                                <input type="checkbox" ng-model="label.isChecked" ng-change="insertMember(label)">
+                                <input type="checkbox" ng-model=word.checked>
                             </td>
                         </tr>
                     </tbody>
