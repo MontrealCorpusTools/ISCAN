@@ -3,9 +3,10 @@ angular.module('annotationLevel', [
     'pgdb.enrichment'
 ]).controller('AnnotationLevelCtrl', function ($scope, $rootScope, Enrichment, Corpora, $state, $stateParams) {
     $scope.annotation_options = [{name: "Utterances",
-                                  type: "utterances"}];
+                                  type: "utterances"},
+                                 {name: "Pauses",
+                                  type: "pauses";
     $scope.enrichment = {};
-    $scope.enrichment.pause_length = 150;
     $scope.save = function(){
 	$scope.enrichment.pause_length = $scope.enrichment.pause_length/1000;
         Enrichment.create($stateParams.corpus_id, $scope.enrichment).then(function (res){

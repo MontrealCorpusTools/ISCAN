@@ -8,7 +8,7 @@
             <option value="">Select analysis</option>
         </select></label>
             <label>Utterance gap(ms):
-		    <input type="number" name="utterance_gap" ng-model="enrichment.pause_length" min="0">
+		    <input ng-show="enrichment.enrichment_type == 'utterances'" type="number" name="utterance_gap" ng-model="enrichment.pause_length" min="0" value="150">
 	    </label>
         <button ng-click="save()">Save enrichment</button>
     </div>
