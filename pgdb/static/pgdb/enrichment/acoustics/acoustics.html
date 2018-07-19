@@ -7,12 +7,17 @@
         <select ng-model="enrichment.enrichment_type" ng-options="choice.type as choice.name for choice in acoustic_options" >
             <option value="">Select analysis</option>
         </select></label>
-
+	<label ng-show="enrichment.enrichment_type == 'praat_script'">
+            Praat Script: <input type="file" id="praat-script-file" name="file"/>
+	</label>
+	<label ng-show="enrichment.enrichment_type == 'praat_script'">
+	    Phone class: <select ng-model="enrichment.phone_class" ng-options="choice for choice in phone_class_options" >
+                    <option value="">Select phone class</option>
+		</select>
+	</label>
                 <label>Program: <select ng-model="enrichment.source" ng-options="choice for choice in binary_options" >
                     <option value="">Select program</option>
         </select></label>
       <button ng-click="save()">Save enrichment</button>
-
-
     </div>
 </div>

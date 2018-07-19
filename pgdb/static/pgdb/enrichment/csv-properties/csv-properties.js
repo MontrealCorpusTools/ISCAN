@@ -39,7 +39,7 @@ angular.module('csvProperties', [
 	    r.onloadend = function(e) {
 		    var data = e.target.result;
 		    var resp = {text: data, file_name: name};
-		    Enrichment.create_csv($stateParams.corpus_id, id, resp);
+		    Enrichment.create_file($stateParams.corpus_id, id, resp);
 	    }
 	    r.readAsText(f);
     };
