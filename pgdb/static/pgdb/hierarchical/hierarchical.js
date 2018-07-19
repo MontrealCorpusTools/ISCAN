@@ -9,6 +9,18 @@ angular.module('hierarchical', [
         };
     }])
     .controller('NewHierarchicalCtrl', function ($scope, $rootScope, Query, Corpora, $state, $stateParams, Enrichment) {
+	    ///FIND SOME WAY TO BLOCk
+        Corpora.hierarchy($stateParams.corpus_id).then(function (res) {
+            $scope.hierarchy = res.data;
+	    $scope.encoded = Object.keys($scope.hierarchy.type_properties);
+            console.log($scope.hierarchy);
+            console.log($scope.encoded);
+	});
+
+
+	$scope.isEncoded = function(s) {
+		return $scope.encoded.includes(s);
+	}
         // Making a new hp vs editing an existing one
         if ($stateParams.enrichment_id == null) {
             $scope.newHP = true;
@@ -24,7 +36,7 @@ angular.module('hierarchical', [
             hpText: 'Save hierarchical property'
         };
 
-        $scope.higher_annotations = ['utterance', 'word', 'syllable'];
+        $scope.higher_annotations = ['utterance', 'word', 'syllable'].filter($scope.isEncoded);
         $scope.hp_types = ['rate', 'count', 'position'];
 
         $scope.hp = {
@@ -39,6 +51,7 @@ angular.module('hierarchical', [
         // For loading message
         //$scope.dataLoading = true;
 
+
         $scope.configLowerAnnotations = function() {
             console.log($scope.hp);
             if ($scope.hp.higher_annotation == 'utterance') {
@@ -50,6 +63,7 @@ angular.module('hierarchical', [
             else if ($scope.hp.higher_annotation == 'syllable') {
                 $scope.lower_annotations = ['phone'];
             }
+	    $scope.lower_annotation.filter($scope.isEncoded);
         };
 
         // To edit an existing property
