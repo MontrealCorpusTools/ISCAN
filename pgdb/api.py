@@ -806,6 +806,7 @@ class EnrichmentViewSet(viewsets.ModelViewSet):
                 return Response(
                     'A program to use for this enrichment must be specified.',
                     status=status.HTTP_400_BAD_REQUEST)
+
         # Subset validation
         elif request.data['enrichment_type'] in ['subset']:
             #q = models.Enrichment.objects.filter(corpus=corpus).all()
@@ -818,6 +819,18 @@ class EnrichmentViewSet(viewsets.ModelViewSet):
             if 'annotation_labels' not in r or not r['annotation_labels']:
                 return Response(
                     str(r) + 'The subset cannot be empty.',
+                    status=status.HTTP_400_BAD_REQUEST)
+
+        # Hierarchical property validation
+        elif request.data['enrichment_type'] in ['hierarchical_property']:
+            r = request.data
+            if 'property_label' not in r or not r['property_label']:
+                return Response(
+                    str(r) + 'The hierarchical property must have a name.',
+                    status=status.HTTP_400_BAD_REQUEST)
+            if (r['higher_annotation'] == 'utterance' and r['lower_annotation'] not in ['word', 'syllable', 'phone']) or (r['higher_annotation'] == 'word' and r['lower_annotation'] not in ['syllable', 'phone']) or (r['higher_annotation'] == 'syllable' and r['lower_annotation'] == 'phone'):
+                return Response(
+                    str(r) + 'The lower annotation level must be lower than the higher annotation level.',
                     status=status.HTTP_400_BAD_REQUEST)
 
         enrichment = models.Enrichment.objects.create(name=request.data['name'], corpus=corpus)
