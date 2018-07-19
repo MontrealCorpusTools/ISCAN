@@ -167,7 +167,11 @@ class Database(models.Model):
             stdout, stderr = proc.communicate()
             for line in stdout.decode('utf8').splitlines():
                 if 'neo4j' in line and 'java' in line:
-                    existing_neo4js.append(int(line.strip().split()[0]))
+                    try:
+                        pid = int(line.strip().split()[0])
+                    except ValueError:
+                        pid = int(line.strip().split()[1])
+                    existing_neo4js.append(pid)
 
             with open(self.neo4j_log_path, 'a') as logf:
                 neo4j_proc = subprocess.Popen([self.neo4j_exe_path, 'start'],
@@ -1021,8 +1025,8 @@ class Query(models.Model):
                     q = q.filter(att == value)
             else:
                 for d in a_filters:
-                    att = getattr(ann, field)
                     field, value = d['property'], d['value']
+                    att = getattr(ann, field)
                     if value == 'null':
                         value = None
                     else:
@@ -1078,6 +1082,10 @@ class Query(models.Model):
                 a = getattr(c, a_type)
                 q = c.query_graph(a)
                 for f_a_type, a_filters in config['filters'].items():
+                    if not a_filters:
+                        continue
+                    if f_a_type not in c.hierarchy.annotation_types:
+                        continue
                     if f_a_type == a_type:
                         ann = a
                     else:
@@ -1094,8 +1102,8 @@ class Query(models.Model):
                             q = q.filter(att == value)
                     else:
                         for d in a_filters:
-                            att = getattr(ann, field)
                             field, value = d['property'], d['value']
+                            att = getattr(ann, field)
                             if value == 'null':
                                 value = None
                             else:
@@ -1104,6 +1112,10 @@ class Query(models.Model):
                                 continue
                             q = q.filter(att == value)
                 for f_a_type, a_subsets in config['subsets'].items():
+                    if not a_subsets:
+                        continue
+                    if f_a_type not in c.hierarchy.annotation_types:
+                        continue
                     if f_a_type == a_type:
                         ann = a
                     else:

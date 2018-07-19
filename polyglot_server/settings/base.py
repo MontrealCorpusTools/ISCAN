@@ -19,7 +19,7 @@ def env_list(key, default=""):
     return val.split(",")
 
 
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 PROJECT_DIR = env(
     "DJANGO_PROJECT_DIR",

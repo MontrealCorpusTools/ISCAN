@@ -135,7 +135,7 @@ class CorpusViewSet(viewsets.ModelViewSet):
         requery = False
         for dataset in os.listdir(settings.SOURCE_DATA_DIRECTORY):
             if dataset not in corpus_names:
-                d = models.Database.objects.create(name=dataset)
+                d, _ = models.Database.objects.get_or_create(name=dataset)
                 c = models.Corpus.objects.create(name=dataset, database=d)
                 if 'input_format' in c.configuration_data:
                     c.input_format = c.configuration_data['input_format'][0].upper()

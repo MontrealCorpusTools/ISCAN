@@ -142,6 +142,9 @@ angular.module('query', [
                 if (!inc) {
                     continue
                 }
+                if (!(Query.annotation_types[j] in $scope.hierarchy._data)){
+                    continue
+                }
                 $scope.subsets[Query.annotation_types[j]] = [];
                 Array.prototype.push.apply($scope.subsets[Query.annotation_types[j]], $scope.hierarchy.subset_tokens[Query.annotation_types[j]]);
                 Array.prototype.push.apply($scope.subsets[Query.annotation_types[j]], $scope.hierarchy.subset_types[Query.annotation_types[j]]);
@@ -178,6 +181,7 @@ angular.module('query', [
                     $scope.properties.speaker.push(prop);
                 }
             }
+            console.log('subsets', $scope.subsets)
         });
     })
 
@@ -235,6 +239,9 @@ angular.module('query', [
                     for (j = 0; j < Query.annotation_types.length; j++) {
                         inc = j >= Query.annotation_types.indexOf($scope.query.annotation_type);
                         if (!inc) {
+                            continue
+                        }
+                        if (!(Query.annotation_types[j] in $scope.hierarchy._data)){
                             continue
                         }
                         $scope.subsets[Query.annotation_types[j]] = [];
