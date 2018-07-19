@@ -24,6 +24,10 @@ angular.module('pgdb.corpora')
         return $http.get(base_url + id + '/hierarchy/');
     };
 
+    Corpora.words = function (id, count) {
+      return $http.get(base_url + id + '/words/?count=' + count);
+    };
+
     Corpora.phones = function (id) {
       return $http.get(base_url + id + '/phones/');
     };

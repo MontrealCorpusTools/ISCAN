@@ -26,6 +26,8 @@ var app = angular.module('pgdb', [
     'login',
     'logout',
     'subset',
+    'pausesEnrichment',
+    'utterancesEnrichment',
     'csvProperties'
 ]).run(
     function ($http, $cookies) {
@@ -112,6 +114,14 @@ app.config(function ($stateProvider, $urlRouterProvider) {
         url: '/corpora/:corpus_id/enrichment/csv-properties',
         templateUrl: static('pgdb/enrichment/csv-properties/csv-properties.html'),
         controller: 'CSVPropertiesCtrl'
+        }).state('new_utterances', {
+        url: '/corpora/:corpus_id/enrichment/utterances',
+        templateUrl: static('pgdb/enrichment/annotation-level/utterance.html'),
+        controller: 'UtterancesEnrichmentCtrl'
+        }).state('new_pauses', {
+        url: '/corpora/:corpus_id/enrichment/pauses',
+        templateUrl: static('pgdb/enrichment/annotation-level/pause.html'),
+        controller: 'PausesEnrichmentCtrl'
     });
 
     $urlRouterProvider.otherwise('/');
