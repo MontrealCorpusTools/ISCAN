@@ -29,7 +29,7 @@ angular.module('annotationLevel', [
 	    //add user inputted strings
 	    arr = arr.concat($scope.customWords.split(","));
 	    //strip empty strings, null values, etc.
-	    arr = arr.filter(function(e) {return e});
+	    arr = arr.filter(function(e) {return e === "0" || e});
 	    return arr;
 	};
 
