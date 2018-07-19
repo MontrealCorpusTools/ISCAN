@@ -33,10 +33,6 @@ angular.module('annotationLevel', [
 	    return arr;
 	};
 
-	$scope.print = function(){
-		console.log($scope.getCheckedWords());
-	};
-
 	$scope.save = function(){
 		$scope.enrichment.pause_length = $scope.enrichment.pause_length/1000;
 		if($scope.enrichment.enrichment_type == "pauses"){
