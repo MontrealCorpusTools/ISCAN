@@ -11,9 +11,12 @@
 		    <input  type="number" name="utterance_gap" ng-model="enrichment.pause_length" min="0" value="150">
 	    </label>
         <button ng-click="save()">Save enrichment</button>
-        <button ng-click="print()">print </button>
     </div>
     <div ng-show="enrichment.enrichment_type == 'pauses'" class="col-md-12 scroll-container" style="height:400px">
+	<label> Get top n words 
+		<input type="number" name="word_count" ng-model="count" min="0">
+		<button ng-click="getWords()">Retrieve</button> 
+	</label>
         <md-content>
             <md-content class="md-padding">
                 <table class="table table-striped">
