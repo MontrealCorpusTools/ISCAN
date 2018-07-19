@@ -860,7 +860,7 @@ class Enrichment(models.Model):
                     property_type = config.get('property_type')
                     higher_annotation = config.get('higher_annotation')
                     lower_annotation = config.get('lower_annotation')
-                    property_label = config.get('property_label')
+                    property_label = config.get('property_label').replace(" ", "_")
                     subset_label = config.get('subset_label', '')
                     if not subset_label:
                         subset_label = None
