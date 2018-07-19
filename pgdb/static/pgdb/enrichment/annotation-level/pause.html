@@ -3,17 +3,9 @@
 		<span ng-bind="error_message" style="color: red"></span>
 		<label>Name: <input ng-model="enrichment.name"></label>
 
-		<label> Analysis: 
-			<select ng-model="enrichment.enrichment_type" ng-options="choice.type as choice.name for choice in annotation_options">
-				<option value="">Select analysis</option>
-			</select>
-		</label>
-		<label ng-show="enrichment.enrichment_type == 'utterances'">Utterance gap(ms):
-			<input  type="number" name="utterance_gap" ng-model="enrichment.pause_length" min="0" value="150">
-		</label>
 		<button ng-click="save()">Save enrichment</button>
 	</div>
-	<div ng-show="enrichment.enrichment_type == 'pauses'" class="col-md-12 scroll-container" style="height:400px">
+	<div class="col-md-12 scroll-container" style="height:400px">
 		<label> Get top n words 
 			<input type="number" name="word_count" ng-model="count" min="0">
 			<button ng-click="getWords()">Retrieve</button> 

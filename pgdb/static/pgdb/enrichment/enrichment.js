@@ -88,8 +88,12 @@ angular.module('enrichment', [
            $state.go('acoustic_enrichment', {corpus_id: $stateParams.corpus_id})
         };
         
-        $scope.createAnnotationLevel = function(){
-           $state.go('new_annotation-level', {corpus_id: $stateParams.corpus_id})
+        $scope.createUtterances = function(){
+           $state.go('new_utterances', {corpus_id: $stateParams.corpus_id})
+        };
+
+        $scope.createPauses = function(){
+           $state.go('new_pauses', {corpus_id: $stateParams.corpus_id})
         };
 
         $scope.newCSVProperties = function(){
