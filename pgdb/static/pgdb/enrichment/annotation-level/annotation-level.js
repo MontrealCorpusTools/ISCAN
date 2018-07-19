@@ -26,7 +26,15 @@ angular.module('annotationLevel', [
 			    arr.push($scope.words[i].label);
 		    }
 	    }
+	    //add user inputted strings
+	    arr = arr.concat($scope.customWords.split(","));
+	    //strip empty strings, null values, etc.
+	    arr = arr.filter(function(e) {return e});
 	    return arr;
+	};
+
+	$scope.print = function(){
+		console.log($scope.getCheckedWords());
 	};
 
 	$scope.save = function(){
