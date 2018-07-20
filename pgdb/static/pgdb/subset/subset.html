@@ -19,25 +19,40 @@
         <i>Loading phones...</i>
     </div>
 
-    <div class="col-md-12 scroll-container" style="height:400px">
-        <md-content>
-            <md-content class="md-padding">
-                <table class="table table-striped">
-                    <thead>
-                        <td><b>Phone label</b></td>
-                        <td><b>Include</b></td>
-                    </thead>
-                    <tbody>
-                        <tr ng-repeat="label in phones">
-                            <td>{{ label.node_phone_label }}</td>
-                            <td>
-                                <input type="checkbox" ng-model="label.isChecked" ng-change="insertMember(label)">
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            </md-content>
-        </md-content>
+    <div class="row">
+	    <div class="col-md-8 scroll-container" style="height:400px">
+		<md-content>
+		    <md-content class="md-padding">
+			<table class="table table-striped">
+			    <thead>
+				<td><b>Phone label</b></td>
+				<td><b>Include</b></td>
+			    </thead>
+			    <tbody>
+				<tr ng-repeat="label in phones">
+				    <td>{{ label.node_phone_label }}</td>
+				    <td>
+					<input type="checkbox" ng-model="label.isChecked" ng-change="insertMember(label)">
+				    </td>
+				</tr>
+			    </tbody>
+			</table>
+		    </md-content>
+		</md-content>
+	    </div>
+
+	    <div class=col-md-4">
+		<button ng-click="select('sibilants')">
+		    <span>Select sibilants</span>
+		</button>
+		<button ng-click="select('syllabics')">
+		    <span>Select syllabics</span>
+		</button>
+		<button ng-click="select('stressed_vowels')">
+		    <span>Select stressed vowels</span>
+		</button>
+
+	    </div>
     </div>
 
     <div ng-if="dataLoading==false">
