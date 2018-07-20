@@ -15,6 +15,18 @@
                     <option value="">Select phone class</option>
 		</select>
 	</label>
+
+	<label ng-show="enrichment.enrichment_type == 'formants'">
+            	Vowel Prototypes CSV: <input type="file" id="formants-file" name="file"/>
+	</label>
+	<label ng-show="enrichment.enrichment_type == 'formants'">
+            	Number of iterations: <input ng-model="enrichment.number_of_iterations" type="number" name="number_of_iterations" min="1" value="1" step="1"/>
+	</label>
+	<label ng-show="enrichment.enrichment_type == 'formants'">
+            	Duration Threshold: <input ng-model="enrichment.duration_threshold" type="number" name="duration-threshold" min="0"/>
+	</label>
+
+
                 <label>Program: <select ng-model="enrichment.source" ng-options="choice for choice in binary_options" >
                     <option value="">Select program</option>
         </select></label>

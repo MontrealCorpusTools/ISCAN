@@ -837,6 +837,21 @@ class EnrichmentViewSet(viewsets.ModelViewSet):
                     str(r) + 'The lower annotation level must be lower than the higher annotation level.',
                     status=status.HTTP_400_BAD_REQUEST)
 
+        # Formant validation
+        elif request.data['enrichment_type'] == 'formants':
+            if request.data['duration_threshold'] is not None or request.data['duration_threshold'] != "":
+                try:
+                    float(request.data['duration_threshold'])
+                except ValueError:
+                    return Response(
+                        'The duration threshold must be either blank or a float',
+                        status=status.HTTP_400_BAD_REQUEST)
+            try:
+                int(request.data['number_of_iterations'])
+            except ValueError:
+                return Response(
+                    'The duration threshold must be an integer',
+                    status=status.HTTP_400_BAD_REQUEST)
         enrichment = models.Enrichment.objects.create(name=request.data['name'], corpus=corpus)
         enrichment.config = request.data
         return Response(serializers.EnrichmentSerializer(enrichment).data)
