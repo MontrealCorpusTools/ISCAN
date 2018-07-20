@@ -28,6 +28,7 @@ var app = angular.module('pgdb', [
     'subset',
     'pausesEnrichment',
     'utterancesEnrichment',
+    'syllableEnrichment',
     'hierarchical',
     'csvProperties'
 ]).run(
@@ -131,6 +132,10 @@ app.config(function ($stateProvider, $urlRouterProvider) {
         url: '/corpora/:corpus_id/enrichment/pauses',
         templateUrl: static('pgdb/enrichment/annotation-level/pause.html'),
         controller: 'PausesEnrichmentCtrl'
+        }).state('new_syllables', {
+        url: '/corpora/:corpus_id/enrichment/syllables',
+        templateUrl: static('pgdb/enrichment/annotation-level/syllable.html'),
+        controller: 'SyllableEnrichmentCtrl'
     });
 
     $urlRouterProvider.otherwise('/');
