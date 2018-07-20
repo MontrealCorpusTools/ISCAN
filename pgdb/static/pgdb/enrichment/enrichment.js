@@ -99,6 +99,10 @@ angular.module('enrichment', [
            $state.go('new_pauses', {corpus_id: $stateParams.corpus_id})
         };
 
+        $scope.createSyllables = function(){
+           $state.go('new_syllables', {corpus_id: $stateParams.corpus_id})
+        };
+
         $scope.newCSVProperties = function(){
 		$state.go('new_csv-properties', {corpus_id: $stateParams.corpus_id});
         };
