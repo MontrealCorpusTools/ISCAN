@@ -110,7 +110,11 @@ angular.module('subset', [
 
 	$scope.select = function(subset_name){
 		Corpora.default_subsets($stateParams.corpus_id, subset_name).then(function(res){
-			console.log(res.data)
+		        var default_subset = res.data;
+			angular.forEach($scope.phones, function(label) {
+				label.isChecked = default_subset.includes(label.node_phone_label);
+			});
+			$scope.subset.subset_label = subset_name;
 		});
 	};
 

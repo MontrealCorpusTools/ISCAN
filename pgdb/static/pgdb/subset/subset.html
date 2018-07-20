@@ -42,13 +42,13 @@
 	    </div>
 
 	    <div class=col-md-4">
-		<button ng-click="select('sibilants')">
+		<button ng-disabled="dataLoading" ng-click="select('sibilants')">
 		    <span>Select sibilants</span>
 		</button>
-		<button ng-click="select('syllabics')">
+		<button ng-disabled="dataLoading" ng-click="select('syllabics')">
 		    <span>Select syllabics</span>
 		</button>
-		<button ng-click="select('stressed_vowels')">
+		<button ng-disabled="dataLoading" ng-click="select('stressed_vowels')">
 		    <span>Select stressed vowels</span>
 		</button>
 
