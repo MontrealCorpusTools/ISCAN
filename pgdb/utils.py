@@ -6,6 +6,9 @@ from urllib.request import urlretrieve
 
 from django.conf import settings
 
+import logging
+log = logging.getLogger(__name__)
+
 
 def get_used_ports():
     from .models import Database

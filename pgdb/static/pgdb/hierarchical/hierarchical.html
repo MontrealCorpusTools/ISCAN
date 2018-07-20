@@ -1,0 +1,70 @@
+<div class="col-md-9 text-center" style="height:1280px">
+    <div>
+        <h4>Create a hierarchical property</h4>
+        <label>Hierarchical property name: <input ng-model="hp.property_label" ng-change="hp.name='Encode ' + hp.property_label"> </label>
+
+
+        <button class='btn btn-success' ng-click="createHP()">
+            <span>Save hierarchical property</span>
+        </button>
+        <button class='btn btn-danger' ng-click="clearMembers()" ng-disabled="">
+            <span>Reset to default</span>
+        </button>
+
+        <p><span ng-bind="error_message" style="color: red"></span></p>
+
+
+    <label>Higher annotation:
+        <select ng-model="hp.higher_annotation" class="form-control"
+                ng-options="higher_annotation for higher_annotation in higher_annotations"
+                ng-change="configLowerAnnotations()">
+            <option value="">Select higher annotation</option>
+        </select>
+    </label>
+
+    <label>Lower annotation:
+        <select ng-model="hp.lower_annotation" class="form-control"
+                ng-options="lower_annotation for lower_annotation in lower_annotations">
+            <option value="">Select lower annotation</option>
+        </select>
+    </label>
+
+    <label>Property type:
+        <select ng-model="hp.property_type" class="form-control"
+                ng-options="hp_type for hp_type in hp_types">
+            <option value="">Select property type</option>
+        </select>
+    </label>
+
+    <!--<div ng-if="dataLoading">
+        <i>Loading phones...</i>
+    </div>-->
+
+    <!--<div class="col-md-12 scroll-container" style="height:400px">
+        <md-content>
+            <md-content class="md-padding">
+                <table class="table table-striped">
+                    <thead>
+                        <td><b>Phone label</b></td>
+                        <td><b>Include</b></td>
+                    </thead>
+                    <tbody>
+                        <tr ng-repeat="label in phones">
+                            <td>{{ label.node_phone_label }}</td>
+                            <td>
+                                <input type="checkbox" ng-model="label.isChecked" ng-change="insertMember(label)">
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </md-content>
+        </md-content>
+    </div>
+
+    <div ng-if="dataLoading==false">
+        <b>Selected subset:</b> {{ subset.annotation_labels }}
+    </div>-->
+
+    </div>
+</div>
+

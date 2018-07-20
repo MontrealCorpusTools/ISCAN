@@ -4,6 +4,8 @@ from rest_framework.authtoken.views import obtain_auth_token
 from . import api
 from . import views
 
+import logging
+log = logging.getLogger(__name__)
 
 app_name = 'pgdb'
 api_router = routers.SimpleRouter()

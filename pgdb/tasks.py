@@ -2,6 +2,9 @@ from celery import shared_task
 
 from .models import Corpus, Query, Enrichment
 
+import logging
+log = logging.getLogger(__name__)
+
 
 @shared_task
 def import_corpus_task(corpus_pk):
@@ -28,9 +31,12 @@ def reset_enrichment_task(enrichment_id):
 @shared_task
 def delete_enrichment_task(enrichment_id):
 	enrichment = Enrichment.objects.get(pk=enrichment_id)
-	# First reset, to "de-encode"
-	print("Resetting enrichment to remove encoding...")
-	enrichment.reset_enrichment()
+	# First reset, to "de-encode", if it has been run
+	try:
+		print("Resetting enrichment to remove encoding...")
+		enrichment.reset_enrichment()
+	except:
+		print("No resetting needed.")
 	# Then properly delete
 	print("Deleting enrichment...")
 	enrichment.delete()

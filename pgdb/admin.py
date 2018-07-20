@@ -2,6 +2,9 @@ from django.contrib import admin
 
 from .models import Database, Corpus, CorpusPermissions, Query, Enrichment
 
+import logging
+log = logging.getLogger(__name__)
+
 admin.site.disable_action('delete_selected')
 
 

@@ -26,6 +26,8 @@ from polyglotdb.utils import get_corpora_list
 from .utils import download_influxdb, download_neo4j, extract_influxdb, extract_neo4j, make_influxdb_safe, get_pids, \
     get_used_ports
 
+import logging
+log = logging.getLogger(__name__)
 
 # Create your models here.
 
@@ -858,7 +860,7 @@ class Enrichment(models.Model):
                     property_type = config.get('property_type')
                     higher_annotation = config.get('higher_annotation')
                     lower_annotation = config.get('lower_annotation')
-                    property_label = config.get('property_label')
+                    property_label = config.get('property_label').replace(" ", "_")
                     subset_label = config.get('subset_label', '')
                     if not subset_label:
                         subset_label = None

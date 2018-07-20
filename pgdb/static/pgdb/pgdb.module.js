@@ -28,6 +28,7 @@ var app = angular.module('pgdb', [
     'subset',
     'pausesEnrichment',
     'utterancesEnrichment',
+    'hierarchical',
     'csvProperties'
 ]).run(
     function ($http, $cookies) {
@@ -91,6 +92,14 @@ app.config(function ($stateProvider, $urlRouterProvider) {
         url: '/subset/:corpus_id/:type',
         templateUrl: static('pgdb/subset/subset.html'),
         controller: 'NewSubsetCtrl'
+    }).state('edit_hierarchical_property', {
+        url: '/hierarchical/:corpus_id/{enrichment_id:int}',
+        templateUrl: static('pgdb/hierarchical/hierarchical.html'),
+        controller: 'NewHierarchicalCtrl'
+    }).state('new_hierarchical_property', {
+        url: '/hierarchical/:corpus_id',
+        templateUrl: static('pgdb/hierarchical/hierarchical.html'),
+        controller: 'NewHierarchicalCtrl'
     }).state('check', {
             url: '/check'
         })

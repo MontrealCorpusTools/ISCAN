@@ -20,6 +20,9 @@ from . import serializers
 from .utils import get_used_ports
 from .tasks import import_corpus_task, run_query_task, run_enrichment_task, reset_enrichment_task, delete_enrichment_task
 
+import logging
+log = logging.getLogger('polyglot_server')
+
 
 class DatabaseViewSet(viewsets.ModelViewSet):
     model = models.Database
@@ -783,6 +786,7 @@ class EnrichmentViewSet(viewsets.ModelViewSet):
         return Response(serializers.EnrichmentSerializer(enrichments, many=True).data)
 
     def create(self, request, corpus_pk=None, *args, **kwargs):
+        log.info("Creating an enrichment.")
         if request.auth is None:
             return Response(status=status.HTTP_401_UNAUTHORIZED)
         corpus = models.Corpus.objects.get(pk=corpus_pk)
@@ -806,6 +810,7 @@ class EnrichmentViewSet(viewsets.ModelViewSet):
                 return Response(
                     'A program to use for this enrichment must be specified.',
                     status=status.HTTP_400_BAD_REQUEST)
+
         # Subset validation
         elif request.data['enrichment_type'] in ['subset']:
             #q = models.Enrichment.objects.filter(corpus=corpus).all()
@@ -818,6 +823,18 @@ class EnrichmentViewSet(viewsets.ModelViewSet):
             if 'annotation_labels' not in r or not r['annotation_labels']:
                 return Response(
                     str(r) + 'The subset cannot be empty.',
+                    status=status.HTTP_400_BAD_REQUEST)
+
+        # Hierarchical property validation
+        elif request.data['enrichment_type'] in ['hierarchical_property']:
+            r = request.data
+            if 'property_label' not in r or not r['property_label']:
+                return Response(
+                    str(r) + 'The hierarchical property must have a name.',
+                    status=status.HTTP_400_BAD_REQUEST)
+            if (r['higher_annotation'] == 'utterance' and r['lower_annotation'] not in ['word', 'syllable', 'phone']) or (r['higher_annotation'] == 'word' and r['lower_annotation'] not in ['syllable', 'phone']) or (r['higher_annotation'] == 'syllable' and r['lower_annotation'] == 'phone'):
+                return Response(
+                    str(r) + 'The lower annotation level must be lower than the higher annotation level.',
                     status=status.HTTP_400_BAD_REQUEST)
 
         enrichment = models.Enrichment.objects.create(name=request.data['name'], corpus=corpus)
@@ -859,6 +876,10 @@ class EnrichmentViewSet(viewsets.ModelViewSet):
             if not len(permissions):
                 return Response(status=status.HTTP_401_UNAUTHORIZED)
         enrichment = models.Enrichment.objects.filter(pk=pk, corpus=corpus).get()
+        if not enrichment.runnable:
+            return Response(
+                    'The enrichment is not runnable',
+                    status=status.HTTP_400_BAD_REQUEST)
 
         run_enrichment_task.delay(enrichment.pk)
         time.sleep(1)

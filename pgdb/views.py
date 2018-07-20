@@ -21,6 +21,9 @@ from .serializers import UserWithFullGroupsSerializer, UnauthorizedUserSerialize
 from rest_framework.response import Response
 from rest_framework import generics, status
 
+import logging
+log = logging.getLogger(__name__)
+
 
 # Create your views here.
 
