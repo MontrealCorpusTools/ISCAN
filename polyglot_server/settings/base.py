@@ -176,31 +176,6 @@ CORS_ORIGIN_WHITELIST = (
    '127.0.0.1:8080'
 )
 
-## Polyglot-server settings
-
-SOURCE_DATA_DIRECTORY = os.path.join(BASE_DIR, 'test_data', 'source')
-
-POLYGLOT_DATA_DIRECTORY = os.path.join(BASE_DIR, 'test_data', 'data')
-
-try:
-    from .local_settings import *
-except ImportError:
-    pass
-
-POLYGLOT_TEMP_DIR = os.path.join(POLYGLOT_DATA_DIRECTORY, 'downloads')
-
-POLYGLOT_QUERY_DIRECTORY = os.path.join(POLYGLOT_DATA_DIRECTORY, 'queries')
-
-POLYGLOT_ENRICHMENT_DIRECTORY = os.path.join(POLYGLOT_DATA_DIRECTORY, 'enrichments')
-
-NEO4J_VERSION = '3.3.3'
-
-INFLUXDB_VERSION = '1.2.4'
-
-BASE_NEO4J_PORT = 7400
-
-BASE_INFLUXDB_PORT = 8400
-
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
@@ -233,15 +208,11 @@ ROOT_URLCONF = 'polyglot_server.urls'
 # Python dotted path to the WSGI application used by Django's runserver.
 WSGI_APPLICATION = 'polyglot_server.wsgi.application'
 
-
-HTML_MINIFY = True
 EXCLUDE_FROM_MINIFYING = ('^files/', '^admin/', '^media/')
 
 CELERY_RESULT_BACKEND = 'django-db'
 CELERY_BROKER_URL = env("CELERY_BROKER_URL",
                         "amqp://guest:guest@localhost:5672//")
-
-CONTACT_EMAIL = "joe.jasinski@gmail.com"
 
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -311,3 +282,30 @@ LOGGING = {
         },
     }
 }
+
+HTML_MINIFY = True
+
+## Polyglot-server settings
+
+SOURCE_DATA_DIRECTORY = os.path.join(BASE_DIR, 'test_data', 'source')
+
+POLYGLOT_DATA_DIRECTORY = os.path.join(BASE_DIR, 'test_data', 'data')
+
+try:
+    from .local_settings import *
+except ImportError:
+    pass
+
+POLYGLOT_TEMP_DIR = os.path.join(POLYGLOT_DATA_DIRECTORY, 'downloads')
+
+POLYGLOT_QUERY_DIRECTORY = os.path.join(POLYGLOT_DATA_DIRECTORY, 'queries')
+
+POLYGLOT_ENRICHMENT_DIRECTORY = os.path.join(POLYGLOT_DATA_DIRECTORY, 'enrichments')
+
+NEO4J_VERSION = '3.3.3'
+
+INFLUXDB_VERSION = '1.2.4'
+
+BASE_NEO4J_PORT = 7400
+
+BASE_INFLUXDB_PORT = 8400

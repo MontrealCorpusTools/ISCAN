@@ -68,8 +68,7 @@ coverage.xml
 
 # Django stuff:
 *.log
-#local_settings.py
-pgdb/migrations/*auto*.py
+local_settings.py
 
 # Flask stuff:
 instance/
@@ -118,6 +117,3 @@ ENV/
 # mypy
 .mypy_cache/
 
-polyglot_server/settings/local_settings\.py
-
-polyglot_server/local_settings\.py
