@@ -46,8 +46,10 @@ angular.module('acoustics', [
         Enrichment.create($stateParams.corpus_id, $scope.enrichment).then(function (res){
 	    if($scope.enrichment.enrichment_type == 'praat_script'){
 		    $scope.uploadFile(res.data.id, "praat-script-file");
-	    }else if($scope.enrichment.enrichment_type == 'formants'){
-		    $scope.uploadFile(res.data.id, "formants-file");
+	    }else if($scope.enrichment.enrichment_type == 'refined_formant_points'){
+		    if(document.getElementById(file_id).files.length > 0){
+			    $scope.uploadFile(res.data.id, "formants-file");
+		    }
 	    }
             $state.go('enrichment', {corpus_id: $stateParams.corpus_id});
         }).catch(function(res){

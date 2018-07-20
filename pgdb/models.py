@@ -784,6 +784,8 @@ class Enrichment(models.Model):
                 return annotation_type in c.hierarchy.annotation_types
             elif enrichment_type == 'syllables':
                 return c.hierarchy.has_type_subset('phone', 'syllabic')
+            elif enrichment_type == 'refined_formant_points':
+                return c.hierarchy.has_type_subset('phone', 'vowel')
             elif enrichment_type == 'utterances':
                 return c.hierarchy.has_token_subset('word', 'pause')
             elif enrichment_type == 'hierarchical_property':
@@ -883,12 +885,13 @@ class Enrichment(models.Model):
                     c.analyze_vowel_formant_tracks(source=config.get('source', 'praat'), multiprocessing=False)
                 elif enrichment_type == 'refined_formant_points':
                     from polyglotdb.acoustics.formants.refined import analyze_formant_points_refinement
-                    duration_threshold = 0.01
-                    nIterations = 5
-                    vowel_prototypes_path = None
+                    duration_threshold = float(config.get('duration_threshold', 0.0))
+                    nIterations = int(config.get('number_of_iterations'))
+                    vowel_prototypes_path = config.get('path', None)
                     metadata = analyze_formant_points_refinement(c, None, duration_threshold=duration_threshold,
                                                                  num_iterations=nIterations,
-                                                                 vowel_prototypes_path=vowel_prototypes_path
+                                                                 vowel_prototypes_path=vowel_prototypes_path,
+                                                                 multiprocessing=False
                                                                  )
                 elif enrichment_type == 'intensity':
                     c.analyze_intensity(source=config.get('source', 'praat'), multiprocessing=False)

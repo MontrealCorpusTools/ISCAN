@@ -16,13 +16,13 @@
 		</select>
 	</label>
 
-	<label ng-show="enrichment.enrichment_type == 'formants'">
+	<label ng-show="enrichment.enrichment_type == 'refined_formant_points'">
             	Vowel Prototypes CSV: <input type="file" id="formants-file" name="file"/>
 	</label>
-	<label ng-show="enrichment.enrichment_type == 'formants'">
+	<label ng-show="enrichment.enrichment_type == 'refined_formant_points'">
             	Number of iterations: <input ng-model="enrichment.number_of_iterations" type="number" name="number_of_iterations" min="1" value="1" step="1"/>
 	</label>
-	<label ng-show="enrichment.enrichment_type == 'formants'">
+	<label ng-show="enrichment.enrichment_type == 'refined_formant_points'">
             	Duration Threshold: <input ng-model="enrichment.duration_threshold" type="number" name="duration-threshold" min="0"/>
 	</label>
 

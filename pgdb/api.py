@@ -838,7 +838,7 @@ class EnrichmentViewSet(viewsets.ModelViewSet):
                     status=status.HTTP_400_BAD_REQUEST)
 
         # Formant validation
-        elif request.data['enrichment_type'] == 'formants':
+        elif request.data['enrichment_type'] == 'refined_formant_points':
             if request.data['duration_threshold'] is not None or request.data['duration_threshold'] != "":
                 try:
                     float(request.data['duration_threshold'])
