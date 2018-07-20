@@ -15,6 +15,7 @@ angular.module('hierarchical', [
 	    $scope.encoded = Object.keys($scope.hierarchy.type_properties);
             console.log($scope.hierarchy);
             console.log($scope.encoded);
+	    $scope.higher_annotations = ['utterance', 'word', 'syllable'].filter($scope.isEncoded)
 	});
 
 
@@ -36,7 +37,6 @@ angular.module('hierarchical', [
             hpText: 'Save hierarchical property'
         };
 
-        $scope.higher_annotations = ['utterance', 'word', 'syllable'].filter($scope.isEncoded);
         $scope.hp_types = ['rate', 'count', 'position'];
 
         $scope.hp = {
@@ -63,7 +63,7 @@ angular.module('hierarchical', [
             else if ($scope.hp.higher_annotation == 'syllable') {
                 $scope.lower_annotations = ['phone'];
             }
-	    $scope.lower_annotation.filter($scope.isEncoded);
+	    $scope.lower_annotations = $scope.lower_annotations.filter($scope.isEncoded);
         };
 
         // To edit an existing property
