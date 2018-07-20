@@ -50,7 +50,7 @@
                     {{enrichment.last_run}}
                 </td>
                 <td>
-                    <button ng-if="!corpus.busy" ng-click="runEnrichment(enrichment.id)">Run</button>
+                    <button ng-if="!corpus.busy" ng-disabled="enrichment.runnable" ng-click="runEnrichment(enrichment.id)">Run</button>
                     <button ng-if="!corpus.busy" ng-click="resetEnrichment(enrichment.id)">Reset</button>
                     <button ng-if="!corpus.busy" ng-click="editEnrichment(enrichment)">Edit</button>
                     <button ng-if="!corpus.busy" ng-click="deleteEnrichment(enrichment)">Delete</button>
