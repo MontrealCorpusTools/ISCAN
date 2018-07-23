@@ -35,9 +35,6 @@
                     {{enrichment.name}}
                 </td>
                 <td>
-                    {{enrichment.enrichment_type}}
-                </td>
-                <td>
 		    <span ng-show="enrichment.runnable" class="glyphicon glyphicon-ok" style="color:green"></span>
 		    <span ng-show="!enrichment.runnable" class="glyphicon glyphicon-remove" style="color:red"></span>
                 </td>
@@ -53,10 +50,18 @@
                     {{enrichment.last_run}}
                 </td>
                 <td>
-                    <button ng-if="!corpus.busy" ng-disabled="!enrichment.runnable" ng-click="runEnrichment(enrichment.id)">Run</button>
-                    <button ng-if="!corpus.busy" ng-click="resetEnrichment(enrichment.id)">Reset</button>
-                    <button ng-if="!corpus.busy" ng-click="editEnrichment(enrichment)">Edit</button>
-                    <button ng-if="!corpus.busy" ng-click="deleteEnrichment(enrichment)">Delete</button>
+                    <button class='btn btn-success' ng-if="!corpus.busy" ng-disabled="!enrichment.runnable" ng-click="runEnrichment(enrichment.id)">
+			    <span> Run </span>
+		    </button>
+                    <button class='btn btn-warning' ng-if="!corpus.busy" ng-click="resetEnrichment(enrichment.id)">
+			    <span> Reset </span>
+		    </button>
+                    <button class='btn btn-warning' ng-if="!corpus.busy" ng-click="editEnrichment(enrichment)">
+			    <span> Edit </span>
+		    </button>
+                    <button class='btn btn-danger' ng-if="!corpus.busy" ng-click="deleteEnrichment(enrichment)">
+			    <span> Delete </span>
+		    </button>
                 </td>
             </tr>
             </tbody>
