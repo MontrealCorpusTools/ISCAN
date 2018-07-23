@@ -81,7 +81,10 @@ angular.module('corpusDetail', [
                         }
                     }
                     console.log($scope.properties)
-                });
+                }).catch(function(res){
+			console.log($scope.corpus_status)
+			$scope.error_message = res.data;
+		});
             }
             else if ($scope.corpus.busy){
                 

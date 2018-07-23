@@ -186,6 +186,8 @@ class CorpusViewSet(viewsets.ModelViewSet):
             permissions = corpus.user_permissions.filter(user=request.user).all()
             if not len(permissions):
                 return Response(status=status.HTTP_401_UNAUTHORIZED)
+        if not corpus.database.is_running:
+            return Response("database not running")
         running_enrichments = models.Enrichment.objects.filter(corpus=corpus, running=True).all()
         if len(running_enrichments):
             return Response('enrichment running')
