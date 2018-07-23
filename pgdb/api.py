@@ -280,8 +280,8 @@ class CorpusViewSet(viewsets.ModelViewSet):
                 return Response(status=status.HTTP_401_UNAUTHORIZED)
         with CorpusContext(corpus.config) as c:
             hierarchy = c.hierarchy
-        print(hierarchy.to_json())
-        return Response(hierarchy.to_json())
+            data = serializers.HierarchySerializer(hierarchy).data
+        return Response(data)
 
     @detail_route(methods=['get'])
     def utterance_pitch_track(self, request, pk=None):

@@ -67,7 +67,7 @@
                             </button>
                         </md-content>
                     </md-tab>
-                    <md-tab label="Discourse properties">
+                    <md-tab label="Sound file properties">
                         <md-content class="md-padding">
                             <table class="table table-bordered table-striped">
                                 <tbody>
@@ -116,7 +116,10 @@
     <div ng-show="query.result_count==0 && !newQuery">
         <span>No results found</span>
     </div>
-    <div ng-show="query.result_count>0">
+    <div ng-show="refreshing">
+        <span>Refreshing results...</span>
+    </div>
+    <div ng-show="query.result_count>0 && !refreshing">
 
         <ul ng-if="queryState.numPages" class="pagination">
             <li ng-class="{disabled:queryState.currentPage === 1}">
@@ -140,74 +143,66 @@
 
             <thead>
             <tr>
-                <td ng-click="refreshOrdering('label')">
-                    {{ query.annotation_type|titlecase }}
-                    <span ng-show="queryState.ordering == 'label'" class="fa fa-caret-down"></span>
-                    <span ng-show="queryState.ordering == '-label'" class="fa fa-caret-up"></span>
-                </td>
-                <td ng-repeat="prop in properties.phone" ng-click="refreshOrdering(prop)" ng-show="query.columns.phone[prop] && (query.annotation_type === 'phone')">
-                    {{ prop }}
+                <td ng-repeat="prop in properties.phone" ng-click="refreshOrdering('phone', prop)" ng-show="query.columns.phone[prop] && (query.annotation_type === 'phone')">
+                    <input ng-model="query.column_names.phone[prop]" ng-click="$event.stopPropagation();">
                     <span ng-show="queryState.ordering == 'phone.'+prop" class="fa fa-caret-down"></span>
                     <span ng-show="queryState.ordering == '-phone.' + prop" class="fa fa-caret-up"></span>
                 </td>
-                <td ng-repeat="prop in properties.syllable" ng-click="refreshOrdering(prop)" ng-show="query.columns.syllable[prop] && (query.annotation_type === 'syllable' || query.annotation_type === 'phone')">
-                    {{ prop }}
+                <td ng-repeat="prop in properties.syllable" ng-click="refreshOrdering('syllable', prop)" ng-show="query.columns.syllable[prop] && (query.annotation_type === 'syllable' || query.annotation_type === 'phone')">
+                    <input ng-model="query.column_names.syllable[prop]" ng-click="$event.stopPropagation();">
                     <span ng-show="queryState.ordering == 'syllable.'+prop" class="fa fa-caret-down"></span>
                     <span ng-show="queryState.ordering == '-syllable.' + prop" class="fa fa-caret-up"></span>
                 </td>
-                <td ng-repeat="prop in properties.word" ng-click="refreshOrdering(prop)" ng-show="query.columns.word[prop] && (query.annotation_type === 'word' || query.annotation_type === 'syllable' || query.annotation_type === 'phone')">
-                    {{ prop }}
+                <td ng-repeat="prop in properties.word" ng-click="refreshOrdering('word', prop)" ng-show="query.columns.word[prop] && (query.annotation_type === 'word' || query.annotation_type === 'syllable' || query.annotation_type === 'phone')">
+                    <input ng-model="query.column_names.word[prop]" ng-click="$event.stopPropagation();">
                     <span ng-show="queryState.ordering == 'word.'+prop" class="fa fa-caret-down"></span>
                     <span ng-show="queryState.ordering == '-word.' + prop" class="fa fa-caret-up"></span>
                 </td>
-                <td ng-repeat="prop in properties.utterance" ng-click="refreshOrdering('utterance.' + prop)" ng-show="query.columns.utterance[prop]">
-                    {{ prop }}
+                <td ng-repeat="prop in properties.utterance" ng-click="refreshOrdering('utterance', prop)" ng-show="query.columns.utterance[prop]">
+                    <input ng-model="query.column_names.utterance[prop]" ng-click="$event.stopPropagation();">
                     <span ng-show="queryState.ordering == 'utterance.' +prop" class="fa fa-caret-down"></span>
                     <span ng-show="queryState.ordering == '-utterance.' + prop" class="fa fa-caret-up"></span>
                 </td>
-                <td ng-repeat="prop in properties.discourse" ng-click="refreshOrdering('discourse.' + prop)" ng-show="query.columns.discourse[prop]">
-                    {{ prop }}
-                    <span ng-show="queryState.ordering == 'discourse.' +prop" class="fa fa-caret-down"></span>
-                    <span ng-show="queryState.ordering == '-discourse.' + prop" class="fa fa-caret-up"></span>
-                </td>
-                <td ng-repeat="prop in properties.speaker" ng-click="refreshOrdering('speaker.' + prop)" ng-show="query.columns.speaker[prop]">
-                    {{ prop }}
+                <td ng-repeat="prop in properties.speaker" ng-click="refreshOrdering('speaker', prop)" ng-show="query.columns.speaker[prop]">
+                    <input ng-model="query.column_names.speaker[prop]" ng-click="$event.stopPropagation();">
                     <span ng-show="queryState.ordering == 'speaker.' + prop" class="fa fa-caret-down"></span>
                     <span ng-show="queryState.ordering == '-speaker.' + prop" class="fa fa-caret-up"></span>
+                </td>
+                <td ng-repeat="prop in properties.discourse" ng-click="refreshOrdering('discourse', prop)" ng-show="query.columns.discourse[prop]">
+                    <input ng-model="query.column_names.discourse[prop]" ng-click="$event.stopPropagation();">
+                    <span ng-show="queryState.ordering == 'discourse.' +prop" class="fa fa-caret-down"></span>
+                    <span ng-show="queryState.ordering == '-discourse.' + prop" class="fa fa-caret-up"></span>
                 </td>
 
             </tr>
             </thead>
             <tbody style="height:50%">
             <tr ng-repeat="result in queryState.results">
-                <td ng-show="query.annotation_type !== 'utterance'">
-                    <span
-                       ng-show="can_view" ng-click="getDetail($index)" class="link">{{ result[query.annotation_type].label }}</span>
-                    <span ng-show="!can_view">{{ result[query.annotation_type].label }}</span>
-                </td>
-                <td ng-show="query.annotation_type === 'utterance'">
-
-                    <span
-                       ng-show="can_view" ng-click="getDetail($index)" class="link">{{ result.discourse.name }} ({{ result.utterance.begin }} to {{ result.utterance.end }})</span>
-                    <span ng-show="!can_view">{{ result.discourse.name }} ({{ result.utterance.begin }} to {{ result.utterance.end }})</span>
-                </td>
                 <td ng-repeat="prop in properties.phone" ng-show="query.columns.phone[prop] && (query.annotation_type === 'phone')">
-                    {{ result.phone[prop] }}
+                    <span
+                       ng-show="can_view && query.annotation_type == 'phone' && prop == 'label'" ng-click="getDetail($index)" class="link">{{ result.phone[prop] }}</span>
+                    <span ng-show="!can_view || query.annotation_type != 'phone' || prop != 'label'">{{ result.phone[prop] }}</span>
                 </td>
                 <td ng-repeat="prop in properties.syllable" ng-show="query.columns.syllable[prop] && (query.annotation_type === 'syllable' || query.annotation_type === 'phone')">
-                    {{ result.syllable[prop] }}
+                    <span
+                       ng-show="can_view && query.annotation_type == 'syllable' && prop == 'label'" ng-click="getDetail($index)" class="link">{{ result.syllable[prop] }}</span>
+                    <span ng-show="!can_view || query.annotation_type != 'syllable' || prop != 'label'">{{ result.syllable[prop] }}</span>
                 </td>
                 <td ng-repeat="prop in properties.word" ng-show="query.columns.word[prop] && (query.annotation_type === 'word' || query.annotation_type === 'syllable' || query.annotation_type === 'phone')">
-                    {{ result.word[prop] }}
+                    <span
+                       ng-show="can_view && query.annotation_type == 'word' && prop == 'label'" ng-click="getDetail($index)" class="link">{{ result.word[prop] }}</span>
+                    <span ng-show="!can_view || query.annotation_type != 'word' || prop != 'label'">{{ result.word[prop] }}</span>
                 </td>
                 <td ng-repeat="prop in properties.utterance" ng-show="query.columns.utterance[prop]">
-                    {{ result.utterance[prop] }}
-                </td>
-                <td ng-repeat="prop in properties.discourse" ng-show="query.columns.discourse[prop]">
-                    {{ result.discourse[prop] }}
+                    <span
+                       ng-show="can_view && query.annotation_type == 'utterance' && prop == 'label'" ng-click="getDetail($index)" class="link">{{ result.utterance[prop] }}</span>
+                    <span ng-show="!can_view || query.annotation_type != 'utterance' || prop != 'label'">{{ result.utterance[prop] }}</span>
                 </td>
                 <td ng-repeat="prop in properties.speaker" ng-show="query.columns.speaker[prop]">
                     {{ result.speaker[prop] }}
+                </td>
+                <td ng-repeat="prop in properties.discourse" ng-show="query.columns.discourse[prop]">
+                    {{ result.discourse[prop] }}
                 </td>
             </tr>
             </tbody>
@@ -260,7 +255,7 @@
                     </md-content>
                 </md-tab>
 
-                <md-tab label="Discourse">
+                <md-tab label="Sound file">
                     <md-content class="md-padding">
                         <table class="table table-striped scrollable-table">
                             <thead>
@@ -288,7 +283,7 @@
         <md-content>
             <md-tabs md-border-bottom>
 
-                <md-tab label="Pitch">
+                <md-tab label="Pitch" ng-if="false">
                     <md-content class="md-padding">
                         <table class="table table-striped scrollable-table">
                             <thead>
