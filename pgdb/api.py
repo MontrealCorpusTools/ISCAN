@@ -233,6 +233,56 @@ class CorpusViewSet(viewsets.ModelViewSet):
         return Response(json.dumps(results))
 
     @detail_route(methods=['get'])
+    def default_subsets(self, request, pk=None):
+        subset_class = request.GET.get('subset_class', 'syllabics')
+        print(subset_class)
+        if request.auth is None:
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
+        corpus = models.Corpus.objects.get(pk=pk)
+        if not request.user.is_superuser:
+            permissions = corpus.user_permissions.filter(user=request.user).all()
+            if not len(permissions):
+                return Response(status=status.HTTP_401_UNAUTHORIZED)
+
+        if subset_class not in ['syllabics', 'sibilants', 'stressed_vowels']:
+            return Response(
+                'Invalid subset class',
+                status=status.HTTP_400_BAD_REQUEST)
+
+        if corpus.name.startswith("spade-"):
+            corpus_name = corpus_name.split("spade-")[-1]
+        else:
+            corpus_name = corpus.name
+
+        if subset_class == 'syllabics':
+            if corpus_name == 'SCOTS':
+                subset = ["@", "@`", "e", "e`", "O`", "3`", "E", "E@", "E`", "I", "O", "O@`", "OI", "O`", "e", "e@",
+                  "e@`", "e`", "{`", "}", "}:", "}@", "}@`", "}`", "o:", "o@", "o@`", "o`", "V", "VU", "VU`", "Vi",
+                  "i", "i:", "i@", "i@`", "i`", "a", "a`", "ae", "l=", "m=", "n="]
+            elif corpus_name == 'Buckeye':
+                subset = ["aa", "ae", "ay", "aw", "ao", "oy", "ow", "eh", "ey", "er", "ah", "uw", "ih", "iy", "uh",
+                    "aan", "aen", "ayn", "awn", "aon", "oyn", "own", "ehn", "eyn", "ern", "ahn", "uwn", "ihn", "iyn", "uhn",
+                             "en", "em", "eng", "el"]
+            elif corpus_name == 'SOTC':
+                subset = ["I", "E", "{", "V", "Q", "U", "@", "i","#", "$", "u", "3", "1", "2","4", "5", "6", "7", "8",
+                             "9", "c","q", "O", "~", "B","F","H","L", "P", "C"]
+            else:
+                subset = ["ER0", "IH2", "EH1", "AE0", "UH1", "AY2", "AW2", "UW1", "OY2", "OY1", "AO0", "AH2", "ER1", "AW1",
+                   "OW0", "IY1", "IY2", "UW0", "AA1", "EY0", "AE1", "AA0", "OW1", "AW0", "AO1", "AO2", "IH0", "ER2",
+                   "UW2", "IY0", "AE2", "AH0", "AH1", "UH2", "EH2", "UH0", "EY1", "AY0", "AY1", "EH0", "EY2", "AA2",
+                   "OW2", "IH1"]
+        elif subset_class == "sibilants":
+            if corpus_name in ['SOTC', 'SCOTS']:
+                subset = ["s", "z", "S", "Z"]
+            elif corpus_name == 'Buckeye':
+                subset = ["s", "z", "sh", "zh"]
+            else:
+                subset = ["S", "Z", "SH", "ZH"]
+        elif subset_class == "stressed_vowels":
+            subset = ["EH1", "UH1", "UW1", "OY1", "ER1", "AW1", "IY1", "AA1", "AE1", "OW1",  "AO1", "AH1", "EY1", "AY1", "IH1"]
+        return Response(json.dumps(subset))
+
+    @detail_route(methods=['get'])
     def phones(self, request, pk=None):
         if request.auth is None:
             return Response(status=status.HTTP_401_UNAUTHORIZED)
@@ -913,6 +963,7 @@ class EnrichmentViewSet(viewsets.ModelViewSet):
         reset_enrichment_task.delay(enrichment.pk)
         time.sleep(1)
         return Response(True)
+
 
     def update(self, request, pk=None, corpus_pk=None):
         if request.auth is None:

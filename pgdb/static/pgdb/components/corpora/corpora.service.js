@@ -40,6 +40,10 @@ angular.module('pgdb.corpora')
         return $http.get(base_url + id + '/speakers/');
     };
 
+    Corpora.default_subsets = function (id, subset_class){
+        return $http.get(base_url + id + '/default_subsets/?subset_class=' + subset_class);
+    };
+
     Corpora.discourses = function (id){
         return $http.get(base_url + id + '/discourses/');
     };
