@@ -802,7 +802,7 @@ class EnrichmentViewSet(viewsets.ModelViewSet):
             r = request.data
             if 'word_property' not in r or r['word_property'] is None:
                 return Response(
-                    str(r) + 'There must be a word property.',
+                    'There must be a word property.',
                     status=status.HTTP_400_BAD_REQUEST)
 
         # Hierarchical property validation
