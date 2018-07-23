@@ -249,17 +249,21 @@ class CorpusViewSet(viewsets.ModelViewSet):
                 'Invalid subset class',
                 status=status.HTTP_400_BAD_REQUEST)
 
+        if corpus.name.startswith("spade-"):
+            corpus_name = corpus_name.split("spade-")[-1]
+        else:
+            corpus_name = corpus.name
+
         if subset_class == 'syllabics':
-            #TODO: check if corpus.name is prefixed with SPADE(sometimes it seems to be, e.g., for ICE-CAN).
-            if corpus.name == 'SCOTS':
+            if corpus_name == 'SCOTS':
                 subset = ["@", "@`", "e", "e`", "O`", "3`", "E", "E@", "E`", "I", "O", "O@`", "OI", "O`", "e", "e@",
                   "e@`", "e`", "{`", "}", "}:", "}@", "}@`", "}`", "o:", "o@", "o@`", "o`", "V", "VU", "VU`", "Vi",
                   "i", "i:", "i@", "i@`", "i`", "a", "a`", "ae", "l=", "m=", "n="]
-            elif corpus.name == 'Buckeye':
+            elif corpus_name == 'Buckeye':
                 subset = ["aa", "ae", "ay", "aw", "ao", "oy", "ow", "eh", "ey", "er", "ah", "uw", "ih", "iy", "uh",
                     "aan", "aen", "ayn", "awn", "aon", "oyn", "own", "ehn", "eyn", "ern", "ahn", "uwn", "ihn", "iyn", "uhn",
                              "en", "em", "eng", "el"]
-            elif corpus.name == 'SOTC':
+            elif corpus_name == 'SOTC':
                 subset = ["I", "E", "{", "V", "Q", "U", "@", "i","#", "$", "u", "3", "1", "2","4", "5", "6", "7", "8",
                              "9", "c","q", "O", "~", "B","F","H","L", "P", "C"]
             else:
@@ -268,9 +272,9 @@ class CorpusViewSet(viewsets.ModelViewSet):
                    "UW2", "IY0", "AE2", "AH0", "AH1", "UH2", "EH2", "UH0", "EY1", "AY0", "AY1", "EH0", "EY2", "AA2",
                    "OW2", "IH1"]
         elif subset_class == "sibilants":
-            if corpus.name in ['SOTC', 'SCOTS']:
+            if corpus_name in ['SOTC', 'SCOTS']:
                 subset = ["s", "z", "S", "Z"]
-            elif corpus.name == 'Buckeye':
+            elif corpus_name == 'Buckeye':
                 subset = ["s", "z", "sh", "zh"]
             else:
                 subset = ["S", "Z", "SH", "ZH"]
