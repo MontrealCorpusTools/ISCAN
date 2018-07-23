@@ -10,6 +10,7 @@ angular.module('enrichment', [
         $scope.$on('unauthenticated', function(){
             $state.go('home');
         });
+
         var loadTime = 10000, //Load the data every second
             errorCount = 0, //Counter for the server errors
             loadPromise; //Pointer to the promise created by the Angular $timout service
@@ -38,6 +39,12 @@ angular.module('enrichment', [
 
 	$scope.sortEnrichmentsBy = 'completed';
 	$scope.reverseEnrichments = false;
+	$scope.tableSortExpression = function(e){
+	    if($scope.sortEnrichmentsBy == 'runnable') {
+		    return e['runnable'] == 'runnable';
+	    }
+	    return e[$scope.sortEnrichmentsBy];
+	};
 
         var cancelNextLoad = function () {
             $timeout.cancel(loadPromise);
@@ -127,9 +134,19 @@ angular.module('enrichment', [
             console.log("New hierarchical property...");
             $state.go('new_hierarchical_property', {corpus_id: $stateParams.corpus_id});
         };
-
         $scope.newStressWordProp= function(){
             $state.go('new_stress-word-prop', {corpus_id: $stateParams.corpus_id});
         };
 
+}).directive('tooltip', function() {
+	return {
+		restrict: 'A',
+		link: function(scope, element, attrs){
+			element.hover(function(){
+				element.tooltip('show');
+			}, function(){
+			       element.tooltip('hide');
+			});
+		}
+	};
 });

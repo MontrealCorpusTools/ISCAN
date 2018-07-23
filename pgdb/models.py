@@ -722,18 +722,23 @@ class Enrichment(models.Model):
         with CorpusContext(self.corpus.config) as c:
             if enrichment_type == 'subset':
                 annotation_type = config.get('annotation_type')
-                return annotation_type in c.hierarchy.annotation_types
+                if not (annotation_type in c.hierarchy.annotation_types):
+                    return 'Must encode {}'.format(annotation_type)
             elif enrichment_type == 'syllables':
-                return c.hierarchy.has_type_subset('phone', 'syllabic')
+                if not (c.hierarchy.has_type_subset('phone', 'syllabic')):
+                    return 'Must encode syllabics'
             elif enrichment_type == 'refined_formant_points':
-                return c.hierarchy.has_type_subset('phone', 'vowel')
+                if not (c.hierarchy.has_type_subset('phone', 'vowel')):
+                    return 'Must encode vowels'
             elif enrichment_type == 'utterances':
-                return c.hierarchy.has_token_subset('word', 'pause')
+                if not (c.hierarchy.has_token_subset('word', 'pause')):
+                    return 'Must encode pauses'
             elif enrichment_type == 'hierarchical_property':
                 higher_annotation = config.get('higher_annotation')
                 lower_annotation = config.get('lower_annotation')
-                return higher_annotation in c.hierarchy.annotation_types and lower_annotation in c.hierarchy.annotation_types
-        return True
+                if not (higher_annotation in c.hierarchy.annotation_types and lower_annotation in c.hierarchy.annotation_types):
+                    return 'Must encode {} and {}'.format(higher_annotation, lower_annotation)
+        return 'runnable'
 
     def reset_enrichment(self):
         self.running = True
