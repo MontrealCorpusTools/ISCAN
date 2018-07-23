@@ -6,54 +6,69 @@
 
             <thead>
             <tr>
-                <td>
+                <td ng-click="sortEnrichmentsBy='name'; reverseEnrichments=!reverseEnrichments;">
                     Name
+                    <span ng-show="sortEnrichmentsBy == 'name' && reverseEnrichments" class="fa fa-caret-down"></span>
+                    <span ng-show="sortEnrichmentsBy == 'name' && !reverseEnrichments" class="fa fa-caret-up"></span>
                 </td>
-                <td>
-                    Enrichment type
-                </td>
-                <td>
+                <td ng-click="sortEnrichmentsBy='runnable'; reverseEnrichments=!reverseEnrichments;">
                     Runnable
+                    <span ng-show="sortEnrichmentsBy == 'runnable' && reverseEnrichments" class="fa fa-caret-down"></span>
+                    <span ng-show="sortEnrichmentsBy == 'runnable' && !reverseEnrichments" class="fa fa-caret-up"></span>
                 </td>
-                <td>
+                <td ng-click="sortEnrichmentsBy='running'; reverseEnrichments=!reverseEnrichments;">
                     Running
+                    <span ng-show="sortEnrichmentsBy == 'running' && reverseEnrichments" class="fa fa-caret-down"></span>
+                    <span ng-show="sortEnrichmentsBy == 'running' && !reverseEnrichments" class="fa fa-caret-up"></span>
                 </td>
-                <td>
+                <td ng-click="sortEnrichmentsBy='completed'; reverseEnrichments=!reverseEnrichments;">
                     Completed
+                    <span ng-show="sortEnrichmentsBy == 'completed' && reverseEnrichments" class="fa fa-caret-down"></span>
+                    <span ng-show="sortEnrichmentsBy == 'completed' && !reverseEnrichments" class="fa fa-caret-up"></span>
                 </td>
-                <td>
+                <td ng-click="sortEnrichmentsBy='last_run'; reverseEnrichments=!reverseEnrichments;">
                     Last run
+                    <span ng-show="sortEnrichmentsBy == 'last_run' && reverseEnrichments" class="fa fa-caret-down"></span>
+                    <span ng-show="sortEnrichmentsBy == 'last_run' && !reverseEnrichments" class="fa fa-caret-up"></span>
                 </td>
-                <td>
+		<td>
                     Actions
                 </td>
             </tr>
             </thead>
             <tbody style="height:50%">
-            <tr ng-repeat="enrichment in enrichments">
+            <tr ng-repeat="enrichment in enrichments | orderBy:sortEnrichmentsBy:reverseEnrichments">
                 <td>
                     {{enrichment.name}}
                 </td>
                 <td>
-                    {{enrichment.enrichment_type}}
+		    <span ng-show="enrichment.runnable" class="glyphicon glyphicon-ok" style="color:green"></span>
+		    <span ng-show="!enrichment.runnable" class="glyphicon glyphicon-remove" style="color:red"></span>
                 </td>
                 <td>
-                    {{enrichment.runnable}}
+		    <span ng-show="enrichment.running" class="glyphicon glyphicon-ok" style="color:green"></span>
+		    <span ng-show="!enrichment.running" class="glyphicon glyphicon-remove" style="color:red"></span>
                 </td>
                 <td>
-                    {{enrichment.running}}
-                </td>
-                <td>
-                    {{enrichment.completed}}
+		    <span ng-show="enrichment.completed" class="glyphicon glyphicon-ok" style="color:green"></span>
+		    <span ng-show="!enrichment.completed" class="glyphicon glyphicon-remove" style="color:red"></span>
                 </td>
                 <td>
                     {{enrichment.last_run}}
                 </td>
                 <td>
-                    <button ng-if="!corpus.busy" ng-disabled="!enrichment.runnable" ng-click="runEnrichment(enrichment.id)">Run</button>
-                    <button ng-if="!corpus.busy" ng-click="resetEnrichment(enrichment.id)">Reset</button>
-                    <button ng-if="!corpus.busy" ng-click="editEnrichment(enrichment)">Edit</button>
-                    <button ng-if="!corpus.busy" ng-click="deleteEnrichment(enrichment)">Delete</button>
+                    <button class='btn btn-success' ng-if="!corpus.busy" ng-disabled="!enrichment.runnable" ng-click="runEnrichment(enrichment.id)">
+			    <span> Run </span>
+		    </button>
+                    <button class='btn btn-warning' ng-if="!corpus.busy" ng-click="resetEnrichment(enrichment.id)">
+			    <span> Reset </span>
+		    </button>
+                    <button class='btn btn-warning' ng-if="!corpus.busy" ng-click="editEnrichment(enrichment)">
+			    <span> Edit </span>
+		    </button>
+                    <button class='btn btn-danger' ng-if="!corpus.busy" ng-click="deleteEnrichment(enrichment)">
+			    <span> Delete </span>
+		    </button>
                 </td>
             </tr>
             </tbody>

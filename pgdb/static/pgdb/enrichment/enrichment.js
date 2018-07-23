@@ -32,6 +32,9 @@ angular.module('enrichment', [
         });
         };
 
+	$scope.sortEnrichmentsBy = 'completed';
+	$scope.reverseEnrichments = false;
+
         var cancelNextLoad = function () {
             $timeout.cancel(loadPromise);
         };
