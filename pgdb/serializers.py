@@ -273,7 +273,7 @@ class QuerySerializer(serializers.ModelSerializer):
         return obj.config['columns']
 
     def get_column_names(self, obj):
-        return obj.config['column_names']
+        return obj.config.get('column_names', {x: {} for x in ['phone', 'syllable', 'word', 'utterance', 'discourse', 'speaker']})
 
     def get_acoustic_columns(self, obj):
         return obj.config.get('acoustic_columns', {})
