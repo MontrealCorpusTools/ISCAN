@@ -28,6 +28,7 @@ var app = angular.module('pgdb', [
     'subset',
     'pausesEnrichment',
     'utterancesEnrichment',
+    'stressWordPropEnrichment',
     'syllableEnrichment',
     'hierarchical',
     'csvProperties'
@@ -136,6 +137,10 @@ app.config(function ($stateProvider, $urlRouterProvider) {
         url: '/corpora/:corpus_id/enrichment/syllables',
         templateUrl: static('pgdb/enrichment/annotation-level/syllable.html'),
         controller: 'SyllableEnrichmentCtrl'
+        }).state('new_stress-word-prop', {
+        url: '/corpora/:corpus_id/enrichment/stress-word-prop',
+        templateUrl: static('pgdb/enrichment/stress-word-prop/stress-word-prop.html'),
+        controller: 'StressWordPropEnrichmentCtrl'
     });
 
     $urlRouterProvider.otherwise('/');
