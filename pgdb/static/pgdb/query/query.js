@@ -110,6 +110,9 @@ angular.module('query', [
             $scope.query.filters.speaker = [];
             $scope.query.filters.discourse = [];
         };
+        Corpora.status($stateParams.corpus_id).then(function (res) {
+            $scope.corpus_status = res.data;
+        });
         Corpora.one($stateParams.corpus_id).then(function (res) {
             $scope.corpus = res.data;
         });

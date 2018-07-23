@@ -7,7 +7,7 @@ angular.module('syllableEnrichment', [
             type: 'maxonset'
         }];
 	$scope.subset_options = [{
-            name: 'Syllablics',
+            name: 'Syllabics',
             type: 'syllabic'
 	}];
 	$scope.enrichment = {enrichment_type: "syllables"};

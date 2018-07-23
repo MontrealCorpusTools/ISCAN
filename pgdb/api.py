@@ -186,6 +186,8 @@ class CorpusViewSet(viewsets.ModelViewSet):
             permissions = corpus.user_permissions.filter(user=request.user).all()
             if not len(permissions):
                 return Response(status=status.HTTP_401_UNAUTHORIZED)
+        if not corpus.database.is_running:
+            return Response("database not running")
         running_enrichments = models.Enrichment.objects.filter(corpus=corpus, running=True).all()
         if len(running_enrichments):
             return Response('enrichment running')
@@ -793,6 +795,16 @@ class EnrichmentViewSet(viewsets.ModelViewSet):
             if 'annotation_labels' not in r or not r['annotation_labels']:
                 return Response(
                     str(r) + 'The subset cannot be empty.',
+                    status=status.HTTP_400_BAD_REQUEST)
+
+        #Stress pattern validation
+        elif request.data['enrichment_type'] in ['patterned_stress']:
+            #q = models.Enrichment.objects.filter(corpus=corpus).all()
+            #for r in q:
+            r = request.data
+            if 'word_property' not in r or r['word_property'] is None:
+                return Response(
+                    'There must be a word property.',
                     status=status.HTTP_400_BAD_REQUEST)
 
         # Hierarchical property validation

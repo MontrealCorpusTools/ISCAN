@@ -3,6 +3,10 @@ angular.module('enrichment', [
     'pgdb.enrichment'
 ]).controller('EnrichmentCtrl', function ($scope, $rootScope, Enrichment, Corpora, $state, $stateParams, $timeout) {
 
+        Corpora.status($stateParams.corpus_id).then(function (res) {
+            $scope.corpus_status = res.data;
+        });
+
         $scope.$on('unauthenticated', function(){
             $state.go('home');
         });
@@ -129,6 +133,9 @@ angular.module('enrichment', [
         $scope.newHierarchicalProperty = function(){
             console.log("New hierarchical property...");
             $state.go('new_hierarchical_property', {corpus_id: $stateParams.corpus_id});
+        };
+        $scope.newStressWordProp= function(){
+            $state.go('new_stress-word-prop', {corpus_id: $stateParams.corpus_id});
         };
 
 }).directive('tooltip', function() {
