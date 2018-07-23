@@ -38,13 +38,16 @@
                     {{enrichment.enrichment_type}}
                 </td>
                 <td>
-                    {{enrichment.runnable}}
+		    <span ng-show="enrichment.runnable" class="glyphicon glyphicon-ok" style="color:green"></span>
+		    <span ng-show="!enrichment.runnable" class="glyphicon glyphicon-remove" style="color:red"></span>
                 </td>
                 <td>
-                    {{enrichment.running}}
+		    <span ng-show="enrichment.running" class="glyphicon glyphicon-ok" style="color:green"></span>
+		    <span ng-show="!enrichment.running" class="glyphicon glyphicon-remove" style="color:red"></span>
                 </td>
                 <td>
-                    {{enrichment.completed}}
+		    <span ng-show="enrichment.completed" class="glyphicon glyphicon-ok" style="color:green"></span>
+		    <span ng-show="!enrichment.completed" class="glyphicon glyphicon-remove" style="color:red"></span>
                 </td>
                 <td>
                     {{enrichment.last_run}}
