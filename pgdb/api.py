@@ -151,9 +151,6 @@ class CorpusViewSet(viewsets.ModelViewSet):
             else:
                 corpora = models.Corpus.objects.filter(user_permissions__user=request.user).all()
 
-        for c in corpora:
-            c.generate_enrichments()
-
         return Response(self.serializer_class(corpora, many=True).data)
 
     def create(self, request, *args, **kwargs):
@@ -756,83 +753,6 @@ class EnrichmentViewSet(viewsets.ModelViewSet):
             if not len(permissions):
                 return Response(status=status.HTTP_401_UNAUTHORIZED)
         enrichments = models.Enrichment.objects.filter(corpus=corpus).all()
-
-        # FIXME SO MUCH HARDCODING
-        names = [x.name for x in enrichments]
-        requery = False
-        if 'Encode syllabics' not in names:
-            if corpus.name == 'SCOTS':
-                syllabics = ["@", "@`", "e", "e`", "O`", "3`", "E", "E@", "E`", "I", "O", "O@`", "OI", "O`", "e", "e@",
-                  "e@`", "e`", "{`", "}", "}:", "}@", "}@`", "}`", "o:", "o@", "o@`", "o`", "V", "VU", "VU`", "Vi",
-                  "i", "i:", "i@", "i@`", "i`", "a", "a`", "ae", "l=", "m=", "n="]
-            elif corpus.name == 'Buckeye':
-                syllabics = ["aa", "ae", "ay", "aw", "ao", "oy", "ow", "eh", "ey", "er", "ah", "uw", "ih", "iy", "uh",
-                    "aan", "aen", "ayn", "awn", "aon", "oyn", "own", "ehn", "eyn", "ern", "ahn", "uwn", "ihn", "iyn", "uhn",
-                             "en", "em", "eng", "el"]
-            elif corpus.name == 'SOTC':
-                syllabics = ["I", "E", "{", "V", "Q", "U", "@", "i","#", "$", "u", "3", "1", "2","4", "5", "6", "7", "8",
-                             "9", "c","q", "O", "~", "B","F","H","L", "P", "C"]
-            else:
-                syllabics = ["ER0", "IH2", "EH1", "AE0", "UH1", "AY2", "AW2", "UW1", "OY2", "OY1", "AO0", "AH2", "ER1", "AW1",
-                   "OW0", "IY1", "IY2", "UW0", "AA1", "EY0", "AE1", "AA0", "OW1", "AW0", "AO1", "AO2", "IH0", "ER2",
-                   "UW2", "IY0", "AE2", "AH0", "AH1", "UH2", "EH2", "UH0", "EY1", "AY0", "AY1", "EH0", "EY2", "AA2",
-                   "OW2", "IH1"]
-            syllabic_enrichment = models.Enrichment.objects.create(name='Encode syllabics', corpus=corpus)
-            syllabic_enrichment.config = {'enrichment_type': 'subset',
-                                          'annotation_type': 'phone',
-                                          'annotation_labels': syllabics,
-                                          'subset_label': 'syllabic'}
-            requery = True
-        if 'Encode sibilants' not in names:
-            if corpus.name == 'SCOTS':
-                sibilants = ["s", "z", "S", "Z"]
-            elif corpus.name == 'Buckeye':
-                sibilants = ["s", "z", "sh", "zh"]
-            else:
-                sibilants = ["S", "Z", "SH", "ZH"]
-            sibilant_enrichment = models.Enrichment.objects.create(name='Encode sibilants', corpus=corpus)
-            sibilant_enrichment.config = {'enrichment_type': 'subset',
-                                          'annotation_type': 'phone',
-                                          'annotation_labels': sibilants,
-                                          'subset_label': 'sibilant'}
-            requery = True
-        if 'Encode syllables' not in names:
-            syllable_enrichment = models.Enrichment.objects.create(name='Encode syllables', corpus=corpus)
-            syllable_enrichment.config = {'enrichment_type': 'syllables'}
-            requery = True
-
-        if 'Encode pauses' not in names:
-            if corpus.name == 'Buckeye':
-                pause_label = '^[<{].*$'
-            else:
-                pause_label = '^<SIL>$'
-            pause_enrichment = models.Enrichment.objects.create(name='Encode pauses', corpus=corpus)
-            pause_enrichment.config = {'enrichment_type': 'pauses',
-                                       'pause_label': pause_label}
-            requery = True
-        if 'Encode utterances' not in names:
-            utterance_enrichment = models.Enrichment.objects.create(name='Encode utterances', corpus=corpus)
-            utterance_enrichment.config = {'enrichment_type': 'utterances',
-                                           'pause_length': 0.15}
-            requery = True
-        if 'Encode speech rate' not in names:
-            speechrate_enrichment = models.Enrichment.objects.create(name='Encode speech rate', corpus=corpus)
-            speechrate_enrichment.config = {'enrichment_type': 'hierarchical_property',
-                                            'property_type': 'rate',
-                                            'higher_annotation': 'utterance',
-                                            'lower_annotation': 'syllable',
-                                            'property_label': 'speech_rate'}
-            requery = True
-        if 'Encode pitch' not in names:
-            pitch_enrichment = models.Enrichment.objects.create(name='Encode pitch', corpus=corpus)
-            pitch_enrichment.config = {'enrichment_type': 'pitch'}
-            requery = True
-        if 'Relativize pitch' not in names:
-            pitch_enrichment = models.Enrichment.objects.create(name='Relativize pitch', corpus=corpus)
-            pitch_enrichment.config = {'enrichment_type': 'relativize_pitch'}
-            requery = True
-        if requery:
-            enrichments = models.Enrichment.objects.filter(corpus=corpus).all()
         return Response(serializers.EnrichmentSerializer(enrichments, many=True).data)
 
     def create(self, request, corpus_pk=None, *args, **kwargs):
