@@ -861,7 +861,7 @@ class EnrichmentViewSet(viewsets.ModelViewSet):
             if not len(permissions):
                 return Response(status=status.HTTP_401_UNAUTHORIZED)
         enrichment = models.Enrichment.objects.filter(pk=pk, corpus=corpus).get()
-        if not enrichment.runnable:
+        if enrichment.runnable != 'runnable':
             return Response(
                     'The enrichment is not runnable',
                     status=status.HTTP_400_BAD_REQUEST)

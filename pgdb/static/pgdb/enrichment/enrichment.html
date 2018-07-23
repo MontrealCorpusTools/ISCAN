@@ -37,13 +37,15 @@
             </tr>
             </thead>
             <tbody style="height:50%">
-            <tr ng-repeat="enrichment in enrichments | orderBy:sortEnrichmentsBy:reverseEnrichments">
+            <tr ng-repeat="enrichment in enrichments | orderBy:tableSortExpression:reverseEnrichments">
                 <td>
                     {{enrichment.name}}
                 </td>
-                <td>
-		    <span ng-show="enrichment.runnable" class="glyphicon glyphicon-ok" style="color:green"></span>
-		    <span ng-show="!enrichment.runnable" class="glyphicon glyphicon-remove" style="color:red"></span>
+		<td ng-show="enrichment.runnable == 'runnable'">
+		    <span class="glyphicon glyphicon-ok" style="color:green"></span>
+                </td>
+		<td ng-show="enrichment.runnable != 'runnable'" title="{{ enrichment.runnable }}" data-toggle="tooltip" data-container="body" data-placement="auto" tooltip>
+		    <span class="glyphicon glyphicon-remove" style="color:red"></span>
                 </td>
                 <td>
 		    <span ng-show="enrichment.running" class="glyphicon glyphicon-ok" style="color:green"></span>
@@ -57,7 +59,7 @@
                     {{enrichment.last_run}}
                 </td>
                 <td>
-                    <button class='btn btn-success' ng-if="!corpus.busy" ng-disabled="!enrichment.runnable" ng-click="runEnrichment(enrichment.id)">
+                    <button class='btn btn-success' ng-if="!corpus.busy" ng-disabled="enrichment.runnable != 'runnable'" ng-click="runEnrichment(enrichment.id)">
 			    <span> Run </span>
 		    </button>
                     <button class='btn btn-warning' ng-if="!corpus.busy" ng-click="resetEnrichment(enrichment.id)">
