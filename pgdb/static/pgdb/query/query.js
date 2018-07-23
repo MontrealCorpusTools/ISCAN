@@ -163,6 +163,9 @@ angular.module('query', [
                 $scope.propertyTypes[current_annotation_type] = {};
                 for (i = 0; i < $scope.hierarchy.type_properties[current_annotation_type].length; i++) {
                     prop = $scope.hierarchy.type_properties[current_annotation_type][i][0];
+                    if (!$scope.query.column_names[current_annotation_type][prop]){
+                        $scope.query.column_names[current_annotation_type][prop] = current_annotation_type +'_' + prop
+                    }
                     $scope.propertyTypes[current_annotation_type][prop] = $scope.hierarchy.type_properties[current_annotation_type][i][1];
                     if ($scope.properties[current_annotation_type].indexOf(prop) === -1 && prop !== 'id') {
                         $scope.properties[current_annotation_type].push(prop);
@@ -170,6 +173,9 @@ angular.module('query', [
                 }
                 for (i = 0; i < $scope.hierarchy.token_properties[current_annotation_type].length; i++) {
                     prop = $scope.hierarchy.token_properties[current_annotation_type][i][0];
+                    if (!$scope.query.column_names[current_annotation_type][prop]){
+                        $scope.query.column_names[current_annotation_type][prop] = current_annotation_type +'_' + prop
+                    }
                     $scope.propertyTypes[current_annotation_type][prop] = $scope.hierarchy.token_properties[current_annotation_type][i][1];
                     if ($scope.properties[current_annotation_type].indexOf(prop) === -1 && prop !== 'id') {
                         $scope.properties[current_annotation_type].push(prop);
@@ -179,6 +185,9 @@ angular.module('query', [
             console.log($scope.subsets);
             for (i = 0; i < $scope.hierarchy.discourse_properties.length; i++) {
                 prop = $scope.hierarchy.discourse_properties[i][0];
+                if (!$scope.query.column_names.discourse[prop]){
+                    $scope.query.column_names.discourse[prop] = 'discourse_' + prop;
+                }
                 $scope.propertyTypes.discourse[prop] = $scope.hierarchy.discourse_properties[i][1];
                 if ($scope.properties.discourse.indexOf(prop) === -1 && prop !== 'id') {
                     $scope.properties.discourse.push(prop);
@@ -187,12 +196,14 @@ angular.module('query', [
 
             for (i = 0; i < $scope.hierarchy.speaker_properties.length; i++) {
                 prop = $scope.hierarchy.speaker_properties[i][0];
+                if (!$scope.query.column_names.speaker[prop]){
+                    $scope.query.column_names.speaker[prop] = 'speaker_' + prop;
+                }
                 $scope.propertyTypes.speaker[prop] = $scope.hierarchy.speaker_properties[i][1];
                 if ($scope.properties.speaker.indexOf(prop) === -1 && prop !== 'id') {
                     $scope.properties.speaker.push(prop);
                 }
             }
-            console.log('subsets', $scope.subsets)
         });
     })
 
