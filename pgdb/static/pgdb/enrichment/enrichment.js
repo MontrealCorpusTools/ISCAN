@@ -128,4 +128,8 @@ angular.module('enrichment', [
             $state.go('new_hierarchical_property', {corpus_id: $stateParams.corpus_id});
         };
 
+        $scope.newStressWordProp= function(){
+            $state.go('new_stress-word-prop', {corpus_id: $stateParams.corpus_id});
+        };
+
 });

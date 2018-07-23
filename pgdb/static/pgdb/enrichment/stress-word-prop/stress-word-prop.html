@@ -1,0 +1,12 @@
+<div class="row">
+	<div class="col-md-9">
+		<span ng-bind="error_message" style="color: red"></span>
+		<label>Name: <input ng-model="enrichment.name"></label>
+		<label>Word property:
+			<select ng-model="enrichment.word_property" ng-options="choice.type as choice.name for choice in word_properties" >
+				<option value="">Select subset</option>
+			</select>
+		</label>
+		<button ng-click="save()">Save enrichment</button>
+	</div>
+</div>

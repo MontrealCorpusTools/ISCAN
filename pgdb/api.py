@@ -797,6 +797,16 @@ class EnrichmentViewSet(viewsets.ModelViewSet):
                     str(r) + 'The subset cannot be empty.',
                     status=status.HTTP_400_BAD_REQUEST)
 
+        #Stress pattern validation
+        elif request.data['enrichment_type'] in ['patterned_stress']:
+            #q = models.Enrichment.objects.filter(corpus=corpus).all()
+            #for r in q:
+            r = request.data
+            if 'word_property' not in r or r['word_property'] is None:
+                return Response(
+                    'There must be a word property.',
+                    status=status.HTTP_400_BAD_REQUEST)
+
         # Hierarchical property validation
         elif request.data['enrichment_type'] in ['hierarchical_property']:
             r = request.data
