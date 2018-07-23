@@ -8,18 +8,28 @@
             <tr>
                 <td ng-click="sortEnrichmentsBy='name'; reverseEnrichments=!reverseEnrichments;">
                     Name
+                    <span ng-show="sortEnrichmentsBy == 'name' && reverseEnrichments" class="fa fa-caret-down"></span>
+                    <span ng-show="sortEnrichmentsBy == 'name' && !reverseEnrichments" class="fa fa-caret-up"></span>
                 </td>
                 <td ng-click="sortEnrichmentsBy='runnable'; reverseEnrichments=!reverseEnrichments;">
                     Runnable
+                    <span ng-show="sortEnrichmentsBy == 'runnable' && reverseEnrichments" class="fa fa-caret-down"></span>
+                    <span ng-show="sortEnrichmentsBy == 'runnable' && !reverseEnrichments" class="fa fa-caret-up"></span>
                 </td>
                 <td ng-click="sortEnrichmentsBy='running'; reverseEnrichments=!reverseEnrichments;">
                     Running
+                    <span ng-show="sortEnrichmentsBy == 'running' && reverseEnrichments" class="fa fa-caret-down"></span>
+                    <span ng-show="sortEnrichmentsBy == 'running' && !reverseEnrichments" class="fa fa-caret-up"></span>
                 </td>
                 <td ng-click="sortEnrichmentsBy='completed'; reverseEnrichments=!reverseEnrichments;">
                     Completed
+                    <span ng-show="sortEnrichmentsBy == 'completed' && reverseEnrichments" class="fa fa-caret-down"></span>
+                    <span ng-show="sortEnrichmentsBy == 'completed' && !reverseEnrichments" class="fa fa-caret-up"></span>
                 </td>
                 <td ng-click="sortEnrichmentsBy='last_run'; reverseEnrichments=!reverseEnrichments;">
                     Last run
+                    <span ng-show="sortEnrichmentsBy == 'last_run' && reverseEnrichments" class="fa fa-caret-down"></span>
+                    <span ng-show="sortEnrichmentsBy == 'last_run' && !reverseEnrichments" class="fa fa-caret-up"></span>
                 </td>
 		<td>
                     Actions
