@@ -12,7 +12,7 @@ angular.module('csvProperties', [
             type: 'lexicon_csv'
         },
         {
-            name: 'Discourse CSV',
+            name: 'Sound file CSV',
             type: 'discourse_csv'
         },
         ];
