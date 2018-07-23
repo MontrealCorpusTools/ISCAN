@@ -544,65 +544,6 @@ class Corpus(models.Model):
         self.busy = False
         self.save()
 
-    def generate_enrichments(self):
-        config = self.configuration_data
-        enrichments = Enrichment.objects.filter(corpus=self).all()
-        names = [x.name for x in enrichments]
-        if 'vowel_inventory' in config:
-            extra_syllabics = config.get('extra_syllabics', [])
-            syllabics = config['vowel_inventory'] + extra_syllabics
-            if 'Encode syllabics' not in names:
-                syllabic_enrichment = Enrichment.objects.create(name='Encode syllabics', corpus=self)
-                syllabic_enrichment.config = {'enrichment_type': 'subset',
-                                              'annotation_type': 'phone',
-                                              'annotation_labels': syllabics,
-                                              'subset_label': 'syllabic'}
-            if 'Encode syllables' not in names:
-                syllable_enrichment = Enrichment.objects.create(name='Encode syllables', corpus=self)
-                syllable_enrichment.config = {'enrichment_type': 'syllables'}
-        if 'pauses' in config:
-            if 'Encode pauses' not in names:
-                pause_enrichment = Enrichment.objects.create(name='Encode pauses', corpus=self)
-                pause_enrichment.config = {'enrichment_type': 'pauses',
-                                           'pause_label': config['pauses']}
-            if 'Encode utterances' not in names:
-                utterance_enrichment = Enrichment.objects.create(name='Encode utterances', corpus=self)
-                utterance_enrichment.config = {'enrichment_type': 'utterances',
-                                               'pause_length': 0.15}
-            if 'Encode pitch' not in names:
-                pitch_enrichment = Enrichment.objects.create(name='Encode pitch', corpus=self)
-                pitch_enrichment.config = {'enrichment_type': 'pitch'}
-            if 'Relativize pitch' not in names:
-                pitch_enrichment = Enrichment.objects.create(name='Relativize pitch', corpus=self)
-                pitch_enrichment.config = {'enrichment_type': 'relativize_pitch'}
-        if 'sibilant_segments' in config:
-            if 'Encode sibilants' not in names:
-                sibilant_enrichment = Enrichment.objects.create(name='Encode sibilants', corpus=self)
-                sibilant_enrichment.config = {'enrichment_type': 'subset',
-                                              'annotation_type': 'phone',
-                                              'annotation_labels': config['sibilant_segments'],
-                                              'subset_label': 'sibilant'}
-
-        if os.path.exists(self.enrichment_directory):
-            enrichment_files = os.listdir(self.enrichment_directory)
-            for p in enrichment_files:
-                if 'discourse' in p:
-                    if 'Enrich discourses from {}'.format(p) not in names:
-                        discourse_enrichment = Enrichment.objects.create(name='Enrich discourses from {}'.format(p), corpus=self)
-                        discourse_enrichment.config = {'enrichment_type': 'discourse_csv',
-                                                       'path': os.path.join(self.enrichment_directory, p)}
-                elif 'speaker' in p:
-                    if 'Enrich speakers from {}'.format(p) not in names:
-                        speaker_enrichment = Enrichment.objects.create(name='Enrich speakers from {}'.format(p), corpus=self)
-                        speaker_enrichment.config = {'enrichment_type': 'speaker_csv',
-                                                       'path': os.path.join(self.enrichment_directory, p)}
-                else:
-                    if  'Enrich words from {}'.format(p) not in names:
-                        lexicon_enrichment = Enrichment.objects.create(name='Enrich words from {}'.format(p), corpus=self)
-                        lexicon_enrichment.config = {'enrichment_type': 'lexicon_csv',
-                                                       'path': os.path.join(self.enrichment_directory, p)}
-
-
     def query_corpus(self, query_config):
         with CorpusContext(self.config) as c:
             q = c.query_graph(getattr(c, query_config['to_find']))
