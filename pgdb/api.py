@@ -250,6 +250,7 @@ class CorpusViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST)
 
         if subset_class == 'syllabics':
+            #TODO: check if corpus.name is prefixed with SPADE(sometimes it seems to be, e.g., for ICE-CAN).
             if corpus.name == 'SCOTS':
                 subset = ["@", "@`", "e", "e`", "O`", "3`", "E", "E@", "E`", "I", "O", "O@`", "OI", "O`", "e", "e@",
                   "e@`", "e`", "{`", "}", "}:", "}@", "}@`", "}`", "o:", "o@", "o@`", "o`", "V", "VU", "VU`", "Vi",
@@ -267,14 +268,14 @@ class CorpusViewSet(viewsets.ModelViewSet):
                    "UW2", "IY0", "AE2", "AH0", "AH1", "UH2", "EH2", "UH0", "EY1", "AY0", "AY1", "EH0", "EY2", "AA2",
                    "OW2", "IH1"]
         elif subset_class == "sibilants":
-            if corpus.name == 'SCOTS':
+            if corpus.name in ['SOTC', 'SCOTS']:
                 subset = ["s", "z", "S", "Z"]
             elif corpus.name == 'Buckeye':
                 subset = ["s", "z", "sh", "zh"]
             else:
                 subset = ["S", "Z", "SH", "ZH"]
         elif subset_class == "stressed_vowels":
-            subset = ["AA0"]
+            subset = ["EH1", "UH1", "UW1", "OY1", "ER1", "AW1", "IY1", "AA1", "AE1", "OW1",  "AO1", "AH1", "EY1", "AY1", "IH1"]
         return Response(json.dumps(subset))
 
     @detail_route(methods=['get'])
