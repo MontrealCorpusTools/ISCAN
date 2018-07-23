@@ -6,31 +6,28 @@
 
             <thead>
             <tr>
-                <td>
+                <td ng-click="sortEnrichmentsBy='name'; reverseEnrichments=!reverseEnrichments;">
                     Name
                 </td>
-                <td>
-                    Enrichment type
-                </td>
-                <td>
+                <td ng-click="sortEnrichmentsBy='runnable'; reverseEnrichments=!reverseEnrichments;">
                     Runnable
                 </td>
-                <td>
+                <td ng-click="sortEnrichmentsBy='running'; reverseEnrichments=!reverseEnrichments;">
                     Running
                 </td>
-                <td>
+                <td ng-click="sortEnrichmentsBy='completed'; reverseEnrichments=!reverseEnrichments;">
                     Completed
                 </td>
-                <td>
+                <td ng-click="sortEnrichmentsBy='last_run'; reverseEnrichments=!reverseEnrichments;">
                     Last run
                 </td>
-                <td>
+		<td>
                     Actions
                 </td>
             </tr>
             </thead>
             <tbody style="height:50%">
-            <tr ng-repeat="enrichment in enrichments">
+            <tr ng-repeat="enrichment in enrichments | orderBy:sortEnrichmentsBy:reverseEnrichments">
                 <td>
                     {{enrichment.name}}
                 </td>
