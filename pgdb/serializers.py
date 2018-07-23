@@ -32,6 +32,39 @@ class QueryResultsSerializer(object):
     def data(self):
         return list(self.query.all().to_json())
 
+class HierarchySerializer(serializers.Serializer):
+    annotation_types = serializers.ListField()
+    type_properties = serializers.SerializerMethodField()
+    token_properties = serializers.SerializerMethodField()
+    speaker_properties = serializers.SerializerMethodField()
+    discourse_properties = serializers.SerializerMethodField()
+    subset_types = serializers.SerializerMethodField()
+    subset_tokens = serializers.SerializerMethodField()
+
+    def get_type_properties(self, obj):
+        return {k: sorted((name, t()) for name, t in v if name != 'id') for k, v in obj.type_properties.items()}
+
+    def get_token_properties(self, obj):
+        return {k: sorted((name, t()) for name, t in v if name != 'id') for k, v in obj.token_properties.items()}
+
+    def get_speaker_properties(self, obj):
+        return [(name, t()) for name, t  in obj.speaker_properties if 'file_path' not in name]
+
+    def get_discourse_properties(self, obj):
+        return [(name, t()) for name, t  in obj.discourse_properties if 'file_path' not in name]
+
+    def get_subset_types(self, obj):
+        return{k: sorted(v) for k, v in obj.subset_types.items()}
+
+    def get_subset_tokens(self, obj):
+        return {k: sorted(v) for k, v in obj.subset_tokens.items()}
+
+    def get_subannotations(self, obj):
+        return {k: sorted(v) for k, v in obj.subannotations.items()}
+
+    def get_subannotation_properties(self, obj):
+        return {k: sorted((name, t()) for name, t in v) for k, v in
+                                            obj.subannotation_properties.items()}
 
 class SpeakerSerializer(serializers.Serializer):
     pass
@@ -96,6 +129,8 @@ def serializer_factory(hierarchy, a_type, exclude=None, acoustic_columns=None,
     if a_type == 'discourse':
         base = DiscourseSerializer
         for prop, t in hierarchy.discourse_properties:
+            if 'file_path' in prop:
+                continue
             if prop in exclude:
                 continue
             if t == str:
@@ -218,6 +253,7 @@ class QuerySerializer(serializers.ModelSerializer):
     annotation_type = serializers.SerializerMethodField()
     filters = serializers.SerializerMethodField()
     columns = serializers.SerializerMethodField()
+    column_names = serializers.SerializerMethodField()
     acoustic_columns = serializers.SerializerMethodField()
     subsets = serializers.SerializerMethodField()
     ordering = serializers.SerializerMethodField()
@@ -225,7 +261,7 @@ class QuerySerializer(serializers.ModelSerializer):
     class Meta:
         model = models.Query
         fields = ('id', 'name', 'user', 'corpus', 'annotation_type', 'result_count', 'running', 'filters',
-                  'columns', 'acoustic_columns', 'subsets', 'ordering')
+                  'columns', 'column_names', 'acoustic_columns', 'subsets', 'ordering')
 
     def get_annotation_type(self, obj):
         return obj.get_annotation_type_display()
@@ -235,6 +271,9 @@ class QuerySerializer(serializers.ModelSerializer):
 
     def get_columns(self, obj):
         return obj.config['columns']
+
+    def get_column_names(self, obj):
+        return obj.config['column_names']
 
     def get_acoustic_columns(self, obj):
         return obj.config.get('acoustic_columns', {})

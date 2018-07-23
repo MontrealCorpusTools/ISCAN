@@ -934,12 +934,11 @@ class Query(models.Model):
             return None
         self._ordering = self.config.get('ordering', None)
         if ordering != self._ordering and ordering:
-            ordering = ordering.replace(self.annotation_type.lower() + '.', '')
             self._ordering = ordering
-
             def order_function(input):
                 ordering = self._ordering.replace('-', '').split('.')
                 item = input
+                print(item)
                 for o in ordering:
                     item = item[o]
                 return item
@@ -960,9 +959,14 @@ class Query(models.Model):
         config = self.config
         acoustic_columns = config.get('acoustic_columns', {})
         columns = config.get('columns', {})
+        column_names = config.get('column_names', {})
         a = getattr(corpus_context, a_type)
         q = corpus_context.query_graph(a)
         for f_a_type, a_filters in config['filters'].items():
+            if not a_filters:
+                continue
+            if f_a_type not in {'speaker', 'discourse'} | corpus_context.hierarchy.annotation_types:
+                continue
             if f_a_type == a_type:
                 ann = a
             else:
@@ -990,6 +994,10 @@ class Query(models.Model):
                         continue
                     q = q.filter(att == value)
         for f_a_type, a_subsets in config['subsets'].items():
+            if not a_subsets:
+                continue
+            if f_a_type not in {'speaker', 'discourse'} | corpus_context.hierarchy.annotation_types:
+                continue
             if f_a_type == a_type:
                 ann = a
             else:
@@ -998,6 +1006,10 @@ class Query(models.Model):
                 q = q.filter(ann.subset == s)
 
         for f_a_type, a_columns in columns.items():
+            if not a_columns:
+                continue
+            if f_a_type not in {'speaker', 'discourse'} | corpus_context.hierarchy.annotation_types:
+                continue
             for field, val in a_columns.items():
                 if not val:
                     continue
@@ -1006,6 +1018,8 @@ class Query(models.Model):
                 else:
                     ann = getattr(a, f_a_type)
                 att = getattr(ann, field)
+                if f_a_type in column_names and field in column_names[f_a_type] and column_names[f_a_type][field]:
+                    att = att.column_name(column_names[f_a_type][field])
                 q = q.columns(att)
 
         for a_column, props in acoustic_columns.items():
@@ -1039,7 +1053,7 @@ class Query(models.Model):
                 for f_a_type, a_filters in config['filters'].items():
                     if not a_filters:
                         continue
-                    if f_a_type not in c.hierarchy.annotation_types:
+                    if f_a_type not in {'speaker', 'discourse'} | c.hierarchy.annotation_types:
                         continue
                     if f_a_type == a_type:
                         ann = a
@@ -1069,7 +1083,7 @@ class Query(models.Model):
                 for f_a_type, a_subsets in config['subsets'].items():
                     if not a_subsets:
                         continue
-                    if f_a_type not in c.hierarchy.annotation_types:
+                    if f_a_type not in {'speaker', 'discourse'} | c.hierarchy.annotation_types:
                         continue
                     if f_a_type == a_type:
                         ann = a
