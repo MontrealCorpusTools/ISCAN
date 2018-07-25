@@ -1,4 +1,4 @@
-<div class="col-md-9 scroll-container text-center" style="height:1280px" ng-show="corpus_status != 'database not running'">
+<div class="col-md-9 scroll-container text-center" style="height:1280px" ng-show="corpus_status != null && corpus_status != 'database not running'">
     <div>
         <h4>Query <span ng-bind="query.annotation_type"></span>s</h4>
         <label>Query name: <input ng-model="query.name"> </label>
