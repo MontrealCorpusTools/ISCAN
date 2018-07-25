@@ -234,7 +234,6 @@ class CorpusViewSet(viewsets.ModelViewSet):
     @detail_route(methods=['get'])
     def default_subsets(self, request, pk=None):
         subset_class = request.GET.get('subset_class', 'syllabics')
-        print(subset_class)
         if request.auth is None:
             return Response(status=status.HTTP_401_UNAUTHORIZED)
         corpus = models.Corpus.objects.get(pk=pk)
@@ -249,7 +248,7 @@ class CorpusViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST)
 
         if corpus.name.startswith("spade-"):
-            corpus_name = corpus_name.split("spade-")[-1]
+            corpus_name = corpus.name.split("spade-")[-1]
         else:
             corpus_name = corpus.name
 
