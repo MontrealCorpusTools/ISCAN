@@ -1194,6 +1194,9 @@ class QueryViewSet(viewsets.ModelViewSet):
             permissions = corpus.user_permissions.filter(user=request.user).all()
             if not len(permissions) or not permissions[0].can_view_detail:
                 return Response(status=status.HTTP_401_UNAUTHORIZED)
+        if not corpus.database.is_running:
+            return Response("Database is not running, cannot export", 
+                    status=status.HTTP_400_BAD_REQUEST)
         query = models.Query.objects.filter(pk=pk, corpus=corpus).get()
         if query is None:
             return Response(None, status=status.HTTP_400_BAD_REQUEST)
