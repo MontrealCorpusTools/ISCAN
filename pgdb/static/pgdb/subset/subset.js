@@ -33,6 +33,13 @@ angular.module('subset', [
         // For loading message
         $scope.dataLoading = true;
 
+	$scope.defaultSubsets = [];
+	["sibilants", "syllabics", "stressed_vowels"].forEach(function(subset_name){
+		Corpora.default_subsets($stateParams.corpus_id, subset_name).then(function(res){
+			$scope.defaultSubsets[subset_name] = JSON.parse(res.data);
+		}
+	)});
+
         // If editing, load list of existing phones
         if ($scope.newSubset == false) {
             Enrichment.one($stateParams.corpus_id, $stateParams.enrichment_id).then(function (res) {
@@ -108,13 +115,6 @@ angular.module('subset', [
             });
         };
 
-	$scope.defaultSubsets = [];
-
-	["sibilants", "syllabics", "stressed_vowels"].forEach(function(subset_name){
-		Corpora.default_subsets($stateParams.corpus_id, subset_name).then(function(res){
-			$scope.defaultSubsets[subset_name] = JSON.parse(res.data);
-		}
-	)});
 
 	$scope.select = function(subset_name){
 		var default_subset = $scope.defaultSubsets[subset_name]
