@@ -1,4 +1,4 @@
-<div class="row" ng-show="corpus.imported && corpus_status != 'database not running'">
+<div class="row" ng-show="corpus.imported && corpus_status != null && corpus_status != 'database not running'">
     <h1>Summary of the {{ corpus.name }} corpus</h1><button ng-click="enrichment()">Enrichment</button>
     <div class="col-md-9">
         <h1>Linguistic Units</h1>
@@ -144,10 +144,10 @@
 <div class="alert alert-warning" ng-show="corpus_status == 'database not running'">
 	<span>The {{ corpus.name }} corpus is not currently running, please start it at <a ui-sref="database-list">databases</a>.</span>
 </div>
-<div class="row" ng-show="!corpus.imported && !corpus.busy">
+<div class="row" ng-show="!corpus.imported && !corpus.busy && corpus_status != null && corpus_status != 'database not running'">
     <h1>The {{ corpus.name }} corpus has not been imported yet</h1>
     <button ng-click="importCorpus()">Begin import</button>
 </div>
-<div class="row" ng-show="!corpus.imported && corpus.busy">
+<div class="row" ng-show="!corpus.imported && corpus.busy && corpus_status != null && corpus_status != 'database not running'">
     <h1>The {{ corpus.name }} corpus is currently importing, please be patient.</h1>
 </div>

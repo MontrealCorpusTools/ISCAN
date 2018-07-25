@@ -1,6 +1,6 @@
 <h3 ng-if="corpus.busy" style="color: red">Corpus is currently busy!</h3>
 
-<div class="row" ng-show="corpus.imported && corpus_status != 'database not running'">
+<div class="row" ng-show="corpus.imported && corpus_status != null && corpus_status != 'database not running'">
     <div class="col-md-9 scroll-container text-center" style="height:1280px">
         <table class="table table-bordered table-striped scrollable-table">
 
