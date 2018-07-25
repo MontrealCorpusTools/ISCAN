@@ -173,6 +173,10 @@ class CorpusViewSet(viewsets.ModelViewSet):
             permissions = corpus.user_permissions.filter(user=request.user).all()
             if not len(permissions):
                 return Response(status=status.HTTP_401_UNAUTHORIZED)
+        if not corpus.database.is_running:
+            return Response("Database is not running, cannot import", 
+                    status=status.HTTP_400_BAD_REQUEST)
+
         import_corpus_task.delay(corpus.pk)
         time.sleep(1)
         return Response()
@@ -878,6 +882,9 @@ class EnrichmentViewSet(viewsets.ModelViewSet):
                     'The enrichment is not runnable',
                     status=status.HTTP_400_BAD_REQUEST)
 
+        if not enrichment.corpus.database.is_running:
+            return Response("Database is not running, cannot run enrichment", 
+                    status=status.HTTP_400_BAD_REQUEST)
         run_enrichment_task.delay(enrichment.pk)
         time.sleep(1)
         return Response(True)
@@ -892,6 +899,9 @@ class EnrichmentViewSet(viewsets.ModelViewSet):
             if not len(permissions):
                 return Response(status=status.HTTP_401_UNAUTHORIZED)
         enrichment = models.Enrichment.objects.filter(pk=pk, corpus=corpus).get()
+        if not enrichment.corpus.database.is_running:
+            return Response("Database is not running, cannot reset enrichment", 
+                    status=status.HTTP_400_BAD_REQUEST)
         reset_enrichment_task.delay(enrichment.pk)
         time.sleep(1)
         return Response(True)
@@ -909,6 +919,9 @@ class EnrichmentViewSet(viewsets.ModelViewSet):
         enrichment = models.Enrichment.objects.filter(pk=pk, corpus=corpus).get()
         if enrichment is None:
             return Response(None, status=status.HTTP_400_BAD_REQUEST)
+        if not enrichment.corpus.database.is_running:
+            return Response("Database is not running, cannot update enrichment", 
+                    status=status.HTTP_400_BAD_REQUEST)
         enrichment.name = request.data.get('name')
         do_run = enrichment.config != request.data
         enrichment.config = request.data
@@ -927,6 +940,9 @@ class EnrichmentViewSet(viewsets.ModelViewSet):
             if not len(permissions):
                 return Response(status=status.HTTP_401_UNAUTHORIZED)
         enrichment = models.Enrichment.objects.filter(pk=pk, corpus=corpus).get()
+        if not enrichment.corpus.database.is_running:
+            return Response("Database is not running, cannot delete enrichment", 
+                    status=status.HTTP_400_BAD_REQUEST)
         delete_enrichment_task.delay(enrichment.pk)
         time.sleep(1)
         return Response(True)
@@ -958,6 +974,9 @@ class QueryViewSet(viewsets.ModelViewSet):
             permissions = corpus.user_permissions.filter(user=request.user).all()
             if not len(permissions):
                 return Response(status=status.HTTP_401_UNAUTHORIZED)
+        if not corpus.database.is_running:
+            return Response("Database is not running, cannot create query", 
+                    status=status.HTTP_400_BAD_REQUEST)
         print(request.data)
         query = models.Query.objects.create(name=request.data['name'], user=request.user,
                                             annotation_type=request.data['annotation_type'][0].upper(), corpus=corpus)
@@ -974,6 +993,9 @@ class QueryViewSet(viewsets.ModelViewSet):
             permissions = corpus.user_permissions.filter(user=request.user).all()
             if not len(permissions):
                 return Response(status=status.HTTP_401_UNAUTHORIZED)
+        if not corpus.database.is_running:
+            return Response("Database is not running, cannot update query", 
+                    status=status.HTTP_400_BAD_REQUEST)
         print(request.data)
         query = models.Query.objects.filter(pk=pk, corpus=corpus).get()
         if query is None:
