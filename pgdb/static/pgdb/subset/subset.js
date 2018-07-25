@@ -108,14 +108,22 @@ angular.module('subset', [
             });
         };
 
-	$scope.select = function(subset_name){
+	$scope.defaultSubsets = [];
+
+	["sibilants", "syllabics", "stressed_vowels"].forEach(function(subset_name){
 		Corpora.default_subsets($stateParams.corpus_id, subset_name).then(function(res){
-		        var default_subset = res.data;
-			angular.forEach($scope.phones, function(label) {
-				label.isChecked = default_subset.includes(label.node_phone_label);
-			});
-			$scope.subset.subset_label = subset_name;
+			$scope.defaultSubsets[subset_name] = JSON.parse(res.data);
+		}
+	)});
+
+	$scope.select = function(subset_name){
+		var default_subset = $scope.defaultSubsets[subset_name]
+                $scope.subset.annotation_labels = [];
+                $scope.subset.annotation_labels = default_subset;
+		angular.forEach($scope.phones, function(label) {
+			label.isChecked = default_subset.includes(label.node_phone_label);
 		});
+		$scope.subset.subset_label = subset_name;
 	};
 
     });

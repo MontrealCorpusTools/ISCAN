@@ -264,20 +264,27 @@ class CorpusViewSet(viewsets.ModelViewSet):
             elif corpus_name == 'SOTC':
                 subset = ["I", "E", "{", "V", "Q", "U", "@", "i","#", "$", "u", "3", "1", "2","4", "5", "6", "7", "8",
                              "9", "c","q", "O", "~", "B","F","H","L", "P", "C"]
-            else:
+            elif corpus_name in ["ICE-Can", "Raleigh", "SantaBarbara"]:
                 subset = ["ER0", "IH2", "EH1", "AE0", "UH1", "AY2", "AW2", "UW1", "OY2", "OY1", "AO0", "AH2", "ER1", "AW1",
                    "OW0", "IY1", "IY2", "UW0", "AA1", "EY0", "AE1", "AA0", "OW1", "AW0", "AO1", "AO2", "IH0", "ER2",
                    "UW2", "IY0", "AE2", "AH0", "AH1", "UH2", "EH2", "UH0", "EY1", "AY0", "AY1", "EH0", "EY2", "AA2",
                    "OW2", "IH1"]
+            else:
+                subset = []
         elif subset_class == "sibilants":
             if corpus_name in ['SOTC', 'SCOTS']:
                 subset = ["s", "z", "S", "Z"]
             elif corpus_name == 'Buckeye':
                 subset = ["s", "z", "sh", "zh"]
-            else:
+            elif corpus_name in ["ICE-Can", "Raleigh", "SantaBarbara"]:
                 subset = ["S", "Z", "SH", "ZH"]
+            else:
+                subset = []
         elif subset_class == "stressed_vowels":
-            subset = ["EH1", "UH1", "UW1", "OY1", "ER1", "AW1", "IY1", "AA1", "AE1", "OW1",  "AO1", "AH1", "EY1", "AY1", "IH1"]
+            if corpus_name in ["ICE-Can", "Raleigh", "SantaBarbara"]:
+                subset = ["EH1", "UH1", "UW1", "OY1", "ER1", "AW1", "IY1", "AA1", "AE1", "OW1",  "AO1", "AH1", "EY1", "AY1", "IH1"]
+            else:
+                subset = []
         return Response(json.dumps(subset))
 
     @detail_route(methods=['get'])

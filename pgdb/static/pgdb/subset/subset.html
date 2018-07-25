@@ -42,13 +42,13 @@
 	    </div>
 
 	    <div class=col-md-4">
-		<button ng-disabled="dataLoading" ng-click="select('sibilants')">
+		<button ng-disabled="dataLoading|| defaultSubsets['sibilants'] === undefined || defaultSubsets['sibilants'].length == 0" ng-click="select('sibilants')">
 		    <span>Select sibilants</span>
 		</button>
-		<button ng-disabled="dataLoading" ng-click="select('syllabics')">
+		<button ng-disabled="dataLoading|| defaultSubsets['syllabics'] === undefined || defaultSubsets['syllabics'].length == 0" ng-click="select('syllabics')">
 		    <span>Select syllabics</span>
 		</button>
-		<button ng-disabled="dataLoading" ng-click="select('stressed_vowels')">
+		<button ng-disabled="dataLoading || defaultSubsets['stressed_vowels'] === undefined || defaultSubsets['stressed_vowels'].length == 0" ng-click="select('stressed_vowels')">
 		    <span>Select stressed vowels</span>
 		</button>
 
