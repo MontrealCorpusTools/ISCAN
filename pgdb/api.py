@@ -781,7 +781,7 @@ class EnrichmentViewSet(viewsets.ModelViewSet):
             return Response(
                 'A name for this enrichment must be specified.',
                 status=status.HTTP_400_BAD_REQUEST)
-        if request.data['enrichment_type'] in ['pitch', 'formants', 'sibilant_script', 'refined_formant_points']:
+        if request.data['enrichment_type'] in ['pitch', 'formants', 'sibilant_script']:
             q = models.Enrichment.objects.filter(corpus=corpus).all()
             for r in q:
                 if r.config['enrichment_type'] == request.data['enrichment_type']:
