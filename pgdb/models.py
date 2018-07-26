@@ -821,6 +821,8 @@ class Enrichment(models.Model):
                 elif enrichment_type == 'discourse_csv':
                     print(config.get('path'))
                     c.enrich_discourses_from_csv(config.get('path'))
+                elif enrichment_type == 'phone_csv':
+                    c.enrich_inventory_from_csv(config.get('path'))
                 elif enrichment_type == 'speaker_csv':
                     c.enrich_speakers_from_csv(config.get('path'))
                 elif enrichment_type == 'lexicon_csv':
