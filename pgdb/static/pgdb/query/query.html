@@ -19,6 +19,9 @@
                                         </select>
                                     </td>
                                     <td>
+					 <select ng-model="filter.operator" ng-options="o as o for o in operators"></select>
+                                    </td>
+                                    <td>
                                         <input type="checkbox" ng-show="propertyTypes[t][filter.property]=== false"
                                                ng-model="filter.value">
                                         <input ng-show="propertyTypes[t][filter.property] === '' || propertyTypes[t][filter.property] === 0"
