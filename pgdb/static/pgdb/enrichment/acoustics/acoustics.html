@@ -10,7 +10,7 @@
 	<label ng-show="enrichment.enrichment_type == 'praat_script'">
             Praat Script: <input type="file" id="praat-script-file" name="file"/>
 	</label>
-	<label ng-show="enrichment.enrichment_type == 'praat_script'">
+	<label ng-show="enrichment.enrichment_type == 'praat_script' || enrichment.enrichment_type == 'refined_formant_points'">
 	    Phone class: <select ng-model="enrichment.phone_class" ng-options="choice for choice in phone_class_options" >
                     <option value="">Select phone class</option>
 		</select>
