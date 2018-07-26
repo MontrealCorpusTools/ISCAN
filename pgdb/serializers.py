@@ -50,7 +50,10 @@ class HierarchySerializer(serializers.Serializer):
         return {k: sorted((name, t()) for name, t in v if name != 'id') for k, v in obj.type_properties.items()}
 
     def get_token_properties(self, obj):
-        return {k: sorted((name, t()) for name, t in v if name != 'id') for k, v in obj.token_properties.items()}
+        return {k: sorted(
+                    [(name, t()) for name, t in v if name != 'id'] + [("duration", float())] 
+                )
+                for k, v in obj.token_properties.items()}
 
     def get_speaker_properties(self, obj):
         return [(name, t()) for name, t  in obj.speaker_properties if 'file_path' not in name]
