@@ -45,8 +45,8 @@ angular.module('corpusDetail', [
                 Corpora.hierarchy($stateParams.corpus_id).then(function (res) {
                     $scope.hierarchy = res.data;
                     console.log($scope.hierarchy);
-                    for (var atype in $scope.hierarchy._data) {
-                        console.log(atype)
+                    for (var a_idx = 0; a_idx <  $scope.hierarchy.annotation_types.length; a_idx++) {
+			var atype = $scope.hierarchy.annotation_types[a_idx];
                         $scope.properties[atype] = [];
                         for (j = 0; j < $scope.hierarchy.type_properties[atype].length; j++) {
                             var prop = $scope.hierarchy.type_properties[atype][j][0];
