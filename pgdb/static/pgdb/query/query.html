@@ -6,7 +6,7 @@
             <md-content>
                 <md-tabs md-border-bottom>
 
-                    <md-tab ng-repeat="t in annotation_types" label="{{ t|titlecase }} properties" data-ng-if="$index >=annotation_types.indexOf(query.annotation_type.toLowerCase())">
+                    <md-tab ng-repeat="t in annotation_types" label="{{ t|titlecase }} properties" data-ng-if="$index >= annotation_types.indexOf(query.annotation_type.toLowerCase())">
                     <md-content class="md-padding">
                             <table class="table table-bordered table-striped">
                                 <tbody>

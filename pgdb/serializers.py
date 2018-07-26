@@ -38,13 +38,16 @@ class QueryResultsSerializer(object):
         return list(self.query.all().to_json())
 
 class HierarchySerializer(serializers.Serializer):
-    annotation_types = serializers.ListField()
+    annotation_types = serializers.SerializerMethodField()
     type_properties = serializers.SerializerMethodField()
     token_properties = serializers.SerializerMethodField()
     speaker_properties = serializers.SerializerMethodField()
     discourse_properties = serializers.SerializerMethodField()
     subset_types = serializers.SerializerMethodField()
     subset_tokens = serializers.SerializerMethodField()
+
+    def get_annotation_types(self, obj):
+        return obj.lowest_to_highest
 
     def get_type_properties(self, obj):
         return {k: sorted((name, t()) for name, t in v if name != 'id') for k, v in obj.type_properties.items()}
