@@ -19,9 +19,14 @@ class DatabaseSerializer(serializers.ModelSerializer):
 
 
 class CorpusSerializer(serializers.ModelSerializer):
+    database_running = serializers.SerializerMethodField()
+
     class Meta:
         model = models.Corpus
-        fields = '__all__'
+        fields = ('id', 'name', 'input_format', 'imported', 'busy', 'database_running', 'database')
+
+    def get_database_running(self, obj):
+        return obj.database.status == 'R'
 
 
 class QueryResultsSerializer(object):

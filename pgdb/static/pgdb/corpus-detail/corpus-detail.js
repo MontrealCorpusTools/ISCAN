@@ -21,10 +21,8 @@ angular.module('corpusDetail', [
             Corpora.one($stateParams.corpus_id).then(function (res) {
             $scope.corpus = res.data;
             console.log($scope.corpus);
+
             if ($scope.corpus.imported) {
-                Corpora.status($stateParams.corpus_id).then(function (res) {
-                    $scope.corpus_status = res.data;
-                });
                 Query.type_queries($stateParams.corpus_id, 'utterance').then(function (res) {
                     $scope.available_queries.utterance = res.data;
                     console.log($scope.available_queries)

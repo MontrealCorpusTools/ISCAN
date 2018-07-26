@@ -120,9 +120,6 @@ angular.module('query', [
             $scope.query.filters.speaker = [];
             $scope.query.filters.discourse = [];
         };
-        Corpora.status($stateParams.corpus_id).then(function (res) {
-            $scope.corpus_status = res.data;
-        });
         Corpora.one($stateParams.corpus_id).then(function (res) {
             $scope.corpus = res.data;
         });
@@ -499,11 +496,7 @@ angular.module('query', [
 
 
         var getData = function () {
-	    Corpora.status($stateParams.corpus_id).then(function (res) {
-	        $scope.corpus_status = res.data;
-	    });
-            console.log('hellloooooooo')
-            console.log($scope.query)
+
             if ($scope.query != undefined) {
                 if ($scope.refreshing || $scope.query.running || $scope.query.result_count == null) {
                     Query.one($stateParams.corpus_id, $stateParams.query_id).then(function (res) {
