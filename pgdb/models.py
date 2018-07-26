@@ -10,6 +10,8 @@ import socket
 import yaml
 import shutil
 import datetime
+import operator
+
 from django.db import models
 from django.conf import settings
 from django.contrib.auth.models import Group, User
@@ -814,6 +816,12 @@ class Query(models.Model):
                                ('W', 'Word'),
                                ('S', 'Syllable'),
                                ('P', 'Phone'))
+    OPERATOR_DICT = {"==": operator.__eq__,
+                     "!=": operator.__ne__,
+                     "<": operator.__lt__,
+                     ">": operator.__gt__,
+                     "<=": operator.__le__,
+                     ">=": operator.__ge__}
     name = models.CharField(max_length=100)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     annotation_type = models.CharField(max_length=1, choices=ANNOTATION_TYPE_CHOICES)
@@ -927,10 +935,11 @@ class Query(models.Model):
                     if value is None:
                         continue
                     att = getattr(ann, field)
-                    q = q.filter(att == value)
+                    operator = a_filters["operator"]
+                    q = q.filter(OPERATOR_DICT[operator](att, value))
             else:
                 for d in a_filters:
-                    field, value = d['property'], d['value']
+                    field, value, operator = d['property'], d['value'], d.get("operator", "==")
                     att = getattr(ann, field)
                     if value == 'null':
                         value = None
@@ -938,7 +947,7 @@ class Query(models.Model):
                         value = att.coerce_value(value)
                     if value is None:
                         continue
-                    q = q.filter(att == value)
+                    q = q.filter(OPERATOR_DICT[operator](att, value))
         for f_a_type, a_subsets in config['subsets'].items():
             if not a_subsets:
                 continue
@@ -1014,10 +1023,11 @@ class Query(models.Model):
                                 value = att.coerce_value(value)
                             if value is None:
                                 continue
-                            q = q.filter(att == value)
+                            operator = a_filters["operator"]
+                            q = q.filter(OPERATOR_DICT[operator](att, value))
                     else:
                         for d in a_filters:
-                            field, value = d['property'], d['value']
+                            field, value, operator = d['property'], d['value'], d.get('operator', '<')
                             att = getattr(ann, field)
                             if value == 'null':
                                 value = None
@@ -1025,7 +1035,7 @@ class Query(models.Model):
                                 value = att.coerce_value(value)
                             if value is None:
                                 continue
-                            q = q.filter(att == value)
+                            q = q.filter(OPERATOR_DICT[operator](att, value))
                 for f_a_type, a_subsets in config['subsets'].items():
                     if not a_subsets:
                         continue
