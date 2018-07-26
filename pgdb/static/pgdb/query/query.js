@@ -499,6 +499,9 @@ angular.module('query', [
 
 
         var getData = function () {
+	    Corpora.status($stateParams.corpus_id).then(function (res) {
+	        $scope.corpus_status = res.data;
+	    });
             console.log('hellloooooooo')
             console.log($scope.query)
             if ($scope.query != undefined) {
