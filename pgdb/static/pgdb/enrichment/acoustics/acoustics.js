@@ -48,7 +48,7 @@ angular.module('acoustics', [
 		    $scope.uploadFile(res.data.id, "praat-script-file");
 	    }else if($scope.enrichment.enrichment_type == 'refined_formant_points'){
 		    $scope.enrichment.duration_threshold = $scope.enrichment.duration_threshold/1000;
-		    if(document.getElementById(file_id).files.length > 0){
+		    if(document.getElementById("formants-file").files.length > 0){
 			    $scope.uploadFile(res.data.id, "formants-file");
 		    }
 	    }

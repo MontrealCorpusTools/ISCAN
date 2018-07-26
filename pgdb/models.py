@@ -836,7 +836,7 @@ class Enrichment(models.Model):
                     duration_threshold = float(config.get('duration_threshold', 0.0))
                     nIterations = int(config.get('number_of_iterations'))
                     vowel_prototypes_path = config.get('path', None)
-                    metadata = analyze_formant_points_refinement(c, None, duration_threshold=duration_threshold,
+                    metadata = analyze_formant_points_refinement(c, duration_threshold=duration_threshold,
                                                                  num_iterations=nIterations,
                                                                  vowel_label=config.get('phone_class', 'vowel'),
                                                                  vowel_prototypes_path=vowel_prototypes_path,
