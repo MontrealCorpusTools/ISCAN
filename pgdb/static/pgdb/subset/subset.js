@@ -44,10 +44,8 @@ angular.module('subset', [
         if ($scope.newSubset == false) {
             Enrichment.one($stateParams.corpus_id, $stateParams.enrichment_id).then(function (res) {
                 $scope.enrichment = res.data;
-
                 // Change display name to existing name
-                $scope.subset.subset_label = $scope.enrichment.name
-
+                $scope.subset.subset_label = $scope.enrichment.config.subset_label;
                 // Pre-load the existing subset members (check them off)
                 Corpora.phone_set($stateParams.corpus_id).then(function (res) {
                     $scope.phones = res.data;
