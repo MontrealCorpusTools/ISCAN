@@ -75,14 +75,22 @@ angular.module('enrichment', [
             });
         };
 
+	$scope.isEnrichmentEditable = function(enrichment) {
+		return ['subset', 'hierarchical_property'].includes(enrichment.enrichment_type);
+	}
+
         $scope.editEnrichment = function(enrichment) {
-            if (enrichment.enrichment_type == 'subset') {
-                $state.go('edit_subset', {corpus_id: $stateParams.corpus_id, enrichment_id: enrichment.id});
-            }
-            // Else, go to other relevant edit page that we'll build later
-            else if (enrichment.enrichment_type == 'hierarchical_property') {
-                $state.go('edit_hierarchical_property', {corpus_id: $stateParams.corpus_id, enrichment_id: enrichment.id});
-            }
+	    if ($scope.isEnrichmentEditable(enrichment)) {
+		    if (enrichment.enrichment_type == 'subset') {
+			$state.go('edit_subset', {corpus_id: $stateParams.corpus_id, enrichment_id: enrichment.id});
+		    }
+		    // Else, go to other relevant edit page that we'll build later
+		    else if (enrichment.enrichment_type == 'hierarchical_property') {
+			$state.go('edit_hierarchical_property', {corpus_id: $stateParams.corpus_id, enrichment_id: enrichment.id});
+		    }
+            }else{
+                alert("You cannot edit this enrichment.");
+	    }
         };
 
 	$scope.isEnrichmentDeletable = function(enrichment) {
