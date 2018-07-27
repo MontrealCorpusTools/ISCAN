@@ -1,35 +1,36 @@
 <div class="row">
-	<div class="col-md-9">
+	<div class="col-md-6">
+		<div class="row">
 		<span ng-bind="error_message" style="color: red"></span>
 		<label>Name: <input ng-model="enrichment.name"></label>
 
 		<button ng-click="save()">Save enrichment</button>
+		</div>
+		<div class="row">
+			<label> Custom words not in top <span ng-bind="count"></span>:
+				<input type="text" name="custom_words" ng-model="customWords" min="0">
+			</label>
+		</div>
 	</div>
-	<div class="col-md-12 scroll-container" style="height:400px">
-		<label> Get top n words 
-			<input type="number" name="word_count" ng-model="count" min="0">
-			<button ng-click="getWords()">Retrieve</button> 
-		</label>
-		<label> Custom words:
-			<input type="text" name="custom_words" ng-model="customWords" min="0">
-		</label>
-		<md-content>
-		    <md-content class="md-padding">
-				<table class="table table-striped">
-					<thead>
-						<td><b>Words</b></td>
-						<td><b>Include</b></td>
-					</thead>
-					<tbody>
-						<tr ng-repeat="word in words">
-							<td>{{ word.label }}</td>
-							<td>
-								<input type="checkbox" ng-model=word.checked>
-							</td>
-						</tr>
-					</tbody>
-				</table>
-			</md-content>
-		</md-content>
+	<div class="col-md-3 text-center" style="height:400px">
+		<table class="table table-bordered table-striped scrollable-table">
+			<thead>
+			<label> Get top 
+				<input type="number" name="word_count" ng-model="count" min="1" ng-change="getWords()" ng-model-options="{debounce:750}"> words.  
+			</label>
+			</thead>
+			<thead>
+				<td><b>Words</b></td>
+				<td><b>Label as pause</b></td>
+			</thead>
+			<tbody>
+				<tr ng-repeat="word in words">
+					<td>{{ word.label }}</td>
+					<td>
+						<input type="checkbox" ng-model=word.checked>
+					</td>
+				</tr>
+			</tbody>
+		</table>
 	</div>
 </div>
