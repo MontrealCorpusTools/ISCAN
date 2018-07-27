@@ -76,7 +76,7 @@ angular.module('enrichment', [
         };
 
 	$scope.isEnrichmentEditable = function(enrichment) {
-		return ['subset', 'hierarchical_property'].includes(enrichment.enrichment_type);
+		return ['subset', 'hierarchical_property', 'pitch', 'formants', 'intensity', 'refined_formant_points'].includes(enrichment.enrichment_type);
 	}
 
         $scope.editEnrichment = function(enrichment) {
@@ -89,7 +89,7 @@ angular.module('enrichment', [
 			$state.go('edit_hierarchical_property', {corpus_id: $stateParams.corpus_id, enrichment_id: enrichment.id});
 		    }
 		    else if (['pitch', 'formants', 'intensity', 'refined_formant_points', 'praat_script'].includes(enrichment.enrichment_type)) {
-			$state.go('acoustic_enrichment', {corpus_id: $stateParams.corpus_id, enrichment_id: enrichment.id});
+			$state.go('edit_acoustic_enrichment', {corpus_id: $stateParams.corpus_id, enrichment_id: enrichment.id});
 		    }
             }else{
                 alert("You cannot edit this enrichment.");

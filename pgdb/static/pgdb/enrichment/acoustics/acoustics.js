@@ -34,7 +34,9 @@ angular.module('acoustics', [
     }else{
 	    $scope.newAcoustic = false;
             Enrichment.one($stateParams.corpus_id, $stateParams.enrichment_id).then(function (res) {
-                $scope.enrichment = res.data;
+                $scope.enrichment = res.data.config;
+		    console.log("weee");
+		    console.log($scope.enrichment);
             });
     }
     $scope.uploadFile = function(id, file_id){
