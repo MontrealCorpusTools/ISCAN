@@ -787,6 +787,7 @@ class Enrichment(models.Model):
                 c.reset_formants()
             elif enrichment_type == 'refined_formant_points':
                 #FIXME Can't find appropriate call
+                pass
             elif enrichment_type == 'intensity':
                 c.reset_intensity()
             elif enrichment_type == 'relativize_intensity':
@@ -795,6 +796,10 @@ class Enrichment(models.Model):
                 c.reset_relativized_formants()
             elif enrichment_type == 'patterned_stress':
                 #FIXME Can't find appropriate call
+                pass
+            elif enrichment_type == 'praat_script':
+                #FIXME Can't find appropriate call
+                pass
         self.running = False
         self.completed = False
         self.last_run = None
