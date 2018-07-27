@@ -88,6 +88,9 @@ angular.module('enrichment', [
 		    else if (enrichment.enrichment_type == 'hierarchical_property') {
 			$state.go('edit_hierarchical_property', {corpus_id: $stateParams.corpus_id, enrichment_id: enrichment.id});
 		    }
+		    else if (['pitch', 'formants', 'intensity', 'refined_formant_points', 'praat_script'].includes(enrichment.enrichment_type)) {
+			$state.go('acoustic_enrichment', {corpus_id: $stateParams.corpus_id, enrichment_id: enrichment.id});
+		    }
             }else{
                 alert("You cannot edit this enrichment.");
 	    }
@@ -113,10 +116,6 @@ angular.module('enrichment', [
             }
         };
 
-        $scope.createAcoustics = function(){
-           $state.go('acoustic_enrichment', {corpus_id: $stateParams.corpus_id});
-        };
-        
         $scope.createUtterances = function(){
            $state.go('new_utterances', {corpus_id: $stateParams.corpus_id})
         };

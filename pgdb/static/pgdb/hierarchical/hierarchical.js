@@ -9,16 +9,12 @@ angular.module('hierarchical', [
         };
     }])
     .controller('NewHierarchicalCtrl', function ($scope, $rootScope, Query, Corpora, $state, $stateParams, Enrichment) {
-	    ///FIND SOME WAY TO BLOCk
         Corpora.hierarchy($stateParams.corpus_id).then(function (res) {
             $scope.hierarchy = res.data;
 	    $scope.encoded = Object.keys($scope.hierarchy.type_properties);
 	    $scope.higher_annotations = ['utterance', 'word', 'syllable'].filter($scope.isEncoded)
-	    console.log($scope.higher_annotations);
             $scope.missingAnnotations =	['utterance', 'word', 'syllable'].filter(function(x) {
 		    return !$scope.isEncoded(x);}).join(" or ");
-	    console.log($scope.missingAnnotations);
-	     
 	});
 
 	$scope.isEncoded = function(s) {
