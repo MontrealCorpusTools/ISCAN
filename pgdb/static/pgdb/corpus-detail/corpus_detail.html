@@ -140,8 +140,13 @@
             </ul>
         </div>
         <div>
-            <h2>Acoustics</h2>
-            <p>Currently encoded acoustics</p>
+            <h2>Acoustic tracks</h2>
+            <p>Currently encoded acoustic tracks</p>
+            <ul>
+                <li ng-if="hierarchy.has_pitch_tracks">Pitch tracks</li>
+                <li ng-if="hierarchy.has_formant_tracks">Formant tracks</li>
+                <li ng-if="hierarchy.has_intensity_tracks">Intensity tracks</li>
+            </ul>
         </div>
     </div>
 </div>

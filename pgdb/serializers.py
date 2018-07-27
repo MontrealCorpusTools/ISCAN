@@ -45,6 +45,9 @@ class HierarchySerializer(serializers.Serializer):
     discourse_properties = serializers.SerializerMethodField()
     subset_types = serializers.SerializerMethodField()
     subset_tokens = serializers.SerializerMethodField()
+    has_pitch_tracks = serializers.SerializerMethodField()
+    has_formant_tracks = serializers.SerializerMethodField()
+    has_intensity_tracks = serializers.SerializerMethodField()
 
     def get_annotation_types(self, obj):
         return obj.lowest_to_highest
@@ -73,6 +76,15 @@ class HierarchySerializer(serializers.Serializer):
     def get_subannotation_properties(self, obj):
         return {k: sorted((name, t()) for name, t in v) for k, v in
                                             obj.subannotation_properties.items()}
+
+    def get_has_pitch_tracks(self, obj):
+        return hasattr(obj, 'acoustics') and 'pitch' in obj.acoustics
+
+    def get_has_formant_tracks(self, obj):
+        return hasattr(obj, 'acoustics') and 'formants' in obj.acoustics
+
+    def get_has_intensity_tracks(self, obj):
+        return hasattr(obj, 'acoustics') and 'intensity' in obj.acoustics
 
 class SpeakerSerializer(serializers.Serializer):
     pass
