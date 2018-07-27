@@ -83,10 +83,18 @@ angular.module('enrichment', [
             else if (enrichment.enrichment_type == 'hierarchical_property') {
                 $state.go('edit_hierarchical_property', {corpus_id: $stateParams.corpus_id, enrichment_id: enrichment.id});
             }
-        }
+        };
+
+	$scope.isEnrichmentDeletable = function(enrichment) {
+	    if (enrichment.runnable != 'runnable' || !enrichment.completed){
+		    return true;
+	    }
+	    return !['discourse_csv', 'speaker_csv', 'lexicon_csv', 'refined_formant_points', 'patterened_stress', 'praat_script'].includes(enrichment.enrichment_type);
+
+	};
 
         $scope.deleteEnrichment = function(enrichment) {
-            if (['subset', 'hierarchical_property'].includes(enrichment.enrichment_type)) {
+            if ($scope.isEnrichmentDeletable(enrichment)) {
                 if (confirm("Are you sure you want to delete the subset \"" + enrichment.name + "\" ?")) {
                     console.log("Deleting " + enrichment.name + "...");
                     Enrichment.destroy($stateParams.corpus_id, enrichment.id)
@@ -95,7 +103,7 @@ angular.module('enrichment', [
             else {
                 alert("You cannot delete this enrichment.")
             }
-        }
+        };
 
         $scope.createAcoustics = function(){
            $state.go('acoustic_enrichment', {corpus_id: $stateParams.corpus_id});
