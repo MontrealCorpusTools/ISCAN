@@ -6,11 +6,13 @@ angular.module('pausesEnrichment', [
 	$scope.count = 25;
 
 	$scope.getWords = function(){
-		Corpora.words($stateParams.corpus_id, $scope.count).then(function(res){
-			$scope.words = JSON.parse(res.data);
-		}).catch(function(res){
-			$scope.error_message = res.data
-		});
+		if ($scope.count >= 1) {
+			Corpora.words($stateParams.corpus_id, $scope.count).then(function(res){
+				$scope.words = JSON.parse(res.data);
+			}).catch(function(res){
+				$scope.error_message = res.data
+			});
+		}
 	};
 
 	$scope.getWords();

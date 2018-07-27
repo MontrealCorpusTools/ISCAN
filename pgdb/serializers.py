@@ -26,7 +26,7 @@ class CorpusSerializer(serializers.ModelSerializer):
         fields = ('id', 'name', 'input_format', 'imported', 'busy', 'database_running', 'database')
 
     def get_database_running(self, obj):
-        return obj.database.status == 'R'
+        return obj.database.is_running
 
 
 class QueryResultsSerializer(object):

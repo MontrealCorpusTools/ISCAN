@@ -3,10 +3,6 @@ angular.module('enrichment', [
     'pgdb.enrichment'
 ]).controller('EnrichmentCtrl', function ($scope, $rootScope, Enrichment, Corpora, $state, $stateParams, $timeout) {
 
-        Corpora.status($stateParams.corpus_id).then(function (res) {
-            $scope.corpus_status = res.data;
-        });
-
         $scope.$on('unauthenticated', function(){
             $state.go('home');
         });
