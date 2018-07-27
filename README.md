@@ -78,9 +78,9 @@ Changes you make locally in these folders should persist into the container with
 ### Cleaning
 The `docker-compose up` command usefully regenerates fresh containers each time it is run, but old containers can take up space. To clean up containers on your machine, first stop all of them:
 
-```docker stop $(docker ps -a -q)```
+```docker-compose stop```
 
 Then, remove them:
 
-``docker rm $(docker ps -a -q)``
+``docker-compose rm``
 
