@@ -2,7 +2,7 @@
     <div class="info text-center">
         <div>
             <span ng-bind="headline"></span><br>
-            <span>Result {{ detail_index }} of {{query.result_count}}</span>
+            <span>Result {{ detail_index + 1 }} of {{query.result_count}}</span>
         </div>
         <div>
             <button ng-click="get_previous()" class="btn"
