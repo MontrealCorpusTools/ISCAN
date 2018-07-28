@@ -772,6 +772,34 @@ class Enrichment(models.Model):
                 c.reset_pitch()
             elif enrichment_type == 'relativize_pitch':
                 c.reset_relativized_pitch()
+            elif enrichment_type == 'discourse_csv':
+                #FIXME: Currently empty call in PolyglotDB
+                c.reset_discourses()
+            elif enrichment_type == 'phone_csv':
+                c.reset_to_old_label()
+            elif enrichment_type == 'speaker_csv':
+                #FIXME: Currently empty call in PolyglotDB
+                c.reset_speakers()
+            elif enrichment_type == 'lexicon_csv':
+                #FIXME: Currently empty call in PolyglotDB
+                c.reset_lexicon()
+            elif enrichment_type == 'formants':
+                c.reset_formants()
+            elif enrichment_type == 'refined_formant_points':
+                #FIXME Can't find appropriate call
+                pass
+            elif enrichment_type == 'intensity':
+                c.reset_intensity()
+            elif enrichment_type == 'relativize_intensity':
+                c.reset_relativized_intensity()
+            elif enrichment_type == 'relativize_formants':
+                c.reset_relativized_formants()
+            elif enrichment_type == 'patterned_stress':
+                #FIXME Can't find appropriate call
+                pass
+            elif enrichment_type == 'praat_script':
+                #FIXME Can't find appropriate call
+                pass
         self.running = False
         self.completed = False
         self.last_run = None

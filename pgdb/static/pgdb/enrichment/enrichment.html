@@ -65,10 +65,10 @@
                     <button class='btn btn-warning' ng-if="!corpus.busy" ng-click="resetEnrichment(enrichment.id)">
 			    <span> Reset </span>
 		    </button>
-                    <button class='btn btn-warning' ng-if="!corpus.busy" ng-click="editEnrichment(enrichment)">
+                    <button class='btn btn-warning' ng-if="!corpus.busy" ng-disabled="!isEnrichmentEditable(enrichment)" ng-click="editEnrichment(enrichment)">
 			    <span> Edit </span>
 		    </button>
-                    <button class='btn btn-danger' ng-if="!corpus.busy" ng-click="deleteEnrichment(enrichment)">
+                    <button class='btn btn-danger' ng-if="!corpus.busy" ng-disabled="!isEnrichmentDeletable(enrichment)" ng-click="deleteEnrichment(enrichment)">
 			    <span> Delete </span>
 		    </button>
                 </td>

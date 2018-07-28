@@ -75,18 +75,37 @@ angular.module('enrichment', [
             });
         };
 
+	$scope.isEnrichmentEditable = function(enrichment) {
+		return ['subset', 'hierarchical_property', 'pitch', 'formants', 'intensity', 'refined_formant_points'].includes(enrichment.enrichment_type);
+	}
+
         $scope.editEnrichment = function(enrichment) {
-            if (enrichment.enrichment_type == 'subset') {
-                $state.go('edit_subset', {corpus_id: $stateParams.corpus_id, enrichment_id: enrichment.id});
-            }
-            // Else, go to other relevant edit page that we'll build later
-            else if (enrichment.enrichment_type == 'hierarchical_property') {
-                $state.go('edit_hierarchical_property', {corpus_id: $stateParams.corpus_id, enrichment_id: enrichment.id});
-            }
-        }
+	    if ($scope.isEnrichmentEditable(enrichment)) {
+		    if (enrichment.enrichment_type == 'subset') {
+			$state.go('edit_subset', {corpus_id: $stateParams.corpus_id, enrichment_id: enrichment.id});
+		    }
+		    // Else, go to other relevant edit page that we'll build later
+		    else if (enrichment.enrichment_type == 'hierarchical_property') {
+			$state.go('edit_hierarchical_property', {corpus_id: $stateParams.corpus_id, enrichment_id: enrichment.id});
+		    }
+		    else if (['pitch', 'formants', 'intensity', 'refined_formant_points', 'praat_script'].includes(enrichment.enrichment_type)) {
+			$state.go('edit_acoustic_enrichment', {corpus_id: $stateParams.corpus_id, enrichment_id: enrichment.id});
+		    }
+            }else{
+                alert("You cannot edit this enrichment.");
+	    }
+        };
+
+	$scope.isEnrichmentDeletable = function(enrichment) {
+	    if (enrichment.runnable != 'runnable' || !enrichment.completed){
+		    return true;
+	    }
+	    return !['discourse_csv', 'speaker_csv', 'lexicon_csv', 'refined_formant_points', 'patterened_stress', 'praat_script'].includes(enrichment.enrichment_type);
+
+	};
 
         $scope.deleteEnrichment = function(enrichment) {
-            if (['subset', 'hierarchical_property'].includes(enrichment.enrichment_type)) {
+            if ($scope.isEnrichmentDeletable(enrichment)) {
                 if (confirm("Are you sure you want to delete the subset \"" + enrichment.name + "\" ?")) {
                     console.log("Deleting " + enrichment.name + "...");
                     Enrichment.destroy($stateParams.corpus_id, enrichment.id)
@@ -95,12 +114,8 @@ angular.module('enrichment', [
             else {
                 alert("You cannot delete this enrichment.")
             }
-        }
-
-        $scope.createAcoustics = function(){
-           $state.go('acoustic_enrichment', {corpus_id: $stateParams.corpus_id});
         };
-        
+
         $scope.createUtterances = function(){
            $state.go('new_utterances', {corpus_id: $stateParams.corpus_id})
         };

@@ -121,6 +121,10 @@ app.config(function ($stateProvider, $urlRouterProvider) {
         url: '/corpora/:corpus_id/enrichment/acoustics',
         templateUrl: static('pgdb/enrichment/acoustics/acoustics.html'),
         controller: 'AcousticCtrl'
+        }).state('edit_acoustic_enrichment', {
+	url: '/corpora/:corpus_id/enrichment/acoustics/{enrichment_id:int}',
+        templateUrl: static('pgdb/enrichment/acoustics/acoustics.html'),
+        controller: 'AcousticCtrl'
         }).state('new_csv-properties', {
         url: '/corpora/:corpus_id/enrichment/csv-properties',
         templateUrl: static('pgdb/enrichment/csv-properties/csv-properties.html'),

@@ -8,7 +8,10 @@
             <option value="">Select analysis</option>
         </select></label>
 	<label ng-show="enrichment.enrichment_type == 'praat_script'">
-            Praat Script: <input type="file" id="praat-script-file" name="file"/>
+	    <button class="btn btn-warning" ng-show="enrichment.path != null" ng-click="enrichment.path = null">
+	        Delete file 
+	    </button>
+            Praat Script: <input type="file" id="praat-script-file" name="file" ng-disabled="enrichment.path != null"/>
 	</label>
 	<label ng-show="enrichment.enrichment_type == 'praat_script' || enrichment.enrichment_type == 'refined_formant_points'">
 	    Phone class: <select ng-model="enrichment.phone_class" ng-options="choice for choice in phone_class_options" >
@@ -17,7 +20,10 @@
 	</label>
 
 	<label ng-show="enrichment.enrichment_type == 'refined_formant_points'">
-            	Vowel Prototypes CSV: <input type="file" id="formants-file" name="file"/>
+		<button class="btn btn-warning" ng-show="enrichment.path != null" ng-click="enrichment.path = null">
+			Delete file 
+		</button>
+            	Vowel Prototypes CSV: <input type="file" id="formants-file" name="file" ng-disabled="enrichment.path != null" />
 	</label>
 	<label ng-show="enrichment.enrichment_type == 'refined_formant_points'">
             	Number of iterations: <input ng-model="enrichment.number_of_iterations" type="number" name="number_of_iterations" min="1" value="1" step="1"/>
