@@ -2,6 +2,8 @@ from rest_framework import serializers
 from django.contrib.auth.models import Group, User
 from . import models
 
+from polyglotdb.exceptions import GraphQueryError
+
 import logging
 log = logging.getLogger(__name__)
 
@@ -26,7 +28,7 @@ class CorpusSerializer(serializers.ModelSerializer):
         fields = ('id', 'name', 'input_format', 'imported', 'busy', 'database_running', 'database')
 
     def get_database_running(self, obj):
-        return obj.database.is_running
+        return obj.database.status == 'R' # database.is_running is too slow
 
 
 class QueryResultsSerializer(object):
@@ -78,13 +80,22 @@ class HierarchySerializer(serializers.Serializer):
                                             obj.subannotation_properties.items()}
 
     def get_has_pitch_tracks(self, obj):
-        return hasattr(obj, 'acoustics') and 'pitch' in obj.acoustics
+        try:
+            return 'pitch' in obj.acoustics
+        except GraphQueryError:
+            return False
 
     def get_has_formant_tracks(self, obj):
-        return hasattr(obj, 'acoustics') and 'formants' in obj.acoustics
+        try:
+            return 'formants' in obj.acoustics
+        except GraphQueryError:
+            return False
 
     def get_has_intensity_tracks(self, obj):
-        return hasattr(obj, 'acoustics') and 'intensity' in obj.acoustics
+        try:
+            return 'intensity' in obj.acoustics
+        except GraphQueryError:
+            return False
 
 class SpeakerSerializer(serializers.Serializer):
     pass
