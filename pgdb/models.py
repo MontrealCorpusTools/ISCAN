@@ -833,12 +833,13 @@ class Enrichment(models.Model):
                     c.analyze_vowel_formant_tracks(source=config.get('source', 'praat'), multiprocessing=False)
                 elif enrichment_type == 'refined_formant_points':
                     from polyglotdb.acoustics.formants.refined import analyze_formant_points_refinement
-                    duration_threshold = float(config.get('duration_threshold', 0.0))
+                    duration_threshold = float(config.get('duration_threshold', 0.0)) / 1000
                     nIterations = int(config.get('number_of_iterations'))
                     vowel_prototypes_path = config.get('path', None)
+                    vowel_label = config.get('phone_class', 'vowel')
                     metadata = analyze_formant_points_refinement(c, duration_threshold=duration_threshold,
                                                                  num_iterations=nIterations,
-                                                                 vowel_label=config.get('phone_class', 'vowel'),
+                                                                 vowel_label=vowel_label,
                                                                  vowel_prototypes_path=vowel_prototypes_path,
                                                                  multiprocessing=False
                                                                  )
