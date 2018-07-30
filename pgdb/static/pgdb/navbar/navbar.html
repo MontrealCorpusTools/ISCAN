@@ -49,6 +49,7 @@
                                             ui-sref="corpus-detail({corpus_id: c.id})">{{ c.name }}</a></li>
                                 </ul>
                             </li>
+                            <li ui-sref-active="active" ng-show="current_corpus != undefined"><a ui-sref="corpus-detail({corpus_id:current_corpus.id})">{{current_corpus.name}}</a>
                         </ul>
                         <ul class="nav navbar-nav navbar-right">
                             <li ng-show="authenticated"> <a><span ng-bind="user.username"></span></a></li>

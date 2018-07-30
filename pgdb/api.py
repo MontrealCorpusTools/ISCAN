@@ -333,13 +333,20 @@ class CorpusViewSet(viewsets.ModelViewSet):
         if request.auth is None:
             return Response(status=status.HTTP_401_UNAUTHORIZED)
         corpus = self.get_object()
+        if corpus.database.status != 'R':
+            return Response('Database is not running', status=status.HTTP_400_BAD_REQUEST)
         if not request.user.is_superuser:
             permissions = corpus.user_permissions.filter(user=request.user).all()
             if not len(permissions):
                 return Response(status=status.HTTP_401_UNAUTHORIZED)
-        with CorpusContext(corpus.config) as c:
-            hierarchy = c.hierarchy
-            data = serializers.HierarchySerializer(hierarchy).data
+        try:
+            with CorpusContext(corpus.config) as c:
+                hierarchy = c.hierarchy
+                data = serializers.HierarchySerializer(hierarchy).data
+        except neo4j_exceptions.ServiceUnavailable:
+            corpus.database.status = 'S'
+            corpus.database.save()
+            return Response('Database is not running', status=status.HTTP_400_BAD_REQUEST)
         return Response(data)
 
     @detail_route(methods=['get'])

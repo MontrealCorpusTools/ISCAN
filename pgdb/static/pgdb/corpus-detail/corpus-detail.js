@@ -3,7 +3,7 @@ angular.module('corpusDetail', [
     'pgdb.enrichment',
     'pgdb.query'
 ])
-    .controller('CorpusDetailCtrl', function ($scope, Corpora, $state, $stateParams, Query, $timeout) {
+    .controller('CorpusDetailCtrl', function ($scope, Corpora, $state, $stateParams, Query, $timeout, $rootScope) {
 
         $scope.$on('unauthenticated', function(){
             $state.go('home');
@@ -20,6 +20,7 @@ angular.module('corpusDetail', [
         var getData = function () {
             Corpora.one($stateParams.corpus_id).then(function (res) {
             $scope.corpus = res.data;
+            $rootScope.$broadcast('corpus_changed', $scope.corpus);
             console.log($scope.corpus);
 
             if ($scope.corpus.imported) {

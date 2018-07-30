@@ -2,7 +2,7 @@ angular.module('navbar', [
     'pgdb.corpora',
     'pgdb.auth'
 ])
-    .controller('NavCtrl', function ($scope, $rootScope, Corpora, CookieService, $http, AuthService, __env) {
+    .controller('NavCtrl', function ($scope, $rootScope, Corpora, CookieService, $http, AuthService, __env, $stateParams) {
         $rootScope.authenticated = false;
         $scope.authenticated = false;
         $scope.siteName = __env.siteName;
@@ -39,6 +39,12 @@ angular.module('navbar', [
             });
 
         };
+
+        $scope.$on('corpus_changed', function(e, res){
+            $scope.current_corpus = res;
+            console.log(res)
+        });
+
         $scope.checkAuth();
         $scope.$on('logged_in', $scope.checkAuth);
         $scope.$on('authenticated', function (e, res) {
