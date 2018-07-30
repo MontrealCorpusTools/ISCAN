@@ -10,7 +10,6 @@ import socket
 import yaml
 import shutil
 import datetime
-import operator
 
 from django.db import models
 from django.conf import settings
@@ -873,12 +872,6 @@ class Query(models.Model):
                                ('W', 'Word'),
                                ('S', 'Syllable'),
                                ('P', 'Phone'))
-    OPERATOR_DICT = {"==": operator.__eq__,
-                     "!=": operator.__ne__,
-                     "<": operator.__lt__,
-                     ">": operator.__gt__,
-                     "<=": operator.__le__,
-                     ">=": operator.__ge__}
     name = models.CharField(max_length=100)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     annotation_type = models.CharField(max_length=1, choices=ANNOTATION_TYPE_CHOICES)
@@ -992,8 +985,23 @@ class Query(models.Model):
                     if value is None:
                         continue
                     att = getattr(ann, field)
-                    operator = a_filters["operator"]
-                    q = q.filter(OPERATOR_DICT[operator](att, value))
+                    operator = a_filters.get("operator", "==")
+
+                    if operator == '==':
+                        clause = att == value
+                    elif operator == '!=':
+                        clause = att != value
+                    elif operator == '>':
+                        clause = att > value
+                    elif operator == '>=':
+                        clause = att >= value
+                    elif operator == '<':
+                        clause = att < value
+                    elif operator == '<=':
+                        clause = att <= value
+                    else:
+                        raise Exception('Invalid operator "{}"'.format(operator))
+                    q = q.filter(clause)
             else:
                 for d in a_filters:
                     field, value, operator = d['property'], d['value'], d.get("operator", "==")
@@ -1004,7 +1012,21 @@ class Query(models.Model):
                         value = att.coerce_value(value)
                     if value is None:
                         continue
-                    q = q.filter(OPERATOR_DICT[operator](att, value))
+                    if operator == '==':
+                        clause = att == value
+                    elif operator == '!=':
+                        clause = att != value
+                    elif operator == '>':
+                        clause = att > value
+                    elif operator == '>=':
+                        clause = att >= value
+                    elif operator == '<':
+                        clause = att < value
+                    elif operator == '<=':
+                        clause = att <= value
+                    else:
+                        raise Exception('Invalid operator "{}"'.format(operator))
+                    q = q.filter(clause)
         for f_a_type, a_subsets in config['subsets'].items():
             if not a_subsets:
                 continue
@@ -1080,11 +1102,25 @@ class Query(models.Model):
                                 value = att.coerce_value(value)
                             if value is None:
                                 continue
-                            operator = a_filters["operator"]
-                            q = q.filter(OPERATOR_DICT[operator](att, value))
+                            operator = a_filters.get('operator', '==')
+                            if operator == '==':
+                                clause = att == value
+                            elif operator == '!=':
+                                clause = att != value
+                            elif operator == '>':
+                                clause = att > value
+                            elif operator == '>=':
+                                clause = att >= value
+                            elif operator == '<':
+                                clause = att < value
+                            elif operator == '<=':
+                                clause = att <= value
+                            else:
+                                raise Exception('Invalid operator "{}"'.format(operator))
+                            q = q.filter(clause)
                     else:
                         for d in a_filters:
-                            field, value, operator = d['property'], d['value'], d.get('operator', '<')
+                            field, value, operator = d['property'], d['value'], d.get('operator', '==')
                             att = getattr(ann, field)
                             if value == 'null':
                                 value = None
@@ -1092,7 +1128,22 @@ class Query(models.Model):
                                 value = att.coerce_value(value)
                             if value is None:
                                 continue
-                            q = q.filter(OPERATOR_DICT[operator](att, value))
+                            if operator == '==':
+                                clause = att == value
+                            elif operator == '!=':
+                                clause = att != value
+                            elif operator == '>':
+                                clause = att > value
+                            elif operator == '>=':
+                                clause = att >= value
+                            elif operator == '<':
+                                clause = att < value
+                            elif operator == '<=':
+                                clause = att <= value
+                            else:
+                                raise Exception('Invalid operator "{}"'.format(operator))
+                            logging.info(clause)
+                            q = q.filter(clause)
                 for f_a_type, a_subsets in config['subsets'].items():
                     if not a_subsets:
                         continue
