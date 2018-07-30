@@ -1,7 +1,7 @@
 angular.module('databaseList', [
     'pgdb.databases'
 ])
-    .controller('DatabaseListCtrl', function ($scope, Databases, Corpora, $state, $location) {
+    .controller('DatabaseListCtrl', function ($scope, Databases, Corpora, $state, $location, $rootScope) {
         $rootScope.$broadcast('corpus_changed', undefined);
         $scope.start_button = 'Start';
         $scope.stop_button = 'Stop';

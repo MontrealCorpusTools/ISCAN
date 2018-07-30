@@ -345,6 +345,8 @@ class CorpusViewSet(viewsets.ModelViewSet):
                 data = serializers.HierarchySerializer(hierarchy).data
         except neo4j_exceptions.ServiceUnavailable:
             corpus.database.status = 'S'
+            corpus.database.neo4j_pid = None
+            corpus.database.influxdb_pid = None
             corpus.database.save()
             return Response('Database is not running', status=status.HTTP_400_BAD_REQUEST)
         return Response(data)
