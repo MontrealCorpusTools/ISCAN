@@ -1058,6 +1058,10 @@ class Query(models.Model):
                                 clause = att < value
                             elif operator == '<=':
                                 clause = att <= value
+                            elif operator == 'in':
+                                clause = att.in_(value)
+                            elif operator == 'not in':
+                                clause = att.not_in_(value)
                             else:
                                 raise Exception('Invalid operator "{}"'.format(operator))
                             q = q.filter(clause)
