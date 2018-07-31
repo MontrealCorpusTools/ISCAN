@@ -901,6 +901,27 @@ class Query(models.Model):
             ind += 1
         return res
 
+    def generate_filter(self, att, value, operator):
+        if operator == '==':
+            filter = att == value
+        elif operator == '!=':
+            filter = att != value
+        elif operator == '>':
+            filter = att > value
+        elif operator == '>=':
+            filter = att >= value
+        elif operator == '<':
+            filter = att < value
+        elif operator == '<=':
+            filter = att <= value
+        elif operator == 'in':
+            filter = att.in_(value)
+        elif operator == 'not in':
+            filter = att.not_in_(value)
+        else:
+            raise Exception('Invalid operator "{}"'.format(operator))
+        return filter
+
     def generate_query(self, corpus_context):
         a_type = self.get_annotation_type_display().lower()
         config = self.config
@@ -929,22 +950,8 @@ class Query(models.Model):
                         continue
                     att = getattr(ann, field)
                     operator = a_filters.get("operator", "==")
-
-                    if operator == '==':
-                        clause = att == value
-                    elif operator == '!=':
-                        clause = att != value
-                    elif operator == '>':
-                        clause = att > value
-                    elif operator == '>=':
-                        clause = att >= value
-                    elif operator == '<':
-                        clause = att < value
-                    elif operator == '<=':
-                        clause = att <= value
-                    else:
-                        raise Exception('Invalid operator "{}"'.format(operator))
-                    q = q.filter(clause)
+                    filter = self.generate_filter(att, value, operator)
+                    q = q.filter(filter)
             else:
                 for d in a_filters:
                     field, value, operator = d['property'], d['value'], d.get("operator", "==")
@@ -955,21 +962,8 @@ class Query(models.Model):
                         value = att.coerce_value(value)
                     if value is None:
                         continue
-                    if operator == '==':
-                        clause = att == value
-                    elif operator == '!=':
-                        clause = att != value
-                    elif operator == '>':
-                        clause = att > value
-                    elif operator == '>=':
-                        clause = att >= value
-                    elif operator == '<':
-                        clause = att < value
-                    elif operator == '<=':
-                        clause = att <= value
-                    else:
-                        raise Exception('Invalid operator "{}"'.format(operator))
-                    q = q.filter(clause)
+                    filter = self.generate_filter(att, value, operator)
+                    q = q.filter(filter)
         for f_a_type, a_subsets in config['subsets'].items():
             if not a_subsets:
                 continue
@@ -1046,25 +1040,8 @@ class Query(models.Model):
                             if value is None:
                                 continue
                             operator = a_filters.get('operator', '==')
-                            if operator == '==':
-                                clause = att == value
-                            elif operator == '!=':
-                                clause = att != value
-                            elif operator == '>':
-                                clause = att > value
-                            elif operator == '>=':
-                                clause = att >= value
-                            elif operator == '<':
-                                clause = att < value
-                            elif operator == '<=':
-                                clause = att <= value
-                            elif operator == 'in':
-                                clause = att.in_(value)
-                            elif operator == 'not in':
-                                clause = att.not_in_(value)
-                            else:
-                                raise Exception('Invalid operator "{}"'.format(operator))
-                            q = q.filter(clause)
+                            filter = self.generate_filter(att, value, operator)
+                            q = q.filter(filter)
                     else:
                         for d in a_filters:
                             field, value, operator = d['property'], d['value'], d.get('operator', '==')
@@ -1075,22 +1052,8 @@ class Query(models.Model):
                                 value = att.coerce_value(value)
                             if value is None:
                                 continue
-                            if operator == '==':
-                                clause = att == value
-                            elif operator == '!=':
-                                clause = att != value
-                            elif operator == '>':
-                                clause = att > value
-                            elif operator == '>=':
-                                clause = att >= value
-                            elif operator == '<':
-                                clause = att < value
-                            elif operator == '<=':
-                                clause = att <= value
-                            else:
-                                raise Exception('Invalid operator "{}"'.format(operator))
-                            logging.info(clause)
-                            q = q.filter(clause)
+                            filter = self.generate_filter(att, value, operator)
+                            q = q.filter(filter)
                 for f_a_type, a_subsets in config['subsets'].items():
                     if not a_subsets:
                         continue
