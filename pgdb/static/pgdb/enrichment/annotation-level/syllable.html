@@ -8,7 +8,7 @@
 			</select>
 		</label>
 		<label>Phone Subset:
-			<select ng-model="enrichment.phone_subset" ng-options="choice.type as choice.name for choice in subset_options" >
+			<select ng-model="enrichment.phone_class" ng-options="choice as choice for choice in phone_class_options" >
 				<option value="">Select subset</option>
 			</select>
 		</label>

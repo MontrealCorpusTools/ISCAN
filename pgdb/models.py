@@ -725,8 +725,8 @@ class Enrichment(models.Model):
                 if not (annotation_type in c.hierarchy.annotation_types):
                     return 'Must encode {}'.format(annotation_type)
             elif enrichment_type == 'syllables':
-                if not (c.hierarchy.has_type_subset('phone', 'syllabic')):
-                    return 'Must encode syllabics'
+                if not (c.hierarchy.has_type_subset('phone', config.get('phone_class', 'syllabic'))):
+                    return 'Must encode {}'.format(config.get('phone_class', 'syllabic'))
             elif enrichment_type == 'refined_formant_points':
                 if not (c.hierarchy.has_type_subset('phone', config.get('phone_class', 'vowel'))):
                     return 'Must encode {}'.format(config.get('phone_class', 'vowel'))
@@ -824,8 +824,9 @@ class Enrichment(models.Model):
                     if annotation_type == 'phone':
                         c.encode_class(annotation_labels, subset_label)
                 elif enrichment_type == 'syllables':
-                    if c.hierarchy.has_type_subset('phone', 'syllabic'):
-                        c.encode_syllables('maxonset')
+                    syllabic_label = config.get('phone_class', 'syllabic')
+                    if c.hierarchy.has_type_subset('phone', syllabic_label):
+                        c.encode_syllables('maxonset', syllabic_label=syllabic_label)
                 elif enrichment_type == 'pauses':
                     pause_label = config.get('pause_label')
                     c.encode_pauses(pause_label)

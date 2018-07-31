@@ -144,7 +144,7 @@ def export_pitch_tracks(request, corpus):
                                           c.word.utterance.end.column_name('utterance_end'),
                                           c.word.pitch.track)
         for p in props:
-            q = q.columns(getattr(c.word.discourse, p).column_name('discourse_' + p))
+            q = q.columns(getattr(c.word.discourse, p).column_name('sound_file_' + p))
         props = c.query_metadata(c.speaker).factors() + c.query_metadata(c.speaker).numerics()
         for p in props:
             q = q.columns(getattr(c.word.speaker, p).column_name('speaker_' + p))

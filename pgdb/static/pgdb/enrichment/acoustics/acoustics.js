@@ -30,13 +30,11 @@ angular.module('acoustics', [
     $scope.binary_options = ['praat'];
     if ($stateParams.enrichment_id == null) {
 	    $scope.newAcoustic = true;
-	    $scope.enrichment = {source: 'praat'};
+	    $scope.enrichment = {source: 'praat', number_of_iterations: 1};
     }else{
 	    $scope.newAcoustic = false;
             Enrichment.one($stateParams.corpus_id, $stateParams.enrichment_id).then(function (res) {
                 $scope.enrichment = res.data.config;
-		    console.log("weee");
-		    console.log($scope.enrichment);
             });
     }
     $scope.uploadFile = function(id, file_id){
