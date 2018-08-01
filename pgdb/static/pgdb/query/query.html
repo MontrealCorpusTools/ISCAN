@@ -60,7 +60,7 @@
                                         <input type="checkbox" ng-show="propertyTypes.speaker[filter.property]=== false"
                                                ng-model="filter.value">
 					<div class="input-group" ng-show="propertyTypes.speaker[filter.property] === '' || propertyTypes.speaker[filter.property] === 0" >
-						<input ng-model="filter.value" ng-change="updateAutoComplete('speakers', filter)">
+						<input ng-model="filter.value" ng-change="updateAutoComplete('Speaker', filter)">
 						<p ng-repeat="f in filter.autoList| filter:filter.value" ng-hide="!filter.value">{{ f }}</p>
 					</div>
                                     </td>
@@ -91,7 +91,7 @@
                                                ng-show="propertyTypes.discourse[filter.property]=== false"
                                                ng-model="filter.value">
 					<div class="input-group" ng-show="propertyTypes.discourse[filter.property] === '' || propertyTypes.discourse[filter.property] === 0" >
-						<input ng-model="filter.value" ng-change="updateAutoComplete('discourse', filter)">
+						<input ng-model="filter.value" ng-change="updateAutoComplete('Discourse', filter)">
 						<p ng-repeat="f in filter.autoList| filter:filter.value" ng-hide="!filter.value">{{ f }}</p>
 					</div>
                                     </td>
