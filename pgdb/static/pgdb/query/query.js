@@ -183,7 +183,7 @@ angular.module('query', [
             for (i = 0; i < $scope.hierarchy.discourse_properties.length; i++) {
                 prop = $scope.hierarchy.discourse_properties[i][0];
                 if (!$scope.query.column_names.discourse[prop]){
-                    $scope.query.column_names.discourse[prop] = 'discourse_' + prop;
+                    $scope.query.column_names.discourse[prop] = 'sound_file_' + prop;
                 }
                 $scope.propertyTypes.discourse[prop] = $scope.hierarchy.discourse_properties[i][1];
                 if ($scope.properties.discourse.indexOf(prop) === -1 && prop !== 'id') {

@@ -74,6 +74,8 @@ angular.module('subset', [
         $scope.createSubset = function() {
             // Create from scratch
             console.log($scope.subset);
+	    $scope.subset.name='Encode ' + $scope.subset.subset_label;
+	    
             if ($scope.newSubset == true) {
                 console.log($scope.subset);
                 Enrichment.create($stateParams.corpus_id, $scope.subset).then(function (res) {
