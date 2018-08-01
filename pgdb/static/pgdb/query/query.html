@@ -7,10 +7,12 @@
                 <md-tabs md-border-bottom>
 
                     <md-tab ng-repeat="t in annotation_types" label="{{ t|titlecase }} properties" data-ng-if="$index >= annotation_types.indexOf(query.annotation_type.toLowerCase())">
-                    <md-content class="md-padding">
+                    <md-content class="md-padding annotation-content">
+                        <button style="display:inline-block;">Add previous</button>
+                        <div class="annotation" style="display:inline-block;" ng-repeat="position in positions[t]">
                             <table class="table table-bordered table-striped">
                                 <tbody>
-                                <tr ng-repeat="filter in query.filters[t]">
+                                <tr ng-repeat="filter in query.filters[t][position].property_filters">
 
                                     <td>
                                         <select ng-model="filter.property">
@@ -32,10 +34,21 @@
                             </table>
                             <button class='btn' ng-click="addFilter(t)" ng-disabled="query.running"><span>Add filter</span>
                             </button>
-                        <multiselect class="input-small multiselect" ng-model="query.subsets[t]" options="s for s in subsets[t]"
+                            
+                        <label style="display: block;">Subset: <multiselect class="input-small multiselect" ng-model="query.filters[t][position].subset_filters" options="s for s in subsets[t]"
                                  header="All" selected-header="subsets" enable-check-all="false" enable-uncheck-all="true" multiple="true" enable-filter="false"
                                               ng-init='e.initial = true'>
-                    </multiselect>
+                    </multiselect></label>
+                    <label style="display: block;">Left aligned with:
+                        <select ng-model="query.left_aligned[t]" ng-options="higher_type as higher_type for higher_type in annotation_types.slice($index+1)">
+                            <option value="">None</option>
+                        </select></label>
+                    <label style="display: block;">Right aligned with:
+                        <select ng-model="query.right_aligned[t]" ng-options="higher_type as higher_type for higher_type in annotation_types.slice($index+1)">
+                            <option value="">None</option>
+                        </select></label>
+                        </div>
+                        <button style="display:inline-block;">Add following</button>
                         </md-content>
                     </md-tab>
 
@@ -180,22 +193,22 @@
             <tr ng-repeat="result in queryState.results">
                 <td ng-repeat="prop in properties.phone" ng-show="query.columns.phone[prop] && (query.annotation_type === 'phone')">
                     <span
-                       ng-show="can_view && query.annotation_type == 'phone' && prop == 'label'" ng-click="getDetail($index)" class="link">{{ result.phone[prop] }}</span>
+                       ng-show="can_view && query.annotation_type == 'phone' && prop == 'label'" ng-click="getDetail($parent.$index)" class="link">{{ result.phone[prop] }}</span>
                     <span ng-show="!can_view || query.annotation_type != 'phone' || prop != 'label'">{{ result.phone[prop] }}</span>
                 </td>
                 <td ng-repeat="prop in properties.syllable" ng-show="query.columns.syllable[prop] && (query.annotation_type === 'syllable' || query.annotation_type === 'phone')">
                     <span
-                       ng-show="can_view && query.annotation_type == 'syllable' && prop == 'label'" ng-click="getDetail($index)" class="link">{{ result.syllable[prop] }}</span>
+                       ng-show="can_view && query.annotation_type == 'syllable' && prop == 'label'" ng-click="getDetail($parent.$index)" class="link">{{ result.syllable[prop] }}</span>
                     <span ng-show="!can_view || query.annotation_type != 'syllable' || prop != 'label'">{{ result.syllable[prop] }}</span>
                 </td>
                 <td ng-repeat="prop in properties.word" ng-show="query.columns.word[prop] && (query.annotation_type === 'word' || query.annotation_type === 'syllable' || query.annotation_type === 'phone')">
                     <span
-                       ng-show="can_view && query.annotation_type == 'word' && prop == 'label'" ng-click="getDetail($index)" class="link">{{ result.word[prop] }}</span>
+                       ng-show="can_view && query.annotation_type == 'word' && prop == 'label'" ng-click="getDetail($parent.$index)" class="link">{{ result.word[prop] }}</span>
                     <span ng-show="!can_view || query.annotation_type != 'word' || prop != 'label'">{{ result.word[prop] }}</span>
                 </td>
                 <td ng-repeat="prop in properties.utterance" ng-show="query.columns.utterance[prop]">
                     <span
-                       ng-show="can_view && query.annotation_type == 'utterance' && prop == 'label'" ng-click="getDetail($index)" class="link">{{ result.utterance[prop] }}</span>
+                       ng-show="can_view && query.annotation_type == 'utterance' && prop == 'label'" ng-click="getDetail($parent.$index)" class="link">{{ result.utterance[prop] }}</span>
                     <span ng-show="!can_view || query.annotation_type != 'utterance' || prop != 'label'">{{ result.utterance[prop] }}</span>
                 </td>
                 <td ng-repeat="prop in properties.speaker" ng-show="query.columns.speaker[prop]">

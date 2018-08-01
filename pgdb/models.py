@@ -1112,6 +1112,29 @@ class Query(models.Model):
                             if value is None:
                                 continue
                             q = q.filter(att == value)
+                logging.info( config.get('left_aligned',{}))
+                for f_a_type, higher_type in config.get('left_aligned',{}).items():
+                    if higher_type not in c.hierarchy.annotation_types:
+                        continue
+                    if f_a_type not in c.hierarchy.annotation_types:
+                        continue
+                    if f_a_type == a_type:
+                        ann = a
+                    else:
+                        ann = getattr(a, f_a_type)
+                    higher_ann = getattr(ann, higher_type)
+                    q = q.filter(ann.begin == higher_ann.begin)
+                for f_a_type, higher_type in config.get('right_aligned',{}).items():
+                    if higher_type not in c.hierarchy.annotation_types:
+                        continue
+                    if f_a_type not in c.hierarchy.annotation_types:
+                        continue
+                    if f_a_type == a_type:
+                        ann = a
+                    else:
+                        ann = getattr(a, f_a_type)
+                    higher_ann = getattr(ann, higher_type)
+                    q = q.filter(ann.end == higher_ann.end)
                 for f_a_type, a_subsets in config['subsets'].items():
                     if not a_subsets:
                         continue
@@ -1143,6 +1166,7 @@ class Query(models.Model):
                                 q = q.preload(getattr(getattr(a, t), s))
                 for t in c.hierarchy.get_higher_types(a_type):
                     q = q.preload(getattr(a, t))
+                print(q.cypher())
                 res = q.all()
                 serializer_class = serializer_factory(c.hierarchy, a_type, top_level=True,
                                                       acoustic_columns=acoustic_column_names, detail=False,

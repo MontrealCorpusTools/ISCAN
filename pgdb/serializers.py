@@ -283,6 +283,8 @@ class EnrichmentSerializer(serializers.ModelSerializer):
 class QuerySerializer(serializers.ModelSerializer):
     annotation_type = serializers.SerializerMethodField()
     filters = serializers.SerializerMethodField()
+    left_aligned = serializers.SerializerMethodField()
+    right_aligned = serializers.SerializerMethodField()
     columns = serializers.SerializerMethodField()
     column_names = serializers.SerializerMethodField()
     acoustic_columns = serializers.SerializerMethodField()
@@ -292,10 +294,17 @@ class QuerySerializer(serializers.ModelSerializer):
     class Meta:
         model = models.Query
         fields = ('id', 'name', 'user', 'corpus', 'annotation_type', 'result_count', 'running', 'filters',
+                  'left_aligned', 'right_aligned',
                   'columns', 'column_names', 'acoustic_columns', 'subsets', 'ordering')
 
     def get_annotation_type(self, obj):
         return obj.get_annotation_type_display()
+
+    def get_left_aligned(self, obj):
+        return obj.config.get('left_aligned', {})
+
+    def get_right_aligned(self, obj):
+        return obj.config.get('right_aligned', {})
 
     def get_filters(self, obj):
         return obj.config['filters']
