@@ -197,6 +197,15 @@ class CorpusViewSet(viewsets.ModelViewSet):
         return Response('ready')
 
     @detail_route(methods=['get'])
+    def autocomplete(self, request, pk=None):
+        prefix = request.GET.get('prefix', None)
+        corpus = self.get_object()
+        with CorpusContext(corpus.config) as c:
+            statement = "MATCH (node_word:word:speech:`spade-ICE-Can`)-[:is_a]->(type_node_word:word_type:`spade-ICE-Can`)\n    \n    \n    WITH type_node_word, node_word\n    RETURN node_word, type_node_word"
+            resp = c.execute_cypher(statement)
+        return Response(resp)
+
+    @detail_route(methods=['get'])
     def speakers(self, request, pk=None):
         if request.auth is None:
             return Response(status=status.HTTP_401_UNAUTHORIZED)
