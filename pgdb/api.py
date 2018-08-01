@@ -131,25 +131,21 @@ class CorpusViewSet(viewsets.ModelViewSet):
             return Response(status=status.HTTP_401_UNAUTHORIZED)
         if request.user.is_superuser:
             corpora = models.Corpus.objects.all()
+            #FIXME TOO MUCH HARDCODING
+            corpus_names = [x.name for x in corpora]
+            requery = False
+            for dataset in os.listdir(settings.SOURCE_DATA_DIRECTORY):
+                if dataset not in corpus_names:
+                    d, _ = models.Database.objects.get_or_create(name=dataset)
+                    c = models.Corpus.objects.create(name=dataset, database=d)
+                    if 'input_format' in c.configuration_data:
+                        c.input_format = c.configuration_data['input_format'][0].upper()
+                        c.save()
+                    requery = True
+            if requery:
+                corpora = models.Corpus.objects.all()
         else:
             corpora = models.Corpus.objects.filter(user_permissions__user=request.user).all()
-
-        #FIXME TOO MUCH HARDCODING
-        corpus_names = [x.name for x in corpora]
-        requery = False
-        for dataset in os.listdir(settings.SOURCE_DATA_DIRECTORY):
-            if dataset not in corpus_names:
-                d, _ = models.Database.objects.get_or_create(name=dataset)
-                c = models.Corpus.objects.create(name=dataset, database=d)
-                if 'input_format' in c.configuration_data:
-                    c.input_format = c.configuration_data['input_format'][0].upper()
-                    c.save()
-                requery = True
-        if requery:
-            if request.user.is_superuser:
-                corpora = models.Corpus.objects.all()
-            else:
-                corpora = models.Corpus.objects.filter(user_permissions__user=request.user).all()
 
         return Response(self.serializer_class(corpora, many=True).data)
 
