@@ -25,7 +25,7 @@
                                         <input type="checkbox" ng-show="propertyTypes[t][filter.property]=== false"
                                                ng-model="filter.value">
 					<div class="input-group" ng-show="propertyTypes[t][filter.property] === '' || propertyTypes[t][filter.property] === 0" >
-						<input ng-model="filter.value" ng-change="updateAutoComplete(filter)">
+						<input ng-model="filter.value" ng-change="updateAutoComplete(t, filter)">
 						<p ng-repeat="f in filter.autoList| filter:filter.value" ng-hide="!filter.value">{{ f }}</p>
 					</div>
                                     </td>
@@ -59,8 +59,10 @@
                                     <td>
                                         <input type="checkbox" ng-show="propertyTypes.speaker[filter.property]=== false"
                                                ng-model="filter.value">
-                                        <input ng-show="propertyTypes.speaker[filter.property] === '' || propertyTypes.speaker[filter.property] === 0"
-                                               ng-model="filter.value">
+					<div class="input-group" ng-show="propertyTypes.speaker[filter.property] === '' || propertyTypes.speaker[filter.property] === 0" >
+						<input ng-model="filter.value" ng-change="updateAutoComplete('speakers', filter)">
+						<p ng-repeat="f in filter.autoList| filter:filter.value" ng-hide="!filter.value">{{ f }}</p>
+					</div>
                                     </td>
                                     <td>
                                         <span class='badge' ng-click="removeFilter('speaker', $index)">X</span>
@@ -88,8 +90,10 @@
                                         <input type="checkbox"
                                                ng-show="propertyTypes.discourse[filter.property]=== false"
                                                ng-model="filter.value">
-                                        <input ng-show="propertyTypes.discourse[filter.property] === '' || propertyTypes.discourse[filter.property] === 0"
-                                               ng-model="filter.value">
+					<div class="input-group" ng-show="propertyTypes.discourse[filter.property] === '' || propertyTypes.discourse[filter.property] === 0" >
+						<input ng-model="filter.value" ng-change="updateAutoComplete('discourse', filter)">
+						<p ng-repeat="f in filter.autoList| filter:filter.value" ng-hide="!filter.value">{{ f }}</p>
+					</div>
                                     </td>
                                     <td>
                                         <span class='badge' ng-click="removeFilter('discourse', $index)">X</span>
