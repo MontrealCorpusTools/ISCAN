@@ -199,10 +199,20 @@ class CorpusViewSet(viewsets.ModelViewSet):
     @detail_route(methods=['get'])
     def autocomplete(self, request, pk=None):
         prefix = request.GET.get('prefix', None)
+        category = request.GET.get('category', None)
+        prop = request.GET.get('prop', 'label')
+        if prefix is None:
+            return Response("Please provide a prefix", 
+                    status=status.HTTP_400_BAD_REQUEST)
+        if category not in ["word_type", "phone_type"]:
+            return Response("Provided category is invalid", 
+                    status=status.HTTP_400_BAD_REQUEST)
         corpus = self.get_object()
         with CorpusContext(corpus.config) as c:
-            statement = "MATCH (node_word:word:speech:`spade-ICE-Can`)-[:is_a]->(type_node_word:word_type:`spade-ICE-Can`)\n    \n    \n    WITH type_node_word, node_word\n    RETURN node_word, type_node_word"
-            resp = c.execute_cypher(statement)
+            statement = """MATCH (n:{category}:`spade-ICE-Can`)
+                         WHERE n.{prop} STARTS WITH '{prefix}'
+                         RETURN n.{prop}""".format(prefix=prefix, category=category, prop=prop)
+            resp = c.execute_cypher(statement).value()
         return Response(resp)
 
     @detail_route(methods=['get'])
