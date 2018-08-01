@@ -208,6 +208,10 @@ class CorpusViewSet(viewsets.ModelViewSet):
         if prefix is None:
             return Response("Please provide a prefix", 
                     status=status.HTTP_400_BAD_REQUEST)
+
+        for x in ['\'', '\"']:
+            #Escape characters
+            prefix = prefix.replace(x, '\\{}'.format(x))
         if category not in ["word_type", "phone_type"]:
             return Response("Provided category is invalid", 
                     status=status.HTTP_400_BAD_REQUEST)
@@ -215,8 +219,10 @@ class CorpusViewSet(viewsets.ModelViewSet):
         with CorpusContext(corpus.config) as c:
             statement = """MATCH (n:{category}:`spade-ICE-Can`)
                          WHERE n.{prop} STARTS WITH '{prefix}'
-                         RETURN n.{prop}""".format(prefix=prefix, category=category, prop=prop)
+                         RETURN n.{prop}
+                         LIMIT 10""".format(prefix=prefix, category=category, prop=prop)
             resp = c.execute_cypher(statement).value()
+            resp = list(set(resp))
         return Response(resp)
 
     @detail_route(methods=['get'])

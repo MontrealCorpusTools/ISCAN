@@ -105,6 +105,13 @@ angular.module('query', [
             $scope.query.filters[a_type].push({});
         };
 
+	$scope.updateAutoComplete = function(filter) {
+		Corpora.autocomplete($stateParams.corpus_id, filter.value, "word_type", "label").then(function(res){
+			filter.autoList = res.data;
+		});
+
+	}
+
         $scope.removeFilter = function (a_type, index) {
             $scope.query.filters[a_type].splice(index, 1);
         };
