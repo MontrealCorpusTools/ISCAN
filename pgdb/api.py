@@ -212,9 +212,9 @@ class CorpusViewSet(viewsets.ModelViewSet):
         for x in ['\'', '\"']:
             #Escape characters
             prefix = prefix.replace(x, '\\{}'.format(x))
-        #if category in ["word_type"]:
-        #    return Response("Provided category:{} is invalid".format(category), 
-        #            status=status.HTTP_400_BAD_REQUEST)
+        if prop not in ["name", "label", "transcription"]:
+            return Response("Provided property:{} is invalid".format(prop), 
+                    status=status.HTTP_400_BAD_REQUEST)
         corpus = self.get_object()
         with CorpusContext(corpus.config) as c:
             statement = """MATCH (n:{category}:`spade-ICE-Can`)
