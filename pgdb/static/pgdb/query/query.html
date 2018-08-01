@@ -24,8 +24,10 @@
                                     <td>
                                         <input type="checkbox" ng-show="propertyTypes[t][filter.property]=== false"
                                                ng-model="filter.value">
-                                        <input ng-show="propertyTypes[t][filter.property] === '' || propertyTypes[t][filter.property] === 0"
-                                               ng-model="filter.value">
+					<div class="input-group" ng-show="propertyTypes[t][filter.property] === '' || propertyTypes[t][filter.property] === 0" >
+						<input ng-model="filter.value" ng-change="updateAutoComplete(filter)">
+						<p ng-repeat="f in filter.autoList| filter:filter.value" ng-hide="!filter.value">{{ f }}</p>
+					</div>
                                     </td>
                                     <td>
                                         <span class='badge' ng-click="removeFilter(t, $index)">X</span>
