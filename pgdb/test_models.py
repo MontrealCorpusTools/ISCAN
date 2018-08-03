@@ -1,6 +1,7 @@
 from django.test import TestCase
 from django.conf import settings
-from pgdb.models import Database
+from django.db import models
+from pgdb.models import Database, Corpus
 from pgdb import serializers
 from pgdb.utils import get_used_ports
 from rest_framework.test import APIClient
@@ -62,5 +63,41 @@ class DatabaseTest(TestCase):
         assert self.database.status == "R"
 
     
+class Corpus(self):
+    def setUp(self):
+        used_ports = get_used_ports()
+        current_ports = []
+        data_dict = {'name': 'new_database',
+                     'neo4j_http_port': 7404,
+                     'neo4j_https_port': None,
+                     'neo4j_bolt_port': None,
+                     'neo4j_admin_port': None,   
+                     'influxdb_http_port': 8404,
+                     'influxdb_meta_port': None,
+                     'influxdb_udp_port': 8406,
+                     'influxdb_admin_port': None}
+        ports = {'neo4j': settings.BASE_NEO4J_PORT, 'influxdb': settings.BASE_INFLUXDB_PORT}
+        for k, v in data_dict.items():
+            if 'port' not in k:
+                continue
+            if v is None:
+                if 'neo4j' in k:
+                    port_key = 'neo4j'
+                else:
+                    port_key = 'influxdb'
+                while True:
+                    if ports[port_key] not in used_ports and ports[port_key] not in current_ports:
+                        data_dict[k] = ports[port_key]
+                        current_ports.append(ports[port_key])
+                        ports[port_key] += 1
+                        break
+                    ports[port_key] += 1
+        serializer = serializers.DatabaseSerializer(data=data_dict)
+        assert serializer.is_valid()
+        self.database = serializer.save()
+        self.database.install()
+        self.database.start()
+        self.corpus = models.Corpus.objects.create(name="corpus_name", database=self.database
 
-
+    def tearDown(self):
+        self.database.delete()
