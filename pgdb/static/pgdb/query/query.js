@@ -372,6 +372,7 @@ angular.module('query', [
                 $scope.queryState.refreshText = 'Refresh';
                 $scope.updatePagination();
                 $scope.refreshPagination(1);
+		$scope.query.column[$scope.query.annotation_type].label = true;
             }).catch(function (res) {
                 console.log(res)
             });
