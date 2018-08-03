@@ -986,57 +986,14 @@ class Query(models.Model):
             ind += 1
         return res
 
-    def generate_query(self, corpus_context):
+    def generate_query_for_export(self, corpus_context):
         a_type = self.get_annotation_type_display().lower()
         config = self.config
+        a = getattr(corpus_context, a_type)
         acoustic_columns = config.get('acoustic_columns', {})
         columns = config.get('columns', {})
         column_names = config.get('column_names', {})
-        a = getattr(corpus_context, a_type)
-        q = corpus_context.query_graph(a)
-        for f_a_type, a_filters in config['filters'].items():
-            if not a_filters:
-                continue
-            if f_a_type not in {'speaker', 'discourse'} | corpus_context.hierarchy.annotation_types:
-                continue
-            if f_a_type == a_type:
-                ann = a
-            else:
-                ann = getattr(a, f_a_type)
-            if isinstance(a_filters, dict):
-                for field, value in a_filters.items():
-                    att = getattr(ann, field)
-                    if value == 'null':
-                        value = None
-                    else:
-                        value = att.coerce_value(value)
-                    if value is None:
-                        continue
-                    att = getattr(ann, field)
-                    q = q.filter(att == value)
-            else:
-                for d in a_filters:
-                    field, value = d['property'], d['value']
-                    att = getattr(ann, field)
-                    if value == 'null':
-                        value = None
-                    else:
-                        value = att.coerce_value(value)
-                    if value is None:
-                        continue
-                    q = q.filter(att == value)
-        for f_a_type, a_subsets in config['subsets'].items():
-            if not a_subsets:
-                continue
-            if f_a_type not in {'speaker', 'discourse'} | corpus_context.hierarchy.annotation_types:
-                continue
-            if f_a_type == a_type:
-                ann = a
-            else:
-                ann = getattr(a, f_a_type)
-            for s in a_subsets:
-                q = q.filter(ann.subset == s)
-
+        q = self.generate_base_query(corpus_context)
         for f_a_type, a_columns in columns.items():
             if not a_columns:
                 continue
@@ -1064,6 +1021,83 @@ class Query(models.Model):
             q = q.columns(acoustic)
         return q
 
+    def generate_base_query(self, corpus_context):
+        a_type = self.get_annotation_type_display().lower()
+        config = self.config
+        a = getattr(corpus_context, a_type)
+        q = corpus_context.query_graph(a)
+        for f_a_type, positions in config['filters'].items():
+            if f_a_type not in {'speaker', 'discourse'} | corpus_context.hierarchy.annotation_types:
+                continue
+            if f_a_type == a_type:
+                ann = a
+            else:
+                ann = getattr(a, f_a_type)
+            if f_a_type in {'speaker', 'discourse'}:
+                a_filters = positions
+                if a_filters:
+                    if isinstance(a_filters, dict):
+                        for field, value in a_filters.items():
+                            att = getattr(ann, field)
+                            if value == 'null':
+                                value = None
+                            else:
+                                value = att.coerce_value(value)
+                            if value is None:
+                                continue
+                            att = getattr(ann, field)
+                            q = q.filter(att == value)
+                    else:
+                        for d in a_filters:
+                            field, value = d['property'], d['value']
+                            att = getattr(ann, field)
+                            if value == 'null':
+                                value = None
+                            else:
+                                value = att.coerce_value(value)
+                            if value is None:
+                                continue
+                            q = q.filter(att == value)
+            else:
+                for position, filter_types in positions.items():
+                    if position != 'current':
+                        pass
+                    a_filters = filter_types.get('property_filters', [])
+                    if a_filters:
+                        if isinstance(a_filters, dict):
+                            for field, value in a_filters.items():
+                                att = getattr(ann, field)
+                                if value == 'null':
+                                    value = None
+                                else:
+                                    value = att.coerce_value(value)
+                                if value is None:
+                                    continue
+                                att = getattr(ann, field)
+                                q = q.filter(att == value)
+                        else:
+                            for d in a_filters:
+                                field, value = d['property'], d['value']
+                                att = getattr(ann, field)
+                                if value == 'null':
+                                    value = None
+                                else:
+                                    value = att.coerce_value(value)
+                                if value is None:
+                                    continue
+                                q = q.filter(att == value)
+                    subset_filters = filter_types.get('subset_filters', [])
+
+                    for s in subset_filters:
+                        q = q.filter(ann.subset == s)
+                    left_aligned_filter = filter_types.get('left_aligned_filter', '')
+                    right_aligned_filter = filter_types.get('right_aligned_filter', '')
+                    if left_aligned_filter:
+                        q = q.filter_left_aligned(getattr(a, left_aligned_filter))
+                    if right_aligned_filter:
+                        q = q.filter_right_aligned(getattr(a, right_aligned_filter))
+        return q
+
     def run_query(self):
         self.running = True
         self.result_count = None
@@ -1081,71 +1115,7 @@ class Query(models.Model):
             acoustic_columns = config.get('acoustic_columns', {})
             with CorpusContext(self.corpus.config) as c:
                 a = getattr(c, a_type)
-                q = c.query_graph(a)
-                for f_a_type, a_filters in config['filters'].items():
-                    if not a_filters:
-                        continue
-                    if f_a_type not in {'speaker', 'discourse'} | c.hierarchy.annotation_types:
-                        continue
-                    if f_a_type == a_type:
-                        ann = a
-                    else:
-                        ann = getattr(a, f_a_type)
-                    if isinstance(a_filters, dict):
-                        for field, value in a_filters.items():
-                            att = getattr(ann, field)
-                            if value == 'null':
-                                value = None
-                            else:
-                                value = att.coerce_value(value)
-                            if value is None:
-                                continue
-                            q = q.filter(att == value)
-                    else:
-                        for d in a_filters:
-                            field, value = d['property'], d['value']
-                            att = getattr(ann, field)
-                            if value == 'null':
-                                value = None
-                            else:
-                                value = att.coerce_value(value)
-                            if value is None:
-                                continue
-                            q = q.filter(att == value)
-                logging.info( config.get('left_aligned',{}))
-                for f_a_type, higher_type in config.get('left_aligned',{}).items():
-                    if higher_type not in c.hierarchy.annotation_types:
-                        continue
-                    if f_a_type not in c.hierarchy.annotation_types:
-                        continue
-                    if f_a_type == a_type:
-                        ann = a
-                    else:
-                        ann = getattr(a, f_a_type)
-                    higher_ann = getattr(ann, higher_type)
-                    q = q.filter(ann.begin == higher_ann.begin)
-                for f_a_type, higher_type in config.get('right_aligned',{}).items():
-                    if higher_type not in c.hierarchy.annotation_types:
-                        continue
-                    if f_a_type not in c.hierarchy.annotation_types:
-                        continue
-                    if f_a_type == a_type:
-                        ann = a
-                    else:
-                        ann = getattr(a, f_a_type)
-                    higher_ann = getattr(ann, higher_type)
-                    q = q.filter(ann.end == higher_ann.end)
-                for f_a_type, a_subsets in config['subsets'].items():
-                    if not a_subsets:
-                        continue
-                    if f_a_type not in {'speaker', 'discourse'} | c.hierarchy.annotation_types:
-                        continue
-                    if f_a_type == a_type:
-                        ann = a
-                    else:
-                        ann = getattr(a, f_a_type)
-                    for s in a_subsets:
-                        q = q.filter(ann.subset == s)
+                q = self.generate_base_query(c)
                 self._count = q.count()
                 q = q.preload(getattr(a, 'discourse'), getattr(a, 'speaker'))
                 acoustic_column_names = []

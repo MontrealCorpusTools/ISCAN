@@ -40,11 +40,11 @@
                                               ng-init='e.initial = true'>
                     </multiselect></label>
                     <label style="display: block;">Left aligned with:
-                        <select ng-model="query.left_aligned[t]" ng-options="higher_type as higher_type for higher_type in annotation_types.slice($index+1)">
+                        <select ng-model="query.filters[t][position].left_aligned_filter" ng-options="higher_type as higher_type for higher_type in annotation_types.slice($index+1)">
                             <option value="">None</option>
                         </select></label>
                     <label style="display: block;">Right aligned with:
-                        <select ng-model="query.right_aligned[t]" ng-options="higher_type as higher_type for higher_type in annotation_types.slice($index+1)">
+                        <select ng-model="query.filters[t][position].right_aligned_filter" ng-options="higher_type as higher_type for higher_type in annotation_types.slice($index+1)">
                             <option value="">None</option>
                         </select></label>
                         </div>

@@ -73,8 +73,8 @@ angular.module('query', [
                     current: {
                         property_filters: [],
                         subset_filters: [],
-                        left_aligned_filters: [],
-                        right_aligned_filters: []
+                        left_aligned_filter: '',
+                        right_aligned_filter: ''
                     }
 
                 },
@@ -82,8 +82,8 @@ angular.module('query', [
                     current: {
                         property_filters: [],
                         subset_filters: [],
-                        left_aligned_filters: [],
-                        right_aligned_filters: []
+                        left_aligned_filter: '',
+                        right_aligned_filter: ''
                     }
 
                 },
@@ -91,8 +91,8 @@ angular.module('query', [
                     current: {
                         property_filters: [],
                         subset_filters: [],
-                        left_aligned_filters: [],
-                        right_aligned_filters: []
+                        left_aligned_filter: '',
+                        right_aligned_filter: ''
                     }
 
                 },
@@ -100,8 +100,8 @@ angular.module('query', [
                     current: {
                         property_filters: [],
                         subset_filters: [],
-                        left_aligned_filters: [],
-                        right_aligned_filters: []
+                        left_aligned_filter: '',
+                        right_aligned_filter: ''
                     }
 
                 },

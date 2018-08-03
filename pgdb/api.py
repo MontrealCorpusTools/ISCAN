@@ -1017,8 +1017,7 @@ class QueryViewSet(viewsets.ModelViewSet):
             return Response(None, status=status.HTTP_400_BAD_REQUEST)
         refresh = request.data.pop('refresh', False)
         query.name = request.data.get('name')
-        do_run = refresh or (query.config['filters'] != request.data['filters'] or query.config['subsets'] != request.data[
-            'subsets'])
+        do_run = refresh or query.config['filters'] != request.data['filters']
         c = query.config
         c.update(request.data)
         query.config = c
@@ -1227,7 +1226,7 @@ class QueryViewSet(viewsets.ModelViewSet):
             query.get_annotation_type_display())
         print(query.config)
         with CorpusContext(corpus.config) as c:
-            q = query.generate_query(c)
+            q = query.generate_query_for_export(c)
 
             writer = csv.writer(response)
             q.to_csv(writer)
