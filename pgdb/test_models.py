@@ -1,9 +1,9 @@
 from django.test import TestCase
 from django.conf import settings
-from django.db import models
 from pgdb.models import Database, Corpus
 from pgdb import serializers
 from pgdb.utils import get_used_ports
+import time
 from rest_framework.test import APIClient
 from rest_framework import status
 
@@ -41,6 +41,7 @@ class DatabaseTest(TestCase):
         self.database = serializer.save()
         self.database.install()
         self.database.start()
+        time.sleep(1)
 
     def tearDown(self):
         self.database.delete()
@@ -48,13 +49,10 @@ class DatabaseTest(TestCase):
     def test_database_params(self):
         assert self.database.name =="new_database"
         assert self.database.neo4j_http_port == 7404
-        assert self.database.influxdb_http_port == 8404
-        assert self.database.influxdb_udp_port == 8406
 
     def test_database_is_running(self):
         assert self.database.is_running
         assert self.database.status == "R"
-
 
     def test_stop_start_database(self):
         self.database.stop()
@@ -63,7 +61,7 @@ class DatabaseTest(TestCase):
         assert self.database.status == "R"
 
     
-class Corpus(self):
+class CorpusTest(TestCase):
     def setUp(self):
         used_ports = get_used_ports()
         current_ports = []
@@ -97,7 +95,13 @@ class Corpus(self):
         self.database = serializer.save()
         self.database.install()
         self.database.start()
-        self.corpus = models.Corpus.objects.create(name="corpus_name", database=self.database
+        time.sleep(1)
+        self.corpus = Corpus.objects.create(name="acoustic", database=self.database)
+        self.corpus.import_corpus()
 
     def tearDown(self):
+        self.corpus.delete()
         self.database.delete()
+
+    def test_corpus(self):
+        pass
