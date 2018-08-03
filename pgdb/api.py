@@ -394,37 +394,6 @@ class SourceChoiceViewSet(viewsets.ViewSet):
         choices = os.listdir(settings.SOURCE_DATA_DIRECTORY)
         return Response(choices)
 
-"""class PhoneViewSet(viewsets.ViewSet):
-    def list(self, request, corpus_pk=None):
-        if request.auth is None:
-            return Response(status=status.HTTP_401_UNAUTHORIZED)
-        corpus = models.Corpus.objects.get(pk=corpus_pk)
-        if not request.user.is_superuser:
-            permissions = corpus.user_permissions.filter(user=request.user).all()
-            if not len(permissions):
-                return Response(status=status.HTTP_401_UNAUTHORIZED)
-        # Get phones
-        with CorpusContext(corpus.config) as c:
-            phones = c.phones
-
-        return Response(phones)
-
-    @list_route(methods=['get'])
-    def properties(self, request, corpus_pk=None):
-        if request.auth is None:
-            return Response(status=status.HTTP_401_UNAUTHORIZED)
-        corpus = models.Corpus.objects.get(pk=corpus_pk)
-        if not request.user.is_superuser:
-            permissions = corpus.user_permissions.filter(user=request.user).all()
-            if not len(permissions):
-                return Response(status=status.HTTP_401_UNAUTHORIZED)
-
-        with CorpusContext(corpus.config) as c:
-            props = c.query_lexicon(c.phone).columns(c.phone.label).all()
-            data = []
-            for p in props:
-                data.append({'name': p, 'options': c.query_metadata(c.phone).levels(getattr(c.phone, p))})
-        return Response(data)"""
 
 class DiscourseViewSet(viewsets.ViewSet):
     def list(self, request, corpus_pk=None):
@@ -490,69 +459,6 @@ class SpeakerViewSet(viewsets.ViewSet):
         return Response(data)
 
 
-class BestiaryViewSet(viewsets.ViewSet):
-    def list(self, request, corpus_pk=None):
-        corpus = models.Corpus.objects.get(pk=corpus_pk)
-        if not request.user.is_superuser:
-            permissions = corpus.user_permissions.filter(user=request.user).all()
-            if not len(permissions):
-                return Response(status=status.HTTP_401_UNAUTHORIZED)
-        params = {**request.query_params}
-
-        limit = int(params.pop('limit', [100])[0])
-        offset = int(params.pop('offset', [0])[0])
-        ordering = params.pop('ordering', [''])[0]
-        search = params.pop('search', [''])[0]
-        with_pitch = params.pop('with_pitch', [False])[0]
-        data = {}
-        with CorpusContext(corpus.config) as c:
-            q = c.query_graph(c.utterance)
-            for k, v in params.items():
-                if v[0] == 'null':
-                    v = None
-                else:
-                    v = v[0]
-                k = k.split('__')
-                att = c.utterance
-                for f in k:
-                    att = getattr(att, f)
-                q = q.filter(att == v)
-            data['count'] = q.count()
-            if ordering:
-                desc = False
-                if ordering.startswith('-'):
-                    desc = True
-                    ordering = ordering[1:]
-                ordering = ordering.split('.')
-                att = c.utterance
-                for o in ordering:
-                    att = getattr(att, o)
-                q = q.order_by(att, desc)
-            else:
-                q = q.order_by(c.utterance.id)
-            q = q.limit(limit).offset(offset).preload(c.utterance.discourse, c.utterance.speaker)
-            if with_pitch:
-                pitch = c.utterance.pitch
-                pitch.relative_time = True
-                pitch.relative = True
-                q = q.preload_acoustics(pitch)
-            res = q.all()
-            serializer_class = serializers.serializer_factory(c.hierarchy, 'utterance', top_level=True, with_pitch=True)
-            serializer = serializer_class(res, many=True)
-            data['results'] = serializer.data
-        data['next'] = None
-        if offset + limit < data['count']:
-            url = request.build_absolute_uri()
-            url = pagination.replace_query_param(url, 'limit', limit)
-            data['next'] = pagination.replace_query_param(url, 'offset', offset + limit)
-        data['previous'] = None
-        if offset - limit >= 0:
-            url = request.build_absolute_uri()
-            url = pagination.replace_query_param(url, 'limit', limit)
-            data['previous'] = pagination.replace_query_param(url, 'offset', offset - limit)
-        return Response(data)
-
-
 class SubannotationViewSet(viewsets.ViewSet):
     def create(self, request, corpus_pk=None):
         corpus = models.Corpus.objects.get(pk=corpus_pk)
@@ -609,137 +515,6 @@ class SubannotationViewSet(viewsets.ViewSet):
 
 
 class AnnotationViewSet(viewsets.ViewSet):
-
-    def list(self, request, corpus_pk=None):
-        corpus = models.Corpus.objects.get(pk=corpus_pk)
-        if not request.user.is_superuser:
-            permissions = corpus.user_permissions.filter(user=request.user).all()
-            if not len(permissions):
-                return Response(status=status.HTTP_401_UNAUTHORIZED)
-        params = {**request.query_params}
-
-        limit = int(params.pop('limit', [100])[0])
-        offset = int(params.pop('offset', [0])[0])
-        ordering = params.pop('ordering', [''])[0]
-        a_type = params.pop('annotation_type')[0]
-        with_pitch = params.pop('with_pitch', [False])[0]
-        data = {}
-        with CorpusContext(corpus.config) as c:
-            a = getattr(c, a_type)
-            q = c.query_graph(a)
-            for k, v in params.items():
-                if v[0] == 'null':
-                    v = None
-                else:
-                    try:
-                        v = float(v[0])
-                    except ValueError:
-                        v = v[0]
-                k = k.split('__')
-                att = a
-                for f in k:
-                    att = getattr(att, f)
-                q = q.filter(att == v)
-            data['count'] = q.count()
-            if ordering:
-                desc = False
-                if ordering.startswith('-'):
-                    desc = True
-                    ordering = ordering[1:]
-                ordering = ordering.split('.')
-                att = a
-                for o in ordering:
-                    att = getattr(att, o)
-                q = q.order_by(att, desc)
-            else:
-                q = q.order_by(getattr(a, 'label'))
-            q = q.limit(limit).offset(offset).preload(getattr(a, 'discourse'), getattr(a, 'speaker'))
-            if with_pitch:
-                pitch = getattr(a, 'pitch')
-                pitch.relative_time = True
-                pitch.relative = True
-                q = q.preload_acoustics(pitch)
-            for t in c.hierarchy.annotation_types:
-                if t in c.hierarchy.subannotations:
-                    for s in c.hierarchy.subannotations[t]:
-                        if t == a_type:
-                            q = q.preload(getattr(a, s))
-                        else:
-                            q = q.preload(getattr(getattr(a, t), s))
-            print(q.cypher())
-            res = q.all()
-            serializer_class = serializers.serializer_factory(c.hierarchy, a_type, top_level=True,
-                                                              with_pitch=with_pitch, detail=False,
-                                                              with_higher_annotations=True,
-                                                              with_subannotations=True)
-            serializer = serializer_class(res, many=True)
-            data['results'] = serializer.data
-        data['next'] = None
-        if offset + limit < data['count']:
-            url = request.build_absolute_uri()
-            url = pagination.replace_query_param(url, 'limit', limit)
-            data['next'] = pagination.replace_query_param(url, 'offset', offset + limit)
-        data['previous'] = None
-        if offset - limit >= 0:
-            url = request.build_absolute_uri()
-            url = pagination.replace_query_param(url, 'limit', limit)
-            data['previous'] = pagination.replace_query_param(url, 'offset', offset - limit)
-        return Response(data)
-
-    def retrieve(self, request, pk=None, corpus_pk=None):
-        import time
-        begin_time = time.time()
-        if request.auth is None:
-            return Response(status=status.HTTP_401_UNAUTHORIZED)
-        corpus = models.Corpus.objects.get(pk=corpus_pk)
-        if not request.user.is_superuser:
-            permissions = corpus.user_permissions.filter(user=request.user).all()
-            if not len(permissions) or not permissions[0].can_view_detail:
-                return Response(status=status.HTTP_401_UNAUTHORIZED)
-        with_pitch = request.query_params.get('with_pitch', False)
-        with_waveform = request.query_params.get('with_waveform', False)
-        with_spectrogram = request.query_params.get('with_spectrogram', False)
-        with_subannotations = request.query_params.get('with_subannotations', False)
-        try:
-            with CorpusContext(corpus.config) as c:
-                q = c.query_graph(c.utterance)
-                q = q.filter(c.utterance.id == pk)
-                q = q.preload(c.utterance.word)
-                q = q.preload(c.utterance.syllable)
-                q = q.preload(c.utterance.phone)
-                q = q.preload(c.utterance.speaker)
-                q = q.preload(c.utterance.discourse)
-                if with_subannotations:
-                    for t in c.hierarchy.annotation_types:
-                        for s in c.hierarchy.subannotations[t]:
-                            if t == 'utterance':
-                                q = q.preload(getattr(c.utterance, s))
-                            else:
-                                q = q.preload(getattr(getattr(c.utterance, t), s))
-
-                if with_pitch:
-                    q = q.preload_acoustics(c.utterance.pitch)
-                print(q.cypher(), q.cypher_params())
-                utterances = q.all()
-                if utterances is None:
-                    return Response(None)
-                serializer = serializers.serializer_factory(c.hierarchy, 'utterance', with_pitch=with_pitch,
-                                                            with_waveform=with_waveform,
-                                                            with_spectrogram=with_spectrogram,
-                                                            top_level=True,
-                                                            with_lower_annotations=True, detail=True,
-                                                            with_subannotations=True)
-                utt = utterances[0]
-                print('query took', time.time() - begin_time)
-
-                begin_time = time.time()
-                data = serializer(utt).data
-                print('serializing took', time.time() - begin_time)
-                return Response(data)
-            return Response(None)
-        except neo4j_exceptions.ServiceUnavailable:
-            return Response(None, status=status.HTTP_423_LOCKED)
-
     @detail_route(methods=['get'])
     def sound_file(self, request, pk=None, corpus_pk=None):
         corpus = models.Corpus.objects.get(pk=corpus_pk)
@@ -751,8 +526,6 @@ class AnnotationViewSet(viewsets.ViewSet):
             fname = c.utterance_sound_file(pk, 'consonant')
 
         response = FileResponse(open(fname, "rb"), content_type='audio/wav')
-        # response['Content-Type'] = 'audio/wav'
-        # response['Content-Length'] = os.path.getsize(fname)
         return response
 
 
@@ -925,7 +698,7 @@ class EnrichmentViewSet(viewsets.ModelViewSet):
             permissions = corpus.user_permissions.filter(user=request.user).all()
             if not len(permissions):
                 return Response(status=status.HTTP_401_UNAUTHORIZED)
-        print(request.data)
+
         enrichment = models.Enrichment.objects.filter(pk=pk, corpus=corpus).get()
         if enrichment is None:
             return Response(None, status=status.HTTP_400_BAD_REQUEST)
@@ -933,12 +706,8 @@ class EnrichmentViewSet(viewsets.ModelViewSet):
             return Response("Database is not running, cannot update enrichment", 
                     status=status.HTTP_400_BAD_REQUEST)
         enrichment.name = request.data.get('name')
-        do_run = enrichment.config != request.data
         enrichment.config = request.data
-        # Dont do enrichment
-        #if do_run:
-        #    run_enrichment_task.delay(enrichment.pk)
-        #    time.sleep(1)
+        enrichment.save()
         return Response(serializers.EnrichmentSerializer(enrichment).data)
 
     def destroy(self, request, pk=None, corpus_pk=None):

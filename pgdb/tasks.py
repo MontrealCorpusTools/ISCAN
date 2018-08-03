@@ -1,9 +1,19 @@
 from celery import shared_task
+from celery.app.task import Task
 
 from .models import Corpus, Query, Enrichment
 
 import logging
 log = logging.getLogger(__name__)
+
+
+class LoggingTask(Task):
+    def on_failure(self, exc, task_id, args, kwargs, einfo):
+        kwargs = {}
+        if log.isEnabledFor(logging.INFO):
+            kwargs['exc_info'] = exc
+        log.error('Task % failed to execute', task_id, **kwargs)
+        super().on_failure(exc, task_id, args, kwargs, einfo)
 
 
 @shared_task
