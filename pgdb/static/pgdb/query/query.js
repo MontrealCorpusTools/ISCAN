@@ -209,6 +209,11 @@ angular.module('query', [
                 }
             }
         });
+	$scope.getOperators = function(filter) {
+		console.log(filter);
+		return ['==', '!=', '<', '>', '<=', '>='];
+	//stringOperators = ['==', '!=', 'in', 'not in'];
+	};
     })
 
     .controller('QueryCtrl', function ($scope, $rootScope, Query, Corpora, $state, $stateParams, $interval, FileSaver, Blob, $timeout) {
