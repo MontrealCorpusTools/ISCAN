@@ -37,9 +37,11 @@ class DatabaseTest(TestCase):
                         break
                     ports[port_key] += 1
         serializer = serializers.DatabaseSerializer(data=data_dict)
+        print(data_dict)
         assert serializer.is_valid()
         self.database = serializer.save()
         self.database.install()
+        #self.database = Database.objects.create
         self.database.start()
         time.sleep(1)
 
@@ -95,9 +97,8 @@ class CorpusTest(TestCase):
         self.database = serializer.save()
         self.database.install()
         self.database.start()
-        time.sleep(1)
         self.corpus = Corpus.objects.create(name="acoustic", database=self.database)
-        self.corpus.import_corpus()
+        print(self.corpus.name)
 
     def tearDown(self):
         self.corpus.delete()
