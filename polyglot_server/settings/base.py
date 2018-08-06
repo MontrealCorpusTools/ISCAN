@@ -287,9 +287,9 @@ HTML_MINIFY = True
 
 ## Polyglot-server settings
 
-SOURCE_DATA_DIRECTORY = os.path.join(BASE_DIR, 'test_data', 'source')
+SOURCE_DATA_DIRECTORY = os.path.join('test_data', 'source')
 
-POLYGLOT_DATA_DIRECTORY = os.path.join(BASE_DIR, 'test_data', 'data')
+POLYGLOT_DATA_DIRECTORY = os.path.join('test_data', 'data')
 
 try:
     from .local_settings import *

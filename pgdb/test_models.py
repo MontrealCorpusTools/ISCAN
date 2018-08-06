@@ -10,8 +10,10 @@ from rest_framework import status
 class DatabaseTest(TestCase):
     def setUp(self):
         self.database = Database.objects.create(
-        name='new_database', neo4j_http_port=7404, neo4j_https_port=7400, neo4j_bolt_port=7401, neo4j_admin_port=7402, influxdb_http_port=8404, influxdb_meta_port=8400, influxdb_udp_port=8406, influxdb_admin_port=8401);
-        self.database.start()
+        name='new_database', neo4j_http_port=7404, neo4j_https_port=7400, neo4j_bolt_port=7401, neo4j_admin_port=7402, influxdb_http_port=8404, influxdb_meta_port=8400, influxdb_udp_port=8406, influxdb_admin_port=8401)
+        self.database.install()
+        assert self.database.start()
+        self.database.save()
 
     def tearDown(self):
         self.database.delete()
@@ -35,13 +37,23 @@ class CorpusTest(TestCase):
     def setUp(self):
         self.database = Database.objects.create(
         name='new_database', neo4j_http_port=7404, neo4j_https_port=7400, neo4j_bolt_port=7401, neo4j_admin_port=7402, influxdb_http_port=8404, influxdb_meta_port=8400, influxdb_udp_port=8406, influxdb_admin_port=8401);
+        self.database.install()
         self.database.start()
         self.corpus = Corpus.objects.create(name="acoustic", database=self.database)
-        print(self.corpus.name)
+        assert not self.corpus.imported
+        print("importing corpus")
+        self.corpus.import_corpus()
+        assert self.corpus.imported
 
     def tearDown(self):
         self.corpus.delete()
         self.database.delete()
 
     def test_corpus(self):
-        pass
+        assert self.corpus.imported 
+        assert not self.corpus.busy
+        assert not self.corpus.has_pauses
+        assert not self.corpus.has_utterances
+        assert not self.corpus.has_syllabics
+        assert not self.corpus.has_syllables
+
