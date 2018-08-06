@@ -209,11 +209,14 @@ angular.module('query', [
                 }
             }
         });
-	$scope.getOperators = function(filter) {
-		console.log(filter);
-		return ['==', '!=', '<', '>', '<=', '>='];
-	//stringOperators = ['==', '!=', 'in', 'not in'];
-	};
+
+	$scope.getOperators = function(propertyType, filter) {
+		if(propertyType === 0){
+			return ['==', '!=', '<', '>', '<=', '>='];
+		}else{
+			return ['==', '!=', 'in', 'not in'];
+		}
+	}
     })
 
     .controller('QueryCtrl', function ($scope, $rootScope, Query, Corpora, $state, $stateParams, $interval, FileSaver, Blob, $timeout) {
@@ -541,9 +544,12 @@ angular.module('query', [
             loadPromise = $timeout(getData, mill);
         };
 
-	$scope.getOperators = function(filter) {
-		return ['==', '!=', '<', '>', '<=', '>='];
-	//stringOperators = ['==', '!=', 'in', 'not in'];
+	$scope.getOperators = function(propertyType, filter) {
+		if(propertyType === "\""){
+			return ['==', '!=', 'in', 'not in'];
+		}else{
+			return ['==', '!=', '<', '>', '<=', '>='];
+		}
 	}
 
         //Start polling the data from the server
