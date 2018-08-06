@@ -60,8 +60,6 @@ angular.module('query', [
             $state.go('home');
         });
 
-	$scope.operators = ['==', '!=', '<', '>', '<=', '>='];
-
         $scope.query = {
             annotation_type: $stateParams.type.toLowerCase(),
             name: "New " + $stateParams.type + " query",
@@ -538,7 +536,10 @@ angular.module('query', [
             loadPromise = $timeout(getData, mill);
         };
 
-	$scope.operators = ['==', '!=', '<', '>', '<=', '>='];
+	$scope.getOperators = function(filter) {
+		return ['==', '!=', '<', '>', '<=', '>='];
+	//stringOperators = ['==', '!=', 'in', 'not in'];
+	}
 
         //Start polling the data from the server
         getData();

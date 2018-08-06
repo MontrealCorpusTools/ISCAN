@@ -19,7 +19,7 @@
                                         </select>
                                     </td>
                                     <td>
-					 <select ng-model="filter.operator" ng-options="o as o for o in operators"></select>
+					 <select ng-model="filter.operator" ng-options="o as o for o in getOperators(filter)"></select>
                                     </td>
                                     <td>
                                         <input type="checkbox" ng-show="propertyTypes[t][filter.property]=== false"
