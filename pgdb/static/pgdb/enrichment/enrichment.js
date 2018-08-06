@@ -76,7 +76,7 @@ angular.module('enrichment', [
         };
 
 	$scope.isEnrichmentEditable = function(enrichment) {
-		return ['subset', 'hierarchical_property', 'pitch', 'formants', 'intensity', 'refined_formant_points'].includes(enrichment.enrichment_type);
+		return ['lexicon_csv', 'discourse_csv', 'phone_csv', 'speaker_csv', 'subset', 'hierarchical_property', 'pitch', 'formants', 'intensity', 'refined_formant_points'].includes(enrichment.enrichment_type);
 	}
 
         $scope.editEnrichment = function(enrichment) {
@@ -90,7 +90,9 @@ angular.module('enrichment', [
 		    }
 		    else if (['pitch', 'formants', 'intensity', 'refined_formant_points', 'praat_script'].includes(enrichment.enrichment_type)) {
 			$state.go('edit_acoustic_enrichment', {corpus_id: $stateParams.corpus_id, enrichment_id: enrichment.id});
-		    }
+		    }else if (['lexical_csv', 'phone_csv', 'speaker_csv', 'discourse_csv'].includes(enrichment.enrichment_type)){
+			$state.go('edit_csv-properties', {corpus_id: $stateParams.corpus_id, enrichment_id: enrichment.id});
+	            }
             }else{
                 alert("You cannot edit this enrichment.");
 	    }
@@ -131,6 +133,7 @@ angular.module('enrichment', [
         $scope.newCSVProperties = function(){
 		$state.go('new_csv-properties', {corpus_id: $stateParams.corpus_id});
         };
+
 
         $scope.newPhoneSubset = function(type){
             console.log('Going to create a new phone subset...');

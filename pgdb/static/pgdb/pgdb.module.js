@@ -129,6 +129,10 @@ app.config(function ($stateProvider, $urlRouterProvider) {
         url: '/corpora/:corpus_id/enrichment/csv-properties',
         templateUrl: static('pgdb/enrichment/csv-properties/csv-properties.html'),
         controller: 'CSVPropertiesCtrl'
+        }).state('edit_csv-properties', {
+        url: '/corpora/:corpus_id/enrichment/csv-properties/{enrichment_id:int}',
+        templateUrl: static('pgdb/enrichment/csv-properties/csv-properties.html'),
+        controller: 'CSVPropertiesCtrl'
         }).state('new_utterances', {
         url: '/corpora/:corpus_id/enrichment/utterances',
         templateUrl: static('pgdb/enrichment/annotation-level/utterance.html'),

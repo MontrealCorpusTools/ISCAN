@@ -764,7 +764,6 @@ class Enrichment(models.Model):
                     elif property_type == 'position':
                         c.encode_position(higher_annotation, lower_annotation, property_label, subset=subset_label)
                 elif enrichment_type == 'discourse_csv':
-                    print(config.get('path'))
                     c.enrich_discourses_from_csv(config.get('path'))
                 elif enrichment_type == 'phone_csv':
                     c.enrich_inventory_from_csv(config.get('path'))

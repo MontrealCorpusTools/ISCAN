@@ -8,8 +8,11 @@
                      <option value="">Select analysis</option>
                  </select>
 	    </label>
+	<button class="btn btn-warning" ng-show="enrichment.path != null" ng-click="enrichment.path = null">
+		Delete file 
+	</button>
 	<label>File
-            <input custom-on-change="newFiles" type="file" id="CSV-properties-file" name="file"/>
+            <input custom-on-change="newFiles" type="file" id="CSV-properties-file" name="file" ng-disabled="enrichment.path != null" />
 	</label>
         <button ng-disabled="!hasFiles" ng-click="save()">Save enrichment</button>
     </div>
