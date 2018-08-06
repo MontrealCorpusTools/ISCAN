@@ -149,3 +149,9 @@ app.config(function ($stateProvider, $urlRouterProvider) {
 
     $urlRouterProvider.otherwise('/');
 });
+app.run(['$transitions', function($transitions) {
+	//Makes each page scroll to top after a page change.
+	$transitions.onSuccess({}, function() {
+		document.body.scrollTop = document.documentElement.scrollTop = 0;
+	})
+}]);
