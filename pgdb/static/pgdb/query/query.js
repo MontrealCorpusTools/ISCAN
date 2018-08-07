@@ -73,28 +73,32 @@ angular.module('query', [
                 phone: {
                     current: {
                         property_filters: [],
-                        subset_filters: []
+                        subset_filters: [],
+                        subannotation_filters: []
                     }
 
                 },
                 syllable: {
                     current: {
                         property_filters: [],
-                        subset_filters: []
+                        subset_filters: [],
+                        subannotation_filters: []
                     }
 
                 },
                 word: {
                     current: {
                         property_filters: [],
-                        subset_filters: []
+                        subset_filters: [],
+                        subannotation_filters: []
                     }
 
                 },
                 utterance: {
                     current: {
                         property_filters: [],
-                        subset_filters: []
+                        subset_filters: [],
+                        subannotation_filters: []
                     }
 
                 },
@@ -313,6 +317,7 @@ angular.module('query', [
         $scope.ensureColumns = function(){
              var inc, current_annotation_type, prop, current_pos, value;
                 $scope.column_values = [];
+                $scope.subannotation_column_values = [];
                 for (j = 0; j < $scope.annotation_types.length; j++) {
                         current_annotation_type = $scope.annotation_types[j];
                         inc = j >= $scope.annotation_types.indexOf($scope.query.annotation_type);
@@ -342,8 +347,6 @@ angular.module('query', [
                                         $scope.query.column_names[current_annotation_type][current_pos][prop] = current_pos + '_' + $scope.query.column_names[current_annotation_type][current_pos][prop];
                                     }
                                 }
-                                console.log(current_annotation_type, $scope.query.annotation_type, current_pos, prop)
-                                console.log(current_annotation_type==$scope.query.annotation_type, current_pos =='current', prop=='label')
                                 if (prop == 'label' && current_annotation_type == $scope.query.annotation_type
                                     && current_pos == 'current') {
                                     $scope.query.columns[current_annotation_type][current_pos][prop] = true;
@@ -364,6 +367,9 @@ angular.module('query', [
                                         $scope.query.column_names[current_annotation_type][current_pos][prop] = current_pos + '_' + $scope.query.column_names[current_annotation_type][current_pos][prop];
                                     }
                                 }
+                            }
+                            for (i=0; i<$scope.hierarchy.subannotations[current_annotation_type].length;i++){
+
                             }
                         }
                     }

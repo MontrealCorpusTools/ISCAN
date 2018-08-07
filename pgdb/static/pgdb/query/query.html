@@ -238,7 +238,8 @@
                 <md-tab ng-repeat="t in annotation_types" label="{{ t|titlecase }}"
                         data-ng-if="$index >=annotation_types.indexOf(query.annotation_type.toLowerCase())">
                     <md-content class="md-padding">
-                        <table class="table table-striped scrollable-table">
+                        <div>
+                        <table class="table table-striped">
                             <thead>
                             <td>Column</td>
                             <td ng-repeat="position in query.positions[t]">{{ position }}</td>
@@ -252,6 +253,25 @@
                             </tr>
                             </tbody>
                         </table>
+
+                        </div>
+                        <div ng-repeat="s in hierarchy.subannotations[t]">
+                            {{s}}
+                            <table class="table table-striped">
+                            <thead>
+                            <td>Column</td>
+                            <td ng-repeat="position in query.positions[t]">{{ position }}</td>
+                            </thead>
+                            <tbody>
+                            <tr ng-repeat="prop in hierarchy.subannotation_properties[s]">
+                                <td>{{ prop[0] }}</td>
+                                <td ng-repeat="position in query.positions[t]">
+                                    <input type="checkbox" ng-model="query.columns[t][position].subannotations[s][prop]">
+                                </td>
+                            </tr>
+                            </tbody>
+                            </table>
+                        </div>
                     </md-content>
                 </md-tab>
 

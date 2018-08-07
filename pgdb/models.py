@@ -1156,7 +1156,6 @@ class Query(models.Model):
                     q = q.preload(getattr(a, t))
                 positions = config['positions']
                 for f_a_type, pos in positions.items():
-                    print(f_a_type, pos)
                     for position in pos:
                         if position == 'current':
                             continue
@@ -1164,15 +1163,10 @@ class Query(models.Model):
                             ann = a
                         else:
                             ann = getattr(a, f_a_type)
-                        print(position)
                         position = position.split('_')
-                        print(position)
                         for p in position:
                             ann = getattr(ann, p)
-                            print(ann)
                         q = q.preload(ann)
-                print(q._preload)
-                print(q.cypher())
                 res = q.all()
                 serializer_class = serializer_factory(c.hierarchy, a_type, positions=positions, top_level=True,
                                                       acoustic_columns=acoustic_column_names, detail=False,
@@ -1198,12 +1192,12 @@ class Query(models.Model):
                     json.dump(self._results, f)
 
                 self.result_count = len(self._results)
-            self.running = False
-            self.save()
         except:
             raise
         finally:
             os.remove(self.lockfile_path)
+            self.running = False
+            self.save()
 
     def save(self, force_insert=False, force_update=False, using=None,
              update_fields=None):

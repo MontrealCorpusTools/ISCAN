@@ -47,6 +47,8 @@ class HierarchySerializer(serializers.Serializer):
     discourse_properties = serializers.SerializerMethodField()
     subset_types = serializers.SerializerMethodField()
     subset_tokens = serializers.SerializerMethodField()
+    subannotations = serializers.SerializerMethodField()
+    subannotation_properties = serializers.SerializerMethodField()
     has_pitch_tracks = serializers.SerializerMethodField()
     has_formant_tracks = serializers.SerializerMethodField()
     has_intensity_tracks = serializers.SerializerMethodField()
