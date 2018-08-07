@@ -64,13 +64,13 @@ angular.module('acoustics', [
 		    $scope.error_message = res.data;
 		});
 	}else{
-		Enrichment.update($stateParams.corpus_id, $stateParams.enrichment_id, $scope.hp).then(function (res) {
+		Enrichment.update($stateParams.corpus_id, $stateParams.enrichment_id, $scope.enrichment).then(function (res) {
 		    if($scope.enrichment.enrichment_type == 'praat_script'){
-			    $scope.uploadFile(res.data.id, "praat-script-file");
+			    $scope.uploadFile($stateParams.enrichment_id, "praat-script-file");
 		    }else if($scope.enrichment.enrichment_type == 'refined_formant_points'){
 			    $scope.enrichment.duration_threshold = $scope.enrichment.duration_threshold/1000;
 			    if(document.getElementById("formants-file").files.length > 0){
-				    $scope.uploadFile(res.data.id, "formants-file");
+				    $scope.uploadFile($stateParams.enrichment_id, "formants-file");
 			    }
 		    }
 		    $state.go('enrichment', {corpus_id: $stateParams.corpus_id});

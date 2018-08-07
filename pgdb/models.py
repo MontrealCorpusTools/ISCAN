@@ -646,6 +646,9 @@ class Enrichment(models.Model):
             elif enrichment_type == 'utterances':
                 if not (c.hierarchy.has_token_subset('word', 'pause')):
                     return 'Must encode pauses'
+            elif '_csv' in enrichment_type:
+                if config.get('path') is None:
+                    return 'Must attach a file'
             elif enrichment_type == 'hierarchical_property':
                 higher_annotation = config.get('higher_annotation')
                 lower_annotation = config.get('lower_annotation')
@@ -761,7 +764,6 @@ class Enrichment(models.Model):
                     elif property_type == 'position':
                         c.encode_position(higher_annotation, lower_annotation, property_label, subset=subset_label)
                 elif enrichment_type == 'discourse_csv':
-                    print(config.get('path'))
                     c.enrich_discourses_from_csv(config.get('path'))
                 elif enrichment_type == 'phone_csv':
                     c.enrich_inventory_from_csv(config.get('path'))
