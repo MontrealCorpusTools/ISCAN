@@ -290,11 +290,11 @@ HTML_MINIFY = True
 SOURCE_DATA_DIRECTORY = os.path.join('test_data', 'source')
 
 POLYGLOT_DATA_DIRECTORY = os.path.join('test_data', 'data')
-
-try:
-    from .local_settings import *
-except ImportError:
-    pass
+if 'test' not in sys.argv:
+    try:
+        from .local_settings import *
+    except ImportError:
+        pass
 
 POLYGLOT_TEMP_DIR = os.path.join(POLYGLOT_DATA_DIRECTORY, 'downloads')
 
