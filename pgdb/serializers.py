@@ -121,6 +121,9 @@ class FormantPointSerializer(serializers.Serializer):
 class AnnotationSerializer(serializers.Serializer):
     pass
 
+
+class PositionalSerializer(serializers.Serializer):
+    pass
 # AUTH
 
 class CorpusPermissionsSerializer(serializers.ModelSerializer):
@@ -147,7 +150,7 @@ class UnauthorizedUserSerializer(serializers.ModelSerializer):
         depth = 2
         fields = ('id', 'first_name', 'last_name', 'username', 'is_superuser')
 
-def serializer_factory(hierarchy, a_type, exclude=None, acoustic_columns=None,
+def serializer_factory(hierarchy, a_type, positions=None, exclude=None, acoustic_columns=None,
                        with_waveform=False, with_spectrogram=False, with_higher_annotations=False,
                        with_lower_annotations=False, top_level=False, detail=False, with_subannotations=False):
     parent = (object,)
@@ -243,16 +246,32 @@ def serializer_factory(hierarchy, a_type, exclude=None, acoustic_columns=None,
             if detail:
                 attrs = a_attrs
             else:
-                attrs[a_type] = type(base)(class_name, (base,), a_attrs)()
+                if positions is not None:
+                    base = PositionalSerializer
+                    mapping = {}
+                    s = type(base)(class_name, (base,), a_attrs)
+                    for p in positions[a_type]:
+                        mapping[p] = s()
+                    attrs[a_type] = type(base)(class_name, (base,), mapping)()
+                else:
+                    attrs[a_type] = type(base)(class_name, (base,), a_attrs)()
             attrs['speaker'] = serializer_factory(hierarchy, 'speaker')()
             attrs['discourse'] = serializer_factory(hierarchy, 'discourse', exclude=['duration', "vowel_file_path", "file_path", "consonant_file_path", "low_freq_file_path"])()
 
         else:
-            attrs = a_attrs
+            if positions is not None:
+                print(positions)
+                base = PositionalSerializer
+                attrs = {}
+                s = type(base)(class_name, (base,), a_attrs)
+                for p in positions[a_type]:
+                    attrs[p] = s()
+            else:
+                attrs = a_attrs
         if with_higher_annotations:
             supertype = hierarchy[a_type]
             while supertype is not None:
-                attrs[supertype] =serializer_factory(hierarchy, supertype, with_subannotations=with_subannotations)()
+                attrs[supertype] = serializer_factory(hierarchy, supertype, positions=positions, with_subannotations=with_subannotations)()
                 supertype = hierarchy[supertype]
         if with_lower_annotations:
             subs = hierarchy.contains(a_type)
@@ -287,14 +306,19 @@ class QuerySerializer(serializers.ModelSerializer):
     column_names = serializers.SerializerMethodField()
     acoustic_columns = serializers.SerializerMethodField()
     ordering = serializers.SerializerMethodField()
+    positions = serializers.SerializerMethodField()
 
     class Meta:
         model = models.Query
         fields = ('id', 'name', 'user', 'corpus', 'annotation_type', 'result_count', 'running', 'filters',
+                  'positions',
                   'columns', 'column_names', 'acoustic_columns', 'ordering')
 
     def get_annotation_type(self, obj):
         return obj.get_annotation_type_display()
+
+    def get_positions(self, obj):
+        return obj.config['positions']
 
     def get_filters(self, obj):
         return obj.config['filters']

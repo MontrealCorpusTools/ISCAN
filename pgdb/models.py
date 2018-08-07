@@ -19,7 +19,7 @@ sys.path.insert(0, '/site/proj/PolyglotDB')
 
 from polyglotdb import CorpusContext
 import polyglotdb.io as pgio
-from polyglotdb\
+from polyglotdb \
     .config import CorpusConfig
 from polyglotdb.utils import get_corpora_list
 
@@ -27,7 +27,9 @@ from .utils import download_influxdb, download_neo4j, extract_influxdb, extract_
     get_used_ports
 
 import logging
+
 log = logging.getLogger(__name__)
+
 
 # Create your models here.
 
@@ -163,7 +165,7 @@ class Database(models.Model):
             if sys.platform.startswith('win'):
                 neo4j_finder = 'WMIC PROCESS get Processid,Caption,Commandline'
             else:
-                neo4j_finder = 'ps aux' #'ps S'
+                neo4j_finder = 'ps aux'  # 'ps S'
             proc = subprocess.Popen(neo4j_finder, shell=True,
                                     stdout=subprocess.PIPE)
             stdout, stderr = proc.communicate()
@@ -703,7 +705,7 @@ class Enrichment(models.Model):
 
     @property
     def directory(self):
-        directory =os.path.join(settings.POLYGLOT_ENRICHMENT_DIRECTORY, str(self.pk))
+        directory = os.path.join(settings.POLYGLOT_ENRICHMENT_DIRECTORY, str(self.pk))
         os.makedirs(directory, exist_ok=True)
         return directory
 
@@ -736,7 +738,8 @@ class Enrichment(models.Model):
             elif enrichment_type == 'hierarchical_property':
                 higher_annotation = config.get('higher_annotation')
                 lower_annotation = config.get('lower_annotation')
-                if not (higher_annotation in c.hierarchy.annotation_types and lower_annotation in c.hierarchy.annotation_types):
+                if not (
+                        higher_annotation in c.hierarchy.annotation_types and lower_annotation in c.hierarchy.annotation_types):
                     return 'Must encode {} and {}'.format(higher_annotation, lower_annotation)
         return 'runnable'
 
@@ -773,20 +776,20 @@ class Enrichment(models.Model):
             elif enrichment_type == 'relativize_pitch':
                 c.reset_relativized_pitch()
             elif enrichment_type == 'discourse_csv':
-                #FIXME: Currently empty call in PolyglotDB
+                # FIXME: Currently empty call in PolyglotDB
                 c.reset_discourses()
             elif enrichment_type == 'phone_csv':
                 c.reset_to_old_label()
             elif enrichment_type == 'speaker_csv':
-                #FIXME: Currently empty call in PolyglotDB
+                # FIXME: Currently empty call in PolyglotDB
                 c.reset_speakers()
             elif enrichment_type == 'lexicon_csv':
-                #FIXME: Currently empty call in PolyglotDB
+                # FIXME: Currently empty call in PolyglotDB
                 c.reset_lexicon()
             elif enrichment_type == 'formants':
                 c.reset_formants()
             elif enrichment_type == 'refined_formant_points':
-                #FIXME Can't find appropriate call
+                # FIXME Can't find appropriate call
                 pass
             elif enrichment_type == 'intensity':
                 c.reset_intensity()
@@ -795,10 +798,10 @@ class Enrichment(models.Model):
             elif enrichment_type == 'relativize_formants':
                 c.reset_relativized_formants()
             elif enrichment_type == 'patterned_stress':
-                #FIXME Can't find appropriate call
+                # FIXME Can't find appropriate call
                 pass
             elif enrichment_type == 'praat_script':
-                #FIXME Can't find appropriate call
+                # FIXME Can't find appropriate call
                 pass
         self.running = False
         self.completed = False
@@ -880,7 +883,8 @@ class Enrichment(models.Model):
                 elif enrichment_type == 'relativize_formants':
                     c.relativize_formants(by_speaker=True)
                 elif enrichment_type == 'praat_script':
-                    c.analyze_script(phone_class=config.get('phone_class'), script_path=config.get('path'), multiprocessing=False)
+                    c.analyze_script(phone_class=config.get('phone_class'), script_path=config.get('path'),
+                                     multiprocessing=False)
                 elif enrichment_type == 'patterned_stress':
                     c.encode_stress_from_word_property(config.get('word_property'))
             self.running = False
@@ -890,7 +894,7 @@ class Enrichment(models.Model):
             self.corpus.busy = False
             self.corpus.save()
         except Exception:
-            self.corpus.busy = False # If it fails, don't stay busy and block everything
+            self.corpus.busy = False  # If it fails, don't stay busy and block everything
             self.corpus.save()
             print(traceback.format_exc())
 
@@ -967,6 +971,7 @@ class Query(models.Model):
         self._ordering = self.config.get('ordering', None)
         if ordering != self._ordering and ordering:
             self._ordering = ordering
+
             def order_function(input):
                 ordering = self._ordering.replace('-', '').split('.')
                 item = input
@@ -1060,8 +1065,20 @@ class Query(models.Model):
                             q = q.filter(att == value)
             else:
                 for position, filter_types in positions.items():
+                    if f_a_type == a_type:
+                        ann = a
+                    else:
+                        ann = getattr(a, f_a_type)
+                    if f_a_type == a_type:
+                        current_ann = a
+                    else:
+                        current_ann = getattr(a, f_a_type)
                     if position != 'current':
-                        pass
+                        position = position.split('_')
+                        for p in position:
+                            ann = getattr(ann, p)
+                    print(position, filter_types)
+                    print(ann)
                     a_filters = filter_types.get('property_filters', [])
                     if a_filters:
                         if isinstance(a_filters, dict):
@@ -1093,9 +1110,10 @@ class Query(models.Model):
                     left_aligned_filter = filter_types.get('left_aligned_filter', '')
                     right_aligned_filter = filter_types.get('right_aligned_filter', '')
                     if left_aligned_filter:
-                        q = q.filter_left_aligned(getattr(a, left_aligned_filter))
+                        q = q.filter(getattr(ann, 'begin') == getattr(getattr(current_ann, left_aligned_filter), 'begin'))
                     if right_aligned_filter:
-                        q = q.filter_right_aligned(getattr(a, right_aligned_filter))
+                        q = q.filter(getattr(ann, 'end') == getattr(getattr(current_ann, right_aligned_filter), 'end'))
+        print(q.cypher())
         return q
 
     def run_query(self):
@@ -1136,13 +1154,32 @@ class Query(models.Model):
                                 q = q.preload(getattr(getattr(a, t), s))
                 for t in c.hierarchy.get_higher_types(a_type):
                     q = q.preload(getattr(a, t))
+                positions = config['positions']
+                for f_a_type, pos in positions.items():
+                    print(f_a_type, pos)
+                    for position in pos:
+                        if position == 'current':
+                            continue
+                        if f_a_type == a_type:
+                            ann = a
+                        else:
+                            ann = getattr(a, f_a_type)
+                        print(position)
+                        position = position.split('_')
+                        print(position)
+                        for p in position:
+                            ann = getattr(ann, p)
+                            print(ann)
+                        q = q.preload(ann)
+                print(q._preload)
                 print(q.cypher())
                 res = q.all()
-                serializer_class = serializer_factory(c.hierarchy, a_type, top_level=True,
+                serializer_class = serializer_factory(c.hierarchy, a_type, positions=positions, top_level=True,
                                                       acoustic_columns=acoustic_column_names, detail=False,
                                                       with_higher_annotations=True,
                                                       with_subannotations=True)
                 serializer = serializer_class(res, many=True)
+                print(serializer)
                 self._results = serializer.data
                 ordering = self.config.get('ordering', None)
                 if ordering:
@@ -1179,7 +1216,7 @@ class Query(models.Model):
 
     @property
     def directory(self):
-        directory =os.path.join(settings.POLYGLOT_QUERY_DIRECTORY, str(self.pk))
+        directory = os.path.join(settings.POLYGLOT_QUERY_DIRECTORY, str(self.pk))
         os.makedirs(directory, exist_ok=True)
         return directory
 

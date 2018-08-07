@@ -59,49 +59,42 @@ angular.module('query', [
         $scope.$on('unauthenticated', function () {
             $state.go('home');
         });
-        $scope.positions = {
-            phone: ['current'],
-            syllable: ['current'],
-            word: ['current'],
-            utterance: ['current']
-        };
+
         $scope.query = {
             annotation_type: $stateParams.type.toLowerCase(),
             name: "New " + $stateParams.type + " query",
+            positions: {
+                phone: ['current'],
+                syllable: ['current'],
+                word: ['current'],
+                utterance: ['current']
+            },
             filters: {
                 phone: {
                     current: {
                         property_filters: [],
-                        subset_filters: [],
-                        left_aligned_filter: '',
-                        right_aligned_filter: ''
+                        subset_filters: []
                     }
 
                 },
                 syllable: {
                     current: {
                         property_filters: [],
-                        subset_filters: [],
-                        left_aligned_filter: '',
-                        right_aligned_filter: ''
+                        subset_filters: []
                     }
 
                 },
                 word: {
                     current: {
                         property_filters: [],
-                        subset_filters: [],
-                        left_aligned_filter: '',
-                        right_aligned_filter: ''
+                        subset_filters: []
                     }
 
                 },
                 utterance: {
                     current: {
                         property_filters: [],
-                        subset_filters: [],
-                        left_aligned_filter: '',
-                        right_aligned_filter: ''
+                        subset_filters: []
                     }
 
                 },
@@ -130,12 +123,75 @@ angular.module('query', [
             }
         };
 
-        $scope.addFilter = function (a_type) {
-            $scope.query.filters[a_type].push({});
+        $scope.addPrevious = function (a_type) {
+            var pos;
+            if ($scope.query.positions[a_type][0] == 'current') {
+                pos = 'previous'
+            }
+            else {
+                pos = 'previous_' + $scope.query.positions[a_type][0]
+            }
+            $scope.query.positions[a_type].unshift(pos);
+            $scope.query.filters[a_type][pos] = {};
+            $scope.query.filters[a_type][pos].property_filters = [];
+            $scope.query.filters[a_type][pos].subset_filters = [];
+            $scope.query.filters[a_type][pos].left_aligned_filter = undefined;
+            $scope.query.filters[a_type][pos].right_aligned_filter = undefined;
+            $scope.query.columns[a_type][pos] = {};
+
         };
 
-        $scope.removeFilter = function (a_type, index) {
-            $scope.query.filters[a_type].splice(index, 1);
+        $scope.removePrevious = function (a_type) {
+            if ($scope.query.positions[a_type][0] != 'current') {
+                $scope.query.filters[a_type][$scope.query.positions[a_type][0]].property_filters = [];
+                $scope.query.filters[a_type][$scope.query.positions[a_type][0]].subset_filters = [];
+                $scope.query.filters[a_type][$scope.query.positions[a_type][0]].left_aligned_filter = undefined;
+                $scope.query.filters[a_type][$scope.query.positions[a_type][0]].right_aligned_filter = undefined;
+                $scope.query.positions[a_type].shift();
+            }
+        };
+
+        $scope.addFollowing = function (a_type) {
+            var pos;
+            if ($scope.query.positions[a_type][$scope.query.positions[a_type].length - 1] == 'current') {
+                pos = 'following';
+            }
+            else {
+                pos = 'following_' + $scope.query.positions[a_type][$scope.query.positions[a_type].length - 1]
+            }
+            $scope.query.positions[a_type].push(pos);
+            $scope.query.filters[a_type][pos] = {};
+            $scope.query.filters[a_type][pos].property_filters = [];
+            $scope.query.filters[a_type][pos].subset_filters = [];
+            $scope.query.filters[a_type][pos].left_aligned_filter = undefined;
+            $scope.query.filters[a_type][pos].right_aligned_filter = undefined;
+            $scope.query.columns[a_type][pos] = {};
+        };
+
+        $scope.removeFollowing = function (a_type) {
+            if ($scope.query.positions[a_type][$scope.query.positions[a_type].length - 1] != 'current') {
+                $scope.query.filters[a_type][$scope.query.positions[a_type][$scope.query.positions[a_type].length - 1]].property_filters = [];
+                $scope.query.filters[a_type][$scope.query.positions[a_type][$scope.query.positions[a_type].length - 1]].subset_filters = [];
+                $scope.query.filters[a_type][$scope.query.positions[a_type][$scope.query.positions[a_type].length - 1]].left_aligned_filter = undefined;
+                $scope.query.filters[a_type][$scope.query.positions[a_type][$scope.query.positions[a_type].length - 1]].right_aligned_filter = undefined;
+                $scope.query.positions[a_type].pop();
+            }
+        };
+
+        $scope.addFilter = function (a_type, position) {
+            $scope.query.filters[a_type][position].property_filters.push({});
+        };
+
+        $scope.removeFilter = function (a_type, position, index) {
+            $scope.query.filters[a_type][position].property_filters.splice(index, 1);
+        };
+
+        $scope.addFilter = function (a_type, position) {
+            $scope.query.filters[a_type][position].property_filters.push({});
+        };
+
+        $scope.removeFilter = function (a_type, position, index) {
+            $scope.query.filters[a_type][position].property_filters.splice(index, 1);
         };
 
         $scope.clearFilters = function () {
@@ -145,7 +201,14 @@ angular.module('query', [
                 if (!inc) {
                     continue
                 }
-                $scope.query.filters[$scope.annotation_types[j]] = [];
+                for (i = 0; i < $scope.query.positions[$scope.annotation_types[j]]; i++) {
+                    $scope.query.filters[$scope.annotation_types[j]] = [];
+                    $scope.query.filters[$scope.annotation_types[j]][$scope.query.positions[a_type][i]].property_filters = [];
+                    $scope.query.filters[$scope.annotation_types[j]][$scope.query.positions[a_type][i]].subset_filters = [];
+                    $scope.query.filters[$scope.annotation_types[j]][$scope.query.positions[a_type][i]].left_aligned_filter = undefined;
+                    $scope.query.filters[$scope.annotation_types[j]][$scope.query.positions[a_type][i]].right_aligned_filter = undefined;
+
+                }
 
             }
             $scope.query.filters.speaker = [];
@@ -240,12 +303,6 @@ angular.module('query', [
         $scope.queryState = Query.state;
         $scope.annotation_types = Query.annotation_types;
         $scope.refreshing = false;
-        $scope.positions = {
-            phone: ['current'],
-            syllable: ['current'],
-            word: ['current'],
-            utterance: ['current']
-        };
         $scope.properties = [];
         var loadTime = 10000, //Load the data every second
             errorCount = 0, //Counter for the server errors
@@ -253,6 +310,65 @@ angular.module('query', [
 
         $scope.export_link = Query.getExportLink($stateParams.corpus_id, $stateParams.query_id);
 
+        $scope.ensureColumns = function(){
+             var inc, current_annotation_type, prop, current_pos, value;
+                $scope.column_values = [];
+                for (j = 0; j < $scope.annotation_types.length; j++) {
+                        current_annotation_type = $scope.annotation_types[j];
+                        inc = j >= $scope.annotation_types.indexOf($scope.query.annotation_type);
+                        if (!inc) {
+                            continue
+                        }
+
+                        for (k = 0; k < $scope.query.positions[current_annotation_type].length; k++) {
+                            current_pos = $scope.query.positions[current_annotation_type][k];
+                            if (!(current_pos in $scope.query.column_names[current_annotation_type])) {
+                                $scope.query.column_names[current_annotation_type][current_pos] = {};
+                            }
+                            if (!(current_pos in $scope.query.columns[current_annotation_type])) {
+                                $scope.query.columns[current_annotation_type][current_pos] = {};
+                            }
+                            for (i = 0; i < $scope.hierarchy.type_properties[current_annotation_type].length; i++) {
+                                prop = $scope.hierarchy.type_properties[current_annotation_type][i][0];
+                                value ={type: current_annotation_type, position:current_pos, property:prop};
+
+                                if ($scope.column_values.filter(x => x.type == current_annotation_type
+                                    && x.position == current_pos && x.property == prop).length ==0){
+                                    $scope.column_values.push(value);
+                                }
+                                if (!$scope.query.column_names[current_annotation_type][current_pos][prop]) {
+                                    $scope.query.column_names[current_annotation_type][current_pos][prop] = current_annotation_type + '_' + prop;
+                                    if (current_pos != 'current'){
+                                        $scope.query.column_names[current_annotation_type][current_pos][prop] = current_pos + '_' + $scope.query.column_names[current_annotation_type][current_pos][prop];
+                                    }
+                                }
+                                console.log(current_annotation_type, $scope.query.annotation_type, current_pos, prop)
+                                console.log(current_annotation_type==$scope.query.annotation_type, current_pos =='current', prop=='label')
+                                if (prop == 'label' && current_annotation_type == $scope.query.annotation_type
+                                    && current_pos == 'current') {
+                                    $scope.query.columns[current_annotation_type][current_pos][prop] = true;
+                                }
+                                console.log($scope.query.columns[current_annotation_type][current_pos].label)
+                            }
+                            for (i = 0; i < $scope.hierarchy.token_properties[current_annotation_type].length; i++) {
+                                prop = $scope.hierarchy.token_properties[current_annotation_type][i][0];
+                                value ={type: current_annotation_type, position:current_pos, property:prop};
+
+                                if ($scope.column_values.filter(x => x.type == current_annotation_type
+                                    && x.position == current_pos && x.property == prop).length ==0){
+                                    $scope.column_values.push(value);
+                                }
+                                if (!$scope.query.column_names[current_annotation_type][current_pos][prop]) {
+                                    $scope.query.column_names[current_annotation_type][current_pos][prop] = current_annotation_type + '_' + prop;
+                                    if (current_pos != 'current'){
+                                        $scope.query.column_names[current_annotation_type][current_pos][prop] = current_pos + '_' + $scope.query.column_names[current_annotation_type][current_pos][prop];
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    console.log('COLUMNS', $scope.query.columns, $scope.query.column_names)
+        };
 
         $scope.refreshPermissions = function () {
             console.log('REFRESHING');
@@ -282,6 +398,7 @@ angular.module('query', [
                 Corpora.hierarchy($stateParams.corpus_id).then(function (res) {
                     $scope.hierarchy = res.data;
                     $scope.annotation_types = $scope.hierarchy.annotation_types;
+                    $scope.column_values = [];
                     console.log($scope.hierarchy);
                     var prop;
                     $scope.properties = {
@@ -295,8 +412,8 @@ angular.module('query', [
 
                     $scope.subsets = {};
                     if (!('discourse' in $scope.query.column_names)) {
-                        $scope.query.column_names['discourse'] = {}
-                        $scope.query.column_names['speaker'] = {}
+                        $scope.query.column_names['discourse'] = {};
+                        $scope.query.column_names['speaker'] = {};
                     }
                     var inc, current_annotation_type, prop;
                     for (j = 0; j < $scope.annotation_types.length; j++) {
@@ -310,32 +427,27 @@ angular.module('query', [
                         Array.prototype.push.apply($scope.subsets[current_annotation_type], $scope.hierarchy.subset_types[current_annotation_type]);
                         $scope.properties[current_annotation_type] = [];
                         $scope.propertyTypes[current_annotation_type] = {};
-                        for (i = 0; i < $scope.hierarchy.type_properties[current_annotation_type].length; i++) {
-                            prop = $scope.hierarchy.type_properties[current_annotation_type][i][0];
-                            if (!$scope.query.column_names[current_annotation_type][prop]) {
-                                $scope.query.column_names[current_annotation_type][prop] = current_annotation_type + '_' + prop
+                        console.log(current_annotation_type)
+
+                            for (i = 0; i < $scope.hierarchy.type_properties[current_annotation_type].length; i++) {
+                                prop = $scope.hierarchy.type_properties[current_annotation_type][i][0];
+                                console.log(prop)
+                                $scope.propertyTypes[current_annotation_type][prop] = $scope.hierarchy.type_properties[current_annotation_type][i][1];
+                                if ($scope.properties[current_annotation_type].indexOf(prop) === -1) {
+                                    $scope.properties[current_annotation_type].push(prop);
+                                }
                             }
-                            if (prop == 'label' && current_annotation_type == $scope.query.annotation_type) {
-                                $scope.query.columns[current_annotation_type].label = true;
+                            for (i = 0; i < $scope.hierarchy.token_properties[current_annotation_type].length; i++) {
+                                prop = $scope.hierarchy.token_properties[current_annotation_type][i][0];
+
+                                if (prop == 'label') {
+                                    continue
+                                }
+                                $scope.propertyTypes[current_annotation_type][prop] = $scope.hierarchy.token_properties[current_annotation_type][i][1];
+                                if ($scope.properties[current_annotation_type].indexOf(prop) === -1) {
+                                    $scope.properties[current_annotation_type].push(prop);
+                                }
                             }
-                            $scope.propertyTypes[current_annotation_type][prop] = $scope.hierarchy.type_properties[current_annotation_type][i][1];
-                            if ($scope.properties[current_annotation_type].indexOf(prop) === -1) {
-                                $scope.properties[current_annotation_type].push(prop);
-                            }
-                        }
-                        for (i = 0; i < $scope.hierarchy.token_properties[current_annotation_type].length; i++) {
-                            prop = $scope.hierarchy.token_properties[current_annotation_type][i][0];
-                            if (!$scope.query.column_names[current_annotation_type][prop]) {
-                                $scope.query.column_names[current_annotation_type][prop] = current_annotation_type + '_' + prop
-                            }
-                            if (prop == 'label') {
-                                continue
-                            }
-                            $scope.propertyTypes[current_annotation_type][prop] = $scope.hierarchy.token_properties[current_annotation_type][i][1];
-                            if ($scope.properties[current_annotation_type].indexOf(prop) === -1) {
-                                $scope.properties[current_annotation_type].push(prop);
-                            }
-                        }
                     }
 
                     for (i = 0; i < $scope.hierarchy.discourse_properties.length; i++) {
@@ -359,8 +471,14 @@ angular.module('query', [
                             $scope.properties.speaker.push(prop);
                         }
                     }
+                    $scope.ensureColumns();
+                    console.log('properties', $scope.properties, $scope.propertyTypes)
+                console.log($scope.column_values, $scope.query.columns)
                 });
-                $scope.getQueryResults();
+                if ($scope.query.result_count != null){
+                    $scope.getQueryResults();
+
+                }
             });
         };
 
@@ -372,6 +490,8 @@ angular.module('query', [
             console.log($scope.queryState);
             Query.update($stateParams.corpus_id, $stateParams.query_id, $scope.query, false).then(function (res) {
                 $scope.query = res.data;
+               $scope.ensureColumns();
+                    console.log($scope.column_values)
                 console.log('LOOK HERE')
                 console.log($scope.query);
                 console.log($scope.queryState);
@@ -385,6 +505,7 @@ angular.module('query', [
             console.log($scope.queryState);
             Query.update($stateParams.corpus_id, $stateParams.query_id, $scope.query, true).then(function (res) {
                 $scope.query = res.data;
+               $scope.ensureColumns();
                 console.log('LOOK HERE')
                 console.log($scope.query);
                 console.log($scope.queryState);
@@ -401,6 +522,7 @@ angular.module('query', [
         $scope.getQueryResults = function () {
             Query.getResults($stateParams.corpus_id, $stateParams.query_id, $scope.queryState.offset,
                 $scope.queryState.ordering, $scope.queryState.resultsPerPage).then(function (res) {
+                    console.log('GETTING RESULTS')
                 $scope.queryState.results = res.data;
                 $scope.refreshing = false;
                 console.log('RESULTS')
@@ -438,22 +560,83 @@ angular.module('query', [
             });
         };
 
-        $scope.addFilter = function (a_type) {
-            $scope.query.filters[a_type].push({});
+        $scope.addPrevious = function (a_type) {
+            var pos;
+            if ($scope.query.positions[a_type][0] == 'current') {
+                pos = 'previous'
+            }
+            else {
+                pos = 'previous_' + $scope.query.positions[a_type][0]
+            }
+            $scope.query.positions[a_type].unshift(pos);
+            $scope.query.filters[a_type][pos] = {};
+            $scope.query.filters[a_type][pos].property_filters = [];
+            $scope.query.filters[a_type][pos].subset_filters = [];
+            $scope.query.filters[a_type][pos].left_aligned_filter = undefined;
+            $scope.query.filters[a_type][pos].right_aligned_filter = undefined;
+
         };
 
-        $scope.removeFilter = function (a_type, index) {
-            $scope.query.filters[a_type].splice(index, 1);
+        $scope.removePrevious = function (a_type) {
+            if ($scope.query.positions[a_type][0] != 'current') {
+                $scope.query.filters[a_type][$scope.query.positions[a_type][0]].property_filters = [];
+                $scope.query.filters[a_type][$scope.query.positions[a_type][0]].subset_filters = [];
+                $scope.query.filters[a_type][$scope.query.positions[a_type][0]].left_aligned_filter = undefined;
+                $scope.query.filters[a_type][$scope.query.positions[a_type][0]].right_aligned_filter = undefined;
+                $scope.query.positions[a_type].shift();
+            }
+        };
+
+        $scope.addFollowing = function (a_type) {
+            var pos;
+            if ($scope.query.positions[a_type][$scope.query.positions[a_type].length - 1] == 'current') {
+                pos = 'following';
+            }
+            else {
+                pos = 'following_' + $scope.query.positions[a_type][$scope.query.positions[a_type].length - 1]
+            }
+            $scope.query.positions[a_type].push(pos);
+            $scope.query.filters[a_type][pos] = {};
+            $scope.query.filters[a_type][pos].property_filters = [];
+            $scope.query.filters[a_type][pos].subset_filters = [];
+            $scope.query.filters[a_type][pos].left_aligned_filter = undefined;
+            $scope.query.filters[a_type][pos].right_aligned_filter = undefined;
+        };
+
+        $scope.removeFollowing = function (a_type) {
+            if ($scope.query.positions[a_type][$scope.query.positions[a_type].length - 1] != 'current') {
+                $scope.query.filters[a_type][$scope.query.positions[a_type][$scope.query.positions[a_type].length - 1]].property_filters = [];
+                $scope.query.filters[a_type][$scope.query.positions[a_type][$scope.query.positions[a_type].length - 1]].subset_filters = [];
+                $scope.query.filters[a_type][$scope.query.positions[a_type][$scope.query.positions[a_type].length - 1]].left_aligned_filter = undefined;
+                $scope.query.filters[a_type][$scope.query.positions[a_type][$scope.query.positions[a_type].length - 1]].right_aligned_filter = undefined;
+                $scope.query.positions[a_type].pop();
+            }
+        };
+
+        $scope.addFilter = function (a_type, position) {
+            $scope.query.filters[a_type][position].property_filters.push({});
+        };
+
+        $scope.removeFilter = function (a_type, position, index) {
+            $scope.query.filters[a_type][position].property_filters.splice(index, 1);
         };
 
         $scope.clearFilters = function () {
-            var inc;
-            for (j = 0; j < Query.annotation_types.length; j++) {
-                inc = j >= Query.annotation_types.indexOf($scope.query.annotation_type);
+            var inc, a_type;
+            for (j = 0; j < $scope.annotation_types.length; j++) {
+                inc = j >= $scope.annotation_types.indexOf($scope.query.annotation_type);
                 if (!inc) {
                     continue
                 }
-                $scope.query.filters[Query.annotation_types[j]] = [];
+                a_type = $scope.annotation_types[j];
+                for (i = 0; i < $scope.query.positions[a_type]; i++) {
+                    $scope.query.filters[$scope.annotation_types[j]] = [];
+                    $scope.query.filters[a_type][$scope.query.positions[a_type][i]].property_filters = [];
+                    $scope.query.filters[a_type][$scope.query.positions[a_type][i]].subset_filters = [];
+                    $scope.query.filters[a_type][$scope.query.positions[a_type][i]].left_aligned_filter = undefined;
+                    $scope.query.filters[a_type][$scope.query.positions[a_type][i]].right_aligned_filter = undefined;
+
+                }
 
             }
             $scope.query.filters.speaker = [];
@@ -535,11 +718,15 @@ angular.module('query', [
         var getData = function () {
 
             if ($scope.query != undefined) {
+                console.log($scope.refreshing, $scope.query.running, $scope.query.result_count)
                 if ($scope.refreshing || $scope.query.running || $scope.query.result_count == null) {
                     Query.one($stateParams.corpus_id, $stateParams.query_id).then(function (res) {
                         $scope.query = res.data;
                         $scope.query.annotation_type = $scope.query.annotation_type.toLowerCase();
-                        if (!$scope.query.running) {
+                        console.log('GOT QUERY getdata')
+                        console.log($scope.query)
+                        $scope.ensureColumns();
+                        if (!$scope.query.running && $scope.query.result_count != null) {
                             $scope.getQueryResults();
                         }
 

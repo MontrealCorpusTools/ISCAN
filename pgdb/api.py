@@ -1017,7 +1017,8 @@ class QueryViewSet(viewsets.ModelViewSet):
             return Response(None, status=status.HTTP_400_BAD_REQUEST)
         refresh = request.data.pop('refresh', False)
         query.name = request.data.get('name')
-        do_run = refresh or query.config['filters'] != request.data['filters']
+        do_run = refresh or query.config['filters'] != request.data['filters'] or \
+                 query.config['positions'] != request.data['positions']
         c = query.config
         c.update(request.data)
         query.config = c
@@ -1151,7 +1152,7 @@ class QueryViewSet(viewsets.ModelViewSet):
         with_spectrogram = request.query_params.get('with_spectrogram', False)
         with_subannotations = request.query_params.get('with_subannotations', True)
         result = query.get_results(ordering, limit, offset)[0]
-        utterance_id = result['utterance']['id']
+        utterance_id = result['utterance']['current']['id']
         data = {'result': result}
         try:
             with CorpusContext(corpus.config) as c:
