@@ -40,7 +40,6 @@ angular.module('csvProperties', [
 	}else if($scope.newCSV){
 		Enrichment.create($stateParams.corpus_id, $scope.enrichment).then(function (res){
 		    $scope.uploadCSVProperties(res.data.id);
-		    $state.go('enrichment', {corpus_id: $stateParams.corpus_id});
 		}).catch(function(res){
 		    $scope.error_message = res.data;
 		});
@@ -48,8 +47,9 @@ angular.module('csvProperties', [
 		Enrichment.update($stateParams.corpus_id, $stateParams.enrichment_id, $scope.enrichment).then(function (res) {
 		    if(document.getElementById('CSV-properties-file').files.length > 0){
 			    $scope.uploadCSVProperties($stateParams.enrichment_id);
+		    }else{
+			    $state.go('enrichment', {corpus_id: $stateParams.corpus_id});
 		    }
-		    $state.go('enrichment', {corpus_id: $stateParams.corpus_id});
 		}).catch(function(res){
 		    $scope.error_message = res.data;
 		});
@@ -61,6 +61,7 @@ angular.module('csvProperties', [
 	    });
     };
 
+
     $scope.uploadCSVProperties = function(id){
 	    var f = document.getElementById('CSV-properties-file').files[0],
 	    r = new FileReader();
@@ -68,7 +69,13 @@ angular.module('csvProperties', [
 	    r.onloadend = function(e) {
 		    var data = e.target.result;
 		    var resp = {text: data, file_name: name};
-		    Enrichment.create_file($stateParams.corpus_id, id, resp);
+		    Enrichment.create_file($stateParams.corpus_id, id, resp).then(function(e){
+			    if(e.data){
+				    $state.go('enrichment', {corpus_id: $stateParams.corpus_id});
+			    }
+		    }).catch(function(res){
+		        $scope.error_message = res.data;
+		    });
 	    }
 	    r.readAsText(f);
     };

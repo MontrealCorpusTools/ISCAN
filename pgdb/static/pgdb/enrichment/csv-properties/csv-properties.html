@@ -15,5 +15,6 @@
             <input custom-on-change="newFiles" type="file" id="CSV-properties-file" name="file" ng-disabled="enrichment.path != null" />
 	</label>
         <button ng-disabled="!hasFiles" ng-click="save()">Save enrichment</button>
+	<span ng-bind="fileProgress"></span>
     </div>
 </div>
