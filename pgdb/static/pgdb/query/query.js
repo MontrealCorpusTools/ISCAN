@@ -24,7 +24,15 @@ angular.module('query', [
             return match.charAt(0).toUpperCase() + match.substr(1);
         });
     }
-}).directive('dlEnterKey', function () {
+}).filter('joinBy', function () {
+        return function (input,field, delimiter) {
+            var a = [];
+            for (i=0;i<input.length; i++){
+                a.push(input[i][field])
+            }
+            return a.join(delimiter || ',');
+        };
+    }).directive('dlEnterKey', function () {
     return function (scope, element, attrs) {
 
         element.bind("keydown keypress", function (event) {
@@ -315,7 +323,7 @@ angular.module('query', [
         $scope.export_link = Query.getExportLink($stateParams.corpus_id, $stateParams.query_id);
 
         $scope.ensureColumns = function(){
-             var inc, current_annotation_type, prop, current_pos, value;
+             var inc, current_annotation_type, prop, current_pos, value, current_subannotation_type;
                 $scope.column_values = [];
                 $scope.subannotation_column_values = [];
                 for (j = 0; j < $scope.annotation_types.length; j++) {
@@ -368,12 +376,41 @@ angular.module('query', [
                                     }
                                 }
                             }
-                            for (i=0; i<$scope.hierarchy.subannotations[current_annotation_type].length;i++){
+                            if (current_annotation_type in $scope.hierarchy.subannotations){
+                                if (!('subannotations' in $scope.query.column_names[current_annotation_type][current_pos])){
+                                    $scope.query.column_names[current_annotation_type][current_pos].subannotations = {};
+                                }
+                                for (i=0; i<$scope.hierarchy.subannotations[current_annotation_type].length;i++){
+                                    current_subannotation_type = $scope.hierarchy.subannotations[current_annotation_type][i];
+                                if (!(current_subannotation_type in $scope.query.column_names[current_annotation_type][current_pos].subannotations)){
+                                    $scope.query.column_names[current_annotation_type][current_pos].subannotations[current_subannotation_type] = {};
+                                }
+                                    for (pi=0;pi<$scope.hierarchy.subannotation_properties[current_subannotation_type].length; pi++){
+                                    prop = $scope.hierarchy.subannotation_properties[current_subannotation_type][pi][0];
+                                    value ={type: current_annotation_type, position:current_pos,
+                                        subannotation_type:current_subannotation_type, property:prop};
+
+                                    if ($scope.column_values.filter(x => x.type == current_annotation_type
+                                        && x.position == current_pos
+                                        && x.subannotation_type == current_subannotation_type
+                                        && x.property == prop).length ==0){
+                                        $scope.subannotation_column_values.push(value);
+                                    }
+                                if (!$scope.query.column_names[current_annotation_type][current_pos].subannotations[current_subannotation_type][prop]) {
+                                    $scope.query.column_names[current_annotation_type][current_pos].subannotations[current_subannotation_type][prop] = current_annotation_type + '_' + current_subannotation_type + '_' + prop;
+                                    if (current_pos != 'current'){
+                                        $scope.query.column_names[current_annotation_type][current_pos].subannotations[current_subannotation_type][prop] = current_pos + '_' + $scope.query.column_names[current_annotation_type][current_pos].subannotations[current_subannotation_type][prop];
+                                    }
+                                }
+
+                                    }
+                                }
 
                             }
                         }
                     }
                     console.log('COLUMNS', $scope.query.columns, $scope.query.column_names)
+                    console.log('SUBANNOTATIONS', $scope.subannotation_column_values)
         };
 
         $scope.refreshPermissions = function () {
@@ -699,8 +736,16 @@ angular.module('query', [
             $scope.queryState.offset = ($scope.queryState.currentPage - 1) * $scope.queryState.resultsPerPage;
         };
 
-        $scope.refreshOrdering = function (type, property) {
-            new_ordering = type + '.' + property;
+        $scope.refreshOrdering = function (column_value) {
+            var new_ordering;
+            if ('subannotation_type' in column_value){
+                new_ordering = column_value.type + '.' + column_value.position + '.' + column_value.subannotation_type + '.' + column_value.property;
+
+            }
+            else {
+                new_ordering = column_value.type + '.' + column_value.position + '.' + column_value.property;
+
+            }
             if (new_ordering === $scope.queryState.ordering) {
                 new_ordering = '-' + new_ordering
             }

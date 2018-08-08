@@ -176,16 +176,30 @@
             <thead>
             <tr>
                 <td ng-repeat="value in column_values"
+                    ng-click="refreshOrdering(value)"
                     data-ng-if="query.columns[value.type][value.position][value.property] &&
                     annotation_types.indexOf(value.type) >=annotation_types.indexOf(query.annotation_type.toLowerCase())">
 
                     <input ng-model="query.column_names[value.type][value.position][value.property]"
                            ng-click="$event.stopPropagation();">
-                    <span ng-show="queryState.ordering == value.type +'.' +value.position + '.'+value.propertt"
+                    <span ng-show="queryState.ordering == value.type +'.' +value.position + '.'+value.property"
                           class="fa fa-caret-down"></span>
                     <span ng-show="queryState.ordering == '-'+ value.type +'.' +value.position + '.' + value.property"
                           class="fa fa-caret-up"></span>
                 </td>
+                <td ng-repeat="value in subannotation_column_values"
+                    ng-click="refreshOrdering(value)"
+                    data-ng-if="query.columns[value.type][value.position].subannotations[value.subannotation_type][value.property] &&
+                    annotation_types.indexOf(value.type) >=annotation_types.indexOf(query.annotation_type.toLowerCase())">
+
+                    <input ng-model="query.column_names[value.type][value.position].subannotations[value.subannotation_type][value.property]"
+                           ng-click="$event.stopPropagation();">
+                    <span ng-show="queryState.ordering == value.type +'.' +value.position + '.'+value.subannotation_type + '.'+value.property"
+                          class="fa fa-caret-down"></span>
+                    <span ng-show="queryState.ordering == '-'+ value.type +'.' +value.position + '.'+value.subannotation_type + '.' + value.property"
+                          class="fa fa-caret-up"></span>
+                </td>
+
 
                 <td ng-repeat="prop in properties.speaker" ng-click="refreshOrdering('speaker', prop)"
                     ng-show="query.columns.speaker[prop]">
@@ -213,6 +227,13 @@
                     </span>
                     <span ng-show="!can_view || query.annotation_type != value.type || value.property != 'label'">
                                 {{ result[value.type][value.position][value.property] }}
+                            </span>
+                </td>
+                <td ng-repeat="value in subannotation_column_values"
+                    data-ng-if="query.columns[value.type][value.position].subannotations[value.subannotation_type][value.property] &&
+                            annotation_types.indexOf(value.type) >=annotation_types.indexOf(query.annotation_type.toLowerCase())">
+                    <span>
+                                {{ result[value.type][value.position][value.subannotation_type]| joinBy:value.property }}
                             </span>
                 </td>
 
@@ -266,7 +287,7 @@
                             <tr ng-repeat="prop in hierarchy.subannotation_properties[s]">
                                 <td>{{ prop[0] }}</td>
                                 <td ng-repeat="position in query.positions[t]">
-                                    <input type="checkbox" ng-model="query.columns[t][position].subannotations[s][prop]">
+                                    <input type="checkbox" ng-model="query.columns[t][position].subannotations[s][prop[0]]">
                                 </td>
                             </tr>
                             </tbody>

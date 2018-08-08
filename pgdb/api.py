@@ -1218,8 +1218,8 @@ class QueryViewSet(viewsets.ModelViewSet):
         if query.running:
             return Response(None, status=status.HTTP_423_LOCKED)
         print(corpus)
-        do_run = query.config['filters'] != request.data['filters'] or query.config['subsets'] != request.data[
-            'subsets']
+        do_run = query.config['filters'] != request.data['filters'] or \
+                 query.config['positions'] != request.data['positions']
         if do_run:
             return Response(None, status=status.HTTP_405_METHOD_NOT_ALLOWED)
         query.config = request.data

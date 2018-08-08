@@ -970,17 +970,30 @@ class Query(models.Model):
             return None
         self._ordering = self.config.get('ordering', None)
         if ordering != self._ordering and ordering:
-            self._ordering = ordering
-
-            def order_function(input):
+            with CorpusContext(self.corpus.config) as c:
+                self._ordering = ordering
                 ordering = self._ordering.replace('-', '').split('.')
-                item = input
-                print(item)
+                att = None
                 for o in ordering:
-                    item = item[o]
-                return item
+                    if att is None:
+                        att = getattr(c, o)
+                    else:
+                        att = getattr(att, o)
 
-            self._results.sort(key=order_function, reverse=self._ordering.startswith('-'))
+                def order_function(input):
+                    item = input
+                    for o in ordering:
+                        if isinstance(item, list):
+                            if len(item):
+                                item = item[0]
+                            else:
+                                return att.value_type()()
+                        item = item[o]
+                        if item is None:
+                            return att.value_type()()
+                    return item
+
+                self._results.sort(key=order_function, reverse=self._ordering.startswith('-'))
         if limit is None or limit == 0:
             res = self._results[offset:]
         else:
@@ -999,22 +1012,41 @@ class Query(models.Model):
         columns = config.get('columns', {})
         column_names = config.get('column_names', {})
         q = self.generate_base_query(corpus_context)
-        for f_a_type, a_columns in columns.items():
-            if not a_columns:
-                continue
-            if f_a_type not in {'speaker', 'discourse'} | corpus_context.hierarchy.annotation_types:
-                continue
-            for field, val in a_columns.items():
-                if not val:
+        for f_a_type, position_columns in columns.items():
+            for position, a_columns in position_columns.items():
+                if not a_columns:
                     continue
-                if f_a_type == a_type:
-                    ann = a
-                else:
-                    ann = getattr(a, f_a_type)
-                att = getattr(ann, field)
-                if f_a_type in column_names and field in column_names[f_a_type] and column_names[f_a_type][field]:
-                    att = att.column_name(column_names[f_a_type][field])
-                q = q.columns(att)
+                if f_a_type not in {'speaker', 'discourse'} | corpus_context.hierarchy.annotation_types:
+                    continue
+                for field, val in a_columns.items():
+                    if not val:
+                        continue
+                    if f_a_type == a_type:
+                        ann = a
+                    else:
+                        ann = getattr(a, f_a_type)
+                    if position != 'current':
+                        ps = position.split('_')
+                        for p in ps:
+                            ann = getattr(ann, p)
+                    if field != 'subannotations':
+                        att = getattr(ann, field)
+                        try:
+                            att = att.column_name(column_names[f_a_type][position][field])
+                        except KeyError:
+                            pass
+                        q = q.columns(att)
+                    else:
+                        for s_name, s_columns in val.items():
+                            for s_field, s_val in s_columns.items():
+                                if not s_val:
+                                    continue
+                                att = getattr(getattr(ann, s_name), s_field)
+                                try:
+                                    att = att.column_name(column_names[f_a_type][position]['subannotations'][s_name][s_field])
+                                except KeyError:
+                                    pass
+                                q = q.columns(att)
 
         for a_column, props in acoustic_columns.items():
             if not props.get('include', False):
@@ -1077,8 +1109,6 @@ class Query(models.Model):
                         position = position.split('_')
                         for p in position:
                             ann = getattr(ann, p)
-                    print(position, filter_types)
-                    print(ann)
                     a_filters = filter_types.get('property_filters', [])
                     if a_filters:
                         if isinstance(a_filters, dict):
@@ -1110,7 +1140,8 @@ class Query(models.Model):
                     left_aligned_filter = filter_types.get('left_aligned_filter', '')
                     right_aligned_filter = filter_types.get('right_aligned_filter', '')
                     if left_aligned_filter:
-                        q = q.filter(getattr(ann, 'begin') == getattr(getattr(current_ann, left_aligned_filter), 'begin'))
+                        q = q.filter(
+                            getattr(ann, 'begin') == getattr(getattr(current_ann, left_aligned_filter), 'begin'))
                     if right_aligned_filter:
                         q = q.filter(getattr(ann, 'end') == getattr(getattr(current_ann, right_aligned_filter), 'end'))
         print(q.cypher())
@@ -1184,6 +1215,8 @@ class Query(models.Model):
                         ordering = self._ordering.replace('-', '').split('.')
                         item = input
                         for o in ordering:
+                            if isinstance(item, list):
+                                item = item[0]
                             item = item[o]
                         return item
 
