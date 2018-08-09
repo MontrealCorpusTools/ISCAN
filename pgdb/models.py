@@ -1137,6 +1137,35 @@ class Query(models.Model):
 
                     for s in subset_filters:
                         q = q.filter(ann.subset == s)
+
+                    subannotation_filters = filter_types.get('subannotation_filters', {})
+                    for s_type, a_filters in subannotation_filters.items():
+                        s_ann = getattr(ann, s_type)
+                        if not a_filters:
+                            continue
+                        if isinstance(a_filters, dict):
+                            for field, value in a_filters.items():
+                                att = getattr(s_ann, field)
+                                if value == 'null':
+                                    value = None
+                                else:
+                                    value = att.coerce_value(value)
+                                if value is None:
+                                    continue
+                                att = getattr(s_ann, field)
+                                q = q.filter(att == value)
+                        else:
+                            for d in a_filters:
+                                field, value = d['property'], d['value']
+                                att = getattr(s_ann, field)
+                                if value == 'null':
+                                    value = None
+                                else:
+                                    value = att.coerce_value(value)
+                                if value is None:
+                                    continue
+                                q = q.filter(att == value)
+
                     left_aligned_filter = filter_types.get('left_aligned_filter', '')
                     right_aligned_filter = filter_types.get('right_aligned_filter', '')
                     if left_aligned_filter:
@@ -1144,7 +1173,7 @@ class Query(models.Model):
                             getattr(ann, 'begin') == getattr(getattr(current_ann, left_aligned_filter), 'begin'))
                     if right_aligned_filter:
                         q = q.filter(getattr(ann, 'end') == getattr(getattr(current_ann, right_aligned_filter), 'end'))
-        print(q.cypher())
+        print(q.cypher(), q.cypher_params())
         return q
 
     def run_query(self):

@@ -81,7 +81,7 @@ app.config(function ($stateProvider, $urlRouterProvider) {
     }).state('new_query', {
         url: '/new_query/:corpus_id/:type',
         templateUrl: static('pgdb/query/query.html'),
-        controller: 'NewQueryCtrl'
+        controller: 'QueryCtrl'
     }).state('query-detail', {
         url: '/query_results/:corpus_id/:query_id/:detail_index',
         templateUrl: static('pgdb/query-detail/query_detail.html'),

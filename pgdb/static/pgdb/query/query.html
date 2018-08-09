@@ -62,6 +62,33 @@
                                             ng-options="higher_type as higher_type for higher_type in annotation_types.slice($parent.$index+1)">
                                         <option value="">None</option>
                                     </select></label>
+                                <div ng-repeat="s in hierarchy.subannotations[t]">
+                                    {{ s }}
+                                <table class="table table-bordered table-striped">
+                                    <tbody>
+                                    <tr ng-repeat="filter in query.filters[t][position].subannotation_filters[s]">
+
+                                        <td>
+                                            <select ng-model="filter.property">
+                                                <option value="">Select property</option>
+                                                <option ng-repeat="prop in hierarchy.subannotation_properties[s]">{{ prop[0] }}</option>
+                                            </select>
+                                        </td>
+                                        <td>
+                                            <input type="checkbox" ng-show="subannotationPropertyTypes[s][filter.property]=== false"
+                                                   ng-model="filter.value">
+                                            <input ng-show="subannotationPropertyTypes[s][filter.property] === '' || subannotationPropertyTypes[s][filter.property] === 0"
+                                                   ng-model="filter.value">
+                                        </td>
+                                        <td>
+                                            <span class='badge' ng-click="removeSubannotationFilter(t, position, s, $index)">X</span>
+                                        </td>
+                                    </tr>
+                                    </tbody>
+                                </table>
+                                <button class='btn' ng-click="addSubannotationFilter(t, position, s)" ng-disabled="query.running"><span>Add filter</span>
+
+                                </div>
                             </div>
                             <div style="display:inline-block;">
 
@@ -175,6 +202,7 @@
 
             <thead>
             <tr>
+                <td></td>
                 <td ng-repeat="value in column_values"
                     ng-click="refreshOrdering(value)"
                     data-ng-if="query.columns[value.type][value.position][value.property] &&
@@ -218,14 +246,14 @@
             </thead>
             <tbody style="height:50%">
             <tr ng-repeat="result in queryState.results">
+                <td data-ng-if="can_view">
+                    <span ng-click="getDetail($index)" class="link">View detail</span>
+                    <span ng-click="listen(result[query.annotation_type].current.id)" class="link" ng-if="can_listen">Listen</span>
+                </td>
                 <td ng-repeat="value in column_values"
                     data-ng-if="query.columns[value.type][value.position][value.property] &&
                             annotation_types.indexOf(value.type) >=annotation_types.indexOf(query.annotation_type.toLowerCase())">
-                    <span ng-show="can_view && query.annotation_type == value.type && value.property == 'label'"
-                          ng-click="getDetail($parent.$index)" class="link">
-                        {{ result[value.type][value.position][value.property] }}
-                    </span>
-                    <span ng-show="!can_view || query.annotation_type != value.type || value.property != 'label'">
+                    <span>
                                 {{ result[value.type][value.position][value.property] }}
                             </span>
                 </td>

@@ -218,6 +218,7 @@ def serializer_factory(hierarchy, a_type, positions=None, exclude=None, acoustic
             elif t == bool:
                 field = serializers.BooleanField()
             a_attrs[prop] = field
+        a_attrs['id'] = serializers.CharField()
         for a_column in acoustic_columns:
             if a_column == 'pitch':
                 a_attrs['pitch_track'] = PitchPointSerializer(many=True)
