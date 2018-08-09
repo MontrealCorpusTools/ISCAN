@@ -1,10 +1,9 @@
 from celery import shared_task
 from celery.app.task import Task
+from .models import Corpus, Query, Enrichment
 
 import logging
 log = logging.getLogger(__name__)
-
-from .models import Corpus, Query, Enrichment
 
 
 class LoggingTask(Task):
@@ -25,12 +24,6 @@ def import_corpus_task(corpus_pk):
 def run_query_task(query_id):
     query = Query.objects.get(pk=query_id)
     query.run_query()
-
-    def on_failure(self, exc, task_id, args, kwargs, einfo):
-        kwargs={}
-        if log.isEnabledFor(logging.INFO):
-            kwargs['exc_info']=exc
-            log.error('Task % failed to execute', task_id, **kwargs)
 
 
 @shared_task

@@ -2,14 +2,15 @@ angular.module('syllableEnrichment', [
     'pgdb.corpora',
     'pgdb.enrichment'
 ]).controller('SyllableEnrichmentCtrl', function ($scope, $rootScope, Enrichment, Corpora, $state, $stateParams) {
+	Corpora.hierarchy($stateParams.corpus_id).then(function (res) {
+	        $scope.hierarchy = res.data;
+	        $scope.phone_class_options = $scope.hierarchy.subset_types.phone;
+	});
         $scope.algorithm_options = [{
             name: 'Max Onset',
             type: 'maxonset'
         }];
-	$scope.subset_options = [{
-            name: 'Syllabics',
-            type: 'syllabic'
-	}];
+
 	$scope.enrichment = {enrichment_type: "syllables"};
 
 	$scope.save = function(){

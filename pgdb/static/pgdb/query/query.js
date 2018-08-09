@@ -428,6 +428,7 @@ angular.module('query', [
                 $scope.queryState.refreshText = 'Refresh';
                 $scope.updatePagination();
                 $scope.refreshPagination(1);
+		            $scope.query.column[$scope.query.annotation_type].label = true;
             }).catch(function (res) {
                 console.log(res)
             });
@@ -585,17 +586,20 @@ angular.module('query', [
         $scope.first = function () {
             if ($scope.queryState.currentPage !== 1) {
                 $scope.refreshPagination(1);
+                $scope.getQueryResults();
             }
         };
         $scope.last = function () {
             if ($scope.queryState.currentPage !== $scope.queryState.numPages) {
                 $scope.refreshPagination($scope.queryState.numPages);
+                $scope.getQueryResults();
             }
         };
 
         $scope.previous = function () {
             if ($scope.queryState.currentPage !== 1) {
                 $scope.refreshPagination($scope.queryState.currentPage - 1);
+                $scope.getQueryResults();
             }
         };
 

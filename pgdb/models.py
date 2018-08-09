@@ -546,13 +546,6 @@ class Corpus(models.Model):
         self.busy = False
         self.save()
 
-    def query_corpus(self, query_config):
-        with CorpusContext(self.config) as c:
-            q = c.query_graph(getattr(c, query_config['to_find']))
-            q.from_json(c, query_config)
-            results = q.all()
-        return results
-
     @property
     def has_pauses(self):
         """
@@ -598,88 +591,8 @@ class CorpusPermissions(models.Model):
     can_view_annotations = models.BooleanField(default=False)
     can_listen = models.BooleanField(default=False)
     can_view_detail = models.BooleanField(default=False)
-
-
-class Speaker(models.Model):
-    name = models.CharField(max_length=100)
-    corpus = models.ForeignKey(Corpus, on_delete=models.CASCADE, related_name='speakers')
-
-    def __str__(self):
-        return self.name
-
-
-class Discourse(models.Model):
-    name = models.CharField(max_length=100)
-    corpus = models.ForeignKey(Corpus, on_delete=models.CASCADE, related_name='discourses')
-
-    def __str__(self):
-        return self.name
-
-
-class SoundFile(models.Model):
-    file_path = models.FilePathField(path=settings.SOURCE_DATA_DIRECTORY, match="*.wav",
-                                     recursive=True, max_length=250)
-    low_freq_path = models.FilePathField(path=settings.POLYGLOT_DATA_DIRECTORY, match="*.wav",
-                                         recursive=True, max_length=250)
-    vowel_freq_path = models.FilePathField(path=settings.POLYGLOT_DATA_DIRECTORY, match="*.wav",
-                                           recursive=True, max_length=250)
-    consonant_freq_path = models.FilePathField(path=settings.POLYGLOT_DATA_DIRECTORY, match="*.wav",
-                                               recursive=True, max_length=250)
-
-    duration = models.FloatField()
-
-    num_channels = models.IntegerField(2)
-
-    discourse = models.OneToOneField(Discourse, on_delete=models.CASCADE, related_name='sound_file')
-
-    def __str__(self):
-        return os.path.basename(self.file_path)
-
-
-class PraatScript(models.Model):
-    name = models.CharField(max_length=100, unique=True)
-
-    file_path = models.FileField()
-
-    description = models.TextField()
-
-    def __str__(self):
-        return self.name
-
-
-class AcousticAnalysis(models.Model):
-    name = models.CharField(max_length=100, unique=True)
-
-    PRAAT = 'P'
-    REAPER = 'R'
-    ACOUSTICSIM = 'A'
-    SOURCE_CHOICES = (
-        (PRAAT, 'Praat'),
-        (REAPER, 'REAPER'),
-        (REAPER, 'Acousticsim'),
-    )
-    SPEAKER_ADAPTED = 'S'
-    BASIC = 'B'
-    GENDERED = 'G'
-    ALGORITHM_CHOICES = (
-        (SPEAKER_ADAPTED, 'Speaker-adapted'),
-        (BASIC, 'Basic'),
-        (GENDERED, 'Gendered'),
-    )
-
-    source = models.CharField(max_length=1, choices=SOURCE_CHOICES, default=PRAAT)
-
-    algorithm = models.CharField(max_length=1, choices=ALGORITHM_CHOICES, default=SPEAKER_ADAPTED)
-    script = models.ForeignKey(PraatScript, on_delete=models.CASCADE, related_name='analyses', null=True, blank=True)
-
-    TIME_SERIES = 'T'
-    POINT = 'P'
-    TYPE_CHOICES = (
-        (TIME_SERIES, 'Time series'),
-        (POINT, 'Point'),
-    )
-
-    type = models.CharField(max_length=1, choices=TYPE_CHOICES)
+    can_enrich = models.BooleanField(default=False)
+    can_access_database = models.BooleanField(default=False)
 
 
 class Enrichment(models.Model):
@@ -727,14 +640,17 @@ class Enrichment(models.Model):
                 if not (annotation_type in c.hierarchy.annotation_types):
                     return 'Must encode {}'.format(annotation_type)
             elif enrichment_type == 'syllables':
-                if not (c.hierarchy.has_type_subset('phone', 'syllabic')):
-                    return 'Must encode syllabics'
+                if not (c.hierarchy.has_type_subset('phone', config.get('phone_class', 'syllabic'))):
+                    return 'Must encode {}'.format(config.get('phone_class', 'syllabic'))
             elif enrichment_type == 'refined_formant_points':
                 if not (c.hierarchy.has_type_subset('phone', config.get('phone_class', 'vowel'))):
                     return 'Must encode {}'.format(config.get('phone_class', 'vowel'))
             elif enrichment_type == 'utterances':
                 if not (c.hierarchy.has_token_subset('word', 'pause')):
                     return 'Must encode pauses'
+            elif '_csv' in enrichment_type:
+                if config.get('path') is None:
+                    return 'Must attach a file'
             elif enrichment_type == 'hierarchical_property':
                 higher_annotation = config.get('higher_annotation')
                 lower_annotation = config.get('lower_annotation')
@@ -827,8 +743,9 @@ class Enrichment(models.Model):
                     if annotation_type == 'phone':
                         c.encode_class(annotation_labels, subset_label)
                 elif enrichment_type == 'syllables':
-                    if c.hierarchy.has_type_subset('phone', 'syllabic'):
-                        c.encode_syllables('maxonset')
+                    syllabic_label = config.get('phone_class', 'syllabic')
+                    if c.hierarchy.has_type_subset('phone', syllabic_label):
+                        c.encode_syllables('maxonset', syllabic_label=syllabic_label)
                 elif enrichment_type == 'pauses':
                     pause_label = config.get('pause_label')
                     c.encode_pauses(pause_label)
@@ -850,7 +767,6 @@ class Enrichment(models.Model):
                     elif property_type == 'position':
                         c.encode_position(higher_annotation, lower_annotation, property_label, subset=subset_label)
                 elif enrichment_type == 'discourse_csv':
-                    print(config.get('path'))
                     c.enrich_discourses_from_csv(config.get('path'))
                 elif enrichment_type == 'phone_csv':
                     c.enrich_inventory_from_csv(config.get('path'))

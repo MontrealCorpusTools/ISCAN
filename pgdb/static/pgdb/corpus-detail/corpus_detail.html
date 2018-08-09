@@ -2,9 +2,9 @@
     <h1>Summary of the {{ corpus.name }} corpus</h1>
     <div class="col-md-6">
         <h1>Linguistic Units</h1>
-        <div class="row" style="min-height: 450px; padding: 40px">
-            <h2>Utterances</h2>
-            <div ng-show="hierarchy.indexOf('utterance') != -1" class="row" style="min-height:400px">
+        <div ng-show="hierarchy.annotation_types.includes('utterance')" class="row" style="min-height: 450px; padding: 40px">
+            <div  class="row" style="min-height:400px">
+		<h2>Utterances</h2>
 	        <button class="btn btn-primary" ng-click="newQuery('utterance')">New query</button>
                 <label>Previous queries:
                     <select ng-model="queryIds.utterance" class="form-control"
@@ -12,7 +12,7 @@
                         <option value="">Select query</option>
 
                     </select></label>
-                <button class="btn btn-secondary" ng-click="openQuery('utterance')">Open selected query</button>
+                <button class="btn btn-secondary" ng-disabled="queryIds.utterance===undefined" ng-click="openQuery('utterance')">Open selected query</button>
                 <div>
                     <p>Currently encoded properties</p>
                     <ul>
@@ -41,7 +41,7 @@
                     <option value="">Select query</option>
 
                 </select></label>
-            <button class="btn btn-secondary" ng-click="openQuery('word')">Open selected query</button>
+            <button class="btn btn-secondary" ng-disabled="queryIds.word===undefined" ng-click="openQuery('word')">Open selected query</button>
             <div class="row" style="min-height:400px">
 
                 <div>
@@ -60,9 +60,9 @@
                 </div>
             </div>
         </div>
-        <div class="row" style="min-height: 450px; padding: 40px">
+        <div class="row" ng-show="hierarchy.annotation_types.includes('syllable')" style="min-height: 450px; padding: 40px">
             <h2>Syllables</h2>
-            <div ng-show="hierarchy.indexOf('syllable') != -1">
+            <div>
                 <button class="btn btn-primary" ng-click="newQuery('syllable')">New query</button>
                 <label>Previous queries:
                     <select ng-model="queryIds.syllable" class="form-control"
@@ -70,7 +70,7 @@
                         <option value="">Select query</option>
 
                     </select></label>
-                <button class="btn btn-secondary" ng-click="openQuery('syllable')">Open selected query</button>
+                <button class="btn btn-secondary" ng-disabled="queryIds.syllable===undefined" ng-click="openQuery('syllable')">Open selected query</button>
                 <p>Currently encoded properties</p>
                 <ul>
                     <li ng-repeat="prop in properties.syllable">
@@ -98,7 +98,7 @@
                     <option value="">Select query</option>
 
                 </select></label>
-            <button class="btn btn-secondary" ng-click="openQuery('phone')">Open selected query</button>
+            <button class="btn btn-secondary" ng-disabled="queryIds.phone===undefined" ng-click="openQuery('phone')">Open selected query</button>
             <p>Currently encoded properties</p>
             <ul>
                 <li ng-repeat="prop in properties.phone">
