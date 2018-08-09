@@ -224,8 +224,8 @@ angular.module('queryDetail', [
                     $scope.selectedResult = res.data.result;
                     $scope.speaker = $scope.selectedResult.speaker;
                     $scope.discourse = $scope.selectedResult.discourse;
-                    $scope.utterance_id = $scope.selectedResult.utterance.id;
-                    console.log('helloooooo', $scope.utterance);
+                    $scope.utterance_id = $scope.utterance.id;
+                    console.log('helloooooo', $scope.selectedResult);
                     if ($scope.selectedType == 'utterance'){
                         $scope.selectedAnnotation = res.data.utterance;
                     }

@@ -6,12 +6,12 @@
         </div>
         <div>
             <button ng-click="get_previous()" class="btn"
-                    ng-disabled="queryState.detailIndex == 0 && queryState.currentPage==1" blur>Previous utterance
+                    ng-disabled="queryState.detailIndex == 0 && queryState.currentPage==1" blur>Previous result
             </button>
             <a ui-sref="query({corpus_id: corpus.id, query_id: query.id})">Back to query</a>
             <button ng-click="get_next()" class="btn"
                     ng-disabled="queryState.detailIndex == queryState.results.length -1 && queryState.currentPage==queryState.numPages"
-                    blur>Next utterance
+                    blur>Next result
             </button>
         </div>
     </div>

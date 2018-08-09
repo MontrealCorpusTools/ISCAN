@@ -466,7 +466,6 @@ class SubannotationViewSet(viewsets.ViewSet):
             permissions = corpus.user_permissions.filter(user=request.user).all()
             if not len(permissions):
                 return Response(status=status.HTTP_401_UNAUTHORIZED)
-        print(request.data)
         a_type = request.data.pop('annotation_type')
         a_id = request.data.pop('annotation_id')
         s_type = request.data.pop('subannotation_type')
@@ -476,7 +475,6 @@ class SubannotationViewSet(viewsets.ViewSet):
             q = c.query_graph(att).filter(getattr(att, 'id') == a_id)
             res = q.all()[0]
             res.add_subannotation(s_type, **data)
-            print(getattr(res, s_type))
             data = serializers.serializer_factory(c.hierarchy, a_type, top_level=True, with_subannotations=True)(
                 res).data
             data = data[a_type][s_type][-1]
@@ -490,12 +488,23 @@ class SubannotationViewSet(viewsets.ViewSet):
                 return Response(status=status.HTTP_401_UNAUTHORIZED)
         data = request.data
         s_id = data.pop('id')
+
         props = []
         prop_template = 's.%s = {%s}'
-        for k, v in data.items():
-            props.append(prop_template % (k, k))
-        set_props = ',\n'.join(props)
         with CorpusContext(corpus.config) as c:
+            statement = '''MATCH (s:{corpus_name}) WHERE s.id = {{s_id}} RETURN s'''.format(corpus_name=c.cypher_safe_name)
+            res = c.execute_cypher(statement, s_id=s_id)
+            for r in res:
+                for x in r['s'].labels:
+                    if x in c.hierarchy.subannotation_properties:
+                        s_type = x
+            for k, v in data.items():
+                props.append(prop_template % (k, k))
+                if c.hierarchy.has_subannotation_property(s_type, k):
+                    for name, t in c.hierarchy.subannotation_properties[s_type]:
+                        if name == k:
+                            data[k] = t(v)
+            set_props = ',\n'.join(props)
             statement = '''MATCH (s:{corpus_name}) WHERE s.id = {{s_id}}
             SET {set_props}'''.format(corpus_name=c.cypher_safe_name, set_props=set_props)
             c.execute_cypher(statement, s_id=s_id, **data)
@@ -781,8 +790,8 @@ class QueryViewSet(viewsets.ModelViewSet):
             return Response(None, status=status.HTTP_400_BAD_REQUEST)
         refresh = request.data.pop('refresh', False)
         query.name = request.data.get('name')
-        do_run = refresh or (query.config['filters'] != request.data['filters'] or query.config['subsets'] != request.data[
-            'subsets'])
+        do_run = refresh or query.config['filters'] != request.data['filters'] or \
+                 query.config['positions'] != request.data['positions']
         c = query.config
         c.update(request.data)
         query.config = c
@@ -916,7 +925,7 @@ class QueryViewSet(viewsets.ModelViewSet):
         with_spectrogram = request.query_params.get('with_spectrogram', False)
         with_subannotations = request.query_params.get('with_subannotations', True)
         result = query.get_results(ordering, limit, offset)[0]
-        utterance_id = result['utterance']['id']
+        utterance_id = result['utterance']['current']['id']
         data = {'result': result}
         try:
             with CorpusContext(corpus.config) as c:
@@ -982,8 +991,8 @@ class QueryViewSet(viewsets.ModelViewSet):
         if query.running:
             return Response(None, status=status.HTTP_423_LOCKED)
         print(corpus)
-        do_run = query.config['filters'] != request.data['filters'] or query.config['subsets'] != request.data[
-            'subsets']
+        do_run = query.config['filters'] != request.data['filters'] or \
+                 query.config['positions'] != request.data['positions']
         if do_run:
             return Response(None, status=status.HTTP_405_METHOD_NOT_ALLOWED)
         query.config = request.data
@@ -991,7 +1000,7 @@ class QueryViewSet(viewsets.ModelViewSet):
             query.get_annotation_type_display())
         print(query.config)
         with CorpusContext(corpus.config) as c:
-            q = query.generate_query(c)
+            q = query.generate_query_for_export(c)
 
             writer = csv.writer(response)
             q.to_csv(writer)

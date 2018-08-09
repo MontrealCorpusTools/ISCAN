@@ -19,7 +19,7 @@ sys.path.insert(0, '/site/proj/PolyglotDB')
 
 from polyglotdb import CorpusContext
 import polyglotdb.io as pgio
-from polyglotdb\
+from polyglotdb \
     .config import CorpusConfig
 from polyglotdb.utils import get_corpora_list
 
@@ -27,7 +27,9 @@ from .utils import download_influxdb, download_neo4j, extract_influxdb, extract_
     get_used_ports
 
 import logging
+
 log = logging.getLogger(__name__)
+
 
 # Create your models here.
 
@@ -163,7 +165,7 @@ class Database(models.Model):
             if sys.platform.startswith('win'):
                 neo4j_finder = 'WMIC PROCESS get Processid,Caption,Commandline'
             else:
-                neo4j_finder = 'ps aux' #'ps S'
+                neo4j_finder = 'ps aux'  # 'ps S'
             proc = subprocess.Popen(neo4j_finder, shell=True,
                                     stdout=subprocess.PIPE)
             stdout, stderr = proc.communicate()
@@ -616,7 +618,7 @@ class Enrichment(models.Model):
 
     @property
     def directory(self):
-        directory =os.path.join(settings.POLYGLOT_ENRICHMENT_DIRECTORY, str(self.pk))
+        directory = os.path.join(settings.POLYGLOT_ENRICHMENT_DIRECTORY, str(self.pk))
         os.makedirs(directory, exist_ok=True)
         return directory
 
@@ -652,7 +654,8 @@ class Enrichment(models.Model):
             elif enrichment_type == 'hierarchical_property':
                 higher_annotation = config.get('higher_annotation')
                 lower_annotation = config.get('lower_annotation')
-                if not (higher_annotation in c.hierarchy.annotation_types and lower_annotation in c.hierarchy.annotation_types):
+                if not (
+                        higher_annotation in c.hierarchy.annotation_types and lower_annotation in c.hierarchy.annotation_types):
                     return 'Must encode {} and {}'.format(higher_annotation, lower_annotation)
         return 'runnable'
 
@@ -689,20 +692,20 @@ class Enrichment(models.Model):
             elif enrichment_type == 'relativize_pitch':
                 c.reset_relativized_pitch()
             elif enrichment_type == 'discourse_csv':
-                #FIXME: Currently empty call in PolyglotDB
+                # FIXME: Currently empty call in PolyglotDB
                 c.reset_discourses()
             elif enrichment_type == 'phone_csv':
                 c.reset_to_old_label()
             elif enrichment_type == 'speaker_csv':
-                #FIXME: Currently empty call in PolyglotDB
+                # FIXME: Currently empty call in PolyglotDB
                 c.reset_speakers()
             elif enrichment_type == 'lexicon_csv':
-                #FIXME: Currently empty call in PolyglotDB
+                # FIXME: Currently empty call in PolyglotDB
                 c.reset_lexicon()
             elif enrichment_type == 'formants':
                 c.reset_formants()
             elif enrichment_type == 'refined_formant_points':
-                #FIXME Can't find appropriate call
+                # FIXME Can't find appropriate call
                 pass
             elif enrichment_type == 'intensity':
                 c.reset_intensity()
@@ -711,10 +714,10 @@ class Enrichment(models.Model):
             elif enrichment_type == 'relativize_formants':
                 c.reset_relativized_formants()
             elif enrichment_type == 'patterned_stress':
-                #FIXME Can't find appropriate call
+                # FIXME Can't find appropriate call
                 pass
             elif enrichment_type == 'praat_script':
-                #FIXME Can't find appropriate call
+                # FIXME Can't find appropriate call
                 pass
         self.running = False
         self.completed = False
@@ -796,7 +799,8 @@ class Enrichment(models.Model):
                 elif enrichment_type == 'relativize_formants':
                     c.relativize_formants(by_speaker=True)
                 elif enrichment_type == 'praat_script':
-                    c.analyze_script(phone_class=config.get('phone_class'), script_path=config.get('path'), multiprocessing=False)
+                    c.analyze_script(phone_class=config.get('phone_class'), script_path=config.get('path'),
+                                     multiprocessing=False)
                 elif enrichment_type == 'patterned_stress':
                     c.encode_stress_from_word_property(config.get('word_property'))
             self.running = False
@@ -806,7 +810,7 @@ class Enrichment(models.Model):
             self.corpus.busy = False
             self.corpus.save()
         except Exception:
-            self.corpus.busy = False # If it fails, don't stay busy and block everything
+            self.corpus.busy = False  # If it fails, don't stay busy and block everything
             self.corpus.save()
             print(traceback.format_exc())
 
@@ -882,16 +886,30 @@ class Query(models.Model):
             return None
         self._ordering = self.config.get('ordering', None)
         if ordering != self._ordering and ordering:
-            self._ordering = ordering
-            def order_function(input):
+            with CorpusContext(self.corpus.config) as c:
+                self._ordering = ordering
                 ordering = self._ordering.replace('-', '').split('.')
-                item = input
-                print(item)
+                att = None
                 for o in ordering:
-                    item = item[o]
-                return item
+                    if att is None:
+                        att = getattr(c, o)
+                    else:
+                        att = getattr(att, o)
 
-            self._results.sort(key=order_function, reverse=self._ordering.startswith('-'))
+                def order_function(input):
+                    item = input
+                    for o in ordering:
+                        if isinstance(item, list):
+                            if len(item):
+                                item = item[0]
+                            else:
+                                return att.value_type()()
+                        item = item[o]
+                        if item is None:
+                            return att.value_type()()
+                    return item
+
+                self._results.sort(key=order_function, reverse=self._ordering.startswith('-'))
         if limit is None or limit == 0:
             res = self._results[offset:]
         else:
@@ -902,73 +920,49 @@ class Query(models.Model):
             ind += 1
         return res
 
-    def generate_query(self, corpus_context):
+    def generate_query_for_export(self, corpus_context):
         a_type = self.get_annotation_type_display().lower()
         config = self.config
+        a = getattr(corpus_context, a_type)
         acoustic_columns = config.get('acoustic_columns', {})
         columns = config.get('columns', {})
         column_names = config.get('column_names', {})
-        a = getattr(corpus_context, a_type)
-        q = corpus_context.query_graph(a)
-        for f_a_type, a_filters in config['filters'].items():
-            if not a_filters:
-                continue
-            if f_a_type not in {'speaker', 'discourse'} | corpus_context.hierarchy.annotation_types:
-                continue
-            if f_a_type == a_type:
-                ann = a
-            else:
-                ann = getattr(a, f_a_type)
-            if isinstance(a_filters, dict):
-                for field, value in a_filters.items():
-                    att = getattr(ann, field)
-                    if value == 'null':
-                        value = None
-                    else:
-                        value = att.coerce_value(value)
-                    if value is None:
-                        continue
-                    att = getattr(ann, field)
-                    q = q.filter(att == value)
-            else:
-                for d in a_filters:
-                    field, value = d['property'], d['value']
-                    att = getattr(ann, field)
-                    if value == 'null':
-                        value = None
-                    else:
-                        value = att.coerce_value(value)
-                    if value is None:
-                        continue
-                    q = q.filter(att == value)
-        for f_a_type, a_subsets in config['subsets'].items():
-            if not a_subsets:
-                continue
-            if f_a_type not in {'speaker', 'discourse'} | corpus_context.hierarchy.annotation_types:
-                continue
-            if f_a_type == a_type:
-                ann = a
-            else:
-                ann = getattr(a, f_a_type)
-            for s in a_subsets:
-                q = q.filter(ann.subset == s)
-
-        for f_a_type, a_columns in columns.items():
-            if not a_columns:
-                continue
-            if f_a_type not in {'speaker', 'discourse'} | corpus_context.hierarchy.annotation_types:
-                continue
-            for field, val in a_columns.items():
-                if not val:
+        q = self.generate_base_query(corpus_context)
+        for f_a_type, position_columns in columns.items():
+            for position, a_columns in position_columns.items():
+                if not a_columns:
                     continue
-                if f_a_type == a_type:
-                    ann = a
-                else:
-                    ann = getattr(a, f_a_type)
-                att = getattr(ann, field)
-                if f_a_type in column_names and field in column_names[f_a_type] and column_names[f_a_type][field]:
-                    att = att.column_name(column_names[f_a_type][field])
-                q = q.columns(att)
+                if f_a_type not in {'speaker', 'discourse'} | corpus_context.hierarchy.annotation_types:
+                    continue
+                for field, val in a_columns.items():
+                    if not val:
+                        continue
+                    if f_a_type == a_type:
+                        ann = a
+                    else:
+                        ann = getattr(a, f_a_type)
+                    if position != 'current':
+                        ps = position.split('_')
+                        for p in ps:
+                            ann = getattr(ann, p)
+                    if field != 'subannotations':
+                        att = getattr(ann, field)
+                        try:
+                            att = att.column_name(column_names[f_a_type][position][field])
+                        except KeyError:
+                            pass
+                        q = q.columns(att)
+                    else:
+                        for s_name, s_columns in val.items():
+                            for s_field, s_val in s_columns.items():
+                                if not s_val:
+                                    continue
+                                att = getattr(getattr(ann, s_name), s_field)
+                                try:
+                                    att = att.column_name(column_names[f_a_type][position]['subannotations'][s_name][s_field])
+                                except KeyError:
+                                    pass
+                                q = q.columns(att)
 
         for a_column, props in acoustic_columns.items():
             if not props.get('include', False):
@@ -978,6 +972,124 @@ class Query(models.Model):
             acoustic.relative = props.get('relative', False)
             acoustic = acoustic.track
             q = q.columns(acoustic)
+        return q
+
+    def generate_base_query(self, corpus_context):
+        a_type = self.get_annotation_type_display().lower()
+        config = self.config
+        a = getattr(corpus_context, a_type)
+        q = corpus_context.query_graph(a)
+        for f_a_type, positions in config['filters'].items():
+            if f_a_type not in {'speaker', 'discourse'} | corpus_context.hierarchy.annotation_types:
+                continue
+            if f_a_type == a_type:
+                ann = a
+            else:
+                ann = getattr(a, f_a_type)
+            if f_a_type in {'speaker', 'discourse'}:
+                a_filters = positions
+                if a_filters:
+                    if isinstance(a_filters, dict):
+                        for field, value in a_filters.items():
+                            att = getattr(ann, field)
+                            if value == 'null':
+                                value = None
+                            else:
+                                value = att.coerce_value(value)
+                            if value is None:
+                                continue
+                            att = getattr(ann, field)
+                            q = q.filter(att == value)
+                    else:
+                        for d in a_filters:
+                            field, value = d['property'], d['value']
+                            att = getattr(ann, field)
+                            if value == 'null':
+                                value = None
+                            else:
+                                value = att.coerce_value(value)
+                            if value is None:
+                                continue
+                            q = q.filter(att == value)
+            else:
+                for position, filter_types in positions.items():
+                    if f_a_type == a_type:
+                        ann = a
+                    else:
+                        ann = getattr(a, f_a_type)
+                    if f_a_type == a_type:
+                        current_ann = a
+                    else:
+                        current_ann = getattr(a, f_a_type)
+                    if position != 'current':
+                        position = position.split('_')
+                        for p in position:
+                            ann = getattr(ann, p)
+                    a_filters = filter_types.get('property_filters', [])
+                    if a_filters:
+                        if isinstance(a_filters, dict):
+                            for field, value in a_filters.items():
+                                att = getattr(ann, field)
+                                if value == 'null':
+                                    value = None
+                                else:
+                                    value = att.coerce_value(value)
+                                if value is None:
+                                    continue
+                                att = getattr(ann, field)
+                                q = q.filter(att == value)
+                        else:
+                            for d in a_filters:
+                                field, value = d['property'], d['value']
+                                att = getattr(ann, field)
+                                if value == 'null':
+                                    value = None
+                                else:
+                                    value = att.coerce_value(value)
+                                if value is None:
+                                    continue
+                                q = q.filter(att == value)
+                    subset_filters = filter_types.get('subset_filters', [])
+
+                    for s in subset_filters:
+                        q = q.filter(ann.subset == s)
+
+                    subannotation_filters = filter_types.get('subannotation_filters', {})
+                    for s_type, a_filters in subannotation_filters.items():
+                        s_ann = getattr(ann, s_type)
+                        if not a_filters:
+                            continue
+                        if isinstance(a_filters, dict):
+                            for field, value in a_filters.items():
+                                att = getattr(s_ann, field)
+                                if value == 'null':
+                                    value = None
+                                else:
+                                    value = att.coerce_value(value)
+                                if value is None:
+                                    continue
+                                att = getattr(s_ann, field)
+                                q = q.filter(att == value)
+                        else:
+                            for d in a_filters:
+                                field, value = d['property'], d['value']
+                                att = getattr(s_ann, field)
+                                if value == 'null':
+                                    value = None
+                                else:
+                                    value = att.coerce_value(value)
+                                if value is None:
+                                    continue
+                                q = q.filter(att == value)
+
+                    left_aligned_filter = filter_types.get('left_aligned_filter', '')
+                    right_aligned_filter = filter_types.get('right_aligned_filter', '')
+                    if left_aligned_filter:
+                        q = q.filter(
+                            getattr(ann, 'begin') == getattr(getattr(current_ann, left_aligned_filter), 'begin'))
+                    if right_aligned_filter:
+                        q = q.filter(getattr(ann, 'end') == getattr(getattr(current_ann, right_aligned_filter), 'end'))
+        print(q.cypher(), q.cypher_params())
         return q
 
     def run_query(self):
@@ -997,48 +1109,7 @@ class Query(models.Model):
             acoustic_columns = config.get('acoustic_columns', {})
             with CorpusContext(self.corpus.config) as c:
                 a = getattr(c, a_type)
-                q = c.query_graph(a)
-                for f_a_type, a_filters in config['filters'].items():
-                    if not a_filters:
-                        continue
-                    if f_a_type not in {'speaker', 'discourse'} | c.hierarchy.annotation_types:
-                        continue
-                    if f_a_type == a_type:
-                        ann = a
-                    else:
-                        ann = getattr(a, f_a_type)
-                    if isinstance(a_filters, dict):
-                        for field, value in a_filters.items():
-                            att = getattr(ann, field)
-                            if value == 'null':
-                                value = None
-                            else:
-                                value = att.coerce_value(value)
-                            if value is None:
-                                continue
-                            q = q.filter(att == value)
-                    else:
-                        for d in a_filters:
-                            field, value = d['property'], d['value']
-                            att = getattr(ann, field)
-                            if value == 'null':
-                                value = None
-                            else:
-                                value = att.coerce_value(value)
-                            if value is None:
-                                continue
-                            q = q.filter(att == value)
-                for f_a_type, a_subsets in config['subsets'].items():
-                    if not a_subsets:
-                        continue
-                    if f_a_type not in {'speaker', 'discourse'} | c.hierarchy.annotation_types:
-                        continue
-                    if f_a_type == a_type:
-                        ann = a
-                    else:
-                        ann = getattr(a, f_a_type)
-                    for s in a_subsets:
-                        q = q.filter(ann.subset == s)
+                q = self.generate_base_query(c)
                 self._count = q.count()
                 q = q.preload(getattr(a, 'discourse'), getattr(a, 'speaker'))
                 acoustic_column_names = []
@@ -1059,12 +1130,26 @@ class Query(models.Model):
                                 q = q.preload(getattr(getattr(a, t), s))
                 for t in c.hierarchy.get_higher_types(a_type):
                     q = q.preload(getattr(a, t))
+                positions = config['positions']
+                for f_a_type, pos in positions.items():
+                    for position in pos:
+                        if position == 'current':
+                            continue
+                        if f_a_type == a_type:
+                            ann = a
+                        else:
+                            ann = getattr(a, f_a_type)
+                        position = position.split('_')
+                        for p in position:
+                            ann = getattr(ann, p)
+                        q = q.preload(ann)
                 res = q.all()
-                serializer_class = serializer_factory(c.hierarchy, a_type, top_level=True,
+                serializer_class = serializer_factory(c.hierarchy, a_type, positions=positions, top_level=True,
                                                       acoustic_columns=acoustic_column_names, detail=False,
                                                       with_higher_annotations=True,
                                                       with_subannotations=True)
                 serializer = serializer_class(res, many=True)
+                print(serializer)
                 self._results = serializer.data
                 ordering = self.config.get('ordering', None)
                 if ordering:
@@ -1075,6 +1160,8 @@ class Query(models.Model):
                         ordering = self._ordering.replace('-', '').split('.')
                         item = input
                         for o in ordering:
+                            if isinstance(item, list):
+                                item = item[0]
                             item = item[o]
                         return item
 
@@ -1083,12 +1170,12 @@ class Query(models.Model):
                     json.dump(self._results, f)
 
                 self.result_count = len(self._results)
-            self.running = False
-            self.save()
         except:
             raise
         finally:
             os.remove(self.lockfile_path)
+            self.running = False
+            self.save()
 
     def save(self, force_insert=False, force_update=False, using=None,
              update_fields=None):
@@ -1101,7 +1188,7 @@ class Query(models.Model):
 
     @property
     def directory(self):
-        directory =os.path.join(settings.POLYGLOT_QUERY_DIRECTORY, str(self.pk))
+        directory = os.path.join(settings.POLYGLOT_QUERY_DIRECTORY, str(self.pk))
         os.makedirs(directory, exist_ok=True)
         return directory
 
