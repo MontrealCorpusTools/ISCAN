@@ -668,8 +668,9 @@ class Enrichment(models.Model):
         enrichment_type = config.get('enrichment_type')
         with CorpusContext(self.corpus.config) as c:
             if enrichment_type == 'subset':
+                annotation_type = config.get('annotation_type')
                 subset_label = config.get('subset_label')
-                c.reset_class(subset_label)
+                c.reset_type_subset(annotation_type, subset_label)
             elif enrichment_type == 'syllables':
                 c.reset_syllables()
             elif enrichment_type == 'pauses':
@@ -740,8 +741,7 @@ class Enrichment(models.Model):
                     annotation_type = config.get('annotation_type')
                     annotation_labels = config.get('annotation_labels')
                     subset_label = config.get('subset_label')
-                    if annotation_type == 'phone':
-                        c.encode_class(annotation_labels, subset_label)
+                    c.encode_type_subset(annotation_type, annotation_labels, subset_label)
                 elif enrichment_type == 'syllables':
                     syllabic_label = config.get('phone_class', 'syllabic')
                     if c.hierarchy.has_type_subset('phone', syllabic_label):

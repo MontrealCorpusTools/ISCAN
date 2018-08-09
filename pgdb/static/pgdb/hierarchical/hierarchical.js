@@ -12,7 +12,18 @@ angular.module('hierarchical', [
         Corpora.hierarchy($stateParams.corpus_id).then(function (res) {
             $scope.hierarchy = res.data;
 	    $scope.encoded = Object.keys($scope.hierarchy.type_properties);
-	    $scope.higher_annotations = ['utterance', 'word', 'syllable'].filter($scope.isEncoded)
+	    $scope.higher_annotations = ['utterance', 'word', 'syllable'].filter($scope.isEncoded);
+	    $scope.subsets = {};
+	    var current_annotation_type;
+	    for (i=0; i<$scope.higher_annotations.length; i++){
+	        current_annotation_type = $scope.higher_annotations[i];
+	        $scope.subsets[current_annotation_type] = [];
+            Array.prototype.push.apply($scope.subsets[current_annotation_type],
+                $scope.hierarchy.subset_tokens[current_annotation_type]);
+            Array.prototype.push.apply($scope.subsets[current_annotation_type],
+                $scope.hierarchy.subset_types[current_annotation_type]);
+
+        }
             $scope.missingAnnotations =	['utterance', 'word', 'syllable'].filter(function(x) {
 		    return !$scope.isEncoded(x);}).join(" or ");
 	});

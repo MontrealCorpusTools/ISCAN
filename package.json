@@ -32,6 +32,7 @@
     "angular-resource": "^1.6.10",
     "angular-ui-bootstrap": "^2.5.6",
     "angular-ui-router": "^1.0.3",
+    "checklist-model": "^1.0.0",
     "videogular": "^2.2.1"
   }
 }

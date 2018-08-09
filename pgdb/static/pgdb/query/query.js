@@ -31,9 +31,16 @@ angular.module('query', [
             }
             var a = [];
             for (i=0;i<input.length; i++){
+                if (field == undefined){
+
+                a.push(input[i])
+                }
+                else{
                 a.push(input[i][field])
+
+                }
             }
-            return a.join(delimiter || ',');
+            return a.join(delimiter || ', ');
         };
     }).directive('dlEnterKey', function () {
     return function (scope, element, attrs) {
