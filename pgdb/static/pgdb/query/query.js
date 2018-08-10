@@ -545,10 +545,10 @@ angular.module('query', [
         };
 
 	$scope.getOperators = function(propertyType, filter) {
-		if(propertyType === "\""){
-			return ['==', '!=', 'in', 'not in'];
-		}else{
+		if(propertyType === 0){
 			return ['==', '!=', '<', '>', '<=', '>='];
+		}else{
+			return ['==', '!=', 'in', 'not in'];
 		}
 	}
 
