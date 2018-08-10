@@ -94,9 +94,12 @@ class SeleniumTest(StaticLiveServerTestCase):
 
         #Encode sibilants
         self.chrome.find_element_by_xpath(self.get_enrichment_xpath("phone_subset")).click()
-        time.sleep(10)
+        self.chrome.find_element_by_xpath("/html/body/div/main/div/div/div/div[2]/div[2]/button[1]").click
+        self.chrome.find_element_by_xpath("/html/body/div/main/div/div/div/div[1]/button[1]").click()
         #Encode syllabics
         self.chrome.find_element_by_xpath(self.get_enrichment_xpath("phone_subset")).click()
+        self.chrome.find_element_by_xpath("/html/body/div/main/div/div/div/div[2]/div[2]/button[2]").click
+        self.chrome.find_element_by_xpath("/html/body/div/main/div/div/div/div[1]/button[1]").click()
 
         #Properties from CSV
         self.chrome.find_element_by_xpath(self.get_enrichment_xpath("csv-property")).click()
