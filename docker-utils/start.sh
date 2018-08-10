@@ -3,7 +3,7 @@
 set -eox pipefail
 
 if [ -z "$1" ]; then
-	${SITE_DIR}/env/bin/python ${SITE_DIR}/proj/manage.py runserver --verbosity 3 0.0.0.0:8080
+	#${SITE_DIR}/env/bin/python ${SITE_DIR}/proj/manage.py runserver --verbosity 3 0.0.0.0:8080
 else
 	if [ "$1" == 'init' ]; then
 	    echo "Run Migrations"

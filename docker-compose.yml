@@ -29,7 +29,8 @@ services:
       dockerfile: Dockerfile
     container_name: ps-app
     hostname: app
-    command: /site/docker-utils/start.sh
+    tty: true
+    #command: /site/docker-utils/start.sh
     volumes:
       - static-volume:/site/htdocs/static/
       - ./polyglot_source:/site/proj/polyglot_source

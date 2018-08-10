@@ -87,4 +87,4 @@ RUN export PATH=$PATH:/bin
 EXPOSE 8080
 
 # Set a custom entrypoint to let us provide custom initialization behavior
-ENTRYPOINT ["./docker-utils/start.sh"]
+#ENTRYPOINT ["./docker-utils/start.sh"]

@@ -45,6 +45,17 @@ class SeleniumTest(StaticLiveServerTestCase):
         self.chrome.quit()
         self.firefox.quit()
 
+    def get_enrichment_xpath(enrichment_type):
+        enrichment_button_dict = {"phone_subset": "ul[1]/li[1]/button",
+                                  "hierachy": "ul[1]/li[2]/button",
+                                  "stress":  "ul[1]/li[3]/button",
+                                  "csv-property": "ul[1]/li[4]/button",
+                                  "acoustics": "ul[1]/li[5]/button",
+                                  "pauses": "ul[2]/li[1]/button",
+                                  "utterances": "ul[2]/li[2]/button",
+                                  "syllables": "ul[2]/li[3]/button"}
+
+        return "/html/body/div/main/div/div/div[1]/div[2]/{}".format(enrichment_button_dict[enrichment_type])
 
     @override_settings(CELERY_TASK_ALWAYS_EAGER=True)
     def test_databases_chrome(self):
@@ -64,7 +75,7 @@ class SeleniumTest(StaticLiveServerTestCase):
 
         #Starts database
         self.chrome.find_element_by_xpath("/html/body/div/main/div/div/div/div/table/tbody/tr/td[6]/button[1]").click()
-        wait = WebDriverWait(self.chrome, 100)
+        wait = WebDriverWait(self.chrome, 2000)
         element = wait.until(EC.element_to_be_clickable((By.XPATH, "/html/body/div/main/div/div/div/div/table/tbody/tr/td[6]/button[2]")))
 
         #Go to corpus
@@ -74,7 +85,17 @@ class SeleniumTest(StaticLiveServerTestCase):
         import_button = wait.until(EC.element_to_be_clickable((By.XPATH, "/html/body/div/main/div/div/div[3]/button")))
         import_button.click()
         self.chrome.refresh()
-        time.sleep(200)
+
+        enrichment_button = wait.until(EC.element_to_be_clickable((By.XPATH, "/html/body/div/main/div/div/div[1]/div[2]/div/button")))
+        enrichment_button.click()
 
 
 
+        #Encode sibilants
+        self.chrome.find_element_by_xpath(get_enrichment_xpath("phone_subset")).click()
+
+        #Encode syllabics
+        self.chrome.find_element_by_xpath(get_enrichment_xpath("phone_subset")).click()
+
+        #Properties from CSV
+        self.chrome.find_element_by_xpath(get_enrichment_xpath("csv-property")).click()
