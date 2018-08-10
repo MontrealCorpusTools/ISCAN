@@ -45,7 +45,7 @@ class SeleniumTest(StaticLiveServerTestCase):
         self.chrome.quit()
         self.firefox.quit()
 
-    def get_enrichment_xpath(enrichment_type):
+    def get_enrichment_xpath(self, enrichment_type):
         enrichment_button_dict = {"phone_subset": "ul[1]/li[1]/button",
                                   "hierachy": "ul[1]/li[2]/button",
                                   "stress":  "ul[1]/li[3]/button",
@@ -59,12 +59,13 @@ class SeleniumTest(StaticLiveServerTestCase):
 
     @override_settings(CELERY_TASK_ALWAYS_EAGER=True)
     def test_databases_chrome(self):
-        self.chrome.get(self.docker_url)
         self.user = User.objects.create_superuser(username='testuser', password='12345', email="fake@email.su")
+        self.chrome.get(self.docker_url)
         self.chrome.find_element_by_link_text("Log in").click() 
         self.chrome.find_element_by_id("username").send_keys('testuser')
         self.chrome.find_element_by_id("password").send_keys('12345')
         self.chrome.find_element_by_xpath("/html/body/div/main/div/div/div/form").submit()
+
         self.chrome.find_element_by_link_text("Corpora").click()
         self.chrome.find_element_by_link_text("acoustic").click()
         
@@ -92,10 +93,10 @@ class SeleniumTest(StaticLiveServerTestCase):
 
 
         #Encode sibilants
-        self.chrome.find_element_by_xpath(get_enrichment_xpath("phone_subset")).click()
-
+        self.chrome.find_element_by_xpath(self.get_enrichment_xpath("phone_subset")).click()
+        time.sleep(10)
         #Encode syllabics
-        self.chrome.find_element_by_xpath(get_enrichment_xpath("phone_subset")).click()
+        self.chrome.find_element_by_xpath(self.get_enrichment_xpath("phone_subset")).click()
 
         #Properties from CSV
-        self.chrome.find_element_by_xpath(get_enrichment_xpath("csv-property")).click()
+        self.chrome.find_element_by_xpath(self.get_enrichment_xpath("csv-property")).click()
