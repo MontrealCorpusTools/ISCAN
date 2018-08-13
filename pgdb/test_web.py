@@ -10,11 +10,14 @@ from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import Select
 from selenium.common.exceptions import TimeoutException
 from django.contrib.auth.models import Group, User
 from django.test import override_settings
 
 class SeleniumTest(StaticLiveServerTestCase):
+
+    CSV_DIR = "/site/proj/csvs"
 
     @classmethod
     def setUpClass(cls):
@@ -104,4 +107,18 @@ class SeleniumTest(StaticLiveServerTestCase):
         self.chrome.find_element_by_xpath("/html/body/div/main/div/div/div/div[1]/button[1]").click()
 
         #Properties from CSV
-        self.chrome.find_element_by_xpath(self.get_enrichment_xpath("csv-property")).click()
+        for filepath, csv_type in [("{}/speaker_info.csv".format(self.CSV_DIR), "Speaker CSV"), ("{}/can_comparison.csv".format(self.CSV_DIR), "Lexicon CSV")]:
+            self.chrome.find_element_by_xpath(self.get_enrichment_xpath("csv-property")).click()
+
+            #Name
+            self.chrome.find_element_by_xpath("/html/body/div/main/div/div/div/div/label[1]/input").send_keys("{} enrichment".format(csv_type))
+
+            #Type of CSV
+            csv_opt = Select(self.chrome.find_element_by_xpath("/html/body/div/main/div/div/div/div/label[2]/select"))
+            csv_opt.select_by_visible_text(csv_type)
+            #File
+            self.chrome.find_element_by_id("CSV-properties-file").send_keys(filepath)
+
+            #submit 
+            submit = wait.until(EC.element_to_be_clickable((By.XPATH, "/html/body/div/main/div/div/div/div/button")))
+            submit.click()

@@ -111,6 +111,8 @@ services:
     environment:
       - HUB_PORT_4444_TCP_ADDR=selenium_hub
       - HUB_PORT_4444_TCP_PORT=4444
+    volumes:
+      - ./test_data/csvs:/site/proj/csvs
     ports: 
       - 5900:5900
     depends_on:
@@ -133,4 +135,6 @@ volumes:
   docker-utils:
     driver: "local"
   PolyglotDB:
+    driver: "local"
+  test_data:
     driver: "local"
