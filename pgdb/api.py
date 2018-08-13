@@ -1022,8 +1022,11 @@ class QueryViewSet(viewsets.ModelViewSet):
         print(query.config)
         with CorpusContext(corpus.config) as c:
             q = query.generate_query_for_export(c)
-
+            #begin_time = time.time()
+            #for i, r in enumerate(q.all()):
+            #    print(r['Mean_F0'])
+            #print('time_taken', time.time() - begin_time)
             writer = csv.writer(response)
             q.to_csv(writer)
-
+        print('DONE WRITING')
         return response

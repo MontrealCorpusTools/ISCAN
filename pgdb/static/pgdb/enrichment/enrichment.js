@@ -157,6 +157,14 @@ angular.module('enrichment', [
             $state.go('new_stress-word-prop', {corpus_id: $stateParams.corpus_id});
         };
 
+        $scope.relativizeProperty = function(){
+           $state.go('new_relativize_property', {corpus_id: $stateParams.corpus_id});
+        };
+
+        $scope.relativizeTrack = function(){
+           $state.go('new_relativize_track', {corpus_id: $stateParams.corpus_id});
+        };
+
 }).directive('tooltip', function() {
 	return {
 		restrict: 'A',
