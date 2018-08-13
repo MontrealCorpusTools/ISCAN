@@ -45,7 +45,9 @@ angular.module('acoustics', [
 		    var data = e.target.result;
 		    var resp = {text: data, file_name: name};
 		    Enrichment.create_file($stateParams.corpus_id, id, resp).then(function (res){
-			    $state.go('enrichment', {corpus_id: $stateParams.corpus_id});
+			    if(res.data){
+			        $state.go('enrichment', {corpus_id: $stateParams.corpus_id});
+			    }
 		    }).catch(function(res){
 		        $scope.error_message = res.data;
 		    });
