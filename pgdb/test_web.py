@@ -122,3 +122,18 @@ class SeleniumTest(StaticLiveServerTestCase):
             #submit 
             submit = wait.until(EC.element_to_be_clickable((By.XPATH, "/html/body/div/main/div/div/div/div/button")))
             submit.click()
+
+        #run enrichments
+        table_xpath = "/html/body/div/main/div/div/div[1]/div[1]/table/tbody"
+        #Run first 4 enrichments
+        for i in range(1, 5):
+            run_btn_path = "/html/body/div/main/div/div/div[1]/div[1]/table/tbody/tr[{}]/td[7]/button[1]".format(i)
+            self.chrome.find_element_by_xpath(run_btn_path).click()
+            #TODO: Make this wait relay on if the enrichment has actually run.
+            time.sleep(5)
+            wait.until(EC.element_to_be_clickable((By.XPATH, run_btn_path)))
+        #Praat script
+        #self.chrome.find_element_by_xpath(self.get_enrichment_xpath("acoustics")).click()
+
+
+

@@ -8,7 +8,9 @@ services:
     expose:
       - "5432"
     networks:
-      - jaz
+      jaz:
+        aliases:
+          - ps-postgres
 
   rabbitmq:
     image: rabbitmq:3-management
@@ -21,7 +23,9 @@ services:
       - RABBITMQ_DEFAULT_USER=guest
       - RABBITMQ_DEFAULT_PASS=guest
     networks:
-      - jaz
+      jaz:
+        aliases:
+          - ps-rabbitmq
 
   app:
     build:
@@ -30,7 +34,7 @@ services:
     container_name: ps-app
     hostname: app
     tty: true
-    #command: /site/docker-utils/start.sh
+    command: /site/docker-utils/start.sh
     volumes:
       - static-volume:/site/htdocs/static/
       - ./polyglot_source:/site/proj/polyglot_source
@@ -53,8 +57,13 @@ services:
     depends_on:
       - rabbitmq
       - db
+      - worker
+      - selenium_chrome
+      - selenium_firefox
     networks:
-      - jaz
+      jaz:
+        aliases:
+          - ps-app
 
   worker:
     build:
@@ -82,7 +91,9 @@ services:
     depends_on:
       - rabbitmq
     networks:
-      - jaz
+      jaz:
+        aliases:
+          - ps-worker
 
   selenium_hub:
     container_name: selenium_hub
@@ -90,7 +101,9 @@ services:
     ports: 
       - 4444:4444
     networks:
-      - jaz
+      jaz:
+        aliases:
+          - selenium-hub
 
   selenium_firefox:
     container_name: selenium_firefox
@@ -103,7 +116,9 @@ services:
     depends_on:
       - selenium_hub
     networks:
-      - jaz
+      jaz:
+        aliases:
+          - selenium_firefox
 
   selenium_chrome:
     container_name: selenium_chrome
@@ -118,7 +133,9 @@ services:
     depends_on:
       - selenium_hub
     networks:
-      - jaz
+      jaz:
+        aliases:
+          - selenium_chrome
 networks:
   jaz:
 
