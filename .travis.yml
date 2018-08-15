@@ -13,30 +13,13 @@ notifications:
 dist: trusty
 sudo: required
 
-addons:
-  apt:
-    packages:
-      - oracle-java8-installer
-
-before_install:
-  - sudo rm -rf /dev/shm
-  - sudo ln -s /run/shm /dev/shm
-  # install Neo4j locally:
-  #- sudo apt-get update && sudo apt-get install oracle-java8-installer
-  - export JAVA_HOME=/usr/lib/jvm/java-8-oracle
-  - bash continuous-integration/travis/install.sh
-
 # Install packages
 install:
-  - export PATH="$HOME/miniconda/miniconda/bin:$PATH"
-  - source activate test-environment
-  - pip install -r requirements.txt
-  - which python
-  - conda list
+  - docker-compose build
 
 # Run test
 script:
-  - "coverage run --source=pgdb -m py.test"
+  - docker-coverage run --service-ports --use-aliases --rm app test_cov
 
 # Calculate coverage
 after_success:
