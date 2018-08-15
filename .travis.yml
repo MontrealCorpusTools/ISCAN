@@ -16,7 +16,7 @@ sudo: required
 # Install packages
 install:
   - docker-compose build
-  - docker-compose up 
+  - docker-compose up -d
   - docker-compose run app init 
   - docker-compose stop
 
