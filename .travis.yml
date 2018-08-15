@@ -19,7 +19,7 @@ install:
 
 # Run test
 script:
-  - "docker-compose run --service-ports --use-aliases --rm app test"
+  - ./runtest.sh
 
 # Calculate coverage
 #after_success:
