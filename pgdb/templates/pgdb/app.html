@@ -1,5 +1,5 @@
 {% extends "pgdb/base.html" %}
-{% load static sekizai_tags %}
+{% load static sekizai_tags extra_tags %}
 
 {% block all-content %}
 
@@ -14,7 +14,12 @@
     </div>
 
     {% addtoblock "js" %}
-        <script src="{% static "pgdb/env.js" %}"></script>
+        {% get_settings_val "IS_TESTING" as is_testing %}
+        {% if is_testing %}
+	   <script src="{% static "pgdb/env-testing.js" %}"></script>
+        {% else %}
+	   <script src="{% static "pgdb/env.js" %}"></script>
+        {% endif %}
         <script>
             function static(path) {
                 return "{% static "/" %}" + path;

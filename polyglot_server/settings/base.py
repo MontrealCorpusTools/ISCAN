@@ -287,10 +287,13 @@ HTML_MINIFY = True
 
 ## Polyglot-server settings
 
+IS_TESTING = 'test' in sys.argv
+
 SOURCE_DATA_DIRECTORY = os.path.join('test_data', 'source')
 
 POLYGLOT_DATA_DIRECTORY = os.path.join('test_data', 'data')
-if 'test' not in sys.argv:
+
+if not IS_TESTING:
     try:
         from .local_settings import *
     except ImportError:
