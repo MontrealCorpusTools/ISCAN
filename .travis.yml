@@ -19,7 +19,7 @@ install:
 
 # Run test
 script:
-  - docker-coverage run --service-ports --use-aliases --rm app test_cov
+  - docker-compose run --service-ports --use-aliases --rm app test_cov
 
 # Calculate coverage
 after_success:
