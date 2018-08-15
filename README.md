@@ -64,6 +64,13 @@ In your web browser, navigate to `localhost:8080`. You should see the I-SCAN web
 To stop the server, press `Ctrl+C` only once. The terminal should show a `Gracefully stopping...` message and then exit.
 
 
+### Tests
+
+To run the automatic tests, run:
+
+``./runtests.sh``
+
+
 ### Mounted volumes
 
 This Docker instance is configured so that the contents of certain directories persist between runs of the server, and so that contents are constant between the local directory and the directory in the container. These local directories, located in the root of the repository, are:
