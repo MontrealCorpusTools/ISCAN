@@ -19,11 +19,11 @@ install:
 
 # Run test
 script:
-  - docker-compose run --service-ports --use-aliases --rm app test_cov
+  - "docker-compose run --service-ports --use-aliases --rm app test"
 
 # Calculate coverage
-after_success:
-  - coveralls
+#after_success:
+#  - coveralls
 
 cache:
   pip: true
