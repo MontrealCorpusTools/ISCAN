@@ -29,7 +29,7 @@ install:
 
 # Run test
 script:
-  - ./runtest.sh
+  - docker-compose run --use-aliases --rm app test
 
 # Calculate coverage
 #after_success:
