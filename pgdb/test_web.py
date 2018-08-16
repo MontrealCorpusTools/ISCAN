@@ -68,7 +68,7 @@ class SeleniumTest(StaticLiveServerTestCase):
         self.chrome.find_element_by_id("username").send_keys('testuser')
         self.chrome.find_element_by_id("password").send_keys('12345')
         self.chrome.find_element_by_xpath("/html/body/div/main/div/div/div/form").submit()
-
+        print("Logged in")
         self.chrome.find_element_by_link_text("Corpora").click()
         self.chrome.find_element_by_link_text("acoustic").click()
         
@@ -82,6 +82,7 @@ class SeleniumTest(StaticLiveServerTestCase):
         wait = WebDriverWait(self.chrome, 2000)
         element = wait.until(EC.element_to_be_clickable((By.XPATH, "/html/body/div/main/div/div/div/div/table/tbody/tr/td[6]/button[2]")))
 
+        print("Database started")
         #Go to corpus
         self.chrome.find_element_by_link_text("Corpora").click()
         self.chrome.find_element_by_link_text("acoustic").click()
@@ -91,6 +92,7 @@ class SeleniumTest(StaticLiveServerTestCase):
         self.chrome.refresh()
 
         enrichment_button = wait.until(EC.element_to_be_clickable((By.XPATH, "/html/body/div/main/div/div/div[1]/div[2]/div/button")))
+        print("Corpus imported")
         enrichment_button.click()
 
 
@@ -124,6 +126,7 @@ class SeleniumTest(StaticLiveServerTestCase):
             submit = wait.until(EC.element_to_be_clickable((By.XPATH, "/html/body/div/main/div/div/div/div/button")))
             submit.click()
 
+        print("Enrichments made")
         #run enrichments
         table_xpath = "/html/body/div/main/div/div/div[1]/div[1]/table/tbody"
         #Run first 4 enrichments
