@@ -289,9 +289,9 @@ HTML_MINIFY = True
 
 IS_TESTING = 'test' in sys.argv
 
-SOURCE_DATA_DIRECTORY = os.path.join('test_data', 'source')
+SOURCE_DATA_DIRECTORY = os.path.join('/site/proj/test_data', 'source')
 
-POLYGLOT_DATA_DIRECTORY = os.path.join('test_data', 'data')
+POLYGLOT_DATA_DIRECTORY = os.path.join('/site/proj/test_data', 'data')
 
 if not IS_TESTING:
     try:
