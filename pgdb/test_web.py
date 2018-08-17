@@ -78,7 +78,7 @@ class SeleniumTest(StaticLiveServerTestCase):
 
         #Starts database
         self.chrome.find_element_by_xpath("/html/body/div/main/div/div/div/div/table/tbody/tr/td[6]/button[1]").click()
-        wait = WebDriverWait(self.chrome, 2000)
+        wait = WebDriverWait(self.chrome, 120)
         element = wait.until(EC.element_to_be_clickable((By.XPATH, "/html/body/div/main/div/div/div/div/table/tbody/tr/td[6]/button[2]")))
 
         #Go to corpus
