@@ -32,14 +32,19 @@ class SeleniumTest(StaticLiveServerTestCase):
         super().tearDownClass()
 
     def setUp(self):
+        d_chrome = DesiredCapabilities.CHROME
+        d_chrome['loggingPrefs'] = { 'browser':'ALL' }
         self.chrome = webdriver.Remote(
                 command_executor='http://selenium_hub:4444/wd/hub',
-                desired_capabilities=DesiredCapabilities.CHROME
+                desired_capabilities=d_chrome
                 )
         self.chrome.implicitly_wait(10)
+
+        d_firefox = DesiredCapabilities.FIREFOX
+        d_firefox['loggingPrefs'] = { 'browser':'ALL' }
         self.firefox = webdriver.Remote(
                 command_executor='http://selenium_hub:4444/wd/hub',
-                desired_capabilities=DesiredCapabilities.FIREFOX
+                desired_capabilities=d_firefox
                 )
         self.firefox.implicitly_wait(10)
         self.docker_url = "http://ps-app:{}".format(self.server_thread.port)
