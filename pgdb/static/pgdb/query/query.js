@@ -211,6 +211,7 @@ angular.module('query', [
         });
 
 	$scope.getOperators = function(propertyType, filter) {
+		filter.operator = '==';
 		if(propertyType === 0){
 			return ['==', '!=', '<', '>', '<=', '>='];
 		}else{
@@ -545,6 +546,7 @@ angular.module('query', [
         };
 
 	$scope.getOperators = function(propertyType, filter) {
+		filter.operator = '==';
 		if(propertyType === 0){
 			return ['==', '!=', '<', '>', '<=', '>='];
 		}else{
