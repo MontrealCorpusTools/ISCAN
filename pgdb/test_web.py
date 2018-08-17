@@ -119,6 +119,7 @@ class SeleniumTest(StaticLiveServerTestCase):
             self.chrome.find_element_by_id("CSV-properties-file").send_keys(filepath)
 
             #submit 
+            print(self.chrome.get_log("browser"))
             submit = wait.until(EC.element_to_be_clickable((By.XPATH, "/html/body/div/main/div/div/div/div/button")))
             submit.click()
 
