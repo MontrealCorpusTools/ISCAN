@@ -125,6 +125,7 @@ class SeleniumTest(StaticLiveServerTestCase):
 
             #submit 
             print(self.chrome.get_log("browser"))
+            print(self.chrome.page_source)
             time.sleep(5)
             submit = self.chrome.find_element_by_xpath("/html/body/div/main/div/div/div/div/button")
             submit.click()
