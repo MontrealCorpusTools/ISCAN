@@ -125,7 +125,7 @@ class SeleniumTest(StaticLiveServerTestCase):
 
             #submit 
             print(self.chrome.get_log("browser"))
-            submit = wait.until(EC.element_to_be_clickable((By.XPATH, "/html/body/div/main/div/div/div/div/button")))
+            submit = self.chrome.find_element_by_xpath("/html/body/div/main/div/div/div/div/button")
             submit.click()
 
         #run enrichments
