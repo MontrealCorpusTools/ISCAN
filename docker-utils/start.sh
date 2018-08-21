@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -eox pipefail
+set -eox
 
 if [ -z "$1" ]; then
 	${SITE_DIR}/env/bin/python ${SITE_DIR}/proj/manage.py runserver --verbosity 3 0.0.0.0:8080
@@ -14,6 +14,10 @@ else
 	    shift
 	    echo "Manage.py $@"
 	    ${SITE_DIR}/env/bin/python ${SITE_DIR}/proj/manage.py $@
+	elif [ "$1" == 'test' ]; then
+	    ${SITE_DIR}/env/bin/python manage.py test pgdb.test_web
+	elif [ "$1" == 'test_cov' ]; then
+	    coverage run --source='.' manage.py test pgdb.test_web
 	else
 	    exec "$@"
 	fi
