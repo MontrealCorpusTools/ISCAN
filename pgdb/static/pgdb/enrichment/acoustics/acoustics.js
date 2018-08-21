@@ -44,7 +44,13 @@ angular.module('acoustics', [
 	    r.onloadend = function(e) {
 		    var data = e.target.result;
 		    var resp = {text: data, file_name: name};
-		    Enrichment.create_file($stateParams.corpus_id, id, resp);
+		    Enrichment.create_file($stateParams.corpus_id, id, resp).then(function (res){
+			    if(res.data){
+			        $state.go('enrichment', {corpus_id: $stateParams.corpus_id});
+			    }
+		    }).catch(function(res){
+		        $scope.error_message = res.data;
+		    });
 	    }
 	    r.readAsText(f);
     };
@@ -53,13 +59,13 @@ angular.module('acoustics', [
 		Enrichment.create($stateParams.corpus_id, $scope.enrichment).then(function (res){
 		    if($scope.enrichment.enrichment_type == 'praat_script'){
 			    $scope.uploadFile(res.data.id, "praat-script-file");
+			    $state.go('enrichment', {corpus_id: $stateParams.corpus_id});
 		    }else if($scope.enrichment.enrichment_type == 'refined_formant_points'){
 			    $scope.enrichment.duration_threshold = $scope.enrichment.duration_threshold;
 			    if(document.getElementById("formants-file").files.length > 0){
 				    $scope.uploadFile(res.data.id, "formants-file");
 			    }
 		    }
-		    $state.go('enrichment', {corpus_id: $stateParams.corpus_id});
 		}).catch(function(res){
 		    $scope.error_message = res.data;
 		});
@@ -67,13 +73,13 @@ angular.module('acoustics', [
 		Enrichment.update($stateParams.corpus_id, $stateParams.enrichment_id, $scope.enrichment).then(function (res) {
 		    if($scope.enrichment.enrichment_type == 'praat_script'){
 			    $scope.uploadFile($stateParams.enrichment_id, "praat-script-file");
+			    $state.go('enrichment', {corpus_id: $stateParams.corpus_id});
 		    }else if($scope.enrichment.enrichment_type == 'refined_formant_points'){
 			    $scope.enrichment.duration_threshold = $scope.enrichment.duration_threshold/1000;
 			    if(document.getElementById("formants-file").files.length > 0){
 				    $scope.uploadFile($stateParams.enrichment_id, "formants-file");
 			    }
 		    }
-		    $state.go('enrichment', {corpus_id: $stateParams.corpus_id});
 		}).catch(function(res){
 		    $scope.error_message = res.data;
 		});
