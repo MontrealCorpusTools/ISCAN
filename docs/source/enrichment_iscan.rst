@@ -16,15 +16,6 @@ Databases can be enriched by encoding various elements. Usually, the database st
    + *Higher annotation* Upper level property in hierarchy 
    + *Lower annotation* Lower level property in hierarchy
    + *Property type* target property such as rate, count, or position
-
-======================================================================
- Example
-----------------------------------------------------------------------
-to encode the number of phones per word, set *Higher annotation* 
-to **word**, *Lower annotation* to **phones**, and *Property type* 
-to **count**.
-======================================================================
-
 + **Stress from word property** Enriches syllables with stress information ('stressed' or 'unstressed', coded as '1' or '0') via a listing for each *word* in the lexical enrichment CSV
 + **Properties from a CSV** Here the user can import information to the corpus using CSV files saved locally
    + *Lexicon CSV* Allows the user to assign certain properties to specific words using a CSV file. For example the user might want to encode word frequency. This can be done by having words in one column and corresponding frequencies in the other column of a column-delimited text file.
