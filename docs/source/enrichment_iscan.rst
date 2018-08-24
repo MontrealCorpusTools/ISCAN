@@ -1,8 +1,8 @@
-.. _enrichment:
+.. _enrichment_iscan:
 
-=================
+****************
 Enrichment View
-=================
+****************
 
 Databases can be enriched by encoding various elements. Usually, the database starts off with just words and phones, but by adding enrichments a diverse range of information will become available to the user for searching with the Query View later. All enrichments are added in the Enrichment View. Here are some details about this View.
 
@@ -20,7 +20,9 @@ Databases can be enriched by encoding various elements. Usually, the database st
 ======================================================================
  Example
 ----------------------------------------------------------------------
-to encode the number of phones per word, set *Higher annotation* to **word**, *Lower annotation* to **phones**, and *Property type* to **count**.
+to encode the number of phones per word, set *Higher annotation* 
+to **word**, *Lower annotation* to **phones**, and *Property type* 
+to **count**.
 ======================================================================
 
 + **Stress from word property** Enriches syllables with stress information ('stressed' or 'unstressed', coded as '1' or '0') via a listing for each *word* in the lexical enrichment CSV
