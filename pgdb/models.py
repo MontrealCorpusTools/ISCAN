@@ -141,7 +141,7 @@ class Database(models.Model):
         """
         return os.path.join(self.directory, 'influxdb.log')
 
-    def start(self, timeout=20):
+    def start(self, timeout=120):
         """
         Function to start the components of a PolyglotDB database.  By the end both the Neo4j database and the InfluxDB
         database will be connectable.  This function blocks until connnections are made or until a timeout is reached.
@@ -188,7 +188,7 @@ class Database(models.Model):
                 begin = time.time()
                 while neo4j_pid is None:
                     time.sleep(1)
-                    if time.time() - begin > 20:
+                    if time.time() - begin > timeout:
                         return False
                     proc = subprocess.Popen(neo4j_finder, shell=True,
                                             stdout=subprocess.PIPE)

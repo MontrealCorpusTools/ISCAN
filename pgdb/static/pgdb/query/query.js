@@ -534,11 +534,24 @@ angular.module('query', [
         };
 
         $scope.addFilter = function (a_type, position) {
+            if (a_type =='discourse' || a_type == 'speaker'){
+            $scope.query.filters[a_type].push({});
+
+            }
+            else {
             $scope.query.filters[a_type][position].property_filters.push({});
+
+            }
         };
 
         $scope.removeFilter = function (a_type, position, index) {
+            if (a_type =='discourse' || a_type == 'speaker'){
+            $scope.query.filters[a_type].splice(index, 1);
+
+            }
+            else {
             $scope.query.filters[a_type][position].property_filters.splice(index, 1);
+            }
         };
 
         $scope.addSubannotationFilter = function (a_type, position, subannotation_type) {
