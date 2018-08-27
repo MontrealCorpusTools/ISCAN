@@ -1,0 +1,34 @@
+
+<div class="col-md-9 text-center" style="height:1280px">
+    <div>
+        <h4>Relativize a token property</h4>
+
+        <button class='btn btn-success' ng-click="createEnrichment()">
+            <span>Save relativized property</span>
+        </button>
+
+        <p><span ng-bind="error_message" style="color: red"></span></p>
+
+
+    <label>Linguistic type:
+        <select ng-model="enrichment.annotation_type" class="form-control"
+                ng-options="t for t in hierarchy.annotation_types">
+            <option value="">Select linguistic type</option>
+        </select>
+    </label>
+
+    <label>Property:
+        <select ng-model="enrichment.property_name" class="form-control"
+                ng-options="prop for prop in hierarchy.token_properties[enrichment.annotation_type] | onlyNumeric">
+            <option value="">Select property</option>
+        </select>
+    </label>
+
+    <label>Perform relativization by speaker:
+        <input type="checkbox" ng-model="enrichment.by_speaker">
+    </label>
+
+
+    </div>
+</div>
+

@@ -129,7 +129,7 @@ angular.module('queryDetail', [
                         console.log($scope.properties)
                         if ($scope.properties[$scope.annotation_types[j]].indexOf(prop) === -1 && prop !== 'id') {
                             $scope.properties[$scope.annotation_types[j]].push(prop);
-                            $scope.propertyValues[$scope.annotation_types[j]][prop] = $scope.selectedResult[$scope.annotation_types[j]][prop];
+                            $scope.propertyValues[$scope.annotation_types[j]][prop] = $scope.selectedResult[$scope.annotation_types[j]].current[prop];
                         }
                     }
 

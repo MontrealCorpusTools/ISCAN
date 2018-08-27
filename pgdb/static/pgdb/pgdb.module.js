@@ -14,12 +14,14 @@ var app = angular.module('pgdb', [
     'ngCookies',
     'ngMaterial',
     'angular-mousetrap',
+    'checklist-model',
     'databaseList',
     'databaseDetail',
     'corpusDetail',
     'bestiaryPlot',
     'queryDetail',
     'query',
+    'relativization',
     'enrichment',
     'acoustics',
     'navbar',
@@ -102,6 +104,22 @@ app.config(function ($stateProvider, $urlRouterProvider) {
         url: '/hierarchical/:corpus_id',
         templateUrl: static('pgdb/hierarchical/hierarchical.html'),
         controller: 'NewHierarchicalCtrl'
+    }).state('edit_relativize_property', {
+        url: '/property_relativization/:corpus_id/{enrichment_id:int}',
+        templateUrl: static('pgdb/enrichment/relativization/property_relativization.html'),
+        controller: 'PropertyRelativizationCtrl'
+    }).state('new_relativize_property', {
+        url: '/property_relativization/:corpus_id',
+        templateUrl: static('pgdb/enrichment/relativization/property_relativization.html'),
+        controller: 'PropertyRelativizationCtrl'
+    }).state('edit_relativize_track', {
+        url: '/track_relativization/:corpus_id/{enrichment_id:int}',
+        templateUrl: static('pgdb/enrichment/relativization/track_relativization.html'),
+        controller: 'TrackRelativizationCtrl'
+    }).state('new_relativize_track', {
+        url: '/track_relativization/:corpus_id',
+        templateUrl: static('pgdb/enrichment/relativization/track_relativization.html'),
+        controller: 'TrackRelativizationCtrl'
     }).state('check', {
             url: '/check'
         })

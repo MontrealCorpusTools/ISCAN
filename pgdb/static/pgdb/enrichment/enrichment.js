@@ -138,7 +138,12 @@ angular.module('enrichment', [
         $scope.newPhoneSubset = function(type){
             console.log('Going to create a new phone subset...');
             $state.go('new_subset', {corpus_id: $stateParams.corpus_id, type: 'phone'});
-        }
+        };
+
+        $scope.newWordSubset = function(type){
+            console.log('Going to create a new word subset...');
+            $state.go('new_subset', {corpus_id: $stateParams.corpus_id, type: 'word'});
+        };
 
         $scope.createAcoustics = function(){
            $state.go('acoustic_enrichment', {corpus_id: $stateParams.corpus_id});
@@ -150,6 +155,14 @@ angular.module('enrichment', [
         };
         $scope.newStressWordProp= function(){
             $state.go('new_stress-word-prop', {corpus_id: $stateParams.corpus_id});
+        };
+
+        $scope.relativizeProperty = function(){
+           $state.go('new_relativize_property', {corpus_id: $stateParams.corpus_id});
+        };
+
+        $scope.relativizeTrack = function(){
+           $state.go('new_relativize_track', {corpus_id: $stateParams.corpus_id});
         };
 
 }).directive('tooltip', function() {

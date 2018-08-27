@@ -251,6 +251,8 @@ class CorpusViewSet(viewsets.ModelViewSet):
             corpus_name = corpus.name.split("spade-")[1]
         else:
             corpus_name = corpus.name
+        if 'tutorial' in corpus_name:
+            corpus_name = 'tutorial'
 
         if subset_class == 'syllabics':
             if corpus_name == 'SCOTS':
@@ -314,15 +316,36 @@ class CorpusViewSet(viewsets.ModelViewSet):
                 return Response(status=status.HTTP_401_UNAUTHORIZED)
 
         with CorpusContext(corpus.config) as c:
-            phones = c.query_lexicon(c.phone).columns(c.phone.label).all()
-            # Remove duplicates to get phone set
-            phones = phones.to_json()
-            phone_set = { each['node_phone_label'] : each for each in phones }.values()
-            # Sort alphabetically
-            phone_set = sorted(phone_set, key=lambda k: k['node_phone_label'])
-            print(phone_set)
+            q = c.query_lexicon(c.lexicon_phone).columns(c.lexicon_phone.label.column_name('label'))
+            print(q.cypher())
+            phones = q.all()
 
-        return Response(phone_set)
+            # Remove duplicates to get phone set
+            phones = sorted(set(x['label'] for x in phones))
+            print(phones)
+
+        return Response(phones)
+
+    @detail_route(methods=['get'])
+    def word_set(self, request, pk=None):
+        if request.auth is None:
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
+        corpus = self.get_object()
+        if not request.user.is_superuser:
+            permissions = corpus.user_permissions.filter(user=request.user).all()
+            if not len(permissions):
+                return Response(status=status.HTTP_401_UNAUTHORIZED)
+
+        with CorpusContext(corpus.config) as c:
+            q = c.query_lexicon(c.lexicon_word).columns(c.lexicon_word.label.column_name('label'))
+            print(q.cypher())
+            words = q.all()
+
+            # Remove duplicates to get phone set
+            words = sorted(set(x['label'] for x in words))
+            print(words)
+
+        return Response(words)
 
     @detail_route(methods=['get'])
     def hierarchy(self, request, pk=None):
@@ -1001,8 +1024,7 @@ class QueryViewSet(viewsets.ModelViewSet):
         print(query.config)
         with CorpusContext(corpus.config) as c:
             q = query.generate_query_for_export(c)
-
             writer = csv.writer(response)
             q.to_csv(writer)
-
+        print('DONE WRITING')
         return response

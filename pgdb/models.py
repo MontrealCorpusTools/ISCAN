@@ -141,7 +141,7 @@ class Database(models.Model):
         """
         return os.path.join(self.directory, 'influxdb.log')
 
-    def start(self, timeout=20):
+    def start(self, timeout=120):
         """
         Function to start the components of a PolyglotDB database.  By the end both the Neo4j database and the InfluxDB
         database will be connectable.  This function blocks until connnections are made or until a timeout is reached.
@@ -188,7 +188,7 @@ class Database(models.Model):
                 begin = time.time()
                 while neo4j_pid is None:
                     time.sleep(1)
-                    if time.time() - begin > 20:
+                    if time.time() - begin > timeout:
                         return False
                     proc = subprocess.Popen(neo4j_finder, shell=True,
                                             stdout=subprocess.PIPE)
@@ -668,8 +668,9 @@ class Enrichment(models.Model):
         enrichment_type = config.get('enrichment_type')
         with CorpusContext(self.corpus.config) as c:
             if enrichment_type == 'subset':
+                annotation_type = config.get('annotation_type')
                 subset_label = config.get('subset_label')
-                c.reset_class(subset_label)
+                c.reset_type_subset(annotation_type, subset_label)
             elif enrichment_type == 'syllables':
                 c.reset_syllables()
             elif enrichment_type == 'pauses':
@@ -709,6 +710,13 @@ class Enrichment(models.Model):
                 pass
             elif enrichment_type == 'intensity':
                 c.reset_intensity()
+            elif enrichment_type == 'relativize_property':
+                annotation_type = config.get('annotation_type')
+                property_name = 'relativized_' + config.get('property_name')
+                by_speaker = config.get('by_speaker')
+                if by_speaker:
+                    property_name += '_by_speaker'
+                c.reset_property(annotation_type, property_name)
             elif enrichment_type == 'relativize_intensity':
                 c.reset_relativized_intensity()
             elif enrichment_type == 'relativize_formants':
@@ -740,8 +748,7 @@ class Enrichment(models.Model):
                     annotation_type = config.get('annotation_type')
                     annotation_labels = config.get('annotation_labels')
                     subset_label = config.get('subset_label')
-                    if annotation_type == 'phone':
-                        c.encode_class(annotation_labels, subset_label)
+                    c.encode_type_subset(annotation_type, annotation_labels, subset_label)
                 elif enrichment_type == 'syllables':
                     syllabic_label = config.get('phone_class', 'syllabic')
                     if c.hierarchy.has_type_subset('phone', syllabic_label):
@@ -792,6 +799,11 @@ class Enrichment(models.Model):
                                                                  )
                 elif enrichment_type == 'intensity':
                     c.analyze_intensity(source=config.get('source', 'praat'), multiprocessing=False)
+                elif enrichment_type == 'relativize_property':
+                    annotation_type = config.get('annotation_type')
+                    property_name = config.get('property_name')
+                    by_speaker = config.get('by_speaker')
+                    c.encode_relativized(annotation_type, property_name, by_speaker)
                 elif enrichment_type == 'relativize_pitch':
                     c.relativize_pitch(by_speaker=True)
                 elif enrichment_type == 'relativize_intensity':
@@ -932,46 +944,76 @@ class Query(models.Model):
             for position, a_columns in position_columns.items():
                 if not a_columns:
                     continue
-                if f_a_type not in {'speaker', 'discourse'} | corpus_context.hierarchy.annotation_types:
-                    continue
-                for field, val in a_columns.items():
+                if f_a_type in {'speaker', 'discourse'}:
+                    field, val = position, a_columns
                     if not val:
                         continue
-                    if f_a_type == a_type:
-                        ann = a
-                    else:
-                        ann = getattr(a, f_a_type)
-                    if position != 'current':
-                        ps = position.split('_')
-                        for p in ps:
-                            ann = getattr(ann, p)
-                    if field != 'subannotations':
-                        att = getattr(ann, field)
-                        try:
-                            att = att.column_name(column_names[f_a_type][position][field])
-                        except KeyError:
-                            pass
-                        q = q.columns(att)
-                    else:
-                        for s_name, s_columns in val.items():
-                            for s_field, s_val in s_columns.items():
-                                if not s_val:
-                                    continue
-                                att = getattr(getattr(ann, s_name), s_field)
-                                try:
-                                    att = att.column_name(column_names[f_a_type][position]['subannotations'][s_name][s_field])
-                                except KeyError:
-                                    pass
-                                q = q.columns(att)
+                    ann = getattr(a, f_a_type)
+                    att = getattr(ann, field)
+                    try:
+                        att = att.column_name(column_names[f_a_type][position])
+                    except KeyError:
+                        pass
+                    q = q.columns(att)
+                elif f_a_type in corpus_context.hierarchy.annotation_types:
+                    for field, val in a_columns.items():
+                        if not val:
+                            continue
+                        if f_a_type == a_type:
+                            ann = a
+                        else:
+                            ann = getattr(a, f_a_type)
+                        if position != 'current':
+                            ps = position.split('_')
+                            for p in ps:
+                                ann = getattr(ann, p)
+                        if field != 'subannotations':
+                            att = getattr(ann, field)
+                            try:
+                                att = att.column_name(column_names[f_a_type][position][field])
+                            except KeyError:
+                                pass
+                            q = q.columns(att)
+                        else:
+                            for s_name, s_columns in val.items():
+                                for s_field, s_val in s_columns.items():
+                                    if not s_val:
+                                        continue
+                                    att = getattr(getattr(ann, s_name), s_field)
+                                    try:
+                                        att = att.column_name(column_names[f_a_type][position]['subannotations'][s_name][s_field])
+                                    except KeyError:
+                                        pass
+                                    q = q.columns(att)
 
         for a_column, props in acoustic_columns.items():
-            if not props.get('include', False):
-                continue
+            # track props
+            include_track = props.pop('include', False)
+            relative_time = props.pop('relative_time', False)
+            relative_track = props.pop('relative_track', False)
+            num_points = props.pop('num_points', '')
+
+            relative_aggregate = props.pop('relative_aggregate', False)
             acoustic = getattr(a, a_column)
-            acoustic.relative_time = props.get('relative_time', False)
-            acoustic.relative = props.get('relative', False)
-            acoustic = acoustic.track
-            q = q.columns(acoustic)
+            acoustic.relative = relative_aggregate
+            for c, v in props.items():
+                if not v:
+                    continue
+                print(acoustic)
+                print(c)
+                q = q.columns(getattr(acoustic, c))
+            if include_track:
+                acoustic = getattr(a, a_column)
+                acoustic.relative_time = relative_time
+                acoustic.relative = relative_track
+                try:
+                    num_points = int(num_points)
+                    acoustic = acoustic.interpolated_track
+                    acoustic.num_points = num_points
+                except ValueError:
+                    acoustic = acoustic.track
+                q = q.columns(acoustic)
+        print(q.cypher(), q.cypher_params())
         return q
 
     def generate_base_query(self, corpus_context):

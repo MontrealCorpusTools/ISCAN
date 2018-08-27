@@ -248,7 +248,7 @@
             <tr ng-repeat="result in queryState.results">
                 <td data-ng-if="can_view">
                     <span ng-click="getDetail($index)" class="link">View detail</span>
-                    <span ng-click="listen(result[query.annotation_type].current.id)" class="link" ng-if="can_listen">Listen</span>
+                    <span ng-click="listen(result[query.annotation_type].current.id)" class="link" ng-if="can_listen && query.annotation_type =='utterance'">Listen</span>
                 </td>
                 <td ng-repeat="value in column_values"
                     data-ng-if="query.columns[value.type][value.position][value.property] &&
@@ -366,12 +366,170 @@
         </md-content>
     </multiselect-dropdown>
     <div ng-show="!newQuery">
-        <h3>Exporting acoustic tracks</h3>
+        <h3>Exporting acoustic measures</h3>
         <multiselect-dropdown class="tabs" ng-cloak style="max-height:100%">
             <md-content>
                 <md-tabs md-border-bottom>
 
-                    <md-tab label="Pitch" ng-if="false">
+                    <md-tab label="Pitch" ng-if="hierarchy.has_pitch_tracks">
+                        <md-content class="md-padding">
+                            Aggregates
+                            <table class="table table-striped">
+                                <thead>
+                                </thead>
+                                <tbody>
+                                <tr>
+                                    <td>Mean</td>
+                                    <td>
+                                        <input type="checkbox" ng-model="query.acoustic_columns.pitch.mean">
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>SD</td>
+                                    <td>
+                                        <input type="checkbox" ng-model="query.acoustic_columns.pitch.stdev">
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>Median</td>
+                                    <td>
+                                        <input type="checkbox" ng-model="query.acoustic_columns.pitch.median">
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>Max</td>
+                                    <td>
+                                        <input type="checkbox" ng-model="query.acoustic_columns.pitch.max">
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>Min</td>
+                                    <td>
+                                        <input type="checkbox" ng-model="query.acoustic_columns.pitch.min">
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>Relativized</td>
+                                    <td>
+                                        <input type="checkbox" ng-model="query.acoustic_columns.pitch.relative_aggregate">
+                                    </td>
+                                </tr>
+                                </tbody>
+                            </table>
+                            Track
+                            <table class="table table-striped">
+                                <thead>
+                                </thead>
+                                <tbody>
+                                <tr>
+                                    <td>Include track</td>
+                                    <td>
+                                        <input type="checkbox" ng-model="query.acoustic_columns.pitch.include">
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>Interpolation points</td>
+                                    <td>
+                                        <input ng-model="query.acoustic_columns.pitch.num_points">
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>Relativized</td>
+                                    <td>
+                                        <input type="checkbox" ng-model="query.acoustic_columns.pitch.relative_track">
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>Relative time</td>
+                                    <td>
+                                        <input type="checkbox" ng-model="query.acoustic_columns.pitch.relative_time">
+                                    </td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </md-content>
+                    </md-tab>
+
+                    <md-tab label="Intensity" ng-if="hierarchy.has_intensity_tracks">
+                        <md-content class="md-padding">
+                            Aggregates
+                            <table class="table table-striped">
+                                <thead>
+                                </thead>
+                                <tbody>
+                                <tr>
+                                    <td>Mean</td>
+                                    <td>
+                                        <input type="checkbox" ng-model="query.acoustic_columns.intensity.mean">
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>SD</td>
+                                    <td>
+                                        <input type="checkbox" ng-model="query.acoustic_columns.intensity.stdev">
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>Median</td>
+                                    <td>
+                                        <input type="checkbox" ng-model="query.acoustic_columns.intensity.median">
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>Max</td>
+                                    <td>
+                                        <input type="checkbox" ng-model="query.acoustic_columns.intensity.max">
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>Min</td>
+                                    <td>
+                                        <input type="checkbox" ng-model="query.acoustic_columns.intensity.min">
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>Relativized</td>
+                                    <td>
+                                        <input type="checkbox" ng-model="query.acoustic_columns.intensity.relative_aggregate">
+                                    </td>
+                                </tr>
+                                </tbody>
+                            </table>
+                            Track
+                            <table class="table table-striped">
+                                <thead>
+                                </thead>
+                                <tbody>
+                                <tr>
+                                    <td>Include track</td>
+                                    <td>
+                                        <input type="checkbox" ng-model="query.acoustic_columns.intensity.include">
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>Interpolation points</td>
+                                    <td>
+                                        <input ng-model="query.acoustic_columns.intensity.num_points">
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>Relativized</td>
+                                    <td>
+                                        <input type="checkbox" ng-model="query.acoustic_columns.intensity.relative_track">
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>Relative time</td>
+                                    <td>
+                                        <input type="checkbox" ng-model="query.acoustic_columns.intensity.relative_time">
+                                    </td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </md-content>
+                    </md-tab>
+
+                    <md-tab label="Formants" ng-if="hierarchy.has_formant_tracks">
                         <md-content class="md-padding">
                             <table class="table table-striped scrollable-table">
                                 <thead>
@@ -380,19 +538,19 @@
                                 <tr>
                                     <td>Include</td>
                                     <td>
-                                        <input type="checkbox" ng-model="query.acoustic_columns.pitch.include">
+                                        <input type="checkbox" ng-model="query.acoustic_columns.formants.include">
                                     </td>
                                 </tr>
                                 <tr>
                                     <td>Relative</td>
                                     <td>
-                                        <input type="checkbox" ng-model="query.acoustic_columns.pitch.relative">
+                                        <input type="checkbox" ng-model="query.acoustic_columns.formants.relative">
                                     </td>
                                 </tr>
                                 <tr>
                                     <td>Relative time</td>
                                     <td>
-                                        <input type="checkbox" ng-model="query.acoustic_columns.pitch.relative_time">
+                                        <input type="checkbox" ng-model="query.acoustic_columns.formants.relative_time">
                                     </td>
                                 </tr>
                                 </tbody>

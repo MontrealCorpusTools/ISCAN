@@ -31,9 +31,16 @@ angular.module('query', [
             }
             var a = [];
             for (i=0;i<input.length; i++){
+                if (field == undefined){
+
+                a.push(input[i])
+                }
+                else{
                 a.push(input[i][field])
+
+                }
             }
-            return a.join(delimiter || ',');
+            return a.join(delimiter || ', ');
         };
     }).directive('dlEnterKey', function () {
     return function (scope, element, attrs) {
@@ -169,6 +176,7 @@ angular.module('query', [
             console.log('REFRESHING');
             $scope.user = $rootScope.user;
             $scope.authenticated = $rootScope.authenticated;
+            $scope.exporting = false;
             if ($scope.user == undefined) {
                 $state.go('home');
             }
@@ -186,7 +194,8 @@ angular.module('query', [
                     }
                 }
             }
-            Corpora.hierarchy($stateParams.corpus_id).then(function (res) {
+            $scope.getHierarchy = function(){
+                Corpora.hierarchy($stateParams.corpus_id).then(function (res) {
                     $scope.hierarchy = res.data;
                     $scope.annotation_types = $scope.hierarchy.annotation_types;
                     $scope.column_values = [];
@@ -279,6 +288,8 @@ angular.module('query', [
                     console.log('properties', $scope.properties, $scope.propertyTypes)
                 console.log($scope.column_values, $scope.query.columns)
                 });
+            };
+
 
             if ($stateParams.query_id == undefined){
                 $scope.newQuery = true;
@@ -353,6 +364,7 @@ angular.module('query', [
                 formants: {include: false}
             }
         };
+                $scope.getHierarchy();
             }
             else{
                 $scope.newQuery = false;
@@ -361,6 +373,7 @@ angular.module('query', [
                 $scope.query = res.data;
                 $scope.queryState.ordering = $scope.query.ordering;
                 $scope.query.annotation_type = $scope.query.annotation_type.toLowerCase();
+                $scope.getHierarchy();
 
                 if ($scope.query.result_count != null){
                     $scope.getQueryResults();
@@ -438,12 +451,18 @@ angular.module('query', [
         $scope.export = function () {
             $scope.query.running = true;
             $scope.queryState.queryText = 'Fetching results...';
+            $scope.exporting = true;
 
             Query.export($stateParams.corpus_id, $stateParams.query_id, $scope.query).then(function (res) {
+                console.log('GOT DATA')
                 var data = new Blob([res.data], {type: 'text/plain;charset=utf-8'});
                 FileSaver.saveAs(data, $scope.query.name + ' export.csv');
                 $scope.query.running = false;
                 $scope.queryState.queryText = 'Run query';
+            $scope.exporting = false;
+            }).catch(function(res){
+                console.log('error!', res)
+            $scope.exporting = false;
             });
 
 
@@ -515,11 +534,24 @@ angular.module('query', [
         };
 
         $scope.addFilter = function (a_type, position) {
+            if (a_type =='discourse' || a_type == 'speaker'){
+            $scope.query.filters[a_type].push({});
+
+            }
+            else {
             $scope.query.filters[a_type][position].property_filters.push({});
+
+            }
         };
 
         $scope.removeFilter = function (a_type, position, index) {
+            if (a_type =='discourse' || a_type == 'speaker'){
+            $scope.query.filters[a_type].splice(index, 1);
+
+            }
+            else {
             $scope.query.filters[a_type][position].property_filters.splice(index, 1);
+            }
         };
 
         $scope.addSubannotationFilter = function (a_type, position, subannotation_type) {
@@ -639,7 +671,9 @@ angular.module('query', [
 
 
         var getData = function () {
-
+            if ($scope.exporting){
+                return
+            }
             if ($scope.query != undefined) {
                 console.log($scope.refreshing, $scope.query.running, $scope.query.result_count)
                 if ($scope.refreshing || $scope.query.running || $scope.query.result_count == null) {

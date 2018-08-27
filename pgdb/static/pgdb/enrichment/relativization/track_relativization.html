@@ -1,0 +1,26 @@
+
+<div class="col-md-9 text-center" style="height:1280px">
+    <div>
+        <h4>Relativize an acoustic track</h4>
+
+        <button class='btn btn-success' ng-click="createEnrichment()">
+            <span>Save relativized property</span>
+        </button>
+
+        <p><span ng-bind="error_message" style="color: red"></span></p>
+
+
+    <label>Acoustic track:
+        <select ng-model="enrichment.enrichment_type" class="form-control"
+                ng-options="t.value as t.name for t in avaiilable_acoustics">
+            <option value="">Select track</option>
+        </select>
+    </label>
+
+    <label>Perform relativization by speaker:
+        <input type="checkbox" ng-model="enrichment.by_speaker">
+    </label>
+
+
+    </div>
+</div>
