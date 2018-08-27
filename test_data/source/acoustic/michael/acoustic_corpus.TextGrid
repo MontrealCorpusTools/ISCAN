@@ -119,8 +119,7 @@ item []:
         intervals [27]:
             xmin = 6.89677903532629 
             xmax = 7.541483952089169 
-            text = "
-cares" 
+            text = "cares" 
         intervals [28]:
             xmin = 7.541483952089169 
             xmax = 8.016163828116456 

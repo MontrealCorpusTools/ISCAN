@@ -287,14 +287,17 @@ HTML_MINIFY = True
 
 ## Polyglot-server settings
 
-SOURCE_DATA_DIRECTORY = os.path.join(BASE_DIR, 'test_data', 'source')
+IS_TESTING = 'test' in sys.argv
 
-POLYGLOT_DATA_DIRECTORY = os.path.join(BASE_DIR, 'test_data', 'data')
+SOURCE_DATA_DIRECTORY = os.path.join('/site/proj/test_data', 'source')
 
-try:
-    from .local_settings import *
-except ImportError:
-    pass
+POLYGLOT_DATA_DIRECTORY = os.path.join('/site/proj/test_data', 'data')
+
+if not IS_TESTING:
+    try:
+        from .local_settings import *
+    except ImportError:
+        pass
 
 POLYGLOT_TEMP_DIR = os.path.join(POLYGLOT_DATA_DIRECTORY, 'downloads')
 
