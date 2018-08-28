@@ -159,9 +159,13 @@ In this case, we want to make a query for:
 
 Here, find the selection titled 'Syllables' and select 'New Query'. To make sure we select the correctly positioned syllables, apply the following filters:
 
-Under syllable properties:
+Under **syllable** properties:
 
 * Left aligned with: *word*
+* Select 'add' filter, select 'stress' in the drop-down box, and enter '1' in the text box
+
+Under **word** properties:
+
 * Right aligned with: *utterance*
 
 Provide a name for this query (e.g., 'syllable_duration') and select 'Save and run query'.
@@ -186,7 +190,7 @@ This query has found all word-initial stressed syllables for words in utterance-
 	* label
 
 4. Under the **SPEAKER** label, select:
-	* label
+	* name
 
 Once you have checked all relevant boxes, select 'Export to CSV'. Your results will be exported to a CSV file on your computer. The name will be the one you chose to save plus "export.csv". In our case, the resulting file will be called "syllable_duration export.csv".
 
@@ -194,4 +198,59 @@ Once you have checked all relevant boxes, select 'Export to CSV'. Your results w
 Examining & analysing the data
 ------------------------------
 
-TODO.
+In **R**, load the data as follows:
+
+.. code-block:: R
+
+	library(tidyverse)
+	df <- read.csv('syllable_duration export.csv')
+
+First, by checking how many words there are for each number of syllables in the CSV, we can see that only 1 word has 5 syllables:
+
+.. code-block:: R
+	group_by(df, word_num_syllables) %>% summarise(n_distinct(word_label))
+
+	#   word_num_syllables `n_distinct(word_label)`
+	#                <int>                    <int>
+	# 1                  1                      236
+	# 2                  2                      119
+	# 3                  3                       35
+	# 4                  4                        9
+	# 5                  5                        1
+
+And so the word with 5 syllables should be removed:
+
+.. code-block:: R
+
+	df <- filter(df, word_num_syllables < 5)
+
+Similarly, it is worth checking the distribution of syllable durations to see if there are any extreme values:
+
+.. code-block:: R
+
+	ggplot(df, aes(x = syllable_duration)) + 
+	geom_histogram() +
+	xlab("Syllable duration")
+
+.. image:: images/syll_hist_plot.png
+	:width: 400
+
+As we can see here, there are a handful of extremely long syllables, which perhaps are the result of pragmatic lengthening or alignment error. To exclude these cases from analysis:
+
+.. code-block:: R
+
+	df <- filter(df, syllable_duration < 1.5)
+
+Plot of the duration of the initial stressed syllable as a function of word duration (in syllables):
+
+.. code-block:: R
+
+	ggplot(df, aes(x = factor(word_num_syllables), y = syllable_duration)) +
+	geom_boxplot() +
+	xlab("Duration of word-initial syllable") + ylab("Syllable duration") +
+	scale_y_sqrt()
+
+.. image:: images/syll_dur_plot.png
+	:width: 400
+
+Here it's possible to see some polysyllabic shortening effect between 1 and 2 syllables; this effect seems much smaller between 2+ syllables, though the effect continues in the expected (negative) direction.
