@@ -1022,9 +1022,11 @@ class QueryViewSet(viewsets.ModelViewSet):
         response['Content-Disposition'] = 'attachment; filename="{}_query_export.csv"'.format(
             query.get_annotation_type_display())
         print(query.config)
+        begin = time.time()
         with CorpusContext(corpus.config) as c:
             q = query.generate_query_for_export(c)
+            print('GENERATED QUERY')
             writer = csv.writer(response)
             q.to_csv(writer)
-        print('DONE WRITING')
+        print('DONE WRITING', time.time() - begin)
         return response
