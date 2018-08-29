@@ -198,6 +198,8 @@
                 <a ng-click="last()">Last</a>
             </li>
         </ul>
+        <br>
+        <span>Displaying results {{ queryState.offset }} to {{ queryState.offset + queryState.resultsPerPage }} of {{ query.result_count}} total</span>
         <table class="table table-bordered table-striped scrollable-table">
 
             <thead>
