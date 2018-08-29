@@ -5,19 +5,29 @@
         <multiselect-dropdown class="tabs" ng-cloak style="max-height:100%">
             <md-content>
                 <md-tabs md-border-bottom>
+                    <md-tab ng-repeat="t in annotation_types" label="{{ t|titlecase }} properties"
+                            data-ng-if="$index >= annotation_types.indexOf(query.annotation_type.toLowerCase())">
+                        <md-content class="md-padding annotation-content">
+                            <div style="display:inline-block;">
+                                <button style="display: block;" ng-click="console.log('blah'); addPrevious(t)">Add
+                                    previous
+                                </button>
+                                <button style="display: block;" ng-click="removePrevious(t)">Remove previous</button>
 
-                    <md-tab ng-repeat="t in annotation_types" label="{{ t|titlecase }} properties" data-ng-if="$index >= annotation_types.indexOf(query.annotation_type.toLowerCase())">
-                    <md-content class="md-padding">
-                            <table class="table table-bordered table-striped">
-                                <tbody>
-                                <tr ng-repeat="filter in query.filters[t]">
+                            </div>
+                            <div class="annotation" style="display:inline-block;"
+                                 ng-repeat="position in query.positions[t]">
+                                {{ position }}
+                                <table class="table table-bordered table-striped">
+                                    <tbody>
+                                    <tr ng-repeat="filter in query.filters[t][position].property_filters">
 
-                                    <td>
-                                        <select ng-model="filter.property">
-                                            <option value="">Select property</option>
-                                            <option ng-repeat="prop in properties[t]">{{ prop }}</option>
-                                        </select>
-                                    </td>
+                                        <td>
+                                            <select ng-model="filter.property">
+                                                <option value="">Select property</option>
+                                                <option ng-repeat="prop in properties[t]">{{ prop }}</option>
+                                            </select>
+                                        </td>
                                     <td>
 					 <select ng-model="filter.operator" ng-options="o as o for o in getOperators(filter)"></select>
                                     </td>
@@ -29,18 +39,67 @@
 						<p ng-repeat="f in filter.autoList| filter:filter.value" ng-hide="!filter.value">{{ f }}</p>
 					</div>
                                     </td>
-                                    <td>
-                                        <span class='badge' ng-click="removeFilter(t, $index)">X</span>
-                                    </td>
-                                </tr>
-                                </tbody>
-                            </table>
-                            <button class='btn' ng-click="addFilter(t)" ng-disabled="query.running"><span>Add filter</span>
-                            </button>
-                        <multiselect class="input-small multiselect" ng-model="query.subsets[t]" options="s for s in subsets[t]"
-                                 header="All" selected-header="subsets" enable-check-all="false" enable-uncheck-all="true" multiple="true" enable-filter="false"
-                                              ng-init='e.initial = true'>
-                    </multiselect>
+                                        <td>
+                                            <span class='badge' ng-click="removeFilter(t, position, $index)">X</span>
+                                        </td>
+                                    </tr>
+                                    </tbody>
+                                </table>
+                                <button class='btn' ng-click="addFilter(t, position)" ng-disabled="query.running"><span>Add filter</span>
+                                </button>
+
+                                <label style="display: block;">Subset:
+                                    <multiselect class="input-small multiselect"
+                                                 ng-model="query.filters[t][position].subset_filters"
+                                                 options="s for s in subsets[t]"
+                                                 header="All" selected-header="subsets" enable-check-all="false"
+                                                 enable-uncheck-all="true" multiple="true" enable-filter="false"
+                                                 ng-init='e.initial = true'>
+                                    </multiselect>
+                                </label>
+                                <label style="display: block;">Left aligned with:
+                                    <select ng-model="query.filters[t][position].left_aligned_filter"
+                                            ng-options="higher_type as higher_type for higher_type in annotation_types.slice($parent.$index+1)">
+                                        <option value="">None</option>
+                                    </select></label>
+                                <label style="display: block;">Right aligned with:
+                                    <select ng-model="query.filters[t][position].right_aligned_filter"
+                                            ng-options="higher_type as higher_type for higher_type in annotation_types.slice($parent.$index+1)">
+                                        <option value="">None</option>
+                                    </select></label>
+                                <div ng-repeat="s in hierarchy.subannotations[t]">
+                                    {{ s }}
+                                <table class="table table-bordered table-striped">
+                                    <tbody>
+                                    <tr ng-repeat="filter in query.filters[t][position].subannotation_filters[s]">
+
+                                        <td>
+                                            <select ng-model="filter.property">
+                                                <option value="">Select property</option>
+                                                <option ng-repeat="prop in hierarchy.subannotation_properties[s]">{{ prop[0] }}</option>
+                                            </select>
+                                        </td>
+                                        <td>
+                                            <input type="checkbox" ng-show="subannotationPropertyTypes[s][filter.property]=== false"
+                                                   ng-model="filter.value">
+                                            <input ng-show="subannotationPropertyTypes[s][filter.property] === '' || subannotationPropertyTypes[s][filter.property] === 0"
+                                                   ng-model="filter.value">
+                                        </td>
+                                        <td>
+                                            <span class='badge' ng-click="removeSubannotationFilter(t, position, s, $index)">X</span>
+                                        </td>
+                                    </tr>
+                                    </tbody>
+                                </table>
+                                <button class='btn' ng-click="addSubannotationFilter(t, position, s)" ng-disabled="query.running"><span>Add filter</span>
+
+                                </div>
+                            </div>
+                            <div style="display:inline-block;">
+
+                                <button style="display: block;" ng-click="addFollowing(t)">Add following</button>
+                                <button style="display: block;" ng-click="removeFollowing(t)">Remove following</button>
+                            </div>
                         </md-content>
                     </md-tab>
 
@@ -119,7 +178,7 @@
             <span>Save current ordering</span></button>
         <button class='btn btn-danger' ng-click="clearFilters()" ng-disabled="query.running"><span>Clear filters</span>
         </button>
-<button class="btn" ng-disabled="query.running" ng-show="!newQuery" ng-click="export()"><span
+        <button class="btn" ng-disabled="query.running" ng-show="!newQuery" ng-click="export()"><span
                 ng-bind="queryState.exportText"></span></button>
     </div>
     <div ng-show="query.result_count==0 && !newQuery">
@@ -148,36 +207,47 @@
                 <a ng-click="last()">Last</a>
             </li>
         </ul>
+        <br>
+        <span>Displaying results {{ queryState.offset }} to {{ queryState.offset + queryState.resultsPerPage }} of {{ query.result_count}} total</span>
         <table class="table table-bordered table-striped scrollable-table">
 
             <thead>
             <tr>
-                <td ng-repeat="prop in properties.phone" ng-click="refreshOrdering('phone', prop)" ng-show="query.columns.phone[prop] && (query.annotation_type === 'phone')">
-                    <input ng-model="query.column_names.phone[prop]" ng-click="$event.stopPropagation();">
-                    <span ng-show="queryState.ordering == 'phone.'+prop" class="fa fa-caret-down"></span>
-                    <span ng-show="queryState.ordering == '-phone.' + prop" class="fa fa-caret-up"></span>
+                <td></td>
+                <td ng-repeat="value in column_values"
+                    ng-click="refreshOrdering(value)"
+                    data-ng-if="query.columns[value.type][value.position][value.property] &&
+                    annotation_types.indexOf(value.type) >=annotation_types.indexOf(query.annotation_type.toLowerCase())">
+
+                    <input ng-model="query.column_names[value.type][value.position][value.property]"
+                           ng-click="$event.stopPropagation();">
+                    <span ng-show="queryState.ordering == value.type +'.' +value.position + '.'+value.property"
+                          class="fa fa-caret-down"></span>
+                    <span ng-show="queryState.ordering == '-'+ value.type +'.' +value.position + '.' + value.property"
+                          class="fa fa-caret-up"></span>
                 </td>
-                <td ng-repeat="prop in properties.syllable" ng-click="refreshOrdering('syllable', prop)" ng-show="query.columns.syllable[prop] && (query.annotation_type === 'syllable' || query.annotation_type === 'phone')">
-                    <input ng-model="query.column_names.syllable[prop]" ng-click="$event.stopPropagation();">
-                    <span ng-show="queryState.ordering == 'syllable.'+prop" class="fa fa-caret-down"></span>
-                    <span ng-show="queryState.ordering == '-syllable.' + prop" class="fa fa-caret-up"></span>
+                <td ng-repeat="value in subannotation_column_values"
+                    ng-click="refreshOrdering(value)"
+                    data-ng-if="query.columns[value.type][value.position].subannotations[value.subannotation_type][value.property] &&
+                    annotation_types.indexOf(value.type) >=annotation_types.indexOf(query.annotation_type.toLowerCase())">
+
+                    <input ng-model="query.column_names[value.type][value.position].subannotations[value.subannotation_type][value.property]"
+                           ng-click="$event.stopPropagation();">
+                    <span ng-show="queryState.ordering == value.type +'.' +value.position + '.'+value.subannotation_type + '.'+value.property"
+                          class="fa fa-caret-down"></span>
+                    <span ng-show="queryState.ordering == '-'+ value.type +'.' +value.position + '.'+value.subannotation_type + '.' + value.property"
+                          class="fa fa-caret-up"></span>
                 </td>
-                <td ng-repeat="prop in properties.word" ng-click="refreshOrdering('word', prop)" ng-show="query.columns.word[prop] && (query.annotation_type === 'word' || query.annotation_type === 'syllable' || query.annotation_type === 'phone')">
-                    <input ng-model="query.column_names.word[prop]" ng-click="$event.stopPropagation();">
-                    <span ng-show="queryState.ordering == 'word.'+prop" class="fa fa-caret-down"></span>
-                    <span ng-show="queryState.ordering == '-word.' + prop" class="fa fa-caret-up"></span>
-                </td>
-                <td ng-repeat="prop in properties.utterance" ng-click="refreshOrdering('utterance', prop)" ng-show="query.columns.utterance[prop]">
-                    <input ng-model="query.column_names.utterance[prop]" ng-click="$event.stopPropagation();">
-                    <span ng-show="queryState.ordering == 'utterance.' +prop" class="fa fa-caret-down"></span>
-                    <span ng-show="queryState.ordering == '-utterance.' + prop" class="fa fa-caret-up"></span>
-                </td>
-                <td ng-repeat="prop in properties.speaker" ng-click="refreshOrdering('speaker', prop)" ng-show="query.columns.speaker[prop]">
+
+
+                <td ng-repeat="prop in properties.speaker" ng-click="refreshOrdering('speaker', prop)"
+                    ng-show="query.columns.speaker[prop]">
                     <input ng-model="query.column_names.speaker[prop]" ng-click="$event.stopPropagation();">
                     <span ng-show="queryState.ordering == 'speaker.' + prop" class="fa fa-caret-down"></span>
                     <span ng-show="queryState.ordering == '-speaker.' + prop" class="fa fa-caret-up"></span>
                 </td>
-                <td ng-repeat="prop in properties.discourse" ng-click="refreshOrdering('discourse', prop)" ng-show="query.columns.discourse[prop]">
+                <td ng-repeat="prop in properties.discourse" ng-click="refreshOrdering('discourse', prop)"
+                    ng-show="query.columns.discourse[prop]">
                     <input ng-model="query.column_names.discourse[prop]" ng-click="$event.stopPropagation();">
                     <span ng-show="queryState.ordering == 'discourse.' +prop" class="fa fa-caret-down"></span>
                     <span ng-show="queryState.ordering == '-discourse.' + prop" class="fa fa-caret-up"></span>
@@ -187,26 +257,25 @@
             </thead>
             <tbody style="height:50%">
             <tr ng-repeat="result in queryState.results">
-                <td ng-repeat="prop in properties.phone" ng-show="query.columns.phone[prop] && (query.annotation_type === 'phone')">
-                    <span
-                       ng-show="can_view && query.annotation_type == 'phone' && prop == 'label'" ng-click="getDetail($index)" class="link">{{ result.phone[prop] }}</span>
-                    <span ng-show="!can_view || query.annotation_type != 'phone' || prop != 'label'">{{ result.phone[prop] }}</span>
+                <td data-ng-if="can_view">
+                    <span ng-click="getDetail($index)" class="link">View detail</span>
+                    <span ng-click="listen(result[query.annotation_type].current.id)" class="link" ng-if="can_listen && query.annotation_type =='utterance'">Listen</span>
                 </td>
-                <td ng-repeat="prop in properties.syllable" ng-show="query.columns.syllable[prop] && (query.annotation_type === 'syllable' || query.annotation_type === 'phone')">
-                    <span
-                       ng-show="can_view && query.annotation_type == 'syllable' && prop == 'label'" ng-click="getDetail($index)" class="link">{{ result.syllable[prop] }}</span>
-                    <span ng-show="!can_view || query.annotation_type != 'syllable' || prop != 'label'">{{ result.syllable[prop] }}</span>
+                <td ng-repeat="value in column_values"
+                    data-ng-if="query.columns[value.type][value.position][value.property] &&
+                            annotation_types.indexOf(value.type) >=annotation_types.indexOf(query.annotation_type.toLowerCase())">
+                    <span>
+                                {{ result[value.type][value.position][value.property] }}
+                            </span>
                 </td>
-                <td ng-repeat="prop in properties.word" ng-show="query.columns.word[prop] && (query.annotation_type === 'word' || query.annotation_type === 'syllable' || query.annotation_type === 'phone')">
-                    <span
-                       ng-show="can_view && query.annotation_type == 'word' && prop == 'label'" ng-click="getDetail($index)" class="link">{{ result.word[prop] }}</span>
-                    <span ng-show="!can_view || query.annotation_type != 'word' || prop != 'label'">{{ result.word[prop] }}</span>
+                <td ng-repeat="value in subannotation_column_values"
+                    data-ng-if="query.columns[value.type][value.position].subannotations[value.subannotation_type][value.property] &&
+                            annotation_types.indexOf(value.type) >=annotation_types.indexOf(query.annotation_type.toLowerCase())">
+                    <span>
+                                {{ result[value.type][value.position][value.subannotation_type]| joinBy:value.property }}
+                            </span>
                 </td>
-                <td ng-repeat="prop in properties.utterance" ng-show="query.columns.utterance[prop]">
-                    <span
-                       ng-show="can_view && query.annotation_type == 'utterance' && prop == 'label'" ng-click="getDetail($index)" class="link">{{ result.utterance[prop] }}</span>
-                    <span ng-show="!can_view || query.annotation_type != 'utterance' || prop != 'label'">{{ result.utterance[prop] }}</span>
-                </td>
+
                 <td ng-repeat="prop in properties.speaker" ng-show="query.columns.speaker[prop]">
                     {{ result.speaker[prop] }}
                 </td>
@@ -226,24 +295,45 @@
         <md-content>
             <md-tabs md-border-bottom>
 
-                    <md-tab ng-repeat="t in annotation_types" label="{{ t|titlecase }}" data-ng-if="$index >=annotation_types.indexOf(query.annotation_type.toLowerCase())">
+                <md-tab ng-repeat="t in annotation_types" label="{{ t|titlecase }}"
+                        data-ng-if="$index >=annotation_types.indexOf(query.annotation_type.toLowerCase())">
                     <md-content class="md-padding">
-                        <table class="table table-striped scrollable-table">
+                        <div>
+                        <table class="table table-striped">
                             <thead>
                             <td>Column</td>
-                            <td>Visble</td>
+                            <td ng-repeat="position in query.positions[t]">{{ position }}</td>
                             </thead>
                             <tbody>
                             <tr ng-repeat="prop in properties[t]">
                                 <td>{{ prop }}</td>
-                                <td>
-                                    <input type="checkbox" ng-model="query.columns[t][prop]">
+                                <td ng-repeat="position in query.positions[t]">
+                                    <input type="checkbox" ng-model="query.columns[t][position][prop]">
                                 </td>
                             </tr>
                             </tbody>
                         </table>
+
+                        </div>
+                        <div ng-repeat="s in hierarchy.subannotations[t]">
+                            {{s}}
+                            <table class="table table-striped">
+                            <thead>
+                            <td>Column</td>
+                            <td ng-repeat="position in query.positions[t]">{{ position }}</td>
+                            </thead>
+                            <tbody>
+                            <tr ng-repeat="prop in hierarchy.subannotation_properties[s]">
+                                <td>{{ prop[0] }}</td>
+                                <td ng-repeat="position in query.positions[t]">
+                                    <input type="checkbox" ng-model="query.columns[t][position].subannotations[s][prop[0]]">
+                                </td>
+                            </tr>
+                            </tbody>
+                            </table>
+                        </div>
                     </md-content>
-                    </md-tab>
+                </md-tab>
 
                 <md-tab label="Speaker">
                     <md-content class="md-padding">
@@ -287,46 +377,204 @@
         </md-content>
     </multiselect-dropdown>
     <div ng-show="!newQuery">
-    <h3>Exporting acoustic tracks</h3>
-    <multiselect-dropdown class="tabs" ng-cloak style="max-height:100%">
-        <md-content>
-            <md-tabs md-border-bottom>
+        <h3>Exporting acoustic measures</h3>
+        <multiselect-dropdown class="tabs" ng-cloak style="max-height:100%">
+            <md-content>
+                <md-tabs md-border-bottom>
 
-                <md-tab label="Pitch" ng-if="false">
-                    <md-content class="md-padding">
-                        <table class="table table-striped scrollable-table">
-                            <thead>
-                            </thead>
-                            <tbody>
-                            <tr>
-                                <td>Include</td>
-                                <td>
-                                    <input type="checkbox" ng-model="query.acoustic_columns.pitch.include">
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>Relative</td>
-                                <td>
-                                    <input type="checkbox" ng-model="query.acoustic_columns.pitch.relative">
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>Relative time</td>
-                                <td>
-                                    <input type="checkbox" ng-model="query.acoustic_columns.pitch.relative_time">
-                                </td>
-                            </tr>
-                            </tbody>
-                        </table>
-                    </md-content>
-                </md-tab>
+                    <md-tab label="Pitch" ng-if="hierarchy.has_pitch_tracks">
+                        <md-content class="md-padding">
+                            Aggregates
+                            <table class="table table-striped">
+                                <thead>
+                                </thead>
+                                <tbody>
+                                <tr>
+                                    <td>Mean</td>
+                                    <td>
+                                        <input type="checkbox" ng-model="query.acoustic_columns.pitch.mean">
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>SD</td>
+                                    <td>
+                                        <input type="checkbox" ng-model="query.acoustic_columns.pitch.stdev">
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>Median</td>
+                                    <td>
+                                        <input type="checkbox" ng-model="query.acoustic_columns.pitch.median">
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>Max</td>
+                                    <td>
+                                        <input type="checkbox" ng-model="query.acoustic_columns.pitch.max">
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>Min</td>
+                                    <td>
+                                        <input type="checkbox" ng-model="query.acoustic_columns.pitch.min">
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>Relativized</td>
+                                    <td>
+                                        <input type="checkbox" ng-model="query.acoustic_columns.pitch.relative_aggregate">
+                                    </td>
+                                </tr>
+                                </tbody>
+                            </table>
+                            Track
+                            <table class="table table-striped">
+                                <thead>
+                                </thead>
+                                <tbody>
+                                <tr>
+                                    <td>Include track</td>
+                                    <td>
+                                        <input type="checkbox" ng-model="query.acoustic_columns.pitch.include">
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>Interpolation points</td>
+                                    <td>
+                                        <input ng-model="query.acoustic_columns.pitch.num_points">
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>Relativized</td>
+                                    <td>
+                                        <input type="checkbox" ng-model="query.acoustic_columns.pitch.relative_track">
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>Relative time</td>
+                                    <td>
+                                        <input type="checkbox" ng-model="query.acoustic_columns.pitch.relative_time">
+                                    </td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </md-content>
+                    </md-tab>
 
-            </md-tabs>
-        </md-content>
-    </multiselect-dropdown>
+                    <md-tab label="Intensity" ng-if="hierarchy.has_intensity_tracks">
+                        <md-content class="md-padding">
+                            Aggregates
+                            <table class="table table-striped">
+                                <thead>
+                                </thead>
+                                <tbody>
+                                <tr>
+                                    <td>Mean</td>
+                                    <td>
+                                        <input type="checkbox" ng-model="query.acoustic_columns.intensity.mean">
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>SD</td>
+                                    <td>
+                                        <input type="checkbox" ng-model="query.acoustic_columns.intensity.stdev">
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>Median</td>
+                                    <td>
+                                        <input type="checkbox" ng-model="query.acoustic_columns.intensity.median">
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>Max</td>
+                                    <td>
+                                        <input type="checkbox" ng-model="query.acoustic_columns.intensity.max">
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>Min</td>
+                                    <td>
+                                        <input type="checkbox" ng-model="query.acoustic_columns.intensity.min">
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>Relativized</td>
+                                    <td>
+                                        <input type="checkbox" ng-model="query.acoustic_columns.intensity.relative_aggregate">
+                                    </td>
+                                </tr>
+                                </tbody>
+                            </table>
+                            Track
+                            <table class="table table-striped">
+                                <thead>
+                                </thead>
+                                <tbody>
+                                <tr>
+                                    <td>Include track</td>
+                                    <td>
+                                        <input type="checkbox" ng-model="query.acoustic_columns.intensity.include">
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>Interpolation points</td>
+                                    <td>
+                                        <input ng-model="query.acoustic_columns.intensity.num_points">
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>Relativized</td>
+                                    <td>
+                                        <input type="checkbox" ng-model="query.acoustic_columns.intensity.relative_track">
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>Relative time</td>
+                                    <td>
+                                        <input type="checkbox" ng-model="query.acoustic_columns.intensity.relative_time">
+                                    </td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </md-content>
+                    </md-tab>
+
+                    <md-tab label="Formants" ng-if="hierarchy.has_formant_tracks">
+                        <md-content class="md-padding">
+                            <table class="table table-striped scrollable-table">
+                                <thead>
+                                </thead>
+                                <tbody>
+                                <tr>
+                                    <td>Include</td>
+                                    <td>
+                                        <input type="checkbox" ng-model="query.acoustic_columns.formants.include">
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>Relative</td>
+                                    <td>
+                                        <input type="checkbox" ng-model="query.acoustic_columns.formants.relative">
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>Relative time</td>
+                                    <td>
+                                        <input type="checkbox" ng-model="query.acoustic_columns.formants.relative_time">
+                                    </td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </md-content>
+                    </md-tab>
+
+                </md-tabs>
+            </md-content>
+        </multiselect-dropdown>
 
     </div>
 </div>
 <div class="alert alert-warning" ng-show="!corpus.database_running">
-	<span>The {{ corpus.name }} database is not currently running, please start it at <a ui-sref="database-list">databases</a>.</span>
+    <span>The {{ corpus.name }} database is not currently running, please start it at <a ui-sref="database-list">databases</a>.</span>
 </div>

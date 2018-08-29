@@ -122,7 +122,9 @@ angular.module('corpusDetail', [
         $scope.importCorpus = function () {
             Corpora.importCorpus($stateParams.corpus_id).then(function (res) {
             getData();
-            });
+            }).catch(function (res) {
+		    console.error(res);
+	    });
         };
 
         $scope.openQuery = function (type) {

@@ -14,6 +14,8 @@ Welcome to polyglot-server's documentation!
    installation_via_docker.rst
    use_via_docker.rst
    getting_started.rst
+   enrichment(ISCAN).rst
+   tutorials_iscan.rst
 
 
 Indices and tables

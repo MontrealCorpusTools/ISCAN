@@ -1,10 +1,10 @@
 <div class="col-md-9 text-center" style="height:1280px">
     <div>
-        <h4>Create a <span ng-bind="subset.annotation_type"></span> subset</h4>
-        <label>Subset name: <input ng-model="subset.subset_label"> </label>
+        <h4>Create a <span ng-bind="enrichment.annotation_type"></span> subset</h4>
+        <label>Subset name: <input ng-model="enrichment.subset_label"> </label>
 
 
-        <button class='btn btn-success' ng-click="createSubset()">
+        <button class='btn btn-success' ng-click="createEnrichment()">
             <span>Save subset</span>
         </button>
         <button class='btn btn-danger' ng-click="clearMembers()" ng-disabled="">
@@ -23,32 +23,32 @@
 	    <div class="col-md-8 scroll-container" style="height:400px">
 		<md-content>
 		    <md-content class="md-padding">
-			<table class="table table-striped">
-			    <thead>
-				<td><b>Phone label</b></td>
+				 <table class="table table-striped">
+				  <thead>
+				<td><b>Label</b></td>
 				<td><b>Include</b></td>
-			    </thead>
-			    <tbody>
-				<tr ng-repeat="label in phones">
-				    <td>{{ label.node_phone_label }}</td>
-				    <td>
-					<input type="checkbox" ng-model="label.isChecked" ng-change="insertMember(label)">
-				    </td>
+				  </thead>
+				  <tbody>
+				<tr ng-repeat="annotation in annotations">
+					<td>{{annotation}}</td>
+					<td>
+				  <input type="checkbox" checklist-model="enrichment.annotation_labels" checklist-value="annotation">
+					</td>
 				</tr>
-			    </tbody>
-			</table>
+				  </tbody>
+			  </table>
 		    </md-content>
 		</md-content>
 	    </div>
 
-	    <div class=col-md-4">
-		<button ng-disabled="dataLoading|| defaultSubsets['sibilants'] === undefined || defaultSubsets['sibilants'].length == 0" ng-click="select('sibilants')">
+	    <div class=col-md-4" ng-if="enrichment.annotation_type=='phone'">
+		<button ng-disabled="dataLoading|| defaultSubsets['sibilants'] === undefined || defaultSubsets['sibilants'].length == 0" ng-click="select('sibilants')" style="display: block">
 		    <span>Select sibilants</span>
 		</button>
-		<button ng-disabled="dataLoading|| defaultSubsets['syllabics'] === undefined || defaultSubsets['syllabics'].length == 0" ng-click="select('syllabics')">
+		<button ng-disabled="dataLoading|| defaultSubsets['syllabics'] === undefined || defaultSubsets['syllabics'].length == 0" ng-click="select('syllabics')" style="display: block">
 		    <span>Select syllabics</span>
 		</button>
-		<button ng-disabled="dataLoading || defaultSubsets['stressed_vowels'] === undefined || defaultSubsets['stressed_vowels'].length == 0" ng-click="select('stressed_vowels')">
+		<button ng-disabled="dataLoading || defaultSubsets['stressed_vowels'] === undefined || defaultSubsets['stressed_vowels'].length == 0" ng-click="select('stressed_vowels')" style="display: block">
 		    <span>Select stressed vowels</span>
 		</button>
 
@@ -56,7 +56,7 @@
     </div>
 
     <div ng-if="dataLoading==false">
-        <b>Selected subset:</b> {{ subset.annotation_labels }}
+        <b>Selected subset:</b> {{ enrichment.annotation_labels | joinBy }}
     </div>
 
 </div>

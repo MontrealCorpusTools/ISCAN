@@ -129,7 +129,7 @@ angular.module('queryDetail', [
                         console.log($scope.properties)
                         if ($scope.properties[$scope.annotation_types[j]].indexOf(prop) === -1 && prop !== 'id') {
                             $scope.properties[$scope.annotation_types[j]].push(prop);
-                            $scope.propertyValues[$scope.annotation_types[j]][prop] = $scope.selectedResult[$scope.annotation_types[j]][prop];
+                            $scope.propertyValues[$scope.annotation_types[j]][prop] = $scope.selectedResult[$scope.annotation_types[j]].current[prop];
                         }
                     }
 
@@ -224,8 +224,8 @@ angular.module('queryDetail', [
                     $scope.selectedResult = res.data.result;
                     $scope.speaker = $scope.selectedResult.speaker;
                     $scope.discourse = $scope.selectedResult.discourse;
-                    $scope.utterance_id = $scope.selectedResult.utterance.id;
-                    console.log('helloooooo', $scope.utterance);
+                    $scope.utterance_id = $scope.utterance.id;
+                    console.log('helloooooo', $scope.selectedResult);
                     if ($scope.selectedType == 'utterance'){
                         $scope.selectedAnnotation = res.data.utterance;
                     }

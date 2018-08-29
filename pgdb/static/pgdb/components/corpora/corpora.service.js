@@ -32,8 +32,8 @@ angular.module('pgdb.corpora')
       return $http.get(base_url + id + '/phones/');
     };
 
-    Corpora.phone_set = function (id) {
-      return $http.get(base_url + id + '/phone_set/');
+    Corpora.annotation_set = function (id, type) {
+      return $http.get(base_url + id + '/'+type+'_set/');
     };
 
     Corpora.speakers = function (id){

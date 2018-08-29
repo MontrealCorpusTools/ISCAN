@@ -275,6 +275,8 @@ class CorpusViewSet(viewsets.ModelViewSet):
             corpus_name = corpus.name.split("spade-")[1]
         else:
             corpus_name = corpus.name
+        if 'tutorial' in corpus_name:
+            corpus_name = 'tutorial'
 
         if subset_class == 'syllabics':
             if corpus_name == 'SCOTS':
@@ -288,7 +290,7 @@ class CorpusViewSet(viewsets.ModelViewSet):
             elif corpus_name == 'SOTC':
                 subset = ["I", "E", "{", "V", "Q", "U", "@", "i","#", "$", "u", "3", "1", "2","4", "5", "6", "7", "8",
                              "9", "c","q", "O", "~", "B","F","H","L", "P", "C"]
-            elif corpus_name in ["ICE-Can", "Raleigh", "SantaBarbara", "tutorial"]:
+            elif corpus_name in ["ICE-Can", "Raleigh", "SantaBarbara", "tutorial", "acoustic"]:
                 subset = ["ER0", "IH2", "EH1", "AE0", "UH1", "AY2", "AW2", "UW1", "OY2", "OY1", "AO0", "AH2", "ER1", "AW1",
                    "OW0", "IY1", "IY2", "UW0", "AA1", "EY0", "AE1", "AA0", "OW1", "AW0", "AO1", "AO2", "IH0", "ER2",
                    "UW2", "IY0", "AE2", "AH0", "AH1", "UH2", "EH2", "UH0", "EY1", "AY0", "AY1", "EH0", "EY2", "AA2",
@@ -300,12 +302,12 @@ class CorpusViewSet(viewsets.ModelViewSet):
                 subset = ["s", "z", "S", "Z"]
             elif corpus_name == 'Buckeye':
                 subset = ["s", "z", "sh", "zh"]
-            elif corpus_name in ["ICE-Can", "Raleigh", "SantaBarbara", "tutorial"]:
+            elif corpus_name in ["ICE-Can", "Raleigh", "SantaBarbara", "tutorial", "acoustic"]:
                 subset = ["S", "Z", "SH", "ZH"]
             else:
                 subset = []
         elif subset_class == "stressed_vowels":
-            if corpus_name in ["ICE-Can", "Raleigh", "SantaBarbara", "tutorial"]:
+            if corpus_name in ["ICE-Can", "Raleigh", "SantaBarbara", "tutorial", "acoustic"]:
                 subset = ["EH1", "UH1", "UW1", "OY1", "ER1", "AW1", "IY1", "AA1", "AE1", "OW1",  "AO1", "AH1", "EY1", "AY1", "IH1"]
             else:
                 subset = []
@@ -338,15 +340,36 @@ class CorpusViewSet(viewsets.ModelViewSet):
                 return Response(status=status.HTTP_401_UNAUTHORIZED)
 
         with CorpusContext(corpus.config) as c:
-            phones = c.query_lexicon(c.phone).columns(c.phone.label).all()
-            # Remove duplicates to get phone set
-            phones = phones.to_json()
-            phone_set = { each['node_phone_label'] : each for each in phones }.values()
-            # Sort alphabetically
-            phone_set = sorted(phone_set, key=lambda k: k['node_phone_label'])
-            print(phone_set)
+            q = c.query_lexicon(c.lexicon_phone).columns(c.lexicon_phone.label.column_name('label'))
+            print(q.cypher())
+            phones = q.all()
 
-        return Response(phone_set)
+            # Remove duplicates to get phone set
+            phones = sorted(set(x['label'] for x in phones))
+            print(phones)
+
+        return Response(phones)
+
+    @detail_route(methods=['get'])
+    def word_set(self, request, pk=None):
+        if request.auth is None:
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
+        corpus = self.get_object()
+        if not request.user.is_superuser:
+            permissions = corpus.user_permissions.filter(user=request.user).all()
+            if not len(permissions):
+                return Response(status=status.HTTP_401_UNAUTHORIZED)
+
+        with CorpusContext(corpus.config) as c:
+            q = c.query_lexicon(c.lexicon_word).columns(c.lexicon_word.label.column_name('label'))
+            print(q.cypher())
+            words = q.all()
+
+            # Remove duplicates to get phone set
+            words = sorted(set(x['label'] for x in words))
+            print(words)
+
+        return Response(words)
 
     @detail_route(methods=['get'])
     def hierarchy(self, request, pk=None):
@@ -490,7 +513,6 @@ class SubannotationViewSet(viewsets.ViewSet):
             permissions = corpus.user_permissions.filter(user=request.user).all()
             if not len(permissions):
                 return Response(status=status.HTTP_401_UNAUTHORIZED)
-        print(request.data)
         a_type = request.data.pop('annotation_type')
         a_id = request.data.pop('annotation_id')
         s_type = request.data.pop('subannotation_type')
@@ -500,7 +522,6 @@ class SubannotationViewSet(viewsets.ViewSet):
             q = c.query_graph(att).filter(getattr(att, 'id') == a_id)
             res = q.all()[0]
             res.add_subannotation(s_type, **data)
-            print(getattr(res, s_type))
             data = serializers.serializer_factory(c.hierarchy, a_type, top_level=True, with_subannotations=True)(
                 res).data
             data = data[a_type][s_type][-1]
@@ -514,12 +535,23 @@ class SubannotationViewSet(viewsets.ViewSet):
                 return Response(status=status.HTTP_401_UNAUTHORIZED)
         data = request.data
         s_id = data.pop('id')
+
         props = []
         prop_template = 's.%s = {%s}'
-        for k, v in data.items():
-            props.append(prop_template % (k, k))
-        set_props = ',\n'.join(props)
         with CorpusContext(corpus.config) as c:
+            statement = '''MATCH (s:{corpus_name}) WHERE s.id = {{s_id}} RETURN s'''.format(corpus_name=c.cypher_safe_name)
+            res = c.execute_cypher(statement, s_id=s_id)
+            for r in res:
+                for x in r['s'].labels:
+                    if x in c.hierarchy.subannotation_properties:
+                        s_type = x
+            for k, v in data.items():
+                props.append(prop_template % (k, k))
+                if c.hierarchy.has_subannotation_property(s_type, k):
+                    for name, t in c.hierarchy.subannotation_properties[s_type]:
+                        if name == k:
+                            data[k] = t(v)
+            set_props = ',\n'.join(props)
             statement = '''MATCH (s:{corpus_name}) WHERE s.id = {{s_id}}
             SET {set_props}'''.format(corpus_name=c.cypher_safe_name, set_props=set_props)
             c.execute_cypher(statement, s_id=s_id, **data)
@@ -805,8 +837,8 @@ class QueryViewSet(viewsets.ModelViewSet):
             return Response(None, status=status.HTTP_400_BAD_REQUEST)
         refresh = request.data.pop('refresh', False)
         query.name = request.data.get('name')
-        do_run = refresh or (query.config['filters'] != request.data['filters'] or query.config['subsets'] != request.data[
-            'subsets'])
+        do_run = refresh or query.config['filters'] != request.data['filters'] or \
+                 query.config['positions'] != request.data['positions']
         c = query.config
         c.update(request.data)
         query.config = c
@@ -940,7 +972,7 @@ class QueryViewSet(viewsets.ModelViewSet):
         with_spectrogram = request.query_params.get('with_spectrogram', False)
         with_subannotations = request.query_params.get('with_subannotations', True)
         result = query.get_results(ordering, limit, offset)[0]
-        utterance_id = result['utterance']['id']
+        utterance_id = result['utterance']['current']['id']
         data = {'result': result}
         try:
             with CorpusContext(corpus.config) as c:
@@ -1006,18 +1038,19 @@ class QueryViewSet(viewsets.ModelViewSet):
         if query.running:
             return Response(None, status=status.HTTP_423_LOCKED)
         print(corpus)
-        do_run = query.config['filters'] != request.data['filters'] or query.config['subsets'] != request.data[
-            'subsets']
+        do_run = query.config['filters'] != request.data['filters'] or \
+                 query.config['positions'] != request.data['positions']
         if do_run:
             return Response(None, status=status.HTTP_405_METHOD_NOT_ALLOWED)
         query.config = request.data
         response['Content-Disposition'] = 'attachment; filename="{}_query_export.csv"'.format(
             query.get_annotation_type_display())
         print(query.config)
+        begin = time.time()
         with CorpusContext(corpus.config) as c:
-            q = query.generate_query(c)
-
+            q = query.generate_query_for_export(c)
+            print('GENERATED QUERY')
             writer = csv.writer(response)
             q.to_csv(writer)
-
+        print('DONE WRITING', time.time() - begin)
         return response

@@ -14,12 +14,14 @@ var app = angular.module('pgdb', [
     'ngCookies',
     'ngMaterial',
     'angular-mousetrap',
+    'checklist-model',
     'databaseList',
     'databaseDetail',
     'corpusDetail',
     'bestiaryPlot',
     'queryDetail',
     'query',
+    'relativization',
     'enrichment',
     'acoustics',
     'navbar',
@@ -81,7 +83,7 @@ app.config(function ($stateProvider, $urlRouterProvider) {
     }).state('new_query', {
         url: '/new_query/:corpus_id/:type',
         templateUrl: static('pgdb/query/query.html'),
-        controller: 'NewQueryCtrl'
+        controller: 'QueryCtrl'
     }).state('query-detail', {
         url: '/query_results/:corpus_id/:query_id/:detail_index',
         templateUrl: static('pgdb/query-detail/query_detail.html'),
@@ -102,6 +104,22 @@ app.config(function ($stateProvider, $urlRouterProvider) {
         url: '/hierarchical/:corpus_id',
         templateUrl: static('pgdb/hierarchical/hierarchical.html'),
         controller: 'NewHierarchicalCtrl'
+    }).state('edit_relativize_property', {
+        url: '/property_relativization/:corpus_id/{enrichment_id:int}',
+        templateUrl: static('pgdb/enrichment/relativization/property_relativization.html'),
+        controller: 'PropertyRelativizationCtrl'
+    }).state('new_relativize_property', {
+        url: '/property_relativization/:corpus_id',
+        templateUrl: static('pgdb/enrichment/relativization/property_relativization.html'),
+        controller: 'PropertyRelativizationCtrl'
+    }).state('edit_relativize_track', {
+        url: '/track_relativization/:corpus_id/{enrichment_id:int}',
+        templateUrl: static('pgdb/enrichment/relativization/track_relativization.html'),
+        controller: 'TrackRelativizationCtrl'
+    }).state('new_relativize_track', {
+        url: '/track_relativization/:corpus_id',
+        templateUrl: static('pgdb/enrichment/relativization/track_relativization.html'),
+        controller: 'TrackRelativizationCtrl'
     }).state('check', {
             url: '/check'
         })
@@ -129,6 +147,10 @@ app.config(function ($stateProvider, $urlRouterProvider) {
         url: '/corpora/:corpus_id/enrichment/csv-properties',
         templateUrl: static('pgdb/enrichment/csv-properties/csv-properties.html'),
         controller: 'CSVPropertiesCtrl'
+        }).state('edit_csv-properties', {
+        url: '/corpora/:corpus_id/enrichment/csv-properties/{enrichment_id:int}',
+        templateUrl: static('pgdb/enrichment/csv-properties/csv-properties.html'),
+        controller: 'CSVPropertiesCtrl'
         }).state('new_utterances', {
         url: '/corpora/:corpus_id/enrichment/utterances',
         templateUrl: static('pgdb/enrichment/annotation-level/utterance.html'),
@@ -149,3 +171,9 @@ app.config(function ($stateProvider, $urlRouterProvider) {
 
     $urlRouterProvider.otherwise('/');
 });
+app.run(['$transitions', function($transitions) {
+	//Makes each page scroll to top after a page change.
+	$transitions.onSuccess({}, function() {
+		document.body.scrollTop = document.documentElement.scrollTop = 0;
+	})
+}]);
