@@ -1,31 +1,27 @@
 angular.module('pgdb.query')
+    .factory('$query',  ['$resource', function ($resource) {
+  'use strict';
+        var base_url = __env.apiUrl + 'corpora/';
+
+  return {
+    results: $resource(base_url + ':corpus_id/query/:id/results/')
+  };
+}])
     .service('Query', function ($http, $location, __env) {
         var base_url = __env.apiUrl + 'corpora/';
         var Query = {};
-        Query.state = {
-                currentQueryId: 0,
-                currentPage: 1,
-                resultsPerPage: 100,
-                offset: 0,
-                numPages: 0,
-                pages: [],
-                queryRunning: false,
-                queryText: 'Save query',
-                refreshText: 'Refresh',
-                exportText: 'Export to csv'};
+        Query.paginateParams = {
+                id: 0,
+                page: 1,
+                limit: 5,
+                ordering: ''};
         Query.reset_state = function(id){
-            if (id != Query.state.currentQueryId){
-                Query.state = {
-                currentQueryId: id,
-                currentPage: 1,
-                resultsPerPage: 100,
-                offset: 0,
-                numPages: 0,
-                pages: [],
-                queryRunning: false,
-                queryText: 'Save query',
-                refreshText: 'Refresh',
-                exportText: 'Export to csv'}
+            if (id != Query.paginateParams.id){
+                Query.paginateParams = {
+                id: id,
+                page: 1,
+                limit: 5,
+                ordering: ''}
             }
         };
         Query.annotation_types = ['phone', 'syllable', 'word', 'utterance'];

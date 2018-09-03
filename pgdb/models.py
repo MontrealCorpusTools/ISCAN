@@ -63,6 +63,9 @@ class Database(models.Model):
     neo4j_pid = models.IntegerField(null=True, blank=True)
     influxdb_pid = models.IntegerField(null=True, blank=True)
 
+    class Meta:
+        ordering = ['name']
+
     def __str__(self):
         return self.name
 
@@ -411,6 +414,7 @@ class Corpus(models.Model):
 
     class Meta:
         verbose_name_plural = "corpora"
+        ordering = ['name']
 
     MFA = 'M'
     FAVE = 'F'
@@ -825,6 +829,8 @@ class Enrichment(models.Model):
         except Exception:
             self.corpus.busy = False  # If it fails, don't stay busy and block everything
             self.corpus.save()
+            self.busy = False
+            self.completed = False
             print(traceback.format_exc())
 
 
@@ -1021,8 +1027,6 @@ class Query(models.Model):
             for c, v in props.items():
                 if not v:
                     continue
-                print(acoustic)
-                print(c)
                 q = q.columns(getattr(acoustic, c))
             if include_track:
                 acoustic = getattr(a, a_column)
@@ -1215,7 +1219,7 @@ class Query(models.Model):
                                                       with_higher_annotations=True,
                                                       with_subannotations=True)
                 serializer = serializer_class(res, many=True)
-                print(serializer)
+
                 self._results = serializer.data
                 ordering = self.config.get('ordering', None)
                 if ordering:

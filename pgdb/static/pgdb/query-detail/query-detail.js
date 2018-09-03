@@ -45,7 +45,7 @@ angular.module('queryDetail', [
     };
 }])
     .controller('QueryDetailCtrl', function ($scope, $rootScope, Query, Corpora, $state, $stateParams, $document, Annotations) {
-            $scope.queryState = Query.state;
+            $scope.paginateParams = Query.paginateParams;
             $scope.annotation_types = Query.annotation_types;
             $scope.newAnnotation = {};
             $scope.currentAnnotations = {};
@@ -218,7 +218,7 @@ angular.module('queryDetail', [
                     }
                     console.log($scope.can_view_annotations, $scope.can_annotate)
                 }
-                Query.oneAnnotation($stateParams.corpus_id, $stateParams.query_id, $scope.detail_index, $scope.queryState.ordering, true, true, true).then(function (res) {
+                Query.oneAnnotation($stateParams.corpus_id, $stateParams.query_id, $scope.detail_index, $scope.paginateParams.ordering, true, true, true).then(function (res) {
                     $scope.utterance = res.data.utterance;
                     console.log("SANITY", $scope.utterance);
                     $scope.selectedResult = res.data.result;

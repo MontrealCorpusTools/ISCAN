@@ -1,10 +1,6 @@
 html, body, .container-fluid{
   height: 100%;
 }
-.scroll-container {
-    height: 100%;
-    overflow: auto;
-}
 .scrollable-table tr {
     width: 100%;
     display: inline-table;
@@ -22,8 +18,13 @@ html, body, .container-fluid{
     position: absolute;
 }
 
+header {
+    height:10%;
+}
+
 main {
-    height:1280px;
+    height:90%;
+    overflow-y: hidden;
 }
 main .container-fluid {
     height: 100%;
@@ -36,44 +37,15 @@ main .container-fluid {
     color: red;
 }
 
-
-.col-md-3 {
-    height:850px;
-}
-.col-md-3 .detail-container{
-    height:400px;
+.query-filters-tabs md-tab-group {
+    height:50%;
 }
 
-.col-md-3 .tabs {
-    height:76%;
-    width: 100%;
-    overflow-y: hidden;
-    overflow-x: visible;
+.query-columns-tabs .query-filters-tabs{
+    max-height: 50%;
 }
-
-md-tabs {
-    height: 400px;
-    overflow-y: hidden;
-    overflow-x: visible;
-}
-
-md-content {
-    min-height: 400px;
-}
-
-.col-md-3 md-content{
-    //height:800px;
-    //height: 100%;
-    overflow-y: hidden;
-    overflow-x: visible;
-}
-
-.col-md-3 md-content div {
-    height:100%;
-}
-
-.col-md-3 .detail-container md-content div {
-    height:auto;
+.query-acoustics-tabs{
+    max-height: 40%;
 }
 
 multiselect {
@@ -142,3 +114,13 @@ multiselect {
     color: transparent !important;
 }
 
+.ng-animate.no-animate {
+    transition: 0s none;
+    -webkit-transition: 0s none;
+    animation: 0s none;
+    -webkit-animation: 0s none;
+}
+md-table-pagination .label{
+    color: rgba(0, 0, 0, 0.54);
+    font-size: 12px;
+}
