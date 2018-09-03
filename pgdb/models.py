@@ -10,6 +10,7 @@ import socket
 import yaml
 import shutil
 import datetime
+
 from django.db import models
 from django.conf import settings
 from django.contrib.auth.models import Group, User
@@ -61,6 +62,9 @@ class Database(models.Model):
     status = models.CharField(max_length=1, choices=STATUS_CHOICES, default=STOPPED)
     neo4j_pid = models.IntegerField(null=True, blank=True)
     influxdb_pid = models.IntegerField(null=True, blank=True)
+
+    class Meta:
+        ordering = ['name']
 
     def __str__(self):
         return self.name
@@ -410,6 +414,7 @@ class Corpus(models.Model):
 
     class Meta:
         verbose_name_plural = "corpora"
+        ordering = ['name']
 
     MFA = 'M'
     FAVE = 'F'
@@ -824,6 +829,8 @@ class Enrichment(models.Model):
         except Exception:
             self.corpus.busy = False  # If it fails, don't stay busy and block everything
             self.corpus.save()
+            self.busy = False
+            self.completed = False
             print(traceback.format_exc())
 
 
@@ -932,6 +939,27 @@ class Query(models.Model):
             ind += 1
         return res
 
+    def generate_filter(self, att, value, operator):
+        if operator == '==':
+            filter = att == value
+        elif operator == '!=':
+            filter = att != value
+        elif operator == '>':
+            filter = att > value
+        elif operator == '>=':
+            filter = att >= value
+        elif operator == '<':
+            filter = att < value
+        elif operator == '<=':
+            filter = att <= value
+        elif operator == 'in':
+            filter = att.in_(value)
+        elif operator == 'not in':
+            filter = att.not_in_(value)
+        else:
+            raise Exception('Invalid operator "{}"'.format(operator))
+        return filter
+
     def generate_query_for_export(self, corpus_context):
         a_type = self.get_annotation_type_display().lower()
         config = self.config
@@ -999,8 +1027,6 @@ class Query(models.Model):
             for c, v in props.items():
                 if not v:
                     continue
-                print(acoustic)
-                print(c)
                 q = q.columns(getattr(acoustic, c))
             if include_track:
                 acoustic = getattr(a, a_column)
@@ -1015,7 +1041,7 @@ class Query(models.Model):
                 q = q.columns(acoustic)
         print(q.cypher(), q.cypher_params())
         return q
-
+                  
     def generate_base_query(self, corpus_context):
         a_type = self.get_annotation_type_display().lower()
         config = self.config
@@ -1040,11 +1066,12 @@ class Query(models.Model):
                                 value = att.coerce_value(value)
                             if value is None:
                                 continue
-                            att = getattr(ann, field)
-                            q = q.filter(att == value)
+                            operator = a_filters.get('operator', '==')
+                            filter = self.generate_filter(att, value, operator)
+                            q = q.filter(filter)
                     else:
                         for d in a_filters:
-                            field, value = d['property'], d['value']
+                            field, value, operator = d['property'], d['value'], d.get('operator', '==')
                             att = getattr(ann, field)
                             if value == 'null':
                                 value = None
@@ -1052,7 +1079,8 @@ class Query(models.Model):
                                 value = att.coerce_value(value)
                             if value is None:
                                 continue
-                            q = q.filter(att == value)
+                            filter = self.generate_filter(att, value, operator)
+                            q = q.filter(filter)
             else:
                 for position, filter_types in positions.items():
                     if f_a_type == a_type:
@@ -1191,7 +1219,7 @@ class Query(models.Model):
                                                       with_higher_annotations=True,
                                                       with_subannotations=True)
                 serializer = serializer_class(res, many=True)
-                print(serializer)
+
                 self._results = serializer.data
                 ordering = self.config.get('ordering', None)
                 if ordering:

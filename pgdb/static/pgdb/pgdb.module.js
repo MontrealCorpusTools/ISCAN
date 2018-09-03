@@ -15,6 +15,7 @@ var app = angular.module('pgdb', [
     'ngMaterial',
     'angular-mousetrap',
     'checklist-model',
+    'md.data.table',
     'databaseList',
     'databaseDetail',
     'corpusDetail',

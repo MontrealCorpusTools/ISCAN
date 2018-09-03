@@ -83,6 +83,9 @@ angular.module('corpusDetail', [
                 }).catch(function(res){
 			console.log($scope.corpus_status)
 			$scope.error_message = res.data;
+            Corpora.one($stateParams.corpus_id).then(function (res) {
+                $scope.corpus = res.data;
+            });
 		});
             }
             else if ($scope.corpus.busy){

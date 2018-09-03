@@ -60,6 +60,10 @@ angular.module('pgdb.corpora')
         return $http.get(base_url + id + '/pitch_tracks/');
     };
 
+    Corpora.autocomplete = function (id, prefix, category, prop) {
+        return $http.get(base_url + id + '/autocomplete/?prefix=' + prefix + '&category=' + category + '&prop=' + prop);
+    };
+
     Corpora.update = function (updatedCorpus) {
         return $http.put(base_url + updatedCorpus.id, updatedCorpus);
     };

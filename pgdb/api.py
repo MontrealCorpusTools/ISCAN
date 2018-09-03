@@ -197,6 +197,34 @@ class CorpusViewSet(viewsets.ModelViewSet):
         return Response('ready')
 
     @detail_route(methods=['get'])
+    def autocomplete(self, request, pk=None):
+        prefix = request.GET.get('prefix', None)
+        category = request.GET.get('category', None)
+        if category in ['speaker', 'discourse']:
+            category = category.title()
+        else:
+            category += '_type'
+        prop = request.GET.get('prop', 'label')
+        if prefix is None:
+            return Response("Please provide a prefix", 
+                    status=status.HTTP_400_BAD_REQUEST)
+
+        for x in ['\'', '\"']:
+            #Escape characters
+            prefix = prefix.replace(x, '\\{}'.format(x))
+        if prop not in ["name", "label", "transcription"]:
+            return Response("Provided property:{} is invalid".format(prop), 
+                    status=status.HTTP_400_BAD_REQUEST)
+        corpus = self.get_object()
+        with CorpusContext(corpus.config) as c:
+            statement = """MATCH (n:{category}:{corpus_name})
+                         WHERE n.{prop} STARTS WITH {{prefix}}
+                         RETURN DISTINCT n.{prop}
+                         LIMIT 10""".format(corpus_name=c.cypher_safe_name, category=category, prop=prop)
+            resp = c.execute_cypher(statement, prefix=prefix).value()
+        return Response(resp)
+
+    @detail_route(methods=['get'])
     def speakers(self, request, pk=None):
         if request.auth is None:
             return Response(status=status.HTTP_401_UNAUTHORIZED)
@@ -902,7 +930,8 @@ class QueryViewSet(viewsets.ModelViewSet):
         offset = int(request.query_params.get('offset', 0))
         limit = int(request.query_params.get('limit', 100))
         results = query.get_results(ordering, limit, offset)
-        return Response(results)
+        resp = {'data': results, 'count': query.result_count}
+        return Response(resp)
 
     @detail_route(methods=['put'])
     def ordering(self, request, pk=None, corpus_pk=None, index=None):
@@ -1016,8 +1045,6 @@ class QueryViewSet(viewsets.ModelViewSet):
         print(corpus)
         do_run = query.config['filters'] != request.data['filters'] or \
                  query.config['positions'] != request.data['positions']
-        if do_run:
-            return Response(None, status=status.HTTP_405_METHOD_NOT_ALLOWED)
         query.config = request.data
         response['Content-Disposition'] = 'attachment; filename="{}_query_export.csv"'.format(
             query.get_annotation_type_display())

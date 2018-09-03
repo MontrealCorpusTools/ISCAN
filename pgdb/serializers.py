@@ -49,6 +49,7 @@ class HierarchySerializer(serializers.Serializer):
     subset_tokens = serializers.SerializerMethodField()
     subannotations = serializers.SerializerMethodField()
     subannotation_properties = serializers.SerializerMethodField()
+    acoustics = serializers.SerializerMethodField()
     has_pitch_tracks = serializers.SerializerMethodField()
     has_formant_tracks = serializers.SerializerMethodField()
     has_intensity_tracks = serializers.SerializerMethodField()
@@ -80,6 +81,9 @@ class HierarchySerializer(serializers.Serializer):
     def get_subannotation_properties(self, obj):
         return {k: sorted((name, t()) for name, t in v) for k, v in
                                             obj.subannotation_properties.items()}
+
+    def get_acoustics(self, obj):
+        return sorted(obj.acoustics)
 
     def get_has_pitch_tracks(self, obj):
         try:

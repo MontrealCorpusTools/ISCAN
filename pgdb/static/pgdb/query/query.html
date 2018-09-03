@@ -1,176 +1,345 @@
-<div class="col-md-9 scroll-container text-center" style="height:1280px" ng-show="corpus.database_running">
+<div class="col-md-9 scroll-container text-center" ng-show="corpus.database_running">
     <div>
         <h4>Query <span ng-bind="query.annotation_type"></span>s</h4>
         <label>Query name: <input ng-model="query.name"> </label>
-        <multiselect-dropdown class="tabs" ng-cloak style="max-height:100%">
-            <md-content>
-                <md-tabs md-border-bottom>
-                    <md-tab ng-repeat="t in annotation_types" label="{{ t|titlecase }} properties"
-                            data-ng-if="$index >= annotation_types.indexOf(query.annotation_type.toLowerCase())">
-                        <md-content class="md-padding annotation-content">
-                            <div style="display:inline-block;">
-                                <button style="display: block;" ng-click="console.log('blah'); addPrevious(t)">Add
-                                    previous
-                                </button>
-                                <button style="display: block;" ng-click="removePrevious(t)">Remove previous</button>
+        <md-tabs md-border-bottom md-dynamic-height class="query-filters-tabs">
+            <md-tab ng-repeat="t in annotation_types" label="{{ t|titlecase }} properties"
+                    data-ng-if="$index >= annotation_types.indexOf(query.annotation_type.toLowerCase())">
+                <md-content class="md-padding annotation-content">
+                    <div style="display:inline-block;">
+                        <button class='btn' style="display: block;" ng-click="addPrevious(t)">Add previous</button>
+                        <button class='btn btn-danger' style="display: block;" ng-click="removePrevious(t)">Remove
+                            previous
+                        </button>
 
-                            </div>
-                            <div class="annotation" style="display:inline-block;"
-                                 ng-repeat="position in query.positions[t]">
-                                {{ position }}
-                                <table class="table table-bordered table-striped">
-                                    <tbody>
-                                    <tr ng-repeat="filter in query.filters[t][position].property_filters">
+                    </div>
+                    <div class="annotation" style="display:inline-block;"
+                         ng-repeat="position in query.positions[t]">
+                        {{ position }}
+                        <br>
+                        <md-card ng-repeat="filter in query.filters[t][position].property_filters">
+                            <md-card-content>
+                                <div layout="row">
+                                    <md-input-container>
+                                        <label>Property</label>
+                                        <md-select ng-model="filter.property" ng-change="console.log(filter)">
+                                            <md-option ng-value="prop" ng-repeat="prop in properties[t]">{{ prop }}
+                                            </md-option>
 
-                                        <td>
-                                            <select ng-model="filter.property">
-                                                <option value="">Select property</option>
-                                                <option ng-repeat="prop in properties[t]">{{ prop }}</option>
-                                            </select>
-                                        </td>
-                                        <td>
-                                            <input type="checkbox" ng-show="propertyTypes[t][filter.property]=== false"
-                                                   ng-model="filter.value">
-                                            <input ng-show="propertyTypes[t][filter.property] === '' || propertyTypes[t][filter.property] === 0"
-                                                   ng-model="filter.value">
-                                        </td>
-                                        <td>
-                                            <span class='badge' ng-click="removeFilter(t, position, $index)">X</span>
-                                        </td>
-                                    </tr>
-                                    </tbody>
-                                </table>
-                                <button class='btn' ng-click="addFilter(t, position)" ng-disabled="query.running"><span>Add filter</span>
-                                </button>
+                                        </md-select>
 
-                                <label style="display: block;">Subset:
-                                    <multiselect class="input-small multiselect"
-                                                 ng-model="query.filters[t][position].subset_filters"
-                                                 options="s for s in subsets[t]"
-                                                 header="All" selected-header="subsets" enable-check-all="false"
-                                                 enable-uncheck-all="true" multiple="true" enable-filter="false"
-                                                 ng-init='e.initial = true'>
-                                    </multiselect>
-                                </label>
-                                <label style="display: block;">Left aligned with:
-                                    <select ng-model="query.filters[t][position].left_aligned_filter"
-                                            ng-options="higher_type as higher_type for higher_type in annotation_types.slice($parent.$index+1)">
-                                        <option value="">None</option>
-                                    </select></label>
-                                <label style="display: block;">Right aligned with:
-                                    <select ng-model="query.filters[t][position].right_aligned_filter"
-                                            ng-options="higher_type as higher_type for higher_type in annotation_types.slice($parent.$index+1)">
-                                        <option value="">None</option>
-                                    </select></label>
-                                <div ng-repeat="s in hierarchy.subannotations[t]">
-                                    {{ s }}
-                                <table class="table table-bordered table-striped">
-                                    <tbody>
-                                    <tr ng-repeat="filter in query.filters[t][position].subannotation_filters[s]">
+                                    </md-input-container>
 
-                                        <td>
-                                            <select ng-model="filter.property">
-                                                <option value="">Select property</option>
-                                                <option ng-repeat="prop in hierarchy.subannotation_properties[s]">{{ prop[0] }}</option>
-                                            </select>
-                                        </td>
-                                        <td>
-                                            <input type="checkbox" ng-show="subannotationPropertyTypes[s][filter.property]=== false"
-                                                   ng-model="filter.value">
-                                            <input ng-show="subannotationPropertyTypes[s][filter.property] === '' || subannotationPropertyTypes[s][filter.property] === 0"
-                                                   ng-model="filter.value">
-                                        </td>
-                                        <td>
-                                            <span class='badge' ng-click="removeSubannotationFilter(t, position, s, $index)">X</span>
-                                        </td>
-                                    </tr>
-                                    </tbody>
-                                </table>
-                                <button class='btn' ng-click="addSubannotationFilter(t, position, s)" ng-disabled="query.running"><span>Add filter</span>
+                                    <md-input-container>
+                                        <label>Operator</label>
+                                        <md-select ng-model="filter.operator">
+                                            <md-option ng-value="o"
+                                                       ng-repeat="o in operators[propertyTypes[t][filter.property]]">{{
+                                                o }}
+                                            </md-option>
+                                        </md-select>
+
+                                    </md-input-container>
+                                    <md-autocomplete flex ng-if="propertyTypes[t][filter.property] === ''"
+                                                     class="no-animate"
+                                                     md-selected-item="filter.value"
+                                                     md-search-text="filter.searchText"
+                                                     md-items="item in updateAutoComplete(t, filter)"
+                                                     md-item-text="item"
+                                                     md-floating-label="Value"
+                                                     md-min-length="1">
+                                        <md-item-template>
+                                            <span md-highlight-text="filter.searchText"
+                                                  md-highlight-flags="^i">{{item}}</span>
+                                        </md-item-template>
+                                        <md-not-found>
+                                            No label matching "{{filter.searchText}}" were found.
+                                        </md-not-found>
+                                    </md-autocomplete>
+                                    <md-input-container ng-if="propertyTypes[t][filter.property]=== false"
+                                                        class="no-animate">
+                                        <input type="checkbox"
+                                               ng-model="filter.value">
+                                    </md-input-container>
+                                    <md-input-container ng-if="propertyTypes[t][filter.property]=== 0"
+                                                        class="no-animate">
+                                        <input ng-model="filter.value" ng-pattern="/^-?[0-9]*([.][0-9]*)?$/">
+                                    </md-input-container>
+                                    <md-button md-colors="{background:'red'}" class="md-icon-button md-primary"
+                                               aria-label="Remove" ng-click="removeFilter(t, position, $index)">
+                                        <span>X</span>
+                                    </md-button>
+                                </div>
+
+                            </md-card-content>
+                        </md-card>
+
+                        <button class='btn' ng-click="addFilter(t, position)" ng-disabled="query.running"><span>Add filter</span>
+                        </button>
+                        <md-card>
+                            <md-card-content>
+                                <div class="row">
+                                    <md-input-container>
+                                        <label>Subset</label>
+                                        <multiselect class="input-small multiselect"
+                                                     ng-model="query.filters[t][position].subset_filters"
+                                                     options="s for s in subsets[t]"
+                                                     header="All" selected-header="subsets" enable-check-all="false"
+                                                     enable-uncheck-all="true" multiple="true" enable-filter="false"
+                                                     ng-init='e.initial = true'>
+                                        </multiselect>
+
+                                    </md-input-container>
 
                                 </div>
-                            </div>
-                            <div style="display:inline-block;">
+                                <div class="row">
+                                    <md-input-container>
+                                        <label>Left alignment</label>
+                                        <md-select ng-model="query.filters[t][position].left_aligned_filter">
+                                            <md-option ng-value="higher_type"
+                                                       ng-repeat="higher_type in annotation_types.slice($parent.$index+1)">
+                                                {{higher_type}}
+                                            </md-option>
+                                        </md-select>
+                                    </md-input-container>
 
-                                <button style="display: block;" ng-click="addFollowing(t)">Add following</button>
-                                <button style="display: block;" ng-click="removeFollowing(t)">Remove following</button>
-                            </div>
-                        </md-content>
-                    </md-tab>
+                                </div>
+                                <div class="row">
+                                    <md-input-container>
+                                        <label>Right alignment</label>
+                                        <md-select ng-model="query.filters[t][position].right_aligned_filter">
+                                            <md-option ng-value="higher_type"
+                                                       ng-repeat="higher_type in annotation_types.slice($parent.$index+1)">
+                                                {{higher_type}}
+                                            </md-option>
+                                        </md-select>
+                                    </md-input-container>
 
-                    <md-tab label="Speaker properties">
-                        <md-content class="md-padding">
-                            <table class="table table-bordered table-striped">
-                                <tbody>
-                                <tr ng-repeat="filter in query.filters.speaker">
+                                </div>
 
-                                    <td>
-                                        <select ng-model="filter.property">
-                                            <option value="">Select property</option>
-                                            <option ng-repeat="prop in properties.speaker">{{ prop }}</option>
-                                        </select>
-                                    </td>
-                                    <td>
-                                        <input type="checkbox" ng-show="propertyTypes.speaker[filter.property]=== false"
-                                               ng-model="filter.value">
-                                        <input ng-show="propertyTypes.speaker[filter.property] === '' || propertyTypes.speaker[filter.property] === 0"
-                                               ng-model="filter.value">
-                                    </td>
-                                    <td>
-                                        <span class='badge' ng-click="removeFilter('speaker', $index)">X</span>
-                                    </td>
-                                </tr>
-                                </tbody>
-                            </table>
-                            <button class='btn' ng-click="addFilter('speaker')" ng-disabled="query.running"><span>Add filter</span>
+                            </md-card-content>
+                        </md-card>
+                        <div ng-repeat="s in hierarchy.subannotations[t]">
+                            {{ s }}
+                            <br>
+                            <md-card ng-repeat="filter in query.filters[t][position].subannotation_filters[s]">
+                                <md-card-content>
+                                    <div layout="row">
+                                        <md-input-container>
+                                            <label>Property</label>
+                                            <md-select ng-model="filter.property" ng-change="console.log(filter)">
+                                                <md-option ng-value="prop"
+                                                           ng-repeat="prop in hierarchy.subannotation_properties[s]">{{
+                                                    prop[0] }}
+                                                </md-option>
+
+                                            </md-select>
+
+                                        </md-input-container>
+
+                                        <md-input-container>
+                                            <label>Operator</label>
+                                            <md-select ng-model="filter.operator">
+                                                <md-option ng-value="o"
+                                                           ng-repeat="o in operators[subannotationPropertyTypes[s][filter.property]]">
+                                                    {{ o }}
+                                                </md-option>
+                                            </md-select>
+
+                                        </md-input-container>
+                                        <md-autocomplete flex
+                                                         ng-if="subannotationPropertyTypes[s][filter.property] === ''"
+                                                         class="no-animate"
+                                                         md-selected-item="filter.value"
+                                                         md-search-text="filter.searchText"
+                                                         md-items="item in updateAutoComplete(t, filter)"
+                                                         md-item-text="item"
+                                                         md-floating-label="Value"
+                                                         md-min-length="1">
+                                            <md-item-template>
+                                                <span md-highlight-text="filter.searchText" md-highlight-flags="^i">{{item}}</span>
+                                            </md-item-template>
+                                            <md-not-found>
+                                                No label matching "{{filter.searchText}}" were found.
+                                            </md-not-found>
+                                        </md-autocomplete>
+                                        <md-input-container
+                                                ng-if="subannotationPropertyTypes[s][filter.property]=== false"
+                                                class="no-animate">
+                                            <input type="checkbox"
+                                                   ng-model="filter.value">
+                                        </md-input-container>
+                                        <md-input-container ng-if="subannotationPropertyTypes[s][filter.property]=== 0"
+                                                            class="no-animate">
+                                            <input ng-model="filter.value" ng-pattern="/^-?[0-9]*([.][0-9]*)?$/">
+                                        </md-input-container>
+                                        <md-button md-colors="{background:'red'}" class="md-icon-button md-primary"
+                                                   aria-label="Remove"
+                                                   ng-click="removeSubannotationFilter(t, position, s, $index)">
+                                            <span>X</span>
+                                        </md-button>
+                                    </div>
+
+                                </md-card-content>
+                            </md-card>
+
+                            <button class='btn' ng-click="addSubannotationFilter(t, position, s)"
+                                    ng-disabled="query.running"><span>Add filter</span>
                             </button>
-                        </md-content>
-                    </md-tab>
-                    <md-tab label="Sound file properties">
-                        <md-content class="md-padding">
-                            <table class="table table-bordered table-striped">
-                                <tbody>
-                                <tr ng-repeat="filter in query.filters.discourse">
+                        </div>
+                    </div>
+                    <div style="display:inline-block;">
 
-                                    <td>
-                                        <select ng-model="filter.property">
-                                            <option value="">Select property</option>
-                                            <option ng-repeat="prop in properties.discourse">{{ prop }}</option>
-                                        </select>
-                                    </td>
-                                    <td>
-                                        <input type="checkbox"
-                                               ng-show="propertyTypes.discourse[filter.property]=== false"
-                                               ng-model="filter.value">
-                                        <input ng-show="propertyTypes.discourse[filter.property] === '' || propertyTypes.discourse[filter.property] === 0"
-                                               ng-model="filter.value">
-                                    </td>
-                                    <td>
-                                        <span class='badge' ng-click="removeFilter('discourse', $index)">X</span>
-                                    </td>
-                                </tr>
-                                </tbody>
-                            </table>
-                            <button class='btn' ng-click="addFilter('discourse')" ng-disabled="query.running"><span>Add filter</span>
-                            </button>
-                        </md-content>
-                    </md-tab>
+                        <button class='btn' style="display: block;" ng-click="addFollowing(t)">Add following</button>
+                        <button class='btn btn-danger' style="display: block;" ng-click="removeFollowing(t)">Remove
+                            following
+                        </button>
+                    </div>
+                </md-content>
+            </md-tab>
 
-                </md-tabs>
-            </md-content>
-        </multiselect-dropdown>
+            <md-tab label="Speaker properties">
+                <md-content class="md-padding">
+                    <md-card ng-repeat="filter in query.filters.speaker">
+                        <md-card-content>
+                            <div layout="row">
+                                <md-input-container>
+                                    <label>Property</label>
+                                    <md-select ng-model="filter.property" ng-change="console.log(filter)">
+                                        <md-option ng-value="prop" ng-repeat="prop in properties.speaker">{{ prop }}
+                                        </md-option>
+
+                                    </md-select>
+
+                                </md-input-container>
+
+                                <md-input-container>
+                                    <label>Operator</label>
+                                    <md-select ng-model="filter.operator">
+                                        <md-option ng-value="o"
+                                                   ng-repeat="o in operators[propertyTypes.speaker[filter.property]]">{{
+                                            o }}
+                                        </md-option>
+                                    </md-select>
+
+                                </md-input-container>
+                                <md-autocomplete flex ng-if="propertyTypes.speaker[filter.property] === ''"
+                                                 class="no-animate"
+                                                 md-selected-item="filter.value"
+                                                 md-search-text="filter.searchText"
+                                                 md-items="item in updateAutoComplete('speaker', filter)"
+                                                 md-item-text="item"
+                                                 md-floating-label="Value"
+                                                 md-min-length="1">
+                                    <md-item-template>
+                                            <span md-highlight-text="filter.searchText"
+                                                  md-highlight-flags="^i">{{item}}</span>
+                                    </md-item-template>
+                                    <md-not-found>
+                                        No label matching "{{filter.searchText}}" were found.
+                                    </md-not-found>
+                                </md-autocomplete>
+                                <md-input-container ng-if="propertyTypes.speaker[filter.property]=== false"
+                                                    class="no-animate">
+                                    <input type="checkbox"
+                                           ng-model="filter.value">
+                                </md-input-container>
+                                <md-input-container ng-if="propertyTypes.speaker[filter.property]=== 0"
+                                                    class="no-animate">
+                                    <input ng-model="filter.value" ng-pattern="/^-?[0-9]*([.][0-9]*)?$/">
+                                </md-input-container>
+                                <md-button md-colors="{background:'red'}" class="md-icon-button md-primary"
+                                           aria-label="Remove" ng-click="removeSpokenFilter('speaker', $index)">
+                                    <span>X</span>
+                                </md-button>
+                            </div>
+
+                        </md-card-content>
+                    </md-card>
+                    <button class='btn' ng-click="addFilter('speaker')" ng-disabled="query.running">
+                        <span>Add filter</span>
+                    </button>
+                </md-content>
+            </md-tab>
+            <md-tab label="Sound file properties">
+                <md-content class="md-padding">
+
+                    <md-card ng-repeat="filter in query.filters.discourse">
+                        <md-card-content>
+                            <div layout="row">
+                                <md-input-container>
+                                    <label>Property</label>
+                                    <md-select ng-model="filter.property">
+                                        <md-option ng-value="prop" ng-repeat="prop in properties.discourse">{{ prop }}
+                                        </md-option>
+
+                                    </md-select>
+
+                                </md-input-container>
+
+                                <md-input-container>
+                                    <label>Operator</label>
+                                    <md-select ng-model="filter.operator">
+                                        <md-option ng-value="o"
+                                                   ng-repeat="o in operators[propertyTypes.discourse[filter.property]]">
+                                            {{
+                                            o }}
+                                        </md-option>
+                                    </md-select>
+
+                                </md-input-container>
+                                <md-autocomplete flex ng-if="propertyTypes.discourse[filter.property] === ''"
+                                                 class="no-animate"
+                                                 md-selected-item="filter.value"
+                                                 md-search-text="filter.searchText"
+                                                 md-items="item in updateAutoComplete('discourse', filter)"
+                                                 md-item-text="item"
+                                                 md-floating-label="Value"
+                                                 md-min-length="1">
+                                    <md-item-template>
+                                            <span md-highlight-text="filter.searchText"
+                                                  md-highlight-flags="^i">{{item}}</span>
+                                    </md-item-template>
+                                    <md-not-found>
+                                        No label matching "{{filter.searchText}}" were found.
+                                    </md-not-found>
+                                </md-autocomplete>
+                                <md-input-container ng-if="propertyTypes.discourse[filter.property]=== false"
+                                                    class="no-animate">
+                                    <input type="checkbox"
+                                           ng-model="filter.value">
+                                </md-input-container>
+                                <md-input-container ng-if="propertyTypes.discourse[filter.property]=== 0"
+                                                    class="no-animate">
+                                    <input ng-model="filter.value" ng-pattern="/^-?[0-9]*([.][0-9]*)?$/">
+                                </md-input-container>
+                                <md-button md-colors="{background:'red'}" class="md-icon-button md-primary"
+                                           aria-label="Remove" ng-click="removeSpokenFilter('discourse', $index)">
+                                    <span>X</span>
+                                </md-button>
+                            </div>
+
+                        </md-card-content>
+                    </md-card>
+
+                    <button class='btn' ng-click="addFilter('discourse')" ng-disabled="query.running">
+                        <span>Add filter</span>
+                    </button>
+                </md-content>
+            </md-tab>
+
+        </md-tabs>
 
 
-        <button class='btn btn-success' ng-click="updateQuery()" ng-disabled="query.running"><span
-                ng-bind="queryState.queryText"></span></button>
-        <button class='btn btn-success' ng-show="!newQuery" ng-click="refreshQuery()" ng-disabled="query.running"><span
-                ng-bind="queryState.refreshText"></span></button>
-        <button class='btn btn-success' ng-show="!newQuery" ng-click="updateOrdering()" ng-disabled="query.running">
-            <span>Save current ordering</span></button>
-        <button class='btn btn-danger' ng-click="clearFilters()" ng-disabled="query.running"><span>Clear filters</span>
+        <button class='btn btn-success' ng-click="updateQuery()" ng-disabled="query.running || refreshing || exporting">Run query</button>
+        <button class='btn btn-success' ng-show="!newQuery" ng-click="refreshQuery()" ng-disabled="query.running || refreshing || exporting">
+            Refresh
         </button>
-        <button class="btn" ng-disabled="query.running" ng-show="!newQuery" ng-click="export()"><span
-                ng-bind="queryState.exportText"></span></button>
+        <button class='btn btn-success' ng-show="!newQuery" ng-click="updateOrdering()" ng-disabled="query.running || refreshing || exporting">
+            <span>Save current ordering</span></button>
+        <button class='btn btn-danger' ng-click="clearFilters()" ng-disabled="query.running || refreshing || exporting"><span>Clear filters</span>
+        </button>
+        <button class="btn" ng-disabled="query.running || refreshing || exporting" ng-show="!newQuery" ng-click="export()">Export to CSV</button>
     </div>
     <div ng-show="query.result_count==0 && !newQuery">
         <span>No results found</span>
@@ -178,391 +347,261 @@
     <div ng-show="refreshing">
         <span>Refreshing results...</span>
     </div>
+
+
     <div ng-show="query.result_count>0 && !refreshing">
-
-        <ul ng-if="queryState.numPages" class="pagination">
-            <li ng-class="{disabled:queryState.currentPage === 1}">
-                <a ng-click="first()">First</a>
-            </li>
-            <li ng-class="{disabled:queryState.currentPage === 1}">
-                <a ng-click="previous()">Previous</a>
-            </li>
-            <li ng-repeat="page in queryState.pages  track by $index"
-                ng-class="{active:queryState.currentPage === page, disabled:page === '...'}">
-                <a ng-click="refreshPagination(page)">{{ page }}</a>
-            </li>
-            <li ng-class="{disabled:queryState.currentPage === queryState.numPages}">
-                <a ng-click="next()">Next</a>
-            </li>
-            <li ng-class="{disabled:queryState.currentPage === queryState.numPages}">
-                <a ng-click="last()">Last</a>
-            </li>
-        </ul>
-        <br>
-        <span>Displaying results {{ queryState.offset }} to {{ queryState.offset + queryState.resultsPerPage }} of {{ query.result_count}} total</span>
-        <table class="table table-bordered table-striped scrollable-table">
-
-            <thead>
-            <tr>
-                <td></td>
-                <td ng-repeat="value in column_values"
-                    ng-click="refreshOrdering(value)"
-                    data-ng-if="query.columns[value.type][value.position][value.property] &&
+        <md-card>
+            <md-card-content>
+                <md-table-container>
+                    <table md-table md-progress="promise">
+                        <thead md-head md-order="paginateParams.ordering" md-on-reorder="paginatorCallback">
+                        <tr md-row>
+                            <th md-column>Actions</th>
+                            <th md-column ng-repeat="value in column_values"
+                                ng-click="refreshOrdering(value)"
+                                data-ng-if="query.columns[value.type][value.position][value.property] &&
                     annotation_types.indexOf(value.type) >=annotation_types.indexOf(query.annotation_type.toLowerCase())">
 
-                    <input ng-model="query.column_names[value.type][value.position][value.property]"
-                           ng-click="$event.stopPropagation();">
-                    <span ng-show="queryState.ordering == value.type +'.' +value.position + '.'+value.property"
-                          class="fa fa-caret-down"></span>
-                    <span ng-show="queryState.ordering == '-'+ value.type +'.' +value.position + '.' + value.property"
-                          class="fa fa-caret-up"></span>
-                </td>
-                <td ng-repeat="value in subannotation_column_values"
-                    ng-click="refreshOrdering(value)"
-                    data-ng-if="query.columns[value.type][value.position].subannotations[value.subannotation_type][value.property] &&
+                                <input ng-model="query.column_names[value.type][value.position][value.property]"
+                                       ng-click="$event.stopPropagation();">
+                                <span ng-show="paginateParams.ordering == value.type +'.' +value.position + '.'+value.property"
+                                      class="fa fa-caret-down"></span>
+                                <span ng-show="paginateParams.ordering == '-'+ value.type +'.' +value.position + '.' + value.property"
+                                      class="fa fa-caret-up"></span>
+                            </th>
+                            <th md-column ng-repeat="value in subannotation_column_values"
+                                ng-click="refreshOrdering(value)"
+                                data-ng-if="query.columns[value.type][value.position].subannotations[value.subannotation_type][value.property] &&
                     annotation_types.indexOf(value.type) >=annotation_types.indexOf(query.annotation_type.toLowerCase())">
 
-                    <input ng-model="query.column_names[value.type][value.position].subannotations[value.subannotation_type][value.property]"
-                           ng-click="$event.stopPropagation();">
-                    <span ng-show="queryState.ordering == value.type +'.' +value.position + '.'+value.subannotation_type + '.'+value.property"
-                          class="fa fa-caret-down"></span>
-                    <span ng-show="queryState.ordering == '-'+ value.type +'.' +value.position + '.'+value.subannotation_type + '.' + value.property"
-                          class="fa fa-caret-up"></span>
-                </td>
+                                <input ng-model="query.column_names[value.type][value.position].subannotations[value.subannotation_type][value.property]"
+                                       ng-click="$event.stopPropagation();">
+                                <span ng-show="paginateParams.ordering == value.type +'.' +value.position + '.'+value.subannotation_type + '.'+value.property"
+                                      class="fa fa-caret-down"></span>
+                                <span ng-show="paginateParams.ordering == '-'+ value.type +'.' +value.position + '.'+value.subannotation_type + '.' + value.property"
+                                      class="fa fa-caret-up"></span>
+                            </th>
+                            <th md-column ng-repeat="prop in properties.speaker"
+                                ng-click="refreshSpokenOrdering('speaker', prop)"
+                                ng-show="query.columns.speaker[prop]">
+                                <input ng-model="query.column_names.speaker[prop]" ng-click="$event.stopPropagation();">
+                            <span ng-show="paginateParams.ordering == 'speaker.' +prop" class="fa fa-caret-down"></span>
+                            <span ng-show="paginateParams.ordering == '-speaker.' + prop" class="fa fa-caret-up"></span>
+                            </th>
 
+                            <th md-column ng-repeat="prop in properties.discourse"
+                                ng-click="refreshSpokenOrdering('discourse', prop)"
+                                ng-show="query.columns.discourse[prop]">
+                                <input ng-model="query.column_names.discourse[prop]"
+                                       ng-click="$event.stopPropagation();">
+                                <span ng-show="paginateParams.ordering == 'discourse.' +prop"
+                                      class="fa fa-caret-down"></span>
+                                <span ng-show="paginateParams.ordering == '-discourse.' + prop"
+                                      class="fa fa-caret-up"></span>
+                            </th>
+                        </tr>
+                        </thead>
+                        <tbody md-body>
+                        <tr md-row ng-repeat="result in results.data">
+                            <td md-cell>
 
-                <td ng-repeat="prop in properties.speaker" ng-click="refreshOrdering('speaker', prop)"
-                    ng-show="query.columns.speaker[prop]">
-                    <input ng-model="query.column_names.speaker[prop]" ng-click="$event.stopPropagation();">
-                    <span ng-show="queryState.ordering == 'speaker.' + prop" class="fa fa-caret-down"></span>
-                    <span ng-show="queryState.ordering == '-speaker.' + prop" class="fa fa-caret-up"></span>
-                </td>
-                <td ng-repeat="prop in properties.discourse" ng-click="refreshOrdering('discourse', prop)"
-                    ng-show="query.columns.discourse[prop]">
-                    <input ng-model="query.column_names.discourse[prop]" ng-click="$event.stopPropagation();">
-                    <span ng-show="queryState.ordering == 'discourse.' +prop" class="fa fa-caret-down"></span>
-                    <span ng-show="queryState.ordering == '-discourse.' + prop" class="fa fa-caret-up"></span>
-                </td>
-
-            </tr>
-            </thead>
-            <tbody style="height:50%">
-            <tr ng-repeat="result in queryState.results">
-                <td data-ng-if="can_view">
-                    <span ng-click="getDetail($index)" class="link">View detail</span>
-                    <span ng-click="listen(result[query.annotation_type].current.id)" class="link" ng-if="can_listen && query.annotation_type =='utterance'">Listen</span>
-                </td>
-                <td ng-repeat="value in column_values"
-                    data-ng-if="query.columns[value.type][value.position][value.property] &&
+      <md-button class="md-icon-button" aria-label="View" ng-click="getDetail($index)">
+       <i class="material-icons">search</i>
+      </md-button>
+      <md-button class="md-icon-button" aria-label="Listen" ng-click="listen(result[query.annotation_type].current.id)" ng-if="can_listen && query.annotation_type =='utterance'">
+       <i class="material-icons">play_arrow</i>
+      </md-button>
+                            <td md-cell ng-repeat="value in column_values"
+                                data-ng-if="query.columns[value.type][value.position][value.property] &&
                             annotation_types.indexOf(value.type) >=annotation_types.indexOf(query.annotation_type.toLowerCase())">
-                    <span>
                                 {{ result[value.type][value.position][value.property] }}
-                            </span>
-                </td>
-                <td ng-repeat="value in subannotation_column_values"
-                    data-ng-if="query.columns[value.type][value.position].subannotations[value.subannotation_type][value.property] &&
+                            </td>
+                            <td md-cell ng-repeat="value in subannotation_column_values"
+                                data-ng-if="query.columns[value.type][value.position].subannotations[value.subannotation_type][value.property] &&
                             annotation_types.indexOf(value.type) >=annotation_types.indexOf(query.annotation_type.toLowerCase())">
                     <span>
                                 {{ result[value.type][value.position][value.subannotation_type]| joinBy:value.property }}
                             </span>
-                </td>
+                            </td>
+                            <td md-cell ng-repeat="prop in properties.speaker" data-ng-if="query.columns.speaker[prop]">
+                                {{ result.speaker[prop] }}
+                            </td>
 
-                <td ng-repeat="prop in properties.speaker" ng-show="query.columns.speaker[prop]">
-                    {{ result.speaker[prop] }}
-                </td>
-                <td ng-repeat="prop in properties.discourse" ng-show="query.columns.discourse[prop]">
-                    {{ result.discourse[prop] }}
-                </td>
-            </tr>
-            </tbody>
+                            <td md-cell ng-repeat="prop in properties.discourse"
+                                data-ng-if="query.columns.discourse[prop]">
+                                {{ result.discourse[prop] }}
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </md-table-container>
+                <md-table-pagination md-limit="paginateParams.limit" md-limit-options="[5, 10, 15]"
+                                     md-page="paginateParams.page" md-total="{{results.count}}"
+                                     md-on-paginate="paginatorCallback" md-page-select></md-table-pagination>
 
-        </table>
+            </md-card-content>
+        </md-card>
+
     </div>
 
 </div>
 
 <div class="col-md-3  scroll-container">
-    <multiselect-dropdown class="tabs" ng-cloak style="height:50%" ng-show="!newQuery">
-        <md-content>
-            <md-tabs md-border-bottom>
+    <md-tabs md-border-bottom ng-show="!newQuery" md-dynamic-height class="query-columns-tabs">
 
-                <md-tab ng-repeat="t in annotation_types" label="{{ t|titlecase }}"
-                        data-ng-if="$index >=annotation_types.indexOf(query.annotation_type.toLowerCase())">
-                    <md-content class="md-padding">
-                        <div>
-                        <table class="table table-striped">
-                            <thead>
-                            <td>Column</td>
-                            <td ng-repeat="position in query.positions[t]">{{ position }}</td>
-                            </thead>
-                            <tbody>
-                            <tr ng-repeat="prop in properties[t]">
-                                <td>{{ prop }}</td>
-                                <td ng-repeat="position in query.positions[t]">
-                                    <input type="checkbox" ng-model="query.columns[t][position][prop]">
-                                </td>
-                            </tr>
-                            </tbody>
-                        </table>
+        <md-tab ng-repeat="t in annotation_types" label="{{ t|titlecase }}"
+                data-ng-if="$index >=annotation_types.indexOf(query.annotation_type.toLowerCase())">
+            <md-content class="md-padding">
+                <div>
+                    <md-card>
+                        <md-card-content>
+                            <md-table-container>
+                                <table md-table>
+                                    <thead md-head>
+                                    <tr md-row>
+                                        <th md-column ng-repeat="position in query.positions[t]">{{ position }}</th>
+                                        <th md-column></th>
+                                    </tr>
+                                    </thead>
+                                    <tbody md-body>
+                                    <tr md-row ng-repeat="prop in properties[t]">
+                                        <td md-cell ng-repeat="position in query.positions[t]">
+                                            <md-checkbox ng-model="query.columns[t][position][prop]">
+                                        </td>
+                                        <td md-cell>{{ prop }}</td>
+                                    </tr>
+                                    </tbody>
+                                </table>
+                            </md-table-container>
+                        </md-card-content>
+                    </md-card>
 
-                        </div>
-                        <div ng-repeat="s in hierarchy.subannotations[t]">
-                            {{s}}
-                            <table class="table table-striped">
-                            <thead>
-                            <td>Column</td>
-                            <td ng-repeat="position in query.positions[t]">{{ position }}</td>
-                            </thead>
-                            <tbody>
-                            <tr ng-repeat="prop in hierarchy.subannotation_properties[s]">
-                                <td>{{ prop[0] }}</td>
-                                <td ng-repeat="position in query.positions[t]">
-                                    <input type="checkbox" ng-model="query.columns[t][position].subannotations[s][prop[0]]">
-                                </td>
-                            </tr>
-                            </tbody>
+                </div>
+                <md-card ng-repeat="s in hierarchy.subannotations[t]">
+                    <md-card-title>
+                        <md-card-title-text>
+                            <span class="md-headline">{{s}}</span>
+                        </md-card-title-text>
+                    </md-card-title>
+                    <md-card-content>
+                        <md-table-container>
+                            <table md-table>
+                                <thead md-head>
+                                <tr md-row>
+                                    <th md-column ng-repeat="position in query.positions[t]">{{ position }}</th>
+                                    <th md-column></th>
+                                </tr>
+                                </thead>
+                                <tbody md-body>
+                                <tr md-row ng-repeat="prop in hierarchy.subannotation_properties[s]">
+                                    <td md-cell ng-repeat="position in query.positions[t]">
+                                        <md-checkbox
+                                                ng-model="query.columns[t][position].subannotations[s][prop[0]]">
+                                    </td>
+                                    <td md-cell>{{ prop[0] }}</td>
+                                </tr>
+                                </tbody>
                             </table>
+                        </md-table-container>
+                    </md-card-content>
+                </md-card>
+                <div>
+
+                </div>
+            </md-content>
+        </md-tab>
+
+        <md-tab label="Speaker">
+            <md-content class="md-padding">
+                <md-card>
+
+                    <md-card-content>
+                        <div ng-repeat="prop in properties.speaker">
+                            <md-checkbox ng-model="query.columns.speaker[prop]">{{prop}}</md-checkbox>
+
                         </div>
-                    </md-content>
-                </md-tab>
+                    </md-card-content>
+                </md-card>
+            </md-content>
+        </md-tab>
 
-                <md-tab label="Speaker">
-                    <md-content class="md-padding">
-                        <table class="table table-striped scrollable-table">
-                            <thead>
-                            <td>Column</td>
-                            <td>Visble</td>
-                            </thead>
-                            <tbody>
-                            <tr ng-repeat="prop in properties.speaker">
-                                <td>{{ prop }}</td>
-                                <td>
-                                    <input type="checkbox" ng-model="query.columns.speaker[prop]">
-                                </td>
-                            </tr>
-                            </tbody>
-                        </table>
-                    </md-content>
-                </md-tab>
+        <md-tab label="Sound file">
+            <md-content class="md-padding">
+                <md-card>
+                    <md-card-content>
+                        <div ng-repeat="prop in properties.discourse">
+                            <md-checkbox ng-model="query.columns.discourse[prop]">{{prop}}</md-checkbox>
+                        </div>
 
-                <md-tab label="Sound file">
-                    <md-content class="md-padding">
-                        <table class="table table-striped scrollable-table">
-                            <thead>
-                            <td>Column</td>
-                            <td>Visble</td>
-                            </thead>
-                            <tbody>
-                            <tr ng-repeat="prop in properties.discourse">
-                                <td>{{ prop }}</td>
-                                <td>
-                                    <input type="checkbox" ng-model="query.columns.discourse[prop]">
-                                </td>
-                            </tr>
-                            </tbody>
-                        </table>
-                    </md-content>
-                </md-tab>
+                    </md-card-content>
+                </md-card>
 
-            </md-tabs>
-        </md-content>
-    </multiselect-dropdown>
+            </md-content>
+        </md-tab>
+
+    </md-tabs>
     <div ng-show="!newQuery">
         <h3>Exporting acoustic measures</h3>
-        <multiselect-dropdown class="tabs" ng-cloak style="max-height:100%">
-            <md-content>
-                <md-tabs md-border-bottom>
+        <md-tabs md-border-bottom ng-show="!newQuery" md-dynamic-height class="query-acoustics-tabs">
 
-                    <md-tab label="Pitch" ng-if="hierarchy.has_pitch_tracks">
-                        <md-content class="md-padding">
-                            Aggregates
-                            <table class="table table-striped">
-                                <thead>
-                                </thead>
-                                <tbody>
-                                <tr>
-                                    <td>Mean</td>
-                                    <td>
-                                        <input type="checkbox" ng-model="query.acoustic_columns.pitch.mean">
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>SD</td>
-                                    <td>
-                                        <input type="checkbox" ng-model="query.acoustic_columns.pitch.stdev">
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>Median</td>
-                                    <td>
-                                        <input type="checkbox" ng-model="query.acoustic_columns.pitch.median">
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>Max</td>
-                                    <td>
-                                        <input type="checkbox" ng-model="query.acoustic_columns.pitch.max">
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>Min</td>
-                                    <td>
-                                        <input type="checkbox" ng-model="query.acoustic_columns.pitch.min">
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>Relativized</td>
-                                    <td>
-                                        <input type="checkbox" ng-model="query.acoustic_columns.pitch.relative_aggregate">
-                                    </td>
-                                </tr>
-                                </tbody>
-                            </table>
-                            Track
-                            <table class="table table-striped">
-                                <thead>
-                                </thead>
-                                <tbody>
-                                <tr>
-                                    <td>Include track</td>
-                                    <td>
-                                        <input type="checkbox" ng-model="query.acoustic_columns.pitch.include">
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>Interpolation points</td>
-                                    <td>
-                                        <input ng-model="query.acoustic_columns.pitch.num_points">
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>Relativized</td>
-                                    <td>
-                                        <input type="checkbox" ng-model="query.acoustic_columns.pitch.relative_track">
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>Relative time</td>
-                                    <td>
-                                        <input type="checkbox" ng-model="query.acoustic_columns.pitch.relative_time">
-                                    </td>
-                                </tr>
-                                </tbody>
-                            </table>
-                        </md-content>
-                    </md-tab>
+            <md-tab ng-repeat="acoustic in hierarchy.acoustics" label="{{acoustic| titlecase}}">
+                <md-content class="md-padding">
+                    <md-card>
+                        <md-card-title>
+                            <md-card-title-text>
+                                <span class="md-headline">Aggregates</span>
+                            </md-card-title-text>
+                        </md-card-title>
+                        <md-card-content>
 
-                    <md-tab label="Intensity" ng-if="hierarchy.has_intensity_tracks">
-                        <md-content class="md-padding">
-                            Aggregates
-                            <table class="table table-striped">
-                                <thead>
-                                </thead>
-                                <tbody>
-                                <tr>
-                                    <td>Mean</td>
-                                    <td>
-                                        <input type="checkbox" ng-model="query.acoustic_columns.intensity.mean">
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>SD</td>
-                                    <td>
-                                        <input type="checkbox" ng-model="query.acoustic_columns.intensity.stdev">
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>Median</td>
-                                    <td>
-                                        <input type="checkbox" ng-model="query.acoustic_columns.intensity.median">
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>Max</td>
-                                    <td>
-                                        <input type="checkbox" ng-model="query.acoustic_columns.intensity.max">
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>Min</td>
-                                    <td>
-                                        <input type="checkbox" ng-model="query.acoustic_columns.intensity.min">
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>Relativized</td>
-                                    <td>
-                                        <input type="checkbox" ng-model="query.acoustic_columns.intensity.relative_aggregate">
-                                    </td>
-                                </tr>
-                                </tbody>
-                            </table>
-                            Track
-                            <table class="table table-striped">
-                                <thead>
-                                </thead>
-                                <tbody>
-                                <tr>
-                                    <td>Include track</td>
-                                    <td>
-                                        <input type="checkbox" ng-model="query.acoustic_columns.intensity.include">
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>Interpolation points</td>
-                                    <td>
-                                        <input ng-model="query.acoustic_columns.intensity.num_points">
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>Relativized</td>
-                                    <td>
-                                        <input type="checkbox" ng-model="query.acoustic_columns.intensity.relative_track">
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>Relative time</td>
-                                    <td>
-                                        <input type="checkbox" ng-model="query.acoustic_columns.intensity.relative_time">
-                                    </td>
-                                </tr>
-                                </tbody>
-                            </table>
-                        </md-content>
-                    </md-tab>
+                            <div ng-repeat="agg in acoustic_aggregates">
+                                <md-checkbox ng-model="query.acoustic_columns[acoustic][agg.function]">{{agg.name}}
+                                </md-checkbox>
+                            </div>
+                            <div>
+                                <md-checkbox ng-model="query.acoustic_columns[acoustic].relative_aggregate">Include
+                                    relativized
+                                </md-checkbox>
+                            </div>
 
-                    <md-tab label="Formants" ng-if="hierarchy.has_formant_tracks">
-                        <md-content class="md-padding">
-                            <table class="table table-striped scrollable-table">
-                                <thead>
-                                </thead>
-                                <tbody>
-                                <tr>
-                                    <td>Include</td>
-                                    <td>
-                                        <input type="checkbox" ng-model="query.acoustic_columns.formants.include">
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>Relative</td>
-                                    <td>
-                                        <input type="checkbox" ng-model="query.acoustic_columns.formants.relative">
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>Relative time</td>
-                                    <td>
-                                        <input type="checkbox" ng-model="query.acoustic_columns.formants.relative_time">
-                                    </td>
-                                </tr>
-                                </tbody>
-                            </table>
-                        </md-content>
-                    </md-tab>
+                        </md-card-content>
 
-                </md-tabs>
-            </md-content>
-        </multiselect-dropdown>
+                    </md-card>
+
+                    <md-card>
+                        <md-card-title>
+                            <md-card-title-text>
+                                <span class="md-headline">Track</span>
+                            </md-card-title-text>
+                        </md-card-title>
+                        <md-card-content>
+
+                            <div>
+                                <md-checkbox ng-model="query.acoustic_columns[acoustic].include">Include track
+                                </md-checkbox>
+                            </div>
+                            <div>
+                                <md-checkbox ng-model="query.acoustic_columns[acoustic].relative_track">Include
+                                    relativized
+                                </md-checkbox>
+                            </div>
+                            <div>
+                                <md-checkbox ng-model="query.acoustic_columns[acoustic].relative_time">Relative time
+                                </md-checkbox>
+                            </div>
+                            <div>
+                                <input type="number" ng-model="query.acoustic_columns[acoustic].num_points" style="max-width:35px;">
+                                <span>Interpolation points</span>
+                            </div>
+
+                        </md-card-content>
+
+                    </md-card>
+                </md-content>
+            </md-tab>
+
+
+        </md-tabs>
 
     </div>
 </div>
