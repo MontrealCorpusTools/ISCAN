@@ -13,16 +13,16 @@
                         </button>
 
                     </div>
-                    <div class="annotation" style="display:inline-block;"
-                         ng-repeat="position in query.positions[t]">
+
+                        <md-card ng-repeat="position in query.positions[t]" style="display: inline-block;">
+                            <md-card-label>
                         {{ position }}
-                        <br>
-                        <md-card ng-repeat="filter in query.filters[t][position].property_filters">
+                            </md-card-label>
                             <md-card-content>
-                                <div layout="row">
+                                <div layout="row" ng-repeat="filter in query.filters[t][position].property_filters">
                                     <md-input-container>
                                         <label>Property</label>
-                                        <md-select ng-model="filter.property" ng-change="console.log(filter)">
+                                        <md-select ng-model="filter.property">
                                             <md-option ng-value="prop" ng-repeat="prop in properties[t]">{{ prop }}
                                             </md-option>
 
@@ -71,13 +71,8 @@
                                     </md-button>
                                 </div>
 
-                            </md-card-content>
-                        </md-card>
-
                         <button class='btn' ng-click="addFilter(t, position)" ng-disabled="query.running"><span>Add filter</span>
                         </button>
-                        <md-card>
-                            <md-card-content>
                                 <div class="row">
                                     <md-input-container>
                                         <label>Subset</label>
@@ -117,14 +112,9 @@
 
                                 </div>
 
-                            </md-card-content>
-                        </md-card>
                         <div ng-repeat="s in hierarchy.subannotations[t]">
                             {{ s }}
-                            <br>
-                            <md-card ng-repeat="filter in query.filters[t][position].subannotation_filters[s]">
-                                <md-card-content>
-                                    <div layout="row">
+                                    <div layout="row" ng-repeat="filter in query.filters[t][position].subannotation_filters[s]">
                                         <md-input-container>
                                             <label>Property</label>
                                             <md-select ng-model="filter.property" ng-change="console.log(filter)">
@@ -179,15 +169,14 @@
                                             <span>X</span>
                                         </md-button>
                                     </div>
-
-                                </md-card-content>
-                            </md-card>
-
                             <button class='btn' ng-click="addSubannotationFilter(t, position, s)"
                                     ng-disabled="query.running"><span>Add filter</span>
                             </button>
                         </div>
-                    </div>
+
+                                </md-card-content>
+                            </md-card>
+
                     <div style="display:inline-block;">
 
                         <button class='btn' style="display: block;" ng-click="addFollowing(t)">Add following</button>
@@ -331,20 +320,20 @@
         </md-tabs>
 
 
-        <button class='btn btn-success' ng-click="updateQuery()" ng-disabled="query.running || refreshing || exporting">Run query</button>
-        <button class='btn btn-success' ng-show="!newQuery" ng-click="refreshQuery()" ng-disabled="query.running || refreshing || exporting">
+        <button class='btn btn-success' ng-click="updateQuery()" ng-disabled="!newQuery && (query.running || refreshing || exporting)">Run query</button>
+        <button class='btn btn-success' ng-show="!newQuery" ng-click="refreshQuery()" ng-disabled="!newQuery && (query.running || refreshing || exporting)">
             Refresh
         </button>
-        <button class='btn btn-success' ng-show="!newQuery" ng-click="updateOrdering()" ng-disabled="query.running || refreshing || exporting">
+        <button class='btn btn-success' ng-show="!newQuery" ng-click="updateOrdering()" ng-disabled="!newQuery && (query.running || refreshing || exporting)">
             <span>Save current ordering</span></button>
-        <button class='btn btn-danger' ng-click="clearFilters()" ng-disabled="query.running || refreshing || exporting"><span>Clear filters</span>
+        <button class='btn btn-danger' ng-click="clearFilters()" ng-disabled="!newQuery && (query.running || refreshing || exporting)"><span>Clear filters</span>
         </button>
-        <button class="btn" ng-disabled="query.running || refreshing || exporting" ng-show="!newQuery" ng-click="export()">Export to CSV</button>
+        <button class="btn" ng-disabled="!newQuery && (query.running || refreshing || exporting)" ng-show="!newQuery" ng-click="export()">Export to CSV</button>
     </div>
     <div ng-show="query.result_count==0 && !newQuery">
         <span>No results found</span>
     </div>
-    <div ng-show="refreshing">
+    <div ng-show="refreshing && !newQuery">
         <span>Refreshing results...</span>
     </div>
 

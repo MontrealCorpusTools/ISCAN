@@ -1,22 +1,6 @@
 html, body, .container-fluid{
   height: 100%;
 }
-.scrollable-table tr {
-    width: 100%;
-    display: inline-table;
-    table-layout: fixed;
-}
-
-.scrollable-table{
-    max-height:100%;              // <-- Select the height of the table
-        table-layout:fixed;
-}
-.scrollable-table tbody{
-    overflow-y: scroll;
-    height: 85%;            //  <-- Select the height of the body
-    width: 100%;
-    position: absolute;
-}
 
 header {
     height:10%;
