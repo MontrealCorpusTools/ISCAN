@@ -1183,14 +1183,15 @@ class Query(models.Model):
                 self._count = q.count()
                 q = q.preload(getattr(a, 'discourse'), getattr(a, 'speaker'))
                 acoustic_column_names = []
-                for a_column, props in acoustic_columns.items():
-                    if not props.get('include', False):
-                        continue
-                    acoustic = getattr(a, a_column)
-                    acoustic.relative_time = props.get('relative_time', False)
-                    acoustic.relative = props.get('relative', False)
-                    q = q.preload_acoustics(acoustic)
-                    acoustic_column_names.append(a_column)
+                if config.get('cache_acoustics', False):
+                    for a_column, props in acoustic_columns.items():
+                        if not props.get('include', False):
+                            continue
+                        acoustic = getattr(a, a_column)
+                        acoustic.relative_time = props.get('relative_time', False)
+                        acoustic.relative = props.get('relative', False)
+                        q = q.preload_acoustics(acoustic)
+                        acoustic_column_names.append(a_column)
                 for t in c.hierarchy.annotation_types:
                     if t in c.hierarchy.subannotations:
                         for s in c.hierarchy.subannotations[t]:
