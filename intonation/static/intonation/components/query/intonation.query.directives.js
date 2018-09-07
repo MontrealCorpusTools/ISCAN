@@ -39,118 +39,118 @@ angular.module('pgdb.query').filter('secondsToDateTime', [function () {
             scope.newPitchSettings.min_pitch = 50;
             scope.newPitchSettings.max_pitch = 500;
 
-                scope.generateNewTrack = function () {
-                    scope.$emit('TRACK_REQUESTED', scope.newPitchSettings);
-                    scope.save_pitch_text = 'Save pitch';
-                };
+            scope.generateNewTrack = function () {
+                scope.$emit('TRACK_REQUESTED', scope.newPitchSettings);
+                scope.save_pitch_text = 'Save pitch';
+            };
 
-                scope.saveTrack = function () {
-                    if (scope.savable) {
-                        scope.$emit('SAVE_TRACK', scope.utterance.pitch_track);
-                        scope.save_pitch_text = 'Saving...';
+            scope.saveTrack = function () {
+                if (scope.savable) {
+                    scope.$emit('SAVE_TRACK', scope.utterance.pitch_track);
+                    scope.save_pitch_text = 'Saving...';
 
-                    }
+                }
 
-                };
-                scope.$on('SAVE_RESPONSE', function (e, res) {
+            };
+            scope.$on('SAVE_RESPONSE', function (e, res) {
 
-                    if (res.data.success) {
-                        scope.save_pitch_text = 'Saved!';
-                    }
-                    else {
-                        scope.save_pitch_text = 'Error';
-                    }
+                if (res.data.success) {
+                    scope.save_pitch_text = 'Saved!';
+                }
+                else {
+                    scope.save_pitch_text = 'Error';
+                }
+            });
+            var div = d3.select("body").append("div")
+                .attr("class", "tooltip")
+                .style("opacity", 0);
+
+            // Make x axis
+            var xaxis = d3.axisBottom(x)
+                .ticks(10);
+
+            var zoom_scales = [1, 30];
+            var pitch_y = d3.scaleLinear().range([height, 0]).nice();
+            var pitch_padding = (pitch_y.domain()[1] - pitch_y.domain()[0]) * 0.05;
+            pitch_y.domain([pitch_y.domain()[0] - pitch_padding, pitch_y.domain()[1] + pitch_padding]);
+
+            var pitch_x_function = function (d) {
+                return x(d.time);
+            };
+            var pitch_valueline = d3.line()
+                .x(pitch_x_function).y(function (d) {
+                    return pitch_y(d.F0);
                 });
-                var div = d3.select("body").append("div")
-                    .attr("class", "tooltip")
-                    .style("opacity", 0);
 
-                // Make x axis
-                var xaxis = d3.axisBottom(x)
-                    .ticks(10);
+            var pitch_yaxis = d3.axisLeft(pitch_y)
+                .ticks(5);
 
-                var zoom_scales = [1, 30];
-var pitch_y = d3.scaleLinear().range([height, 0]).nice();
-                var pitch_padding = (pitch_y.domain()[1] - pitch_y.domain()[0]) * 0.05;
-                pitch_y.domain([pitch_y.domain()[0] - pitch_padding, pitch_y.domain()[1] + pitch_padding]);
-
-                var pitch_x_function = function (d) {
-                    return x(d.time);
-                };
-                var pitch_valueline = d3.line()
-                    .x(pitch_x_function).y(function (d) {
-                        return pitch_y(d.F0);
-                    });
-
-                var pitch_yaxis = d3.axisLeft(pitch_y)
-                    .ticks(5);
-
-                var pitch_vis = vis
-                    .append("svg")
-                    .attr("width", width + margin.right + margin.left)
-                    .attr("height", height + margin.top + margin.bottom)
-                    .append("g")
-                    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+            var pitch_vis = vis
+                .append("svg")
+                .attr("width", width + margin.right + margin.left)
+                .attr("height", height + margin.top + margin.bottom)
+                .append("g")
+                .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
 // Draw the Plotting region------------------------------
 // X axis lines (bottom and top).
-                pitch_vis.append("g")
-                    .attr("class", "xaxis")
-                    .attr("transform", "translate(0," + height + ")")
-                    .call(xaxis);
+            pitch_vis.append("g")
+                .attr("class", "xaxis")
+                .attr("transform", "translate(0," + height + ")")
+                .call(xaxis);
 
-                pitch_vis.append("g")
-                    .attr("class", "yaxis")
-                    .call(pitch_yaxis);
+            pitch_vis.append("g")
+                .attr("class", "yaxis")
+                .call(pitch_yaxis);
 
-                pitch_vis.append("text")
-                    .attr("x", 0 - height / 2)
-                    .attr("y", -margin.left + 20)
-                    .attr("transform", "rotate(-90)")
-                    .style("text-anchor", "middle")
-                    .style("font-size", "16px")
-                    .text("F0");
+            pitch_vis.append("text")
+                .attr("x", 0 - height / 2)
+                .attr("y", -margin.left + 20)
+                .attr("transform", "rotate(-90)")
+                .style("text-anchor", "middle")
+                .style("font-size", "16px")
+                .text("F0");
 
-                pitch_vis.append("clipPath")
-                    .attr("id", "pitch_clip")
-                    .append("rect")
-                    .attr("x", 0)
-                    .attr("y", 0)
-                    .attr("width", width)
-                    .attr("height", height);
-
-
-                var pitch_viewplot = pitch_vis.append("g").attr("clip-path", "url(#pitch_clip)");
-
-                var playline = pitch_viewplot.append('line').attr("class", "playline").style("stroke", "red")
-                    .attr("x1", xt(0))
-                    .attr("y1", 0)
-                    .attr("x2", xt(0))
-                    .attr("y2", height);
-
-                var selection_rect = pitch_viewplot.append("rect")
-                    .attr('class', "selection")
-                    .attr('x', 0)
-                    .attr('y', 0)
-                    .attr('width', 0)
-                    .attr('height', height)
-                    .attr('fill', 'red')
-                    .attr('opacity', 0);
-
-                var selected_annotation_rect = pitch_viewplot.append("rect")
-                    .attr('class', "selected-annotation")
-                    .attr('x', 0)
-                    .attr('y', 0)
-                    .attr('width', 0)
-                    .attr('height', height)
-                    .attr('fill', 'yellow')
-                    .attr('opacity', 0);
+            pitch_vis.append("clipPath")
+                .attr("id", "pitch_clip")
+                .append("rect")
+                .attr("x", 0)
+                .attr("y", 0)
+                .attr("width", width)
+                .attr("height", height);
 
 
-                var pitch_pane = pitch_vis.append("rect")
-                    .attr("class", "pane")
-                    .attr("width", width)
-                    .attr("height", height);
+            var pitch_viewplot = pitch_vis.append("g").attr("clip-path", "url(#pitch_clip)");
+
+            var playline = pitch_viewplot.append('line').attr("class", "playline").style("stroke", "red")
+                .attr("x1", xt(0))
+                .attr("y1", 0)
+                .attr("x2", xt(0))
+                .attr("y2", height);
+
+            var selection_rect = pitch_viewplot.append("rect")
+                .attr('class', "selection")
+                .attr('x', 0)
+                .attr('y', 0)
+                .attr('width', 0)
+                .attr('height', height)
+                .attr('fill', 'red')
+                .attr('opacity', 0);
+
+            var selected_annotation_rect = pitch_viewplot.append("rect")
+                .attr('class', "selected-annotation")
+                .attr('x', 0)
+                .attr('y', 0)
+                .attr('width', 0)
+                .attr('height', height)
+                .attr('fill', 'yellow')
+                .attr('opacity', 0);
+
+
+            var pitch_pane = pitch_vis.append("rect")
+                .attr("class", "pane")
+                .attr("width", width)
+                .attr("height", height);
 
 
             scope.$watch('utterance', function (newVal, oldVal) {
@@ -160,13 +160,10 @@ var pitch_y = d3.scaleLinear().range([height, 0]).nice();
                 }
                 console.log(newVal);
                 x.domain([newVal.begin, newVal.end]);
-                    pitch_vis.select('.xaxis').call(xaxis.scale(xt));
-                    if (scope.selectedAnnotation) {
-                        selected_annotation_rect.attr('opacity', 0.3).attr('x', xt(scope.selectedAnnotation.begin)).attr('width', xt(scope.selectedAnnotation.end) - xt(scope.selectedAnnotation.begin));
-                    }
-
-
-
+                pitch_vis.select('.xaxis').call(xaxis.scale(xt));
+                if (scope.selectedAnnotation) {
+                    selected_annotation_rect.attr('opacity', 0.3).attr('x', xt(scope.selectedAnnotation.begin)).attr('width', xt(scope.selectedAnnotation.end) - xt(scope.selectedAnnotation.begin));
+                }
 
 
                 var zoomFunc = function (lastTransform) {
@@ -190,9 +187,9 @@ var pitch_y = d3.scaleLinear().range([height, 0]).nice();
                     if (selection_rect.attr('opacity') != 0) {
                         selection_rect.attr('x', xt(selection_begin)).attr('width', xt(selection_end) - xt(selection_begin));
                     }
-                        if (selected_annotation_rect.attr('opacity') != 0) {
-                            selected_annotation_rect.attr('x', xt(scope.selectedAnnotation.begin)).attr('width', xt(scope.selectedAnnotation.end) - xt(scope.selectedAnnotation.begin));
-                        }
+                    if (selected_annotation_rect.attr('opacity') != 0) {
+                        selected_annotation_rect.attr('x', xt(scope.selectedAnnotation.begin)).attr('width', xt(scope.selectedAnnotation.end) - xt(scope.selectedAnnotation.begin));
+                    }
                     drawPitchTrack();
                 };
 
@@ -231,7 +228,6 @@ var pitch_y = d3.scaleLinear().range([height, 0]).nice();
                 };
 
 
-
                 var drag = d3.drag()
                     .filter(function () {
                         return event.button == 0;
@@ -250,7 +246,7 @@ var pitch_y = d3.scaleLinear().range([height, 0]).nice();
                 pitch_vis.call(d3.zoom()
                     .scaleExtent(zoom_scales)
                     .translateExtent([[0, 0], [width, height]])
-                        .extent([[0, 0], [width, height]])
+                    .extent([[0, 0], [width, height]])
                     .filter(function () {
                         return event.button == 2 || event.type == 'wheel';
                     })
@@ -403,24 +399,93 @@ var pitch_y = d3.scaleLinear().range([height, 0]).nice();
             })
         }
     }
-}).directive('bestiaryPlot', function () {
+}).directive('bestiaryPlot', function ($window) {
 
     var margin = {top: 40, right: 30, bottom: 40, left: 90},
         height = 300;
-    var width = 900;
     return {
         restrict: 'E',
         replace: true,
         template: '<div class="chart"></div>',
         scope: {
-            height: '=height',
-            data: '=data',
-            relative_time: '=relative_time',
+            height: '=',
+            data: '=',
+            title: '=',
+            color: '=',
+            config: '=',
             //max_lines: '=',
             hovered: '&hovered'
         },
         link: function (scope, element, attrs) {
             var vis = d3.select(element[0]);
+            var margin = {top: 30, right: 10, bottom: 30, left: 30}
+                , width = parseInt(vis.style('width'), 10)
+                , width = width - margin.left - margin.right;
+
+            function resize() {
+                width = parseInt(vis.style('width'), 10);
+                width = width - margin.left - margin.right;
+                console.log('RESiZE WIDTH', width)
+                x.range([0, width]);
+                vis.select('svg')
+                    .style('height', (height + margin.top + margin.bottom) + 'px')
+                    .style('width', (width + margin.left + margin.right) + 'px');
+                vis.select('.xaxis').call(xaxis);
+                vis.select('.yaxis').call(yaxis);
+                vis.select('.title')
+                    .attr("x", (width / 2));
+                renderLines();
+            }
+
+            //scope.$on('RESIZE', resize)
+            angular.element($window).bind('resize', resize);
+
+
+            scope.$watch(function () {
+                return element.parent().width();
+            }, function (newVal, oldVal) {
+                resize();
+                console.log('Width changed', newVal);
+            });
+
+            function renderLines() {
+
+                vis.selectAll("path.line")
+                    .attr("d", function (d) {
+                        var data = d.utterance.current.pitch_track;
+
+                        if (scope.config.relative_time) {
+                            data = data.map(x => ({
+                                time: (x.time - d.utterance.current.begin) / d.utterance.current.duration,
+                                F0: x.F0, F0_relativized: x.F0_relativized
+                            }));
+                        }
+                        if (scope.config.relative_pitch) {
+                            valueline = d3.line().defined(function (d) {
+                                return d.F0_relativized != null;
+                            })
+                                .x(function (d) {
+                                    return x(d.time);
+                                })
+                                .y(function (d) {
+                                    return y(d.F0_relativized);
+                                });
+                        }
+                        else {
+                            valueline = d3.line().defined(function (d) {
+                                return d.F0 != null;
+                            })
+                                .x(function (d) {
+                                    return x(d.time);
+                                })
+                                .y(function (d) {
+                                    return y(d.F0);
+                                });
+                        }
+                        return valueline(data);
+                    });
+            }
+
             var x = d3.scaleLinear().range([0, width]).nice();
             // Adjusted Close
             var y = d3.scaleLinear().range([height, 0]).nice();
@@ -435,6 +500,11 @@ var pitch_y = d3.scaleLinear().range([height, 0]).nice();
                 .scale(y)
                 .ticks(5);
 
+            var opacity = "0.5";
+
+            // set the colour scale
+            var color = d3.scaleOrdinal(d3.schemeCategory10);
+            var color_property;
             var valueline = d3.line().defined(function (d) {
                 return d.F0 != null;
             })
@@ -444,65 +514,97 @@ var pitch_y = d3.scaleLinear().range([height, 0]).nice();
                 .y(function (d) {
                     return y(d.F0);
                 });
-                console.log(scope.max_lines)
-            scope.$watch('data', function (newVal, oldVal) {
-                vis.selectAll("*").remove();
-                //pitch_viewplot.append('g').selectAll("circle.original").remove();
-                if (!newVal) {
-                    return;
+
+
+            var plotDataSet = function (newVal) {
+                if (scope.config.relative_pitch) {
+                    valueline = d3.line().defined(function (d) {
+                        return d.F0_relativized != null;
+                    })
+                        .x(function (d) {
+                            return x(d.time);
+                        })
+                        .y(function (d) {
+                            return y(d.F0_relativized);
+                        });
+
+                    y.domain([d3.min(newVal, function (d) {
+                        return d3.min(d.utterance.current.pitch_track, function (d2) {
+                            return d2.F0_relativized
+                        });
+                    }), d3.max(newVal, function (d) {
+                        return d3.max(d.utterance.current.pitch_track, function (d2) {
+                            return d2.F0_relativized
+                        });
+                    })]);
                 }
-                //if (scope.max_lines == undefined){
-                //    scope.max_lines = 100;
-                //}
-                newVal = newVal.slice(0, 100);
-                //newVal = newVal.slice(0,scope.max_lines);
-                y.domain([d3.min(newVal, function (d) {
-                    return d3.min(d.utterance.pitch_track, function (d2) {
-                        return d2.F0
-                    });
-                }), d3.max(newVal, function (d) {
-                    return d3.max(d.utterance.pitch_track, function (d2) {
-                        return d2.F0
-                    });
-                })]);
-                if (scope.relative_time){
+                else {
+                    valueline = d3.line().defined(function (d) {
+                        return d.F0 != null;
+                    })
+                        .x(function (d) {
+                            return x(d.time);
+                        })
+                        .y(function (d) {
+                            return y(d.F0);
+                        });
+                    y.domain([d3.min(newVal, function (d) {
+                        return d3.min(d.utterance.current.pitch_track, function (d2) {
+                            return d2.F0
+                        });
+                    }), d3.max(newVal, function (d) {
+                        return d3.max(d.utterance.current.pitch_track, function (d2) {
+                            return d2.F0
+                        });
+                    })]);
+
+                }
+
+
+                if (scope.config.relative_time) {
                     x.domain([0, 1]);
                 }
-                else{
+                else {
 
-                x.domain([d3.min(newVal, function (d) {
-                    return d3.min(d.utterance.pitch_track, function (d2) {
-                        return d2.time
-                    });
-                }), d3.max(newVal, function (d) {
-                    return d3.max(d.utterance.pitch_track, function (d2) {
-                        return d2.time
-                    });
-                })]);
+                    x.domain([d3.min(newVal, function (d) {
+                        return d3.min(d.utterance.current.pitch_track, function (d2) {
+                            return d2.time
+                        });
+                    }), d3.max(newVal, function (d) {
+                        return d3.max(d.utterance.current.pitch_track, function (d2) {
+                            return d2.time
+                        });
+                    })]);
                 }
+                console.log(x.domain(), y.domain())
                 var padding = (y.domain()[1] - y.domain()[0]) * 0.05;
                 y.domain([y.domain()[0] - padding, y.domain()[1] + padding]);
 
                 var svg = vis.append("svg")
-                //responsive SVG needs these 2 attributes and no width and height attr
-                //.attr("preserveAspectRatio", "xMinYMin meet")
-                //.attr("viewBox", "0 0 600 400")
                 //class to make it responsive
                 //.classed("svg-content-responsive", true)
-                    .attr("width", width + margin.left + margin.right)
-                    .attr("height", height + margin.top + margin.bottom)
+                    .style('height', (height + margin.top + margin.bottom) + 'px')
+                    .style('width', (width + margin.left + margin.right) + 'px')
                     .append("g")
                     .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
                 // x axis
                 svg.append("g")
-                    .attr("class", "x axis")
+                    .attr("class", "xaxis")
                     .attr("transform", "translate(0," + height + ")")
                     .call(xaxis);
 
                 // y axis
                 svg.append("g")
-                    .attr("class", "y axis")
+                    .attr("class", "yaxis")
                     .call(yaxis);
+
+                svg.append("text")
+                    .attr("class", 'title')
+                    .attr("x", (width / 2))
+                    .attr("y", 0 - (margin.top / 2))
+                    .attr("text-anchor", "middle")
+                    .style("font-size", "16px")
+                    .text(scope.title);
 
                 var parameter = svg.selectAll(".parameter")
                     .data(newVal, function (d) {
@@ -514,13 +616,164 @@ var pitch_y = d3.scaleLinear().range([height, 0]).nice();
                 parameter.append("path")
                     .attr("class", "line")
                     .attr("d", function (d) {
-                        return valueline(d.utterance.pitch_track);
+                        var data = d.utterance.current.pitch_track;
+                        if (scope.config.relative_time) {
+                            data = data.map(x => ({
+                                time: (x.time - d.utterance.current.begin) / d.utterance.current.duration,
+                                F0: x.F0, F0_relativized: x.F0_relativized
+                            }));
+                        }
+                        return valueline(data);
                     })
-                    .style("stroke", "black")
-                    .style("opacity", "0.3")
+                    .style("stroke", function (d) { // Add the colours dynamically
+                        if (scope.color) {
+                            return d.color = color(d[color_property[0]][color_property[1]]);
+                        }
+                        else {
+                            return "black"
+                        }
+                    })
+                    .style("opacity", opacity)
                     .on("mouseover", mouseover)
                     .on("mouseout", mouseout)
                     .on("click", click);
+            };
+
+            scope.$watch('color', function (newVal, oldVal) {
+                if (newVal) {
+
+                    color_property = newVal.split(' ', 2);
+                    console.log(color_property)
+                }
+                vis.selectAll("path.line")
+                    .style("stroke", function (d) { // Add the colours dynamically
+                        if (scope.color) {
+                            return d.color = color(d[color_property[0]][color_property[1]]);
+                        }
+                        else {
+                            return "black"
+                        }
+                    })
+            });
+
+            scope.$watch('config.relative_pitch', function (newVal, oldVal) {
+                if (newVal) {
+                    y.domain([d3.min(scope.data, function (d) {
+                        return d3.min(d.utterance.current.pitch_track, function (d2) {
+                            return d2.F0_relativized
+                        });
+                    }), d3.max(scope.data, function (d) {
+                        return d3.max(d.utterance.current.pitch_track, function (d2) {
+                            return d2.F0_relativized
+                        });
+                    })]);
+                }
+                else {
+                    y.domain([d3.min(scope.data, function (d) {
+                        return d3.min(d.utterance.current.pitch_track, function (d2) {
+                            return d2.F0
+                        });
+                    }), d3.max(scope.data, function (d) {
+                        return d3.max(d.utterance.current.pitch_track, function (d2) {
+                            return d2.F0
+                        });
+                    })]);
+
+                }
+                vis.selectAll("path.line")
+                    .attr("d", function (d) {
+                        var data = d.utterance.current.pitch_track;
+
+                        if (scope.config.relative_time) {
+                            data = data.map(x => ({
+                                time: (x.time - d.utterance.current.begin) / d.utterance.current.duration,
+                                F0: x.F0, F0_relativized: x.F0_relativized
+                            }));
+                        }
+                        if (newVal) {
+                            valueline = d3.line().defined(function (d) {
+                                return d.F0_relativized != null;
+                            })
+                                .x(function (d) {
+                                    return x(d.time);
+                                })
+                                .y(function (d) {
+                                    return y(d.F0_relativized);
+                                });
+                        }
+                        else {
+                            valueline = d3.line().defined(function (d) {
+                                return d.F0 != null;
+                            })
+                                .x(function (d) {
+                                    return x(d.time);
+                                })
+                                .y(function (d) {
+                                    return y(d.F0);
+                                });
+                        }
+                        return valueline(data);
+                    });
+                vis.select('.yaxis')
+                    .call(yaxis);
+
+
+            });
+
+            scope.$watch('config.relative_time', function (newVal, oldVal) {
+                if (newVal) {
+
+                    x.domain([0, 1]);
+                }
+                else {
+
+                    x.domain([d3.min(scope.data, function (d) {
+                        return d3.min(d.utterance.current.pitch_track, function (d2) {
+                            return d2.time
+                        });
+                    }), d3.max(scope.data, function (d) {
+                        return d3.max(d.utterance.current.pitch_track, function (d2) {
+                            return d2.time
+                        });
+                    })]);
+                }
+                vis.selectAll("path.line")
+                    .attr("d", function (d) {
+                        var data = d.utterance.current.pitch_track;
+
+                        if (newVal) {
+                            data = data.map(x => ({
+                                time: (x.time - d.utterance.current.begin) / d.utterance.current.duration,
+                                F0: x.F0, F0_relativized: x.F0_relativized
+                            }));
+                        }
+                        return valueline(data);
+                    });
+                vis.select('.xaxis')
+                    .call(xaxis);
+            });
+
+            scope.$watch('data', function (newVal, oldVal) {
+                console.log(scope)
+                vis.selectAll("*").remove();
+                //pitch_viewplot.append('g').selectAll("circle.original").remove();
+                if (!newVal) {
+                    return;
+                }
+                //if (scope.max_lines == undefined){
+                //    scope.max_lines = 100;
+                //}
+                console.log(newVal)
+                newVal = newVal.slice(0, scope.config.max_lines);
+                plotDataSet(newVal);
+
+            });
+
+            scope.$watch('config.max_lines', function (newVal, oldVal) {
+                vis.selectAll("*").remove();
+                var data = scope.data;
+                data = data.slice(0, newVal);
+                plotDataSet(data);
             });
 
             function click(d) {
@@ -529,7 +782,7 @@ var pitch_y = d3.scaleLinear().range([height, 0]).nice();
                     scope.$emit('DETAIL_REQUESTED', d.index);
                 }
                 else {
-                    scope.$emit('SOUND_REQUESTED', d.utterance.id);
+                    scope.$emit('SOUND_REQUESTED', d.utterance.current.id);
                 }
             }
 
@@ -541,8 +794,16 @@ var pitch_y = d3.scaleLinear().range([height, 0]).nice();
             }
 
             function mouseout(d, i) {
-                d3.select(this).style("stroke", "black")
-                    .style("opacity", "0.3");
+                d3.select(this)
+                    .style("stroke", function (d) { // Add the colours dynamically
+                        if (scope.color) {
+                            return d.color = color(d[color_property[0]][color_property[1]]);
+                        }
+                        else {
+                            return "black"
+                        }
+                    })
+                    .style("opacity", opacity);
 
             }
 

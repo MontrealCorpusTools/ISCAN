@@ -66,7 +66,7 @@ angular.module('query', [
         };
     }])
 
-    .controller('QueryCtrl', function ($scope, $rootScope, Query, Corpora, $state, $stateParams, $interval, FileSaver, Blob, $timeout, $q, $query) {
+    .controller('QueryCtrl', function ($scope, $rootScope, Query, Corpora, $state, $stateParams, FileSaver, Blob, $timeout, $q, $query) {
         Query.reset_state($stateParams.query_id);
         $scope.paginateParams = Query.paginateParams;
         $scope.annotation_types = Query.annotation_types;
@@ -221,29 +221,6 @@ angular.module('query', [
             console.log('SUBANNOTATIONS', $scope.subannotation_column_values)
         };
 
-        $scope.refreshPermissions = function () {
-            console.log('REFRESHING');
-            $scope.user = $rootScope.user;
-            $scope.authenticated = $rootScope.authenticated;
-            $scope.exporting = false;
-            $scope.refreshing = true;
-            if ($scope.user == undefined) {
-                $state.go('home');
-            }
-            if ($scope.user.is_superuser) {
-                $scope.can_view = true;
-                $scope.can_listen = true;
-            }
-            else {
-                $scope.can_view = false;
-                $scope.can_listen = false;
-                for (i = 0; i < $scope.user.corpus_permissions.length; i++) {
-                    if ($scope.user.corpus_permissions[i].corpus == $stateParams.corpus_id) {
-                        $scope.can_view = $scope.user.corpus_permissions[i].can_view_detail;
-                        $scope.can_listen = $scope.user.corpus_permissions[i].can_listen;
-                    }
-                }
-            }
             $scope.getHierarchy = function () {
                 if ($scope.hierarchy == undefined) {
                     Corpora.hierarchy($stateParams.corpus_id).then(function (res) {
@@ -342,6 +319,29 @@ angular.module('query', [
                 }
 
             };
+        $scope.refreshPermissions = function () {
+            console.log('REFRESHING');
+            $scope.user = $rootScope.user;
+            $scope.authenticated = $rootScope.authenticated;
+            $scope.exporting = false;
+            $scope.refreshing = true;
+            if ($scope.user == undefined) {
+                $state.go('home');
+            }
+            if ($scope.user.is_superuser) {
+                $scope.can_view = true;
+                $scope.can_listen = true;
+            }
+            else {
+                $scope.can_view = false;
+                $scope.can_listen = false;
+                for (i = 0; i < $scope.user.corpus_permissions.length; i++) {
+                    if ($scope.user.corpus_permissions[i].corpus == $stateParams.corpus_id) {
+                        $scope.can_view = $scope.user.corpus_permissions[i].can_view_detail;
+                        $scope.can_listen = $scope.user.corpus_permissions[i].can_listen;
+                    }
+                }
+            }
 
 
             if ($stateParams.query_id == undefined) {
