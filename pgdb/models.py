@@ -1177,21 +1177,32 @@ class Query(models.Model):
             a_type = self.get_annotation_type_display().lower()
             config = self.config
             acoustic_columns = config.get('acoustic_columns', {})
+            cache_acoustics = config.get('cache_acoustics', False)
             with CorpusContext(self.corpus.config) as c:
                 a = getattr(c, a_type)
                 q = self.generate_base_query(c)
                 self._count = q.count()
                 q = q.preload(getattr(a, 'discourse'), getattr(a, 'speaker'))
                 acoustic_column_names = []
-                if config.get('cache_acoustics', False):
+                if cache_acoustics:
                     for a_column, props in acoustic_columns.items():
-                        if not props.get('include', False):
-                            continue
-                        acoustic = getattr(a, a_column)
-                        acoustic.relative_time = props.get('relative_time', False)
-                        acoustic.relative = props.get('relative', False)
-                        q = q.preload_acoustics(acoustic)
-                        acoustic_column_names.append(a_column)
+                        # track props
+                        include_track = props.pop('include', False)
+                        relative_time = props.pop('relative_time', False)
+                        relative_track = props.pop('relative_track', False)
+                        num_points = props.pop('num_points', '')
+                        if include_track:
+                            acoustic = getattr(a, a_column)
+                            acoustic.relative_time = relative_time
+                            acoustic.relative = relative_track
+                            try:
+                                num_points = int(num_points)
+                                acoustic = acoustic.interpolated_track
+                                acoustic.num_points = num_points
+                            except ValueError:
+                                acoustic = acoustic.track
+                            q = q.preload_acoustics(acoustic)
+                            acoustic_column_names.append(a_column)
                 for t in c.hierarchy.annotation_types:
                     if t in c.hierarchy.subannotations:
                         for s in c.hierarchy.subannotations[t]:

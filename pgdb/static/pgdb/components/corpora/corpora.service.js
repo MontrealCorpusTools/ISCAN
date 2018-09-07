@@ -52,6 +52,10 @@ angular.module('pgdb.corpora')
         return $http.get(base_url + id + '/discourses/properties');
     };
 
+    Corpora.speaker_property_options = function(id){
+        return $http.get(base_url + id + '/speakers/properties');
+    };
+
     Corpora.utterances = function (id) {
         return $http.get(base_url + id + '/utterances/');
     };

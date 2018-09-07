@@ -473,6 +473,7 @@ class DiscourseViewSet(viewsets.ViewSet):
         with CorpusContext(corpus.config) as c:
             props = c.query_metadata(c.discourse).grouping_factors()
             data = []
+            data.append({'name':'name', 'options': c.discourses})
             for p in props:
                 data.append({'name': p, 'options': c.query_metadata(c.discourse).levels(getattr(c.discourse, p))})
         return Response(data)
@@ -505,6 +506,7 @@ class SpeakerViewSet(viewsets.ViewSet):
         with CorpusContext(corpus.config) as c:
             props = c.query_metadata(c.speaker).grouping_factors()
             data = []
+            data.append({'name':'name', 'options': c.speakers})
             for p in props:
                 data.append({'name': p, 'options': c.query_metadata(c.speaker).levels(getattr(c.speaker, p))})
         return Response(data)

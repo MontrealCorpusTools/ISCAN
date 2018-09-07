@@ -35,6 +35,11 @@ rect.pane {
     width: 100%;
 }
 
+.facet {
+    width: 50%;
+     display: inline-block;
+}
+
 div.tooltip {
     position: absolute;
     text-align: center;

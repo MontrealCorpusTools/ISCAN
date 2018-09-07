@@ -117,6 +117,7 @@ class SubannotationSerializer(serializers.Serializer):
 class PitchPointSerializer(serializers.Serializer):
     time = serializers.FloatField()
     F0 = serializers.FloatField()
+    F0_relativized = serializers.FloatField()
 
 class FormantPointSerializer(serializers.Serializer):
     time = serializers.FloatField()
