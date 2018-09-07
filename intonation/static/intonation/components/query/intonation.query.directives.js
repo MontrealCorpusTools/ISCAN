@@ -437,17 +437,6 @@ angular.module('pgdb.query').filter('secondsToDateTime', [function () {
                 renderLines();
             }
 
-            //scope.$on('RESIZE', resize)
-            angular.element($window).bind('resize', resize);
-
-
-            scope.$watch(function () {
-                return element.parent().width();
-            }, function (newVal, oldVal) {
-                resize();
-                console.log('Width changed', newVal);
-            });
-
             function renderLines() {
 
                 vis.selectAll("path.line")

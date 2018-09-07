@@ -119,8 +119,6 @@ angular.module('bestiaryPlot', [
             $scope.facets = [];
             if ($scope.facet_attribute) {
                 var property = $scope.facet_attribute.split(' ', 2);
-                console.log(property)
-                console.log($scope.filter_options)
                 var values,value, filtered;
                 for (var v in $scope.filter_options[property[0]]) {
                     console.log($scope.filter_options[property[0]][v])
@@ -139,10 +137,6 @@ angular.module('bestiaryPlot', [
             else {
                 $scope.facets.push({name: 'All data', utterances: $scope.utterances})
             }
-            console.log($scope.facets)
-            console.log('BROADCASTING')
-            $rootScope.$broadcast('RESIZE');
-    $scope.$apply();
         };
 
         $scope.removeFilter = function (type, name) {
