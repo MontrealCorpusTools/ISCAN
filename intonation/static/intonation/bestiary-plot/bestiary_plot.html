@@ -78,7 +78,7 @@
                                     <label>Facet</label>
                                     <md-select ng-model="facet_attribute" ng-change="createFacets()">
                                         <md-option>None</md-option>
-                                        <md-option ng-repeat="option in color_options">
+                                        <md-option ng-value="option" ng-repeat="option in color_options">
                                             {{option}}
                                         </md-option>
                                     </md-select>
@@ -90,7 +90,7 @@
                                     <label>Color</label>
                                     <md-select ng-model="color_attribute" ng-change="createFacets()">
                                         <md-option>None</md-option>
-                                        <md-option ng-repeat="option in color_options">
+                                        <md-option ng-value="option" ng-repeat="option in color_options">
                                             {{option}}
                                         </md-option>
                                     </md-select>
