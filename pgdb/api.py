@@ -998,12 +998,12 @@ class QueryViewSet(viewsets.ModelViewSet):
                                     q = q.preload(getattr(c.utterance, s))
                                 else:
                                     q = q.preload(getattr(getattr(c.utterance, t), s))
-                acoustic_columns = query.config.get('acoustic_columns', {})
+                acoustic_columns = c.hierarchy.acoustics
                 acoustic_column_names = []
-                for a_column, props in acoustic_columns.items():
-                    if not props.get('include', False):
-                        continue
+                for a_column in acoustic_columns:
                     acoustic = getattr(c.utterance, a_column)
+                    acoustic.relative = True
+                    acoustic = acoustic.track
                     q = q.preload_acoustics(acoustic)
                     acoustic_column_names.append(a_column)
 

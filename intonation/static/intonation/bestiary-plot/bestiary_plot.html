@@ -1,121 +1,126 @@
 <div class="row">
     <div class='col-md-9'>
         <div ng-show="!refreshing" ng-repeat="facet in facets" class="facet">
-        <bestiary-plot config="plotConfig" data="facet.utterances" color="color_attribute" title="facet.name"></bestiary-plot>
+            <bestiary-plot config="plotConfig" data="facet.utterances" color="color_attribute"
+                           title="facet.name"></bestiary-plot>
         </div>
         <div ng-show="refreshing">
             <span>Query loading...</span>
         </div>
     </div>
     <div class="col-md-3">
-            <md-tabs md-border-bottom md-dynamic-height>
+        <md-tabs md-border-bottom md-dynamic-height>
 
-                <md-tab label="Filters">
-                    <md-content class="md-padding">
-                        <md-card>
-                            <md-card-label>
-                                Speaker
-                            </md-card-label>
-                            <md-card-content>
+            <md-tab label="Filters">
+                <md-content class="md-padding">
+                    <md-card>
+                        <md-card-label>
+                            Speaker
+                        </md-card-label>
+                        <md-card-content>
 
-                        <div ng-repeat="p in filter_options.speaker">
-                                    <md-input-container>
-                                        <label>{{p.name}}</label>
-                                        <md-select ng-model="query.filters.speaker[p.name]">
-                                            <md-option ng-value="o"
-                                                       ng-repeat="o in p.options">
-                                                {{ o }}
-                                            </md-option>
-                                        </md-select>
+                            <div ng-repeat="p in filter_options.speaker">
+                                <md-input-container>
+                                    <label>{{p.name}}</label>
+                                    <md-select ng-model="query.filters.speaker[p.name]">
+                                        <md-option ng-value="o"
+                                                   ng-repeat="o in p.options">
+                                            {{ o }}
+                                        </md-option>
+                                    </md-select>
 
-                                    </md-input-container>
+                                </md-input-container>
 
-                                    <md-button md-colors="{background:'red'}" class="md-icon-button md-primary"
-                                               aria-label="Remove" ng-click="removeFilter('speaker', p.name)" ng-disabled="refreshing">
-                                        <span>X</span>
-                                    </md-button>
-                        </div>
-                            </md-card-content>
-                        </md-card>
-                        <md-card>
-                            <md-card-label>
-                                Discourse
-                            </md-card-label>
-                            <md-card-content>
-                                <div ng-repeat="p in filter_options.discourse">
-                                    <md-input-container>
-                                        <label>{{p.name}}</label>
-                                        <md-select ng-model="query.filters.discourse[p.name]">
-                                            <md-option ng-value="o"
-                                                       ng-repeat="o in p.options">
-                                                {{ o }}
-                                            </md-option>
-                                        </md-select>
+                                <md-button md-colors="{background:'red'}" class="md-icon-button md-primary"
+                                           aria-label="Remove" ng-click="removeFilter('speaker', p.name)"
+                                           ng-disabled="refreshing">
+                                    <span>X</span>
+                                </md-button>
+                            </div>
+                        </md-card-content>
+                    </md-card>
+                    <md-card>
+                        <md-card-label>
+                            Discourse
+                        </md-card-label>
+                        <md-card-content>
+                            <div ng-repeat="p in filter_options.discourse">
+                                <md-input-container>
+                                    <label>{{p.name}}</label>
+                                    <md-select ng-model="query.filters.discourse[p.name]">
+                                        <md-option ng-value="o"
+                                                   ng-repeat="o in p.options">
+                                            {{ o }}
+                                        </md-option>
+                                    </md-select>
 
-                                    </md-input-container>
+                                </md-input-container>
 
-                                    <md-button md-colors="{background:'red'}" class="md-icon-button md-primary"
-                                               aria-label="Remove" ng-click="removeFilter('discourse', p.name)" ng-disabled="refreshing">
-                                        <span>X</span>
-                                    </md-button>
-                        </div>
-                            </md-card-content>
-                        </md-card>
+                                <md-button md-colors="{background:'red'}" class="md-icon-button md-primary"
+                                           aria-label="Remove" ng-click="removeFilter('discourse', p.name)"
+                                           ng-disabled="refreshing">
+                                    <span>X</span>
+                                </md-button>
+                            </div>
+                        </md-card-content>
+                    </md-card>
 
 
-                    </md-content>
-                </md-tab>
+                </md-content>
+            </md-tab>
 
-                <md-tab label="Plotting">
-                    <md-content class="md-padding">
-                        <table class="table table-striped scrollable-table">
-                            <thead>
-                            </thead>
-                            <tbody>
-                            <tr>
-                                <td>Facet</td>
-                                <td>
-                                    <select ng-model="facet_attribute"  class="form-control"
-                                           ng-options="option for option in color_options" ng-change="createFacets()">
+            <md-tab label="Plotting">
+                <md-content class="md-padding">
+                    <md-card>
+                        <md-card-content>
+                            <div>
+                                <md-input-container>
+                                    <label>Facet</label>
+                                    <md-select ng-model="facet_attribute" ng-change="createFacets()">
+                                        <md-option>None</md-option>
+                                        <md-option ng-repeat="option in color_options">
+                                            {{option}}
+                                        </md-option>
+                                    </md-select>
+                                </md-input-container>
 
-                <option value="">None</option>
-                </select>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>Color</td>
-                                <td>
-                                    <select ng-model="color_attribute"  class="form-control"
-                                           ng-options="option for option in color_options">
+                            </div>
+                            <div>
+                                <md-input-container>
+                                    <label>Color</label>
+                                    <md-select ng-model="color_attribute" ng-change="createFacets()">
+                                        <md-option>None</md-option>
+                                        <md-option ng-repeat="option in color_options">
+                                            {{option}}
+                                        </md-option>
+                                    </md-select>
+                                </md-input-container>
 
-                <option value="">None</option>
-                </select>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>Relative</td>
-                                <td>
-                                    <input type="checkbox" ng-model="plotConfig.relative_pitch">
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>Relative time</td>
-                                <td>
-                                    <input type="checkbox" ng-model="plotConfig.relative_time">
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>Max number of lines</td>
-                                <td ng-click="test()">
-                                    <input ng-model="plotConfig.max_lines">
-                                </td>
-                            </tr>
-                            </tbody>
-                        </table>
-                    </md-content>
-                </md-tab>
+                            </div>
 
-            </md-tabs>
+                            <div>
+
+                                <md-checkbox ng-model="plotConfig.relative_pitch">Relative pitch
+                                </md-checkbox>
+                            </div>
+                            <div>
+
+                                <md-checkbox ng-model="plotConfig.relative_time">Relative time
+                                </md-checkbox>
+                            </div>
+                            <div>
+                                <input type="number" ng-model="plotConfig.max_lines" style="max-width:50px;">
+                                <span>Max number of lines</span>
+                            </div>
+
+                        </md-card-content>
+                    </md-card>
+
+
+                </md-content>
+            </md-tab>
+
+        </md-tabs>
 
         <button class='btn btn-success' ng-click="updateQuery()" ng-disabled="refreshing"><span
                 ng-bind="queryText"></span></button>
