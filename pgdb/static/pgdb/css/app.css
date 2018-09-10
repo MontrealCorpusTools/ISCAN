@@ -24,6 +24,9 @@ main .container-fluid {
 .query-filters-tabs md-tab-group {
     height:50%;
 }
+.scroll-container{
+    overflow-y: scroll;
+}
 
 .query-columns-tabs .query-filters-tabs{
     max-height: 50%;
