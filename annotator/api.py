@@ -13,6 +13,11 @@ class AnnotationViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         annotation_type = self.request.data.get('annotation_type', '')
+
         if not annotation_type:
-            return models.Annotation.objects.all()
-        return models.Annotation.objects.filter(item_type=annotation_type[0].upper()).all()
+            results = models.Annotation.objects.all()
+        else:
+            results = models.Annotation.objects.filter(item_type=annotation_type[0].upper()).all()
+        for r in results:
+            r.check_hierarchy()
+        return results

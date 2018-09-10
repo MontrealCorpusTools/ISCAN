@@ -17,6 +17,23 @@ class Annotation(models.Model):
     def __str__(self):
         return '{}'.format(self.label)
 
+    def check_hierarchy(self):
+        a_type = self.get_item_type_display().lower()
+        with CorpusContext(self.corpus.config) as c:
+            if not c.hierarchy.has_subannotation_type(self.label):
+                properties = []
+                if self.save_user:
+                    properties =[('user', str)]
+                for field in self.fields.all():
+                    if field.annotation_choice == 'N':
+                        t = float
+                    elif field.annotation_choice == 'B':
+                        t = bool
+                    else:
+                        t = str
+                    properties.append((field.label, t))
+                c.hierarchy.add_subannotation_type(c, a_type, self.label, properties=properties)
+
     def add_property(self, field):
         props = []
         if field.annotation_choice == 'N':
