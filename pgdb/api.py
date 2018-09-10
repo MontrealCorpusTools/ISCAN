@@ -912,6 +912,10 @@ class QueryViewSet(viewsets.ModelViewSet):
         query = models.Query.objects.filter(pk=pk, corpus=corpus).get()
         if query is None:
             return Response(None, status=status.HTTP_400_BAD_REQUEST)
+        if not query.running and query.result_count is None:
+            run_query_task.delay(query.pk)
+            time.sleep(1)
+
         return Response(serializers.QuerySerializer(query).data)
 
     @detail_route(methods=['get'])
