@@ -3,9 +3,11 @@ import csv
 import time
 import json
 
+import django
 from django.conf import settings
 from django.http.response import FileResponse, HttpResponse
 from django.db.models import Q
+from django.contrib.auth.models import User
 from rest_framework import generics, permissions, viewsets, status, pagination
 from rest_framework.response import Response
 from rest_framework.decorators import detail_route, list_route
@@ -24,13 +26,39 @@ import logging
 log = logging.getLogger('polyglot_server')
 
 
+class UserViewSet(viewsets.ModelViewSet):
+    model = User
+    queryset = User.objects.all()
+    serializer_class = serializers.UserSerializer
+
+    def create(self, request, *args, **kwargs):
+        if isinstance(request.user, django.contrib.auth.models.AnonymousUser):
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
+        if not request.user.is_superuser:
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
+
+    def list(self, request, *args, **kwargs):
+        if isinstance(request.user, django.contrib.auth.models.AnonymousUser):
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
+        if not request.user.is_superuser:
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
+        users = User.objects.all()
+        return Response(self.serializer_class(users, many=True).data)
+
+    @list_route(methods=['get'])
+    def current_user(self, request):
+        if isinstance(request.user, django.contrib.auth.models.AnonymousUser):
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
+        return Response(self.serializer_class(request.user).data)
+
+
 class DatabaseViewSet(viewsets.ModelViewSet):
     model = models.Database
     queryset = models.Database.objects.all()
     serializer_class = serializers.DatabaseSerializer
 
     def create(self, request, *args, **kwargs):
-        if request.auth is None:
+        if isinstance(request.user, django.contrib.auth.models.AnonymousUser):
             return Response(status=status.HTTP_401_UNAUTHORIZED)
         if not request.user.is_superuser:
             return Response(status=status.HTTP_401_UNAUTHORIZED)
@@ -71,7 +99,7 @@ class DatabaseViewSet(viewsets.ModelViewSet):
 
     @detail_route(methods=['post'])
     def start(self, request, pk=None):
-        if request.auth is None:
+        if isinstance(request.user, django.contrib.auth.models.AnonymousUser):
             return Response(status=status.HTTP_401_UNAUTHORIZED)
         if not request.user.is_superuser:
             return Response(status=status.HTTP_401_UNAUTHORIZED)
@@ -81,7 +109,7 @@ class DatabaseViewSet(viewsets.ModelViewSet):
 
     @detail_route(methods=['post'])
     def stop(self, request, pk=None):
-        if request.auth is None:
+        if isinstance(request.user, django.contrib.auth.models.AnonymousUser):
             return Response(status=status.HTTP_401_UNAUTHORIZED)
         if not request.user.is_superuser:
             return Response(status=status.HTTP_401_UNAUTHORIZED)
@@ -91,7 +119,7 @@ class DatabaseViewSet(viewsets.ModelViewSet):
 
     @detail_route(methods=['get'])
     def ports(self, request, pk=None):
-        if request.auth is None:
+        if isinstance(request.user, django.contrib.auth.models.AnonymousUser):
             return Response(status=status.HTTP_401_UNAUTHORIZED)
         if not request.user.is_superuser:
             return Response(status=status.HTTP_401_UNAUTHORIZED)
@@ -101,7 +129,7 @@ class DatabaseViewSet(viewsets.ModelViewSet):
 
     @detail_route(methods=['get'])
     def data_directory(self, request, pk=None):
-        if request.auth is None:
+        if isinstance(request.user, django.contrib.auth.models.AnonymousUser):
             return Response(status=status.HTTP_401_UNAUTHORIZED)
         if not request.user.is_superuser:
             return Response(status=status.HTTP_401_UNAUTHORIZED)
@@ -111,7 +139,7 @@ class DatabaseViewSet(viewsets.ModelViewSet):
 
     @detail_route(methods=['get'])
     def corpora(self, request, pk=None):
-        if request.auth is None:
+        if isinstance(request.user, django.contrib.auth.models.AnonymousUser):
             return Response(status=status.HTTP_401_UNAUTHORIZED)
         if not request.user.is_superuser:
             return Response(status=status.HTTP_401_UNAUTHORIZED)
@@ -127,7 +155,7 @@ class CorpusViewSet(viewsets.ModelViewSet):
     serializer_class = serializers.CorpusSerializer
 
     def list(self, request, *args, **kwargs):
-        if request.auth is None:
+        if isinstance(request.user, django.contrib.auth.models.AnonymousUser):
             return Response(status=status.HTTP_401_UNAUTHORIZED)
         if request.user.is_superuser:
             corpora = models.Corpus.objects.all()
@@ -150,7 +178,7 @@ class CorpusViewSet(viewsets.ModelViewSet):
         return Response(self.serializer_class(corpora, many=True).data)
 
     def create(self, request, *args, **kwargs):
-        if request.auth is None:
+        if isinstance(request.user, django.contrib.auth.models.AnonymousUser):
             return Response(status=status.HTTP_401_UNAUTHORIZED)
         if not request.user.is_superuser:
             return Response(status=status.HTTP_401_UNAUTHORIZED)
@@ -162,7 +190,7 @@ class CorpusViewSet(viewsets.ModelViewSet):
 
     @detail_route(methods=['post'])
     def import_corpus(self, request, pk=None):
-        if request.auth is None:
+        if isinstance(request.user, django.contrib.auth.models.AnonymousUser):
             return Response(status=status.HTTP_401_UNAUTHORIZED)
         corpus = self.get_object()
         if not request.user.is_superuser:
@@ -179,7 +207,7 @@ class CorpusViewSet(viewsets.ModelViewSet):
 
     @detail_route(methods=['get'])
     def status(self, request, pk=None):
-        if request.auth is None:
+        if isinstance(request.user, django.contrib.auth.models.AnonymousUser):
             return Response(status=status.HTTP_401_UNAUTHORIZED)
         corpus = self.get_object()
         if not request.user.is_superuser:
@@ -198,6 +226,8 @@ class CorpusViewSet(viewsets.ModelViewSet):
 
     @detail_route(methods=['get'])
     def autocomplete(self, request, pk=None):
+        if isinstance(request.user, django.contrib.auth.models.AnonymousUser):
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
         prefix = request.GET.get('prefix', None)
         category = request.GET.get('category', None)
         if category in ['speaker', 'discourse']:
@@ -226,7 +256,7 @@ class CorpusViewSet(viewsets.ModelViewSet):
 
     @detail_route(methods=['get'])
     def speakers(self, request, pk=None):
-        if request.auth is None:
+        if isinstance(request.user, django.contrib.auth.models.AnonymousUser):
             return Response(status=status.HTTP_401_UNAUTHORIZED)
         corpus = self.get_object()
         if not request.user.is_superuser:
@@ -241,9 +271,9 @@ class CorpusViewSet(viewsets.ModelViewSet):
 
     @detail_route(methods=['get'])
     def words(self, request, pk=None):
-        count = request.GET.get('count', None)
-        if request.auth is None:
+        if isinstance(request.user, django.contrib.auth.models.AnonymousUser):
             return Response(status=status.HTTP_401_UNAUTHORIZED)
+        count = request.GET.get('count', None)
         corpus = self.get_object()
         if not request.user.is_superuser:
             permissions = corpus.user_permissions.filter(user=request.user).all()
@@ -261,9 +291,9 @@ class CorpusViewSet(viewsets.ModelViewSet):
 
     @detail_route(methods=['get'])
     def default_subsets(self, request, pk=None):
-        subset_class = request.GET.get('subset_class', 'syllabics')
-        if request.auth is None:
+        if isinstance(request.user, django.contrib.auth.models.AnonymousUser):
             return Response(status=status.HTTP_401_UNAUTHORIZED)
+        subset_class = request.GET.get('subset_class', 'syllabics')
         corpus = models.Corpus.objects.get(pk=pk)
         if not request.user.is_superuser:
             permissions = corpus.user_permissions.filter(user=request.user).all()
@@ -319,7 +349,7 @@ class CorpusViewSet(viewsets.ModelViewSet):
 
     @detail_route(methods=['get'])
     def phones(self, request, pk=None):
-        if request.auth is None:
+        if isinstance(request.user, django.contrib.auth.models.AnonymousUser):
             return Response(status=status.HTTP_401_UNAUTHORIZED)
         corpus = self.get_object()
         if not request.user.is_superuser:
@@ -335,7 +365,7 @@ class CorpusViewSet(viewsets.ModelViewSet):
 
     @detail_route(methods=['get'])
     def phone_set(self, request, pk=None):
-        if request.auth is None:
+        if isinstance(request.user, django.contrib.auth.models.AnonymousUser):
             return Response(status=status.HTTP_401_UNAUTHORIZED)
         corpus = self.get_object()
         if not request.user.is_superuser:
@@ -356,7 +386,7 @@ class CorpusViewSet(viewsets.ModelViewSet):
 
     @detail_route(methods=['get'])
     def word_set(self, request, pk=None):
-        if request.auth is None:
+        if isinstance(request.user, django.contrib.auth.models.AnonymousUser):
             return Response(status=status.HTTP_401_UNAUTHORIZED)
         corpus = self.get_object()
         if not request.user.is_superuser:
@@ -377,7 +407,8 @@ class CorpusViewSet(viewsets.ModelViewSet):
 
     @detail_route(methods=['get'])
     def hierarchy(self, request, pk=None):
-        if request.auth is None:
+        print(request.user)
+        if isinstance(request.user, django.contrib.auth.models.AnonymousUser):
             return Response(status=status.HTTP_401_UNAUTHORIZED)
         corpus = self.get_object()
         if corpus.database.status != 'R':
@@ -400,7 +431,7 @@ class CorpusViewSet(viewsets.ModelViewSet):
 
     @detail_route(methods=['get'])
     def utterance_pitch_track(self, request, pk=None):
-        if request.auth is None:
+        if isinstance(request.user, django.contrib.auth.models.AnonymousUser):
             return Response(status=status.HTTP_401_UNAUTHORIZED)
         corpus = self.get_object()
         if not request.user.is_superuser:
@@ -423,7 +454,7 @@ class CorpusViewSet(viewsets.ModelViewSet):
 
     @detail_route(methods=['post'])
     def save_utterance_pitch_track(self, request, pk=None):
-        if request.auth is None:
+        if isinstance(request.user, django.contrib.auth.models.AnonymousUser):
             return Response(status=status.HTTP_401_UNAUTHORIZED)
         corpus = self.get_object()
         if not request.user.is_superuser:
@@ -440,7 +471,7 @@ class CorpusViewSet(viewsets.ModelViewSet):
 
 class SourceChoiceViewSet(viewsets.ViewSet):
     def list(self, request):
-        if request.auth is None:
+        if isinstance(request.user, django.contrib.auth.models.AnonymousUser):
             return Response(status=status.HTTP_401_UNAUTHORIZED)
         choices = os.listdir(settings.SOURCE_DATA_DIRECTORY)
         return Response(choices)
@@ -448,7 +479,7 @@ class SourceChoiceViewSet(viewsets.ViewSet):
 
 class DiscourseViewSet(viewsets.ViewSet):
     def list(self, request, corpus_pk=None):
-        if request.auth is None:
+        if isinstance(request.user, django.contrib.auth.models.AnonymousUser):
             return Response(status=status.HTTP_401_UNAUTHORIZED)
         corpus = models.Corpus.objects.get(pk=corpus_pk)
         if not request.user.is_superuser:
@@ -462,7 +493,7 @@ class DiscourseViewSet(viewsets.ViewSet):
 
     @list_route(methods=['get'])
     def properties(self, request, corpus_pk=None):
-        if request.auth is None:
+        if isinstance(request.user, django.contrib.auth.models.AnonymousUser):
             return Response(status=status.HTTP_401_UNAUTHORIZED)
         corpus = models.Corpus.objects.get(pk=corpus_pk)
         if not request.user.is_superuser:
@@ -481,7 +512,7 @@ class DiscourseViewSet(viewsets.ViewSet):
 
 class SpeakerViewSet(viewsets.ViewSet):
     def list(self, request, corpus_pk=None):
-        if request.auth is None:
+        if isinstance(request.user, django.contrib.auth.models.AnonymousUser):
             return Response(status=status.HTTP_401_UNAUTHORIZED)
         corpus = models.Corpus.objects.get(pk=corpus_pk)
         if not request.user.is_superuser:
@@ -496,7 +527,7 @@ class SpeakerViewSet(viewsets.ViewSet):
 
     @list_route(methods=['get'])
     def properties(self, request, corpus_pk=None):
-        if request.auth is None:
+        if isinstance(request.user, django.contrib.auth.models.AnonymousUser):
             return Response(status=status.HTTP_401_UNAUTHORIZED)
         corpus = models.Corpus.objects.get(pk=corpus_pk)
         if not request.user.is_superuser:
@@ -514,6 +545,8 @@ class SpeakerViewSet(viewsets.ViewSet):
 
 class SubannotationViewSet(viewsets.ViewSet):
     def create(self, request, corpus_pk=None):
+        if isinstance(request.user, django.contrib.auth.models.AnonymousUser):
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
         corpus = models.Corpus.objects.get(pk=corpus_pk)
         if not request.user.is_superuser:
             permissions = corpus.user_permissions.filter(user=request.user).all()
@@ -534,6 +567,8 @@ class SubannotationViewSet(viewsets.ViewSet):
         return Response(data)
 
     def update(self, request, pk=None, corpus_pk=None):
+        if isinstance(request.user, django.contrib.auth.models.AnonymousUser):
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
         corpus = models.Corpus.objects.get(pk=corpus_pk)
         if not request.user.is_superuser:
             permissions = corpus.user_permissions.filter(user=request.user).all()
@@ -564,6 +599,8 @@ class SubannotationViewSet(viewsets.ViewSet):
         return Response(None)
 
     def destroy(self, request, pk=None, corpus_pk=None):
+        if isinstance(request.user, django.contrib.auth.models.AnonymousUser):
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
         corpus = models.Corpus.objects.get(pk=corpus_pk)
         if not request.user.is_superuser:
             permissions = corpus.user_permissions.filter(user=request.user).all()
@@ -579,6 +616,8 @@ class SubannotationViewSet(viewsets.ViewSet):
 class AnnotationViewSet(viewsets.ViewSet):
     @detail_route(methods=['get'])
     def sound_file(self, request, pk=None, corpus_pk=None):
+        if isinstance(request.user, django.contrib.auth.models.AnonymousUser):
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
         corpus = models.Corpus.objects.get(pk=corpus_pk)
         # if not request.user.is_superuser: # FIXME Needs actual authentication
         #    permissions = corpus.user_permissions.filter(user=request.user).all()
@@ -599,6 +638,8 @@ class EnrichmentViewSet(viewsets.ModelViewSet):
         return models.Enrichment.objects.filter(corpus__pk=self.kwargs['corpus_pk'])
 
     def list(self, request, corpus_pk=None):
+        if isinstance(request.user, django.contrib.auth.models.AnonymousUser):
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
         corpus = models.Corpus.objects.get(pk=corpus_pk)
         if not request.user.is_superuser:
             permissions = corpus.user_permissions.filter(user=request.user).all()
@@ -609,7 +650,7 @@ class EnrichmentViewSet(viewsets.ModelViewSet):
 
     def create(self, request, corpus_pk=None, *args, **kwargs):
         log.info("Creating an enrichment.")
-        if request.auth is None:
+        if isinstance(request.user, django.contrib.auth.models.AnonymousUser):
             return Response(status=status.HTTP_401_UNAUTHORIZED)
         corpus = models.Corpus.objects.get(pk=corpus_pk)
         if not request.user.is_superuser:
@@ -690,7 +731,7 @@ class EnrichmentViewSet(viewsets.ModelViewSet):
 
     @detail_route(methods=["post"])
     def create_file(self, request, pk=None, corpus_pk=None, *args, **kwargs):
-        if request.auth is None:
+        if isinstance(request.user, django.contrib.auth.models.AnonymousUser):
             return Response(status=status.HTTP_401_UNAUTHORIZED)
         corpus = models.Corpus.objects.get(pk=corpus_pk)
         if not request.user.is_superuser:
@@ -715,7 +756,7 @@ class EnrichmentViewSet(viewsets.ModelViewSet):
 
     @detail_route(methods=['post'])
     def run(self, request, pk=None, corpus_pk=None):
-        if request.auth is None:
+        if isinstance(request.user, django.contrib.auth.models.AnonymousUser):
             return Response(status=status.HTTP_401_UNAUTHORIZED)
         corpus = models.Corpus.objects.get(pk=corpus_pk)
         if not request.user.is_superuser:
@@ -737,7 +778,7 @@ class EnrichmentViewSet(viewsets.ModelViewSet):
 
     @detail_route(methods=['post'])
     def reset(self, request, pk=None, corpus_pk=None):
-        if request.auth is None:
+        if isinstance(request.user, django.contrib.auth.models.AnonymousUser):
             return Response(status=status.HTTP_401_UNAUTHORIZED)
         corpus = models.Corpus.objects.get(pk=corpus_pk)
         if not request.user.is_superuser:
@@ -753,7 +794,7 @@ class EnrichmentViewSet(viewsets.ModelViewSet):
         return Response(True)
 
     def update(self, request, pk=None, corpus_pk=None):
-        if request.auth is None:
+        if isinstance(request.user, django.contrib.auth.models.AnonymousUser):
             return Response(status=status.HTTP_401_UNAUTHORIZED)
         corpus = models.Corpus.objects.get(pk=corpus_pk)
         if not request.user.is_superuser:
@@ -773,7 +814,7 @@ class EnrichmentViewSet(viewsets.ModelViewSet):
         return Response(serializers.EnrichmentSerializer(enrichment).data)
 
     def destroy(self, request, pk=None, corpus_pk=None):
-        if request.auth is None:
+        if isinstance(request.user, django.contrib.auth.models.AnonymousUser):
             return Response(status=status.HTTP_401_UNAUTHORIZED)
         corpus = models.Corpus.objects.get(pk=corpus_pk)
         if not request.user.is_superuser:
@@ -797,6 +838,8 @@ class QueryViewSet(viewsets.ModelViewSet):
         return models.Query.objects.filter(corpus__pk=self.kwargs['corpus_pk'])
 
     def list(self, request, corpus_pk=None):
+        if isinstance(request.user, django.contrib.auth.models.AnonymousUser):
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
         corpus = models.Corpus.objects.get(pk=corpus_pk)
         if not request.user.is_superuser:
             permissions = corpus.user_permissions.filter(user=request.user).all()
@@ -808,7 +851,7 @@ class QueryViewSet(viewsets.ModelViewSet):
         return Response(serializers.QuerySerializer(queries, many=True).data)
 
     def create(self, request, corpus_pk=None, *args, **kwargs):
-        if request.auth is None:
+        if isinstance(request.user, django.contrib.auth.models.AnonymousUser):
             return Response(status=status.HTTP_401_UNAUTHORIZED)
         corpus = models.Corpus.objects.get(pk=corpus_pk)
         if not request.user.is_superuser:
@@ -827,7 +870,7 @@ class QueryViewSet(viewsets.ModelViewSet):
         return Response(serializers.QuerySerializer(query).data)
 
     def update(self, request, pk=None, corpus_pk=None):
-        if request.auth is None:
+        if isinstance(request.user, django.contrib.auth.models.AnonymousUser):
             return Response(status=status.HTTP_401_UNAUTHORIZED)
         corpus = models.Corpus.objects.get(pk=corpus_pk)
         if not request.user.is_superuser:
@@ -855,6 +898,8 @@ class QueryViewSet(viewsets.ModelViewSet):
 
     @list_route(methods=['GET'])
     def utterance(self, request, corpus_pk=None):
+        if isinstance(request.user, django.contrib.auth.models.AnonymousUser):
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
         corpus = models.Corpus.objects.get(pk=corpus_pk)
         if not request.user.is_superuser:
             permissions = corpus.user_permissions.filter(user=request.user).all()
@@ -867,6 +912,8 @@ class QueryViewSet(viewsets.ModelViewSet):
 
     @list_route(methods=['GET'])
     def word(self, request, corpus_pk=None):
+        if isinstance(request.user, django.contrib.auth.models.AnonymousUser):
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
         corpus = models.Corpus.objects.get(pk=corpus_pk)
         if not request.user.is_superuser:
             permissions = corpus.user_permissions.filter(user=request.user).all()
@@ -879,6 +926,8 @@ class QueryViewSet(viewsets.ModelViewSet):
 
     @list_route(methods=['GET'])
     def syllable(self, request, corpus_pk=None):
+        if isinstance(request.user, django.contrib.auth.models.AnonymousUser):
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
         corpus = models.Corpus.objects.get(pk=corpus_pk)
         if not request.user.is_superuser:
             permissions = corpus.user_permissions.filter(user=request.user).all()
@@ -891,6 +940,8 @@ class QueryViewSet(viewsets.ModelViewSet):
 
     @list_route(methods=['GET'])
     def phone(self, request, corpus_pk=None):
+        if isinstance(request.user, django.contrib.auth.models.AnonymousUser):
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
         corpus = models.Corpus.objects.get(pk=corpus_pk)
         if not request.user.is_superuser:
             permissions = corpus.user_permissions.filter(user=request.user).all()
@@ -902,7 +953,7 @@ class QueryViewSet(viewsets.ModelViewSet):
         return Response(serializers.QuerySerializer(queries, many=True).data)
 
     def retrieve(self, request, pk=None, corpus_pk=None):
-        if request.auth is None:
+        if isinstance(request.user, django.contrib.auth.models.AnonymousUser):
             return Response(status=status.HTTP_401_UNAUTHORIZED)
         corpus = models.Corpus.objects.get(pk=corpus_pk)
         if not request.user.is_superuser:
@@ -920,7 +971,7 @@ class QueryViewSet(viewsets.ModelViewSet):
 
     @detail_route(methods=['get'])
     def results(self, request, pk=None, corpus_pk=None):
-        if request.auth is None:
+        if isinstance(request.user, django.contrib.auth.models.AnonymousUser):
             return Response(status=status.HTTP_401_UNAUTHORIZED)
         corpus = models.Corpus.objects.get(pk=corpus_pk)
         if not request.user.is_superuser:
@@ -942,7 +993,7 @@ class QueryViewSet(viewsets.ModelViewSet):
     @detail_route(methods=['put'])
     def ordering(self, request, pk=None, corpus_pk=None, index=None):
         print(request.query_params)
-        if request.auth is None:
+        if isinstance(request.user, django.contrib.auth.models.AnonymousUser):
             return Response(status=status.HTTP_401_UNAUTHORIZED)
         corpus = models.Corpus.objects.get(pk=corpus_pk)
         if not request.user.is_superuser:
@@ -962,7 +1013,7 @@ class QueryViewSet(viewsets.ModelViewSet):
     @detail_route(methods=['get'])
     def result(self, request, pk=None, corpus_pk=None, index=None):
         print(request.query_params)
-        if request.auth is None:
+        if isinstance(request.user, django.contrib.auth.models.AnonymousUser):
             return Response(status=status.HTTP_401_UNAUTHORIZED)
         corpus = models.Corpus.objects.get(pk=corpus_pk)
         if not request.user.is_superuser:
@@ -1032,9 +1083,9 @@ class QueryViewSet(viewsets.ModelViewSet):
 
     @detail_route(methods=['post'])
     def export(self, request, pk=None, corpus_pk=None):
-        response = HttpResponse(content_type='text/csv')
-        if request.auth is None:
+        if isinstance(request.user, django.contrib.auth.models.AnonymousUser):
             return Response(status=status.HTTP_401_UNAUTHORIZED)
+        response = HttpResponse(content_type='text/csv')
         corpus = models.Corpus.objects.get(pk=corpus_pk)
         if not request.user.is_superuser:
             permissions = corpus.user_permissions.filter(user=request.user).all()

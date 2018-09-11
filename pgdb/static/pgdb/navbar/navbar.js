@@ -1,72 +1,53 @@
 angular.module('navbar', [
     'pgdb.corpora',
-    'pgdb.auth'
+    'pgdb.auth',
+    'pgdb.users'
 ])
-    .controller('NavCtrl', function ($scope, $rootScope, Corpora, CookieService, $http, AuthService, __env, $stateParams) {
-        $rootScope.authenticated = false;
+    .controller('NavCtrl', function ($scope, $rootScope, Corpora, $http, djangoAuth, __env, Users) {
+        $rootScope.authenticated = undefined;
         $scope.authenticated = false;
         $scope.siteName = __env.siteName;
 
-        $scope.checkAuth = function () {
-            $scope.token = CookieService.get('token');
-            if ($scope.token != undefined) {
-                $http.defaults.headers.common["Authorization"] = "Token " + $scope.token;
-            }
-            AuthService.checkAuth().then(function (user) {
-                if (user.data.id === null) {
-                    $rootScope.user = undefined;
-                    $rootScope.authenticated = false;
-                    $scope.authenticated = false;
-                    $rootScope.$broadcast("unauthenticated", user);
-
-                }
-                else {
-                    $rootScope.user = user.data;
-
-                    $rootScope.authenticated = true;
-                    $scope.authenticated = true;
-                    $rootScope.session = AuthService.createSessionFor(user.data);
-                    $rootScope.$broadcast("authenticated", user);
-                }
-            }).catch(function (res) {
-                delete $scope.user;
-                delete $scope.token;
-                delete $http.defaults.headers.common["Authorization"];
-                $rootScope.user = undefined;
-                $rootScope.authenticated = false;
-                $scope.authenticated = false;
-                $rootScope.$broadcast("unauthenticated", user);
-            });
-
-        };
-
-        $scope.$on('corpus_changed', function(e, res){
-            $scope.current_corpus = res;
-            console.log(res)
-        });
-
-        $scope.checkAuth();
-        $scope.$on('logged_in', $scope.checkAuth);
-        $scope.$on('authenticated', function (e, res) {
-            $scope.user = $rootScope.user;
-            $rootScope.authenticated = true;
+        djangoAuth.authenticationStatus(true).then(function () {
             $scope.authenticated = true;
 
             $scope.refreshCorpusList();
-        });
-        $scope.$on('logged_out', function (e, res) {
-            delete $scope.user;
-            delete $scope.token;
-            delete $http.defaults.headers.common["Authorization"];
-            $rootScope.authenticated = false;
+            Users.current_user().then(function (res) {
+                $scope.user = res.data;
+                $rootScope.user = $scope.user;
+            });
+        }).catch(function(res){
             $scope.authenticated = false;
+        });
+
+        // Wait and respond to the logout event.
+        $scope.$on('djangoAuth.logged_out', function () {
+            $scope.authenticated = false;
+            $scope.corpora = [];
+            delete $scope.current_corpus;
+            delete $scope.user;
+            delete $rootScope.user;
+
+        });
+        // Wait and respond to the log in event.
+        $scope.$on('djangoAuth.logged_in', function (data) {
+            $scope.authenticated = true;
+            Users.current_user().then(function (res) {
+                $scope.user = res.data;
+                $rootScope.user = $scope.user;
+            });
             $scope.refreshCorpusList();
         });
+
+        $scope.$on('corpus_changed', function (e, res) {
+            $scope.current_corpus = res;
+        });
+
         $scope.refreshCorpusList = function () {
             Corpora.all().then(function (res) {
                 $scope.corpora = res.data;
             }).catch(function (res) {
-
+                $scope.corpora = [];
             });
         }
     }).directive('navbar', function () {

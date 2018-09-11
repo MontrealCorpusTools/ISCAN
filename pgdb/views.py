@@ -17,7 +17,7 @@ from .models import Database, Corpus
 
 
 from polyglotdb import CorpusContext
-from .serializers import UserWithFullGroupsSerializer, UnauthorizedUserSerializer
+from .serializers import UserSerializer
 from rest_framework.response import Response
 from rest_framework import generics, status
 

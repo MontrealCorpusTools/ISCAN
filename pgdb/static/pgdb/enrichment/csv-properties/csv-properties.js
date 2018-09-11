@@ -1,8 +1,15 @@
 angular.module('csvProperties', [
     'pgdb.corpora',
     'pgdb.enrichment'
-]).controller('CSVPropertiesCtrl', function ($scope, $rootScope, Enrichment, Corpora, $state, $stateParams) {
-    
+]).controller('CSVPropertiesCtrl', function ($scope, $rootScope, Enrichment, Corpora, $state, $stateParams, djangoAuth) {
+
+
+        djangoAuth.authenticationStatus(true).then(function () {
+
+        }).catch(function(){
+                $state.go('home');
+        });
+
     if ($stateParams.enrichment_id == null) {
 	    $scope.newCSV= true;
 	    $scope.enrichment = {source: 'praat', number_of_iterations: 1};

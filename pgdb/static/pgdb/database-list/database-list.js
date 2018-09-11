@@ -1,19 +1,7 @@
 angular.module('databaseList', [
     'pgdb.databases'
 ])
-    .controller('DatabaseListCtrl', function ($scope, Databases, Corpora, $state, $location, $rootScope) {
-        $rootScope.$broadcast('corpus_changed', undefined);
-        $scope.start_button = 'Start';
-        $scope.stop_button = 'Stop';
-        $scope.delete_button = 'Delete';
-        $scope.host = $location.host();
-        $scope.newDatabase = {};
-
-        Corpora.all().then(function (res){
-            $scope.corpora = res.data;
-            console.log($scope.corpora);
-        });
-
+    .controller('DatabaseListCtrl', function ($scope, Databases, Corpora, $state, $location, djangoAuth) {
         $scope.addDatabase = function () {
             Databases.addOne($scope.newDatabase).then($scope.refreshDatabases);
             $scope.newDatabase = {}
@@ -21,7 +9,7 @@ angular.module('databaseList', [
         $scope.refreshDatabases = function () {
             Databases.all().then(function (res) {
                 $scope.databases = res.data;
-                angular.forEach($scope.databases, function(db){
+                angular.forEach($scope.databases, function (db) {
                     db.start_button = 'Start';
                     db.stop_button = 'Stop';
                     db.delete_button = 'Delete';
@@ -30,8 +18,6 @@ angular.module('databaseList', [
             });
 
         };
-        $scope.refreshDatabases();
-
         $scope.startDatabase = function (db) {
             db.start_button = 'Starting...';
             Databases.start(db.id).then(function (res) {
@@ -56,5 +42,20 @@ angular.module('databaseList', [
                 return database.id !== id;
             })
         };
+        djangoAuth.authenticationStatus(true).then(function () {
+            $scope.start_button = 'Start';
+            $scope.stop_button = 'Stop';
+            $scope.delete_button = 'Delete';
+            $scope.host = $location.host();
+            $scope.newDatabase = {};
+
+
+            $scope.refreshDatabases();
+
+
+        }).catch(function () {
+            $state.go('home');
+        });
+
 
     });

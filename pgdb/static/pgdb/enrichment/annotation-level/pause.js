@@ -4,7 +4,6 @@ angular.module('pausesEnrichment', [
 ]).controller('PausesEnrichmentCtrl', function ($scope, $rootScope, Enrichment, Corpora, $state, $stateParams) {
 	$scope.enrichment = {enrichment_type: "pauses"};
 	$scope.count = 25;
-
 	$scope.getWords = function(){
 		if ($scope.count >= 1) {
 			Corpora.words($stateParams.corpus_id, $scope.count).then(function(res){
@@ -15,7 +14,13 @@ angular.module('pausesEnrichment', [
 		}
 	};
 
+        djangoAuth.authenticationStatus(true).then(function () {
+
 	$scope.getWords();
+        }).catch(function(){
+                $state.go('home');
+        });
+
 
 	$scope.getCheckedWords = function(){
 	    var arr = [];

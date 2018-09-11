@@ -44,7 +44,7 @@ angular.module('queryDetail', [
         }
     };
 }])
-    .controller('QueryDetailCtrl', function ($scope, $rootScope, Query, Corpora, $state, $stateParams, $document, Annotations) {
+    .controller('QueryDetailCtrl', function ($scope, $rootScope, Query, Corpora, $state, $stateParams, $document, Annotations, djangoAuth) {
             $scope.paginateParams = Query.paginateParams;
             $scope.annotation_types = Query.annotation_types;
             $scope.newAnnotation = {};
@@ -272,15 +272,15 @@ angular.module('queryDetail', [
                     });
             };
 
-            $scope.$on('authenticated', function (e, res) {
-                $scope.user = $rootScope.user;
-                $rootScope.authenticated = true;
-                $scope.refreshPermissions();
-            });
 
-            if ($rootScope.authenticated) {
+
+        djangoAuth.authenticationStatus(true).then(function () {
+
                 $scope.refreshPermissions();
-            }
+        }).catch(function(){
+                $state.go('home');
+        });
+
 
             $scope.get_next = function () {
                 console.log('index', $scope.detail_index)
@@ -315,6 +315,10 @@ angular.module('queryDetail', [
             };
 
             $scope.$on('$locationChangeStart', function (event) {
+                Howler.unload();
+            });
+
+            $scope.$on('$destroy', function (event) {
                 Howler.unload();
             });
 

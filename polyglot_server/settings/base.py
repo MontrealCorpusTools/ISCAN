@@ -77,6 +77,10 @@ INSTALLED_APPS = (
     'annotator',
     'intonation',
     'sekizai',
+    'rest_auth',
+    'allauth',
+    'allauth.account',
+    'rest_auth.registration',
 
 )
 
@@ -234,6 +238,10 @@ REST_FRAMEWORK = {
         'rest_framework.authentication.BasicAuthentication',
         'rest_framework.authentication.SessionAuthentication',
     )
+}
+
+REST_AUTH_SERIALIZERS = {
+    'USER_DETAILS_SERIALIZER ': 'pgdb.serializers.UserSerializer'
 }
 
 # Logger

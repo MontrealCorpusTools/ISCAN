@@ -1,8 +1,15 @@
 angular.module('utterancesEnrichment', [
     'pgdb.corpora',
     'pgdb.enrichment'
-]).controller('UtterancesEnrichmentCtrl', function ($scope, $rootScope, Enrichment, Corpora, $state, $stateParams) {
+]).controller('UtterancesEnrichmentCtrl', function ($scope, $rootScope, Enrichment, Corpora, $state, $stateParams, djangoAuth) {
 	$scope.enrichment = {enrichment_type: "utterances"};
+
+
+        djangoAuth.authenticationStatus(true).then(function () {
+
+        }).catch(function(){
+                $state.go('home');
+        });
 
 	$scope.save = function(){
 		$scope.enrichment.pause_length = $scope.enrichment.pause_length/1000;

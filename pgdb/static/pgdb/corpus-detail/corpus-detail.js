@@ -3,14 +3,11 @@ angular.module('corpusDetail', [
     'pgdb.enrichment',
     'pgdb.query'
 ])
-    .controller('CorpusDetailCtrl', function ($scope, Corpora, $state, $stateParams, Query, $timeout, $rootScope) {
+    .controller('CorpusDetailCtrl', function ($scope, Corpora, $state, $stateParams, Query, $timeout, $rootScope, djangoAuth) {
 
-        $scope.$on('unauthenticated', function(){
-            $state.go('home');
-        });
         var loadTime = 10000, //Load the data every second
             errorCount = 0, //Counter for the server errors
-            loadPromise; //Pointer to the promise created by the Angular $timout service
+            loadPromise, runcheck = true; //Pointer to the promise created by the Angular $timout service
 
         $scope.properties = {};
         $scope.subsets = {};
@@ -89,18 +86,30 @@ angular.module('corpusDetail', [
 		});
             }
             else if ($scope.corpus.busy){
-                
+
 
             }
             nextLoad(loadTime);
         });
         };
 
+        djangoAuth.authenticationStatus(true).then(function () {
+
+        //Start polling the data from the server
+            getData();
+        }).catch(function(){
+                $state.go('home');
+        });
+
         var cancelNextLoad = function () {
             $timeout.cancel(loadPromise);
         };
 
         var nextLoad = function (mill) {
+            if (!runcheck){
+                return
+            }
+            console.log('RUNNING NEXT LOAD')
             mill = mill || loadTime;
 
             //Always make sure the last timeout is cleared before starting a new one
@@ -109,12 +118,11 @@ angular.module('corpusDetail', [
         };
 
 
-        //Start polling the data from the server
-        getData();
-
 
         //Always clear the timeout when the view is destroyed, otherwise it will keep polling and leak memory
         $scope.$on('$destroy', function () {
+            console.log('DESTROYING')
+            runcheck = false;
             cancelNextLoad();
         });
 

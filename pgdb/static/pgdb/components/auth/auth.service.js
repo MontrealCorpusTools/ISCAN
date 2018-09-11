@@ -1,189 +1,209 @@
-angular.module("pgdb.auth").factory("AuthService", [
-    '__env', 'HttpService', function(__env, HttpService) {
-      return {
-        login: function(user) {
-          var url;
-          url = __env.apiUrl + "api-token-auth/";
-          return HttpService.post(url, user);
-        },
-        checkAuth: function() {
-          var url;
-          url = __env.apiUrl + "check-auth/";
-          return HttpService.get(url);
-        },
-        createSessionFor: function(user) {
-          var group, ind;
-          return {
-            user: user,
-            userRoles: [
-              (function() {
-                var _ref, _results;
-                _ref = user.groups;
-                _results = [];
-                for (ind in _ref) {
-                  group = _ref[ind];
-                  _results.push(group.name);
+'use strict';
+
+angular.module('pgdb.auth')
+  .service('djangoAuth', function djangoAuth($q, $http, $cookies, $rootScope, __env) {
+    // AngularJS will instantiate a singleton by calling "new" on this function
+    var service = {
+        /* START CUSTOMIZATION HERE */
+        // Change this to point to your Django REST Auth API
+        // e.g. /api/rest-auth  (DO NOT INCLUDE ENDING SLASH)
+        'API_URL': '',
+        // Set use_session to true to use Django sessions to store security token.
+        // Set use_session to false to store the security token locally and transmit it as a custom header.
+        'use_session': true,
+        /* END OF CUSTOMIZATION */
+        'authenticated': null,
+        'authPromise': null,
+        'request': function(args) {
+            // Let's retrieve the token from the cookie, if available
+            if($cookies.token){
+                $http.defaults.headers.common.Authorization = 'Token ' + $cookies.token;
+            }
+            // Continue
+            params = args.params || {}
+            args = args || {};
+            var deferred = $q.defer(),
+                url = __env.apiUrl + 'rest-auth' + args.url,
+                method = args.method || "GET",
+                params = params,
+                data = args.data || {};
+            // Fire the request, as configured.
+            $http({
+                url: url,
+                withCredentials: this.use_session,
+                method: method.toUpperCase(),
+                headers: {'X-CSRFToken': $cookies['csrftoken']},
+                params: params,
+                data: data
+            })
+            .then(angular.bind(this,function(data, status, headers, config) {
+                deferred.resolve(data, status);
+            }))
+            .catch(angular.bind(this,function(data, status, headers, config) {
+                console.log("error syncing with: " + url);
+                // Set request status
+                if(data){
+                    data.status = status;
                 }
-                return _results;
-              })()
-            ][0]
-          };
+                if(status == 0){
+                    if(data == ""){
+                        data = {};
+                        data['status'] = 0;
+                        data['non_field_errors'] = ["Could not connect. Please try again."];
+                    }
+                    // or if the data is null, then there was a timeout.
+                    if(data == null){
+                        // Inject a non field error alerting the user
+                        // that there's been a timeout error.
+                        data = {};
+                        data['status'] = 0;
+                        data['non_field_errors'] = ["Server timed out. Please try again."];
+                    }
+                }
+                deferred.reject(data, status, headers, config);
+            }));
+            return deferred.promise;
         },
-        isAuthorized: function(authorizedRoles, session) {
-          var role, _i, _len;
-          if (!angular.isArray(authorizedRoles)) {
-            authorizedRoles = [authorizedRoles];
-          }
-          if (authorizedRoles.length === 0) {
-            return true;
-          }
-          for (_i = 0, _len = authorizedRoles.length; _i < _len; _i++) {
-            role = authorizedRoles[_i];
-            if (__indexOf.call(session.userRoles, role) >= 0) {
-              return true;
+        'register': function(username,password1,password2,email,more){
+            var data = {
+                'username':username,
+                'password1':password1,
+                'password2':password2,
+                'email':email
             }
-          }
-          return false;
+            data = angular.extend(data,more);
+            return this.request({
+                'method': "POST",
+                'url': "/registration/",
+                'data' :data
+            });
         },
-        isRestricted: function(restrictedRoles, session) {
-          var role, _i, _len, _ref;
-          if (!angular.isArray(restrictedRoles)) {
-            restrictedRoles = [restrictedRoles];
-          }
-          if (restrictedRoles.length === 0) {
-            return false;
-          }
-          _ref = session.userRoles;
-          for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-            role = _ref[_i];
-            if (__indexOf.call(restrictedRoles, role) >= 0) {
-              return true;
+        'login': function(username,password){
+            var djangoAuth = this;
+            return this.request({
+                'method': "POST",
+                'url': "/login/",
+                'data':{
+                    'username':username,
+                    'password':password
+                }
+            }).then(function(data){
+                if(!djangoAuth.use_session){
+                    $http.defaults.headers.common.Authorization = 'Token ' + data.key;
+                    $cookies.token = data.key;
+                    console.log($cookies.token)
+                }
+                djangoAuth.authenticated = true;
+                $rootScope.$broadcast("djangoAuth.logged_in", data);
+            });
+        },
+        'logout': function(){
+            var djangoAuth = this;
+            return this.request({
+                'method': "POST",
+                'url': "/logout/"
+            }).then(function(data){
+                delete $http.defaults.headers.common.Authorization;
+                delete $cookies.token;
+                djangoAuth.authenticated = false;
+                $rootScope.$broadcast("djangoAuth.logged_out");
+            });
+        },
+        'changePassword': function(password1,password2){
+            return this.request({
+                'method': "POST",
+                'url': "/password/change/",
+                'data':{
+                    'new_password1':password1,
+                    'new_password2':password2
+                }
+            });
+        },
+        'resetPassword': function(email){
+            return this.request({
+                'method': "POST",
+                'url': "/password/reset/",
+                'data':{
+                    'email':email
+                }
+            });
+        },
+        'profile': function(){
+            return this.request({
+                'method': "GET",
+                'url': "/user/"
+            }); 
+        },
+        'updateProfile': function(data){
+            return this.request({
+                'method': "PATCH",
+                'url': "/user/",
+                'data':data
+            }); 
+        },
+        'verify': function(key){
+            return this.request({
+                'method': "POST",
+                'url': "/registration/verify-email/",
+                'data': {'key': key} 
+            });            
+        },
+        'confirmReset': function(uid,token,password1,password2){
+            return this.request({
+                'method': "POST",
+                'url': "/password/reset/confirm/",
+                'data':{
+                    'uid': uid,
+                    'token': token,
+                    'new_password1':password1,
+                    'new_password2':password2
+                }
+            });
+        },
+        'authenticationStatus': function(restrict, force){
+            // Set restrict to true to reject the promise if not logged in
+            // Set to false or omit to resolve when status is known
+            // Set force to true to ignore stored value and query API
+            restrict = restrict || false;
+            force = force || false;
+            if(this.authPromise == null || force){
+                this.authPromise = this.request({
+                    'method': "GET",
+                    'url': "/user/"
+                })
             }
-          }
-          return false;
-        }
-      };
-    }
-  ]).factory("CookieService", [
-    '$cookies', function($cookies) {
-      return {
-        get: function(name) {
-          if ($cookies.get) {
-            return $cookies.get(name);
-          } else {
-            return $cookies[name];
-          }
-        },
-        put: function(name, value) {
-          if ($cookies.put) {
-            return $cookies.put(name, value);
-          } else {
-            return $cookies[name] = value;
-          }
-        },
-        remove: function(name) {
-          if ($cookies.remove) {
-            return $cookies.remove(name);
-          } else {
-            return delete $cookies[name];
-          }
-        }
-      };
-    }
-  ]).factory("HttpService", [
-    "$http", "$q", "$timeout", function($http, $q, $timeout) {
-      var ensureEndsWithSlash;
-      ensureEndsWithSlash = function(url) {
-        if (url[url.length - 1] === "/") {
-          return url;
-        } else {
-          return url + "/";
-        }
-      };
-      return {
-        get: function(url, timeout) {
-          var defer;
-          defer = $q.defer();
-          $http({
-            method: "GET",
-            url: url
-          }).then(function(data) {
-            if (timeout) {
-              $timeout((function() {
-                defer.resolve(data);
-              }), timeout);
-            } else {
-              defer.resolve(data);
+            var da = this;
+            var getAuthStatus = $q.defer();
+            if(this.authenticated != null && !force){
+                // We have a stored value which means we can pass it back right away.
+                if(this.authenticated == false && restrict){
+                    getAuthStatus.reject("User is not logged in.");
+                }else{
+                    getAuthStatus.resolve();
+                }
+            }else{
+                // There isn't a stored value, or we're forcing a request back to
+                // the API to get the authentication status.
+                this.authPromise.then(function(res){
+                    da.authenticated = true;
+                    getAuthStatus.resolve();
+                },function(){
+                    da.authenticated = false;
+                    if(restrict){
+                        getAuthStatus.reject("User is not logged in.");
+                    }else{
+                        getAuthStatus.resolve();
+                    }
+                });
             }
-          }).catch(function(data) {
-            console.error("HttpService.get error: " + data);
-            defer.reject(data);
-          });
-          return defer.promise;
+            return getAuthStatus.promise;
         },
-        getblob: function(url) {
-          var defer;
-          defer = $q.defer();
-          $http({
-            method: "GET",
-            url: url,
-            responseType: "blob"
-          }).then(function(data) {
-            defer.resolve(data);
-          }).catch(function(data) {
-            console.error("HttpService.get error: " + data);
-            defer.reject(data);
-          });
-          return defer.promise;
-        },
-        post: function(url, data) {
-          var defer, surl;
-          defer = $q.defer();
-          surl = ensureEndsWithSlash(url);
-          $http({
-            method: "POST",
-            url: surl,
-            data: data
-          }).then(function(data) {
-            defer.resolve(data);
-          }).catch(function(data) {
-            console.error("HttpService.post error: " + data);
-            defer.reject(data);
-          });
-          return defer.promise;
-        },
-        put: function(url, data) {
-          var defer, surl;
-          defer = $q.defer();
-          surl = ensureEndsWithSlash(url);
-          $http({
-            method: "PUT",
-            url: surl,
-            data: data
-          }).then(function(data) {
-            defer.resolve(data);
-          }).catch(function(data) {
-            console.error("HttpService.put error: " + data);
-            defer.reject(data);
-          });
-          return defer.promise;
-        },
-        "delete": function(url, data) {
-          var defer, surl;
-          defer = $q.defer();
-          surl = ensureEndsWithSlash(url);
-          $http({
-            method: "DELETE",
-            url: surl,
-            data: data
-          }).then(function(data) {
-            defer.resolve(data);
-          }).catch(function(data) {
-            console.error("HttpService.put error: " + data);
-            defer.reject(data);
-          });
-          return defer.promise;
+        'initialize': function(url, sessions){
+            this.API_URL = url;
+            this.use_session = sessions;
+            return this.authenticationStatus();
         }
-      };
+
     }
-  ]);
+    return service;
+  });

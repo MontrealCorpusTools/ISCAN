@@ -1,15 +1,11 @@
 angular.module('enrichment', [
     'pgdb.corpora',
     'pgdb.enrichment'
-]).controller('EnrichmentCtrl', function ($scope, $rootScope, Enrichment, Corpora, $state, $stateParams, $timeout) {
-
-        $scope.$on('unauthenticated', function(){
-            $state.go('home');
-        });
+]).controller('EnrichmentCtrl', function ($scope, $rootScope, Enrichment, Corpora, $state, $stateParams, $timeout, djangoAuth) {
 
         var loadTime = 10000, //Load the data every second
             errorCount = 0, //Counter for the server errors
-            loadPromise; //Pointer to the promise created by the Angular $timout service
+            loadPromise, runcheck=true; //Pointer to the promise created by the Angular $timout service
 
 
         var getData = function () {
@@ -32,7 +28,6 @@ angular.module('enrichment', [
             nextLoad(loadTime);
         });
         };
-
 	$scope.sortEnrichmentsBy = 'completed';
 	$scope.reverseEnrichments = false;
 	$scope.tableSortExpression = function(e){
@@ -47,6 +42,9 @@ angular.module('enrichment', [
         };
 
         var nextLoad = function (mill) {
+            if (!runcheck){
+                return
+            }
             mill = mill || loadTime;
 
             //Always make sure the last timeout is cleared before starting a new one
@@ -54,13 +52,18 @@ angular.module('enrichment', [
             loadPromise = $timeout(getData, mill);
         };
 
+        djangoAuth.authenticationStatus(true).then(function () {
 
         //Start polling the data from the server
-        getData();
+            getData();
+        }).catch(function(){
+                $state.go('home');
+        });
 
 
         //Always clear the timeout when the view is destroyed, otherwise it will keep polling and leak memory
         $scope.$on('$destroy', function () {
+            runcheck =false;
             cancelNextLoad();
         });
 

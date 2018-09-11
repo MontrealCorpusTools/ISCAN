@@ -2,10 +2,10 @@ angular.module('bestiaryPlot', [
     'intonation.query',
     'ngFileSaver'
 ])
-    .controller('BestiaryPlotCtrl', function ($scope, BestiaryQuery, Query, Corpora, $state, $stateParams, $timeout, $rootScope) {
+    .controller('BestiaryPlotCtrl', function ($scope, BestiaryQuery, Query, Corpora, $state, $stateParams, $timeout, $rootScope, djangoAuth) {
         var loadTime = 10000, //Load the data every second
             errorCount = 0, //Counter for the server errors
-            loadPromise; //Pointer to the promise created by the Angular $timout service
+            loadPromise, runcheck=true; //Pointer to the promise created by the Angular $timout service
         $scope.filter_options = {discourse: [], speaker: []};
         $scope.facet_attribute = null;
         $scope.color_attribute = null;
@@ -198,6 +198,9 @@ angular.module('bestiaryPlot', [
         };
 
         var nextLoad = function (mill) {
+            if (!runcheck){
+                return
+            }
             mill = mill || loadTime;
 
             //Always make sure the last timeout is cleared before starting a new one
@@ -207,19 +210,17 @@ angular.module('bestiaryPlot', [
 
         //Always clear the timeout when the view is destroyed, otherwise it will keep polling and leak memory
         $scope.$on('$destroy', function () {
+            runcheck = false;
             cancelNextLoad();
         });
 
-        $scope.$on('authenticated', $scope.refreshPermissions);
-        if ($rootScope.authenticated) {
+
+        djangoAuth.authenticationStatus(true).then(function () {
+
             $scope.refreshPermissions();
-        }
-        $scope.$on('unauthenticated', function () {
-            $state.go('home');
+        }).catch(function(){
+                $state.go('home');
         });
 
-        $scope.test = function () {
-            console.log($scope.plot_config)
-        };
 
     });

@@ -141,7 +141,7 @@ class CorpusPermissionsSerializer(serializers.ModelSerializer):
         fields = ('corpus', 'can_edit', 'can_listen', 'can_view_detail', 'can_view_annotations', 'can_annotate')
 
 
-class UserWithFullGroupsSerializer(serializers.ModelSerializer):
+class UserSerializer(serializers.ModelSerializer):
     corpus_permissions = CorpusPermissionsSerializer(many=True)
 
     class Meta:
@@ -149,6 +149,7 @@ class UserWithFullGroupsSerializer(serializers.ModelSerializer):
         depth = 2
         fields = ('id', 'first_name', 'last_name', 'username', 'is_superuser',
                   'corpus_permissions')
+
 
 
 class UnauthorizedUserSerializer(serializers.ModelSerializer):
