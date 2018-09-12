@@ -1,3 +1,5 @@
+<div class="row">
+
 <div class="col-md-9 scroll-container text-center" ng-show="corpus.database_running">
     <div>
         <h4>Query <span ng-bind="query.annotation_type"></span>s</h4>
@@ -596,4 +598,5 @@
 </div>
 <div class="alert alert-warning" ng-show="!corpus.database_running">
     <span>The {{ corpus.name }} database is not currently running, please start it at <a ui-sref="database-list">databases</a>.</span>
+</div>
 </div>

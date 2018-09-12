@@ -24,20 +24,40 @@ rect.pane {
 
 .combined {
     position: absolute;
-    top: 30px;
+    top: 0;
     left: 0;
 }
 
 
 .chart {
     position: relative;
-    height: 350px;
+    //height: 350px;
+    height: 100%;
+    width: 100%;
+}
+.annotation-chart {
+    position: relative;
+    //height: 300px;
+    height: 100%;
     width: 100%;
 }
 
 .facet {
     width: 50%;
      display: inline-block;
+}
+
+.annotation-plot {
+    height: 20%;
+    width: 100%;
+}
+
+.detail-plot {
+    height: 40%;
+    width: 100%;
+}
+.pitch {
+    height: 100%;
 }
 
 div.tooltip {
@@ -52,3 +72,4 @@ div.tooltip {
     border-radius: 8px;
     pointer-events: none;
 }
+

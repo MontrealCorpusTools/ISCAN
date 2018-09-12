@@ -1,17 +1,11 @@
 html, body, .container-fluid{
   height: 100%;
+  width: 100%;
 }
 
-header {
-    height:10%;
-}
-
-main {
-    height:90%;
-    overflow-y: hidden;
-}
-main .container-fluid {
-    height: 100%;
+main, navbar {
+    height: 98%;
+    width: 99%;
 }
 
 .single-row {

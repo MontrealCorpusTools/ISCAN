@@ -3,7 +3,7 @@ import csv
 import time
 
 from polyglotdb import CorpusContext
-
+import django
 from django.conf import settings
 from django.http.response import FileResponse, HttpResponse
 from rest_framework import generics, permissions, viewsets, status, pagination
@@ -20,7 +20,7 @@ from pgdb import api
 class BestiaryCorpusViewSet(api.CorpusViewSet):
     @detail_route(methods=['get'])
     def bestiary_query(self, request, pk=None):
-        if request.auth is None:
+        if isinstance(request.user, django.contrib.auth.models.AnonymousUser):
             return Response(status=status.HTTP_401_UNAUTHORIZED)
         corpus = self.get_object()
         if not request.user.is_superuser:

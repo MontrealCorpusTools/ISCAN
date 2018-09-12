@@ -2,11 +2,9 @@ angular.module('pgdb.query').filter('secondsToDateTime', [function () {
     return function (seconds) {
         return new Date(1970, 0, 1).setSeconds(seconds);
     };
-}]).directive('pitchPlot', function () {
+}]).directive('pitchPlot', function ($window) {
 
-    var margin = {top: 40, right: 30, bottom: 40, left: 90},
-        height = 300;
-    var width = 900;
+    var margin = {top: 30, right: 10, bottom: 30, left: 70};
 
     return {
         restrict: 'E',
@@ -20,9 +18,16 @@ angular.module('pgdb.query').filter('secondsToDateTime', [function () {
             hovered: '&hovered'
         },
         link: function (scope, element, attrs) {
-            var vis = d3.select(element[0]).select('.plot');
+                scope.selection_begin = 0;
+                scope.selection_end = 0;
+                scope.play_begin = 0;
+            var vis = d3.select(element[0]).select('.chart');
 
-
+                var width = parseInt(vis.style('width'), 10)
+                    , width = width - margin.left - margin.right,
+                 height = parseInt(vis.style('height'), 10)
+                    , height = height - margin.top - margin.bottom;
+                console.log('PITCH', width, height)
             vis.on("contextmenu", function (d, i) {
                 d3.event.preventDefault();
                 // react on right-clicking
@@ -61,6 +66,52 @@ angular.module('pgdb.query').filter('secondsToDateTime', [function () {
                     scope.save_pitch_text = 'Error';
                 }
             });
+            function resize() {
+                width = parseInt(vis.style('width'), 10);
+                width = width - margin.left - margin.right;
+                console.log('RESiZE WIDTH', width)
+                x.range([0, width]);
+                xt.range([0, width]);
+                vis.select('svg')
+                    .style('height', (height + margin.top + margin.bottom) + 'px')
+                    .style('width', (width + margin.left + margin.right) + 'px');
+                vis.select('#pitch_clip').select('rect')
+                    .attr("height", height)
+                    .attr("width", width);
+                vis.select('.pane')
+                    .attr("height", height)
+                    .attr("width", width);
+                vis.select('.xaxis')
+                    .attr("transform", "translate(0," + height + ")").call(xaxis);
+                vis.select('.yaxis').call(yaxis);
+                vis.select('.playline')
+                    .attr("x1", xt(scope.play_begin))
+                    .attr("x2", xt(scope.play_begin));
+
+                vis.select('.yaxis-label')
+                .attr("x", 0 - height / 2);
+
+                if (selection_rect.attr('opacity') != 0) {
+                    selection_rect.attr('x', xt(scope.selection_begin)).attr('width', xt(scope.selection_end) - xt(scope.selection_begin));
+                }
+                if (scope.selectedAnnotation) {
+                    selected_annotation_rect.attr('opacity', 0.3).attr('x', xt(scope.selectedAnnotation.begin)).attr('width', xt(scope.selectedAnnotation.end) - xt(scope.selectedAnnotation.begin));
+                }
+
+                vis.selectAll('circle')
+                        .attr("cx", pitch_x_function)
+                        .attr("cy", function (d) {
+                            return pitch_y(d.F0);
+                        });
+                vis.selectAll('.line')
+                        .attr('d', function (d) {
+                            return pitch_valueline(d);
+                        });
+
+
+            }
+
+            angular.element($window).bind('resize', resize);
             var div = d3.select("body").append("div")
                 .attr("class", "tooltip")
                 .style("opacity", 0);
@@ -68,6 +119,8 @@ angular.module('pgdb.query').filter('secondsToDateTime', [function () {
             // Make x axis
             var xaxis = d3.axisBottom(x)
                 .ticks(10);
+
+
 
             var zoom_scales = [1, 30];
             var pitch_y = d3.scaleLinear().range([height, 0]).nice();
@@ -87,8 +140,8 @@ angular.module('pgdb.query').filter('secondsToDateTime', [function () {
 
             var pitch_vis = vis
                 .append("svg")
-                .attr("width", width + margin.right + margin.left)
-                .attr("height", height + margin.top + margin.bottom)
+                    .style('height', (height + margin.top + margin.bottom) + 'px')
+                    .style('width', (width + margin.left + margin.right) + 'px')
                 .append("g")
                 .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
@@ -104,6 +157,7 @@ angular.module('pgdb.query').filter('secondsToDateTime', [function () {
                 .call(pitch_yaxis);
 
             pitch_vis.append("text")
+                .attr('class', 'yaxis-label')
                 .attr("x", 0 - height / 2)
                 .attr("y", -margin.left + 20)
                 .attr("transform", "rotate(-90)")
@@ -265,6 +319,9 @@ angular.module('pgdb.query').filter('secondsToDateTime', [function () {
 
 
                 scope.$on('SELECTION_UPDATE', function (e, selection_begin, selection_end) {
+                    scope.play_begin = selection_begin;
+                    scope.selection_begin = selection_begin;
+                    scope.selection_end = selection_end;
                     playline.attr("x1", xt(selection_begin))
                         .attr("x2", xt(selection_begin));
                     pitch_viewplot.selectAll('circle.selected').style("fill", 'blue').classed("selected", false);
@@ -279,6 +336,7 @@ angular.module('pgdb.query').filter('secondsToDateTime', [function () {
                     }
                 });
                 scope.$on('UPDATEPLAY', function (e, time) {
+                    scope.play_begin = time;
 
                     playline.attr('x1', xt(time))
                         .attr('x2', xt(time));
@@ -393,15 +451,11 @@ angular.module('pgdb.query').filter('secondsToDateTime', [function () {
                 scope.save_pitch_text = 'Save pitch';
 
             });
-
-            scope.$watch('height', function (d, i) {
-
-            })
         }
     }
 }).directive('bestiaryPlot', function ($window) {
 
-    var margin = {top: 40, right: 30, bottom: 40, left: 90},
+    var margin = {top: 30, right: 10, bottom: 30, left: 30},
         height = 300;
     return {
         restrict: 'E',
@@ -418,8 +472,7 @@ angular.module('pgdb.query').filter('secondsToDateTime', [function () {
         },
         link: function (scope, element, attrs) {
             var vis = d3.select(element[0]);
-            var margin = {top: 30, right: 10, bottom: 30, left: 30}
-                , width = parseInt(vis.style('width'), 10)
+            var width = parseInt(vis.style('width'), 10)
                 , width = width - margin.left - margin.right;
 
             function resize() {

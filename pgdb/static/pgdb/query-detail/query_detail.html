@@ -1,4 +1,21 @@
-<div class="row">
+<div class="row" style="height: 75%;">
+    <div class="col-md-9" style="height:100%">
+        <div class="annotation-plot">
+            <annotation-plot data="utterance" selected-annotation="selectedAnnotation"></annotation-plot>
+        </div>
+
+        <div class="detail-plot">
+            <waveform-plot data="utterance.waveform" begin="utterance.begin" end="utterance.end"
+                           selected-annotation="selectedAnnotation"></waveform-plot>
+
+        </div>
+
+        <div class="detail-plot">
+            <spectrogram-plot data="utterance.spectrogram" begin="utterance.begin"
+                              end="utterance.end"></spectrogram-plot>
+        </div>
+    </div>
+    <div class="col-md-3">
     <div class="info text-center">
         <div>
             <span ng-bind="headline"></span><br>
@@ -15,142 +32,143 @@
             </button>
         </div>
     </div>
-    <div class="col-md-9">
-        <annotation-plot data="utterance" selected-annotation="selectedAnnotation"></annotation-plot>
-        <waveform-plot data="utterance.waveform" begin="utterance.begin" end="utterance.end" selected-annotation="selectedAnnotation"></waveform-plot>
-        <spectrogram-plot data="utterance.spectrogram" begin="utterance.begin" end="utterance.end"></spectrogram-plot>
-    </div>
-    <div class="col-md-3">
         <div class="detail-container">
-        <multiselect-dropdown class="tabs" ng-cloak style="max-height:100%">
-            <md-content>
-                <md-tabs md-border-bottom>
+            <md-tabs md-border-bottom md-dynamic-height>
 
-                    <md-tab ng-repeat="t in annotation_types" label="{{ t|titlecase }} properties" data-ng-if="$index >=annotation_types.indexOf(selectedType)">
-                        <md-content class="md-padding">
-                            <table class="table table-striped">
-                                <thead>
-                                <td>Property</td>
-                                <td>Value</td>
-                                </thead>
-                                <tbody>
-                                <tr ng-repeat="prop in properties[t]">
-                                    <td>{{ prop }}</td>
-                                    <td>
-                                        {{ propertyValues[t][prop] }}
-                                    </td>
-                                </tr>
-                                </tbody>
-                            </table>
-                        </md-content>
-                    </md-tab>
+                <md-tab ng-repeat="t in annotation_types" label="{{ t|titlecase }} properties"
+                        data-ng-if="$index >=annotation_types.indexOf(selectedType)">
+                    <md-content class="md-padding">
+                        <table class="table table-striped">
+                            <thead>
+                            <td>Property</td>
+                            <td>Value</td>
+                            </thead>
+                            <tbody>
+                            <tr ng-repeat="prop in properties[t]">
+                                <td>{{ prop }}</td>
+                                <td>
+                                    {{ propertyValues[t][prop] }}
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </md-content>
+                </md-tab>
 
 
-                    <md-tab label="Speaker properties">
-                        <md-content class="md-padding">
-                            <table class="table table-striped">
-                                <thead>
-                                <td>Property</td>
-                                <td>Value</td>
-                                </thead>
-                                <tbody>
-                                <tr ng-repeat="prop in properties.speaker">
-                                    <td>{{ prop }}</td>
-                                    <td>
-                                        {{ propertyValues.speaker[prop] }}
-                                    </td>
-                                </tr>
-                                </tbody>
-                            </table>
-                        </md-content>
-                    </md-tab>
+                <md-tab label="Speaker properties">
+                    <md-content class="md-padding">
+                        <table class="table table-striped">
+                            <thead>
+                            <td>Property</td>
+                            <td>Value</td>
+                            </thead>
+                            <tbody>
+                            <tr ng-repeat="prop in properties.speaker">
+                                <td>{{ prop }}</td>
+                                <td>
+                                    {{ propertyValues.speaker[prop] }}
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </md-content>
+                </md-tab>
 
-                    <md-tab label="Sound file properties">
-                        <md-content class="md-padding">
-                            <table class="table table-striped">
-                                <thead>
-                                <td>Property</td>
-                                <td>Value</td>
-                                </thead>
-                                <tbody>
-                                <tr ng-repeat="prop in properties.discourse">
-                                    <td>{{ prop }}</td>
-                                    <td>
-                                        {{ propertyValues.discourse[prop] }}
-                                    </td>
-                                </tr>
-                                </tbody>
-                            </table>
-                        </md-content>
-                    </md-tab>
+                <md-tab label="Sound file properties">
+                    <md-content class="md-padding">
+                        <table class="table table-striped">
+                            <thead>
+                            <td>Property</td>
+                            <td>Value</td>
+                            </thead>
+                            <tbody>
+                            <tr ng-repeat="prop in properties.discourse">
+                                <td>{{ prop }}</td>
+                                <td>
+                                    {{ propertyValues.discourse[prop] }}
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </md-content>
+                </md-tab>
 
-                </md-tabs>
-            </md-content>
-        </multiselect-dropdown>
-            </div>
+            </md-tabs>
+        </div>
         <div ng-show="can_view_annotations" class="detail-container">
             <h4>Annotate</h4>
-            <multiselect-dropdown class="tabs" ng-cloak style="max-height:100%">
-                <md-content>
-                    <md-tabs md-border-bottom>
+            <md-tabs md-border-bottom md-dynamic-height>
 
-                        <md-tab ng-repeat="annotation in annotations" label="{{ annotation.label }}">
-                            <md-content class="md-padding">
-                                <div ng-repeat="cur in currentAnnotations[annotation.label]">
-                                <table class="table table-striped">
-                                    <thead>
-                                    <td>Property</td>
-                                    <td>Value</td>
-                                    </thead>
-                                    <tbody>
-                                    <tr ng-repeat="field in annotation.fields">
-                                        <td>{{ field.label }}</td>
-                                        <td>
-                                            <select ng-model="cur[field.label]" ng-options="choice.choice as choice.choice for choice in field.choices" ng-show="can_annotate && field.choices.length > 0">
-                                            </select>
-                                            <input ng-model="cur[field.label]" ng-show="can_annotate && field.choices.length == 0 && field.annotation_choice != 'B'"> </input>
-                                            <input type='checkbox' ng-model="cur[field.label]" ng-show="can_annotate && field.annotation_choice == 'B'"> </input>
-                                            <span ng-show="!can_annotate">{{ cur[field.label] }}</span>
-                                        </td>
-                                    </tr>
-                                    </tbody>
-                                </table>
-                                            <button class="btn btn-success" ng-click="updateAnnotation(cur)" ng-show="can_annotate">Update</button>
+                <md-tab ng-repeat="annotation in annotations" label="{{ annotation.label }}">
+                    <md-content class="md-padding">
+                        <div ng-repeat="cur in currentAnnotations[annotation.label]">
+                            <table class="table table-striped">
+                                <thead>
+                                <td>Property</td>
+                                <td>Value</td>
+                                </thead>
+                                <tbody>
+                                <tr ng-repeat="field in annotation.fields">
+                                    <td>{{ field.label }}</td>
+                                    <td>
+                                        <select ng-model="cur[field.label]"
+                                                ng-options="choice.choice as choice.choice for choice in field.choices"
+                                                ng-show="can_annotate && field.choices.length > 0">
+                                        </select>
+                                        <input ng-model="cur[field.label]"
+                                               ng-show="can_annotate && field.choices.length == 0 && field.annotation_choice != 'B'"> </input>
+                                        <input type='checkbox' ng-model="cur[field.label]"
+                                               ng-show="can_annotate && field.annotation_choice == 'B'"> </input>
+                                        <span ng-show="!can_annotate">{{ cur[field.label] }}</span>
+                                    </td>
+                                </tr>
+                                </tbody>
+                            </table>
+                            <button class="btn btn-success" ng-click="updateAnnotation(cur)" ng-show="can_annotate">
+                                Update
+                            </button>
 
-                                            <button class="btn btn-danger" ng-click="deleteAnnotation(cur['id'])" ng-show="can_annotate">Delete</button>
-                                </div>
-                                <div ng-show="can_annotate">
+                            <button class="btn btn-danger" ng-click="deleteAnnotation(cur['id'])"
+                                    ng-show="can_annotate">Delete
+                            </button>
+                        </div>
+                        <div ng-show="can_annotate">
 
-                                <table class="table table-striped">
-                                    <thead>
-                                    <td>Property</td>
-                                    <td>Value</td>
-                                    </thead>
-                                    <tbody>
-                                    <tr ng-repeat="field in annotation.fields">
-                                        <td>{{ field.label }}</td>
-                                        <td>
-                                            <select ng-model="newAnnotation[annotation.label][field.label]" ng-options="choice.choice as choice.choice for choice in field.choices" ng-show="field.choices.length > 0">
-                                                <option value="">Select a value</option>
-                                            </select>
-                                            <input ng-model="newAnnotation[annotation.label][field.label]" ng-show="field.choices.length == 0 && field.annotation_choice != 'B'"> </input>
-                                            <input type='checkbox' ng-model="newAnnotation[annotation.label][field.label]" ng-show="field.annotation_choice == 'B'"> </input>
-                                        </td>
-                                    </tr>
-                                    </tbody>
-                                </table>
-                                <button class="btn btn-success" ng-click="addAnnotation(annotation)">Add new {{ annotation.label }} annotation</button>
-                                </div>
-                            </md-content>
-                        </md-tab>
+                            <table class="table table-striped">
+                                <thead>
+                                <td>Property</td>
+                                <td>Value</td>
+                                </thead>
+                                <tbody>
+                                <tr ng-repeat="field in annotation.fields">
+                                    <td>{{ field.label }}</td>
+                                    <td>
+                                        <select ng-model="newAnnotation[annotation.label][field.label]"
+                                                ng-options="choice.choice as choice.choice for choice in field.choices"
+                                                ng-show="field.choices.length > 0">
+                                            <option value="">Select a value</option>
+                                        </select>
+                                        <input ng-model="newAnnotation[annotation.label][field.label]"
+                                               ng-show="field.choices.length == 0 && field.annotation_choice != 'B'"> </input>
+                                        <input type='checkbox' ng-model="newAnnotation[annotation.label][field.label]"
+                                               ng-show="field.annotation_choice == 'B'"> </input>
+                                    </td>
+                                </tr>
+                                </tbody>
+                            </table>
+                            <button class="btn btn-success" ng-click="addAnnotation(annotation)">Add new {{
+                                annotation.label }} annotation
+                            </button>
+                        </div>
+                    </md-content>
+                </md-tab>
 
-                    </md-tabs>
-                </md-content>
-            </multiselect-dropdown>
+            </md-tabs>
         </div>
 
     </div>
 </div>
-<div class="row" style="padding-top: 10px">
+<div class="row" style="padding-top: 10px" ng-if="hierarchy.has_pitch_tracks" flex>
     <pitch-plot utterance="utterance" editable="can_edit" selected-annotation="selectedAnnotation"></pitch-plot>
 </div>

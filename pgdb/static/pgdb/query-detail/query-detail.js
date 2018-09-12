@@ -44,7 +44,7 @@ angular.module('queryDetail', [
         }
     };
 }])
-    .controller('QueryDetailCtrl', function ($scope, $rootScope, Query, Corpora, $state, $stateParams, $document, Annotations, djangoAuth) {
+    .controller('QueryDetailCtrl', function ($scope, Query, Corpora, $state, $stateParams, $document, Annotations, djangoAuth, Users) {
             $scope.paginateParams = Query.paginateParams;
             $scope.annotation_types = Query.annotation_types;
             $scope.newAnnotation = {};
@@ -57,15 +57,8 @@ angular.module('queryDetail', [
 
 
         $scope.refreshPermissions = function () {
-            $scope.user = $rootScope.user;
-            $scope.authenticated = $rootScope.authenticated;
-            if ($scope.user == undefined) {
-                $state.go('home');
-            }
             if ($scope.user.is_superuser) {
-
                 $scope.can_view = true;
-
             }
             else {
 
@@ -181,7 +174,7 @@ angular.module('queryDetail', [
 
                 console.log($scope.annotations)
                 if (annotation.save_user) {
-                    data.subannotation.user = $rootScope.user.username;
+                    data.subannotation.user = $scope.user.username;
                 }
                 Annotations.create($stateParams.corpus_id, data).then(function (res) {
                     $scope.currentAnnotations[annotation.label].push(res.data);
@@ -190,10 +183,7 @@ angular.module('queryDetail', [
 
 
             $scope.runQuery = function () {
-                if ($rootScope.user == undefined) {
-                    $state.go('home');
-                }
-                if ($rootScope.user.is_superuser) {
+                if ($scope.user.is_superuser) {
 
                     $scope.can_listen = true;
                     $scope.can_edit = true;
@@ -207,13 +197,13 @@ angular.module('queryDetail', [
                     $scope.can_edit = false;
                     $scope.can_view_annotations = false;
                     $scope.can_annotate = false;
-                    for (i = 0; i < $rootScope.user.corpus_permissions.length; i++) {
-                        if ($rootScope.user.corpus_permissions[i].corpus == $stateParams.corpus_id) {
-                            console.log($rootScope.user.corpus_permissions[i])
-                            $scope.can_listen = $rootScope.user.corpus_permissions[i].can_listen;
-                            $scope.can_edit = $rootScope.user.corpus_permissions[i].can_edit;
-                            $scope.can_view_annotations = $rootScope.user.corpus_permissions[i].can_view_annotations;
-                            $scope.can_annotate = $rootScope.user.corpus_permissions[i].can_annotate;
+                    for (i = 0; i < $scope.user.corpus_permissions.length; i++) {
+                        if ($scope.user.corpus_permissions[i].corpus == $stateParams.corpus_id) {
+                            console.log($scope.user.corpus_permissions[i])
+                            $scope.can_listen = $scope.user.corpus_permissions[i].can_listen;
+                            $scope.can_edit = $scope.user.corpus_permissions[i].can_edit;
+                            $scope.can_view_annotations = $scope.user.corpus_permissions[i].can_view_annotations;
+                            $scope.can_annotate = $scope.user.corpus_permissions[i].can_annotate;
                         }
                     }
                     console.log($scope.can_view_annotations, $scope.can_annotate)
@@ -230,7 +220,7 @@ angular.module('queryDetail', [
                         $scope.selectedAnnotation = res.data.utterance;
                     }
                     else{
-                    $scope.selectedAnnotation = $scope.selectedResult[$scope.selectedType];
+                    $scope.selectedAnnotation = $scope.selectedResult[$scope.selectedType].current;
                     }
                     $scope.headline = $scope.utterance.discourse.name + ' (' + $scope.utterance.begin + ' to ' + $scope.utterance.end + ')';
                     console.log($scope.headline, $scope.can_listen);
@@ -249,7 +239,7 @@ angular.module('queryDetail', [
                         if ($scope.selectedAnnotation[$scope.annotations[i].label] !== undefined) {
                             if ($scope.annotations[i].save_user){
                             $scope.currentAnnotations[$scope.annotations[i].label] = $scope.selectedAnnotation[$scope.annotations[i].label].filter(function (annotation) {
-                                return annotation.user == $rootScope.user.username
+                                return annotation.user == $scope.user.username
                             });
 
                             }
@@ -276,8 +266,12 @@ angular.module('queryDetail', [
 
         djangoAuth.authenticationStatus(true).then(function () {
 
+            Users.current_user().then(function (res) {
+                $scope.user = res.data;
                 $scope.refreshPermissions();
-        }).catch(function(){
+            });
+        }).catch(function(res){
+            console.log('UH OH', res)
                 $state.go('home');
         });
 

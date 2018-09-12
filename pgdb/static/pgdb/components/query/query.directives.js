@@ -1,21 +1,19 @@
+var margin = {top: 30, right: 10, bottom: 40, left: 70};
+
 angular.module('pgdb.query').filter('secondsToDateTime', [function () {
     return function (seconds) {
         return new Date(1970, 0, 1).setSeconds(seconds);
     };
 }])
-    .directive('annotationPlot', function () {
+    .directive('annotationPlot', function ($window) {
 
-        var margin = {top: 40, right: 30, bottom: 40, left: 90},
-            height = 150;
-        var width = 900;
         return {
             restrict: 'E',
             replace: true,
-            templateUrl: static('pgdb/components/query/annotation_plot.html'),
+            template: '<div class="annotation-chart"></div>',
 
             controllerAs: 'ctrl',
             scope: {
-                height: '=height',
                 data: '=data',
                 begin: '=',
                 end: "=",
@@ -26,13 +24,119 @@ angular.module('pgdb.query').filter('secondsToDateTime', [function () {
                 playFn: '&playFn'
             },
             link: function (scope, element, attrs) {
-                var vis = d3.select(element[0]).select('.plot');
-
+                scope.selection_begin = 0;
+                scope.selection_end = 0;
+                scope.play_begin = 0;
+                var vis = d3.select(element[0]);
+                var width = parseInt(vis.style('width'), 10)
+                    , width = width - margin.left - margin.right,
+                height = parseInt(vis.style('height'), 10)
+                    , height = height - margin.top - margin.bottom;
+                console.log(width, height)
                 vis.on("contextmenu", function (d, i) {
                     d3.event.preventDefault();
                     // react on right-clicking
                 });
                 var x = d3.scaleLinear().range([0, width]).nice();
+                var xt = x;
+
+                function drawAnnotations() {
+                        vis.select('.yaxis').call(yaxis);
+
+                        vis.selectAll("rect.annotation")
+                            .attr("height", function (d) {
+                                return y(1) - y(2)
+                            })
+                            .attr("x", annotation_x_function)
+                            .attr("width", function (d) {
+                                return xt(d.end) - xt(d.begin)
+                            });
+
+                        vis.selectAll("text.annotation")
+                            .attr("x", function (d) {
+                                return (xt(d.end) - xt(d.begin)) / 2 + xt(d.begin)
+                            });
+
+
+                        vis.selectAll("rect.phone")
+                            .attr("width", function (d) {
+                                return xt(d.end) - xt(d.begin)
+                            })
+                            .attr("y", function (d) {
+                                return y(1)
+                            });
+
+                        vis.selectAll("text.phone")
+                            .attr("y", function (d) {
+                                return y(0.5)
+                            });
+
+
+                        vis.selectAll("rect.syllable")
+                            .attr("y", function (d) {
+                                return y(2)
+                            });
+
+                        vis.selectAll("text.syllable")
+                            .attr("y", function (d) {
+                                return y(1.5)
+                            });
+
+
+                        vis.selectAll("rect.word")
+                            .attr("y", function (d) {
+                                return y(3)
+                            });
+
+                        vis.selectAll("text.word")
+                            .attr("y", function (d) {
+                                return y(2.5)
+                            });
+
+                    }
+
+            function resize() {
+                width = parseInt(vis.style('width'), 10);
+                width = width - margin.left - margin.right;
+                height = parseInt(vis.style('height'), 10);
+                height = height - margin.top - margin.bottom;
+                console.log('RESiZE', width, height)
+                x.range([0, width]);
+                xt.range([0, width]);
+                y.range([height, 0]);
+
+                vis.select('svg')
+                    .style('height', (height + margin.top + margin.bottom) + 'px')
+                    .style('width', (width + margin.left + margin.right) + 'px');
+                vis.select('#annotation_clip').select('rect')
+                    .attr("height", height)
+                    .attr("width", width);
+                vis.select('.pane')
+                    .attr("height", height)
+                    .attr("width", width);
+                vis.select('.xaxis')
+                    .attr("transform", "translate(0," + height + ")")
+                    .call(xaxis);
+                vis.select('.yaxis').call(yaxis);
+                vis.select('.playline')
+                    .attr("x1", xt(scope.play_begin))
+                    .attr("x2", xt(scope.play_begin));
+
+                    vis.select('.yaxis-label')
+                    .attr("x", 0 - height / 2)
+
+                if (selection_rect.attr('opacity') != 0) {
+                    selection_rect.attr('x', xt(scope.selection_begin)).attr('width', xt(scope.selection_end) - xt(scope.selection_begin));
+                }
+                if (scope.selectedAnnotation) {
+                    selected_annotation_rect.attr('opacity', 0.3).attr('x', xt(scope.selectedAnnotation.begin)).attr('width', xt(scope.selectedAnnotation.end) - xt(scope.selectedAnnotation.begin));
+                }
+
+                        drawAnnotations();
+
+            }
+
+            angular.element($window).bind('resize', resize);
 
                 var xt = x;
 
@@ -41,13 +145,13 @@ angular.module('pgdb.query').filter('secondsToDateTime', [function () {
                     .ticks(10);
 
                 var zoom_scales = [1, 30];
-                var annotation_y = d3.scaleLinear().range([height, 0]).nice();
-                annotation_y.domain([0, 3]);
+                var y = d3.scaleLinear().range([height, 0]).nice();
+                y.domain([0, 3]);
 
                 var annotation_x_function = function (d) {
                     return x(d.begin);
                 };
-                var annotation_yaxis = d3.axisLeft(annotation_y)
+                var yaxis = d3.axisLeft(y)
                     .tickValues([0.5, 1.5, 2.5])
                     .tickFormat(function (d) {
                         if (d === 0.5) {
@@ -63,8 +167,8 @@ angular.module('pgdb.query').filter('secondsToDateTime', [function () {
 
                 var annotation_vis = vis
                     .append("svg")
-                    .attr("width", width + margin.right + margin.left)
-                    .attr("height", height + margin.top + margin.bottom)
+                    .style('height', (height + margin.top + margin.bottom) + 'px')
+                    .style('width', (width + margin.left + margin.right) + 'px')
                     .append("g")
                     .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
@@ -77,9 +181,10 @@ angular.module('pgdb.query').filter('secondsToDateTime', [function () {
 
                 annotation_vis.append("g")
                     .attr("class", "yaxis")
-                    .call(annotation_yaxis);
+                    .call(yaxis);
 
                 annotation_vis.append("text")
+                    .attr('class', 'yaxis-label')
                     .attr("x", 0 - height / 2)
                     .attr("y", -margin.left + 20)
                     .attr("transform", "rotate(-90)")
@@ -110,8 +215,8 @@ angular.module('pgdb.query').filter('secondsToDateTime', [function () {
 
                 var annotation_playline = annotation_viewplot.append('line').attr("class", "playline").style("stroke", "red")
                     .attr("x1", xt(0))
-                    .attr("y1", 0)
                     .attr("x2", xt(0))
+                    .attr("y1", 0)
                     .attr("y2", height);
 
                 var selection_rect = annotation_viewplot.append("rect")
@@ -163,6 +268,9 @@ angular.module('pgdb.query').filter('secondsToDateTime', [function () {
 
 
                     scope.$on('SELECTION_UPDATE', function (e, selection_begin, selection_end) {
+                        scope.selection_begin = selection_begin;
+                        scope.selection_end = selection_end;
+                        scope.play_begin = selection_begin;
                         annotation_playline.attr("x1", xt(selection_begin))
                             .attr("x2", xt(selection_begin));
                         if (selection_end == null) {
@@ -194,16 +302,12 @@ angular.module('pgdb.query').filter('secondsToDateTime', [function () {
                         })
                         .call(drag);
                     scope.$on('UPDATEPLAY', function (e, time) {
-
+                        scope.play_begin = time;
                         annotation_playline.attr('x1', xt(time))
                             .attr('x2', xt(time));
                     });
 
                     function zoomFunc(transform) {
-                        var selection_begin = xt.invert(annotation_playline.attr("x1"));
-                        if (selection_rect.attr('opacity') != 0) {
-                            var selection_end = xt.invert(parseFloat(selection_rect.attr('width')) + parseFloat(selection_rect.attr('x')))
-                        }
                         transform.x = Math.min(transform.x, 0);
                         xt = transform.rescaleX(x);
                         annotation_x_function = function (d) {
@@ -211,11 +315,11 @@ angular.module('pgdb.query').filter('secondsToDateTime', [function () {
                         };
                         annotation_vis.select('.xaxis').call(xaxis.scale(xt));
 
-                        annotation_playline.attr("x1", xt(selection_begin))
-                            .attr("x2", xt(selection_begin));
+                        annotation_playline.attr("x1", xt(scope.selection_begin))
+                            .attr("x2", xt(scope.selection_begin));
 
                         if (selection_rect.attr('opacity') != 0) {
-                            selection_rect.attr('x', xt(selection_begin)).attr('width', xt(selection_end) - xt(selection_begin));
+                            selection_rect.attr('x', xt(scope.selection_begin)).attr('width', xt(scope.selection_end) - xt(scope.selection_begin));
                         }
                         if (selected_annotation_rect.attr('opacity') != 0) {
                             selected_annotation_rect.attr('x', xt(scope.selectedAnnotation.begin)).attr('width', xt(scope.selectedAnnotation.end) - xt(scope.selectedAnnotation.begin));
@@ -307,71 +411,17 @@ angular.module('pgdb.query').filter('secondsToDateTime', [function () {
 
                     updateAnnotations();
 
-                    function drawAnnotations() {
-                        annotation_vis.select('.yaxis').call(annotation_yaxis);
 
-                        annotation_vis.selectAll("rect.annotation")
-                            .attr("height", function (d) {
-                                return annotation_y(1) - annotation_y(2)
-                            })
-                            .attr("x", annotation_x_function)
-                            .attr("width", function (d) {
-                                return xt(d.end) - xt(d.begin)
-                            });
-
-                        annotation_vis.selectAll("text.annotation")
-                            .attr("x", function (d) {
-                                return (xt(d.end) - xt(d.begin)) / 2 + xt(d.begin)
-                            });
-
-
-                        annotation_vis.selectAll("rect.phone")
-                            .attr("y", function (d) {
-                                return annotation_y(1)
-                            });
-
-                        annotation_vis.selectAll("text.phone")
-                            .attr("y", function (d) {
-                                return annotation_y(0.5)
-                            });
-
-
-                        annotation_vis.selectAll("rect.syllable")
-                            .attr("y", function (d) {
-                                return annotation_y(2)
-                            });
-
-                        annotation_vis.selectAll("text.syllable")
-                            .attr("y", function (d) {
-                                return annotation_y(1.5)
-                            });
-
-
-                        annotation_vis.selectAll("rect.word")
-                            .attr("y", function (d) {
-                                return annotation_y(3)
-                            });
-
-                        annotation_vis.selectAll("text.word")
-                            .attr("y", function (d) {
-                                return annotation_y(2.5)
-                            });
-
-                    }
                 });
             }
         }
     })
-    .directive('waveformPlot', function () {
-
-        var margin = {top: 40, right: 30, bottom: 40, left: 90},
-            height = 300;
-        var width = 900;
+    .directive('waveformPlot', function ($window) {
 
         return {
             restrict: 'E',
             replace: true,
-            templateUrl: static('pgdb/components/query/waveform_plot.html'),
+            template: '<div class="chart"></div>',
 
             controllerAs: 'ctrl',
             scope: {
@@ -386,40 +436,95 @@ angular.module('pgdb.query').filter('secondsToDateTime', [function () {
                 playFn: '&playFn'
             },
             link: function (scope, element, attrs) {
-                var vis = d3.select(element[0]).select('.plot');
+                scope.selection_begin = 0;
+                scope.selection_end = 0;
+                scope.play_begin = 0;
+                var vis = d3.select(element[0]);
+                var width = parseInt(vis.style('width'), 10)
+                    , width = width - margin.left - margin.right,
+                height = parseInt(vis.style('height'), 10)
+                    , height = height - margin.top - margin.bottom;
 
                 vis.on("contextmenu", function (d, i) {
                     d3.event.preventDefault();
                     // react on right-clicking
                 });
                 var x = d3.scaleLinear().range([0, width]).nice();
+                var y = d3.scaleLinear().range([height, 0]).nice();
 
                 var xt = x;
+
+
+            function resize() {
+                width = parseInt(vis.style('width'), 10);
+                width = width - margin.left - margin.right;
+
+                height = parseInt(vis.style('height'), 10);
+                height = height - margin.top - margin.bottom;
+                console.log('RESiZE WIDTH', width)
+                y.range([height, 0]);
+                x.range([0, width]);
+                xt.range([0, width]);
+                vis.select('svg')
+                    .style('height', (height + margin.top + margin.bottom) + 'px')
+                    .style('width', (width + margin.left + margin.right) + 'px');
+                vis.select('#waveform_clip').select('rect')
+                    .attr("height", height)
+                    .attr("width", width);
+                vis.select('.pane')
+                    .attr("height", height)
+                    .attr("width", width);
+                vis.select('.xaxis')
+                    .attr("transform", "translate(0," + height + ")").call(xaxis);
+                vis.select('.yaxis').call(yaxis);
+                vis.select('.playline')
+                        .attr("y1", 0)
+                        .attr("y2", height)
+                    .attr("x1", xt(scope.play_begin))
+                    .attr("x2", xt(scope.play_begin));
+
+                    vis.select('.yaxis-label')
+                    .attr("x", 0 - height / 2)
+
+                if (selection_rect.attr('opacity') != 0) {
+                    selection_rect.attr('x', xt(scope.selection_begin)).attr('width', xt(scope.selection_end) - xt(scope.selection_begin));
+                }
+                if (scope.selectedAnnotation) {
+                    selected_annotation_rect.attr('opacity', 0.3).attr('x', xt(scope.selectedAnnotation.begin)).attr('width', xt(scope.selectedAnnotation.end) - xt(scope.selectedAnnotation.begin));
+                }
+                        vis.select('.line')
+                .attr('d', function (d) {
+                        return waveform_valueline(d);
+                    });
+
+            }
+
+            angular.element($window).bind('resize', resize);
+
                 var xaxis = d3.axisBottom(x)
                         .ticks(10);
 
                     var zoom_scales = [1, 30];
-                    var waveform_y = d3.scaleLinear().range([height, 0]).nice();
-                    var waveform_padding = (waveform_y.domain()[1] - waveform_y.domain()[0]) * 0.05;
-                    waveform_y.domain([waveform_y.domain()[0] - waveform_padding, waveform_y.domain()[1] + waveform_padding]);
+                    var waveform_padding = (y.domain()[1] - y.domain()[0]) * 0.05;
+                    y.domain([y.domain()[0] - waveform_padding, y.domain()[1] + waveform_padding]);
 
                     var waveform_valueline = d3.line()
                         .x(function (d) {
                             return x(d.time);
                         }).y(function (d) {
-                            return waveform_y(d.amplitude);
+                            return y(d.amplitude);
                         });
 
                     var waveform_x_function = function (d) {
                         return x(d.time);
                     };
-                    var waveform_yaxis = d3.axisLeft(waveform_y)
+                    var yaxis = d3.axisLeft(y)
                         .ticks(5);
 
                     var waveform_vis = vis
                         .append("svg")
-                        .attr("width", width + margin.right + margin.left)
-                        .attr("height", height + margin.top + margin.bottom)
+                    .style('height', (height + margin.top + margin.bottom) + 'px')
+                    .style('width', (width + margin.left + margin.right) + 'px')
                         .append("g")
                         .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
@@ -432,9 +537,10 @@ angular.module('pgdb.query').filter('secondsToDateTime', [function () {
 
                     waveform_vis.append("g")
                         .attr("class", "yaxis")
-                        .call(waveform_yaxis);
+                        .call(yaxis);
 
                     waveform_vis.append("text")
+                        .attr('class', 'yaxis-label')
                         .attr("x", 0 - height / 2)
                         .attr("y", -margin.left + 20)
                         .attr("transform", "rotate(-90)")
@@ -458,8 +564,8 @@ angular.module('pgdb.query').filter('secondsToDateTime', [function () {
 
                     var waveform_playline = waveform_viewplot.append('line').attr("class", "playline").style("stroke", "red")
                         .attr("x1", xt(0))
-                        .attr("y1", 0)
                         .attr("x2", xt(0))
+                        .attr("y1", 0)
                         .attr("y2", height);
 
                     var waveform_pane = waveform_vis.append("rect")
@@ -504,11 +610,11 @@ angular.module('pgdb.query').filter('secondsToDateTime', [function () {
                     if (!newVal) {
                         return;
                     }
-                    waveform_y.domain(d3.extent(newVal, function (d) {
+                    y.domain(d3.extent(newVal, function (d) {
                         return d.amplitude;
                     }));
                     waveform_vis.select('.xaxis').call(xaxis.scale(xt));
-                    waveform_vis.select('.yaxis').call(waveform_yaxis.scale(waveform_y));
+                    waveform_vis.select('.yaxis').call(yaxis.scale(y));
                     if (scope.selectedAnnotation) {
                         selected_annotation_rect.attr('opacity', 0.3).attr('x', xt(scope.selectedAnnotation.begin)).attr('width', xt(scope.selectedAnnotation.end) - xt(scope.selectedAnnotation.begin));
                     }
@@ -541,6 +647,9 @@ angular.module('pgdb.query').filter('secondsToDateTime', [function () {
 
 
                     scope.$on('SELECTION_UPDATE', function (e, selection_begin, selection_end) {
+                        scope.selection_begin = selection_begin;
+                        scope.selection_end = selection_end;
+                        scope.play_begin = selection_begin;
                         waveform_playline.attr("x1", xt(selection_begin))
                             .attr("x2", xt(selection_begin));
                         if (selection_end == null) {
@@ -573,6 +682,7 @@ angular.module('pgdb.query').filter('secondsToDateTime', [function () {
                         })
                         .call(drag);
                     scope.$on('UPDATEPLAY', function (e, time) {
+                        scope.play_begin = time;
 
                         waveform_playline.attr('x1', xt(time))
                             .attr('x2', xt(time));
@@ -592,7 +702,7 @@ angular.module('pgdb.query').filter('secondsToDateTime', [function () {
                                 return xt(d.time);
                             })
                             .y(function (d) {
-                                return waveform_y(d.amplitude);
+                                return y(d.amplitude);
                             });
                         waveform_playline.attr("x1", xt(selection_begin))
                             .attr("x2", xt(selection_begin));
@@ -625,7 +735,7 @@ angular.module('pgdb.query').filter('secondsToDateTime', [function () {
                     }
 
                     function drawWaveform() {
-                        waveform_vis.select('.yaxis').call(waveform_yaxis);
+                        waveform_vis.select('.yaxis').call(yaxis);
                         waveform_vis.selectAll("path.line")
                             .attr('d', function (d) {
                                 return waveform_valueline(d);
@@ -634,15 +744,12 @@ angular.module('pgdb.query').filter('secondsToDateTime', [function () {
                 });
             }
         }
-    }).directive('spectrogramPlot', function () {
+    }).directive('spectrogramPlot', function ($window) {
 
-    var margin = {top: 0, right: 45, bottom: 40, left: 90},
-        height = 300;
-    var width = 900;
     return {
         restrict: 'E',
         replace: true,
-        templateUrl: static('pgdb/components/query/spectrogram_plot.html'),
+        template: '<div class="chart"></div>',
         scope: {
             height: '=height',
             data: '=data',
@@ -651,14 +758,77 @@ angular.module('pgdb.query').filter('secondsToDateTime', [function () {
             hovered: '&hovered'
         },
         link: function (scope, element, attrs) {
-            var vis = d3.select(element[0]).select('.plot');
-
+                scope.selection_begin = 0;
+                scope.selection_end = 0;
+                scope.play_begin = 0;
+            var vis = d3.select(element[0]);
+                var width = parseInt(vis.style('width'), 10)
+                    , width = width - margin.left - margin.right,
+                height = parseInt(vis.style('height'), 10)
+                    , height = height - margin.top - margin.bottom;
+                console.log(width)
+            var specgram_context, xGridSize, yGridSize;
             vis.on("contextmenu", function (d, i) {
                 d3.event.preventDefault();
                 // react on right-clicking
             });
 
+                function drawSpectrogram() {
+                    vis.select('.yaxis').call(yaxis);
+                    scope.data.values.forEach(drawRect);
+                }
+
+                function drawRect(d) {
+                    var begin = xt.invert(0);
+                    var end = xt.invert(width);
+                    //Draw the rectangle
+                    if (d.time >= begin - 0.01 && d.time <= end + 0.01) {
+                        specgram_context.fillStyle = z(d.power);
+                        specgram_context.fillRect(x(d.time), y(d.frequency), xGridSize + 2, yGridSize);
+                    }
+                }
+
+            function resize() {
+                width = parseInt(vis.style('width'), 10);
+                width = width - margin.left - margin.right;
+                height = parseInt(vis.style('height'), 10);
+                height = height - margin.top - margin.bottom;
+                console.log('RESiZE WIDTH', width)
+                x.range([0, width]);
+                y.range([height, 0]);
+                xt.range([0, width]);
+                vis.select('svg')
+                    .style('height', (height + margin.top + margin.bottom) + 'px')
+                    .style('width', (width + margin.left + margin.right) + 'px');
+                vis.select('#annotation_clip').select('rect')
+                    .attr("height", height)
+                    .attr("width", width);
+                vis.select('svg.combined')
+                    .attr("height", height)
+                    .attr("width", width);
+                vis.select('canvas.combined')
+                    .attr("height", height + "px")
+                    .attr("width", width + "px");
+                vis.select('.xaxis')
+                    .attr("transform", "translate(0," + height + ")").call(xaxis);
+                vis.select('.yaxis').call(yaxis);
+
+                drawSpectrogram();
+
+            }
+            angular.element($window).bind('resize', resize);
+
             var x = d3.scaleLinear().range([0, width]).nice();
+
+                var zoom_scales = [1, 30];
+                var xaxis = d3.axisBottom(x)
+                    .ticks(10);
+                var xt = x;
+                var y = d3.scaleLinear().range([height, 0]),
+                    z = d3.scaleLinear().range(["white", "black"]);
+
+                var yaxis = d3.axisLeft(y)
+                    .ticks(5);
 
             scope.$watch('begin', function (newVal, oldVal) {
                 if (!newVal) {
@@ -681,31 +851,22 @@ angular.module('pgdb.query').filter('secondsToDateTime', [function () {
                 }
 
                 // Make x axis
-                var xaxis = d3.axisBottom(x)
-                    .ticks(10);
-                var xt = x;
 
-                var zoom_scales = [1, 30];
-                var specgram_y = d3.scaleLinear().range([height, 0]),
-                    specgram_z = d3.scaleLinear().range(["white", "black"]);
 
-                specgram_y.domain(d3.extent(newVal.values, function (d) {
+                y.domain(d3.extent(newVal.values, function (d) {
                     return d.frequency;
                 }));
-                specgram_y.domain([specgram_y.domain()[0], specgram_y.domain()[1] + newVal.freq_step]);
-                specgram_z.domain(d3.extent(newVal.values, function (d) {
+                y.domain([y.domain()[0], y.domain()[1] + newVal.freq_step]);
+                z.domain(d3.extent(newVal.values, function (d) {
                     return d.power;
                 }));
 
 
-                var specgram_yaxis = d3.axisLeft(specgram_y)
-                    .ticks(5);
 
-
-                var specgram_svg = vis.attr('height', height + margin.top + margin.bottom).append('svg')
+                var specgram_svg = vis.append('svg')
                     .attr('class', 'combined')
-                    .attr("width", width + margin.left + margin.right)
-                    .attr("height", height + margin.top + margin.bottom)
+                    .style('height', (height + margin.top + margin.bottom) + 'px')
+                    .style('width', (width + margin.left + margin.right) + 'px')
                     .append("g")
                     .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
@@ -731,7 +892,7 @@ angular.module('pgdb.query').filter('secondsToDateTime', [function () {
 
                 specgram_svg.append("g")
                     .attr("class", "yaxis")
-                    .call(specgram_yaxis)
+                    .call(yaxis)
                     .append("text")
                     .attr("class", "label")
                     .attr("x", 0 - height / 2)
@@ -742,10 +903,10 @@ angular.module('pgdb.query').filter('secondsToDateTime', [function () {
                     .text("Frequency (Hz)");
 
 
-                var specgram_context = specgram_canvas.node().getContext("2d");
+                specgram_context = specgram_canvas.node().getContext("2d");
 
-                var xGridSize = x(newVal.time_step) - x(0) + 2,
-                    yGridSize = specgram_y(newVal.freq_step) - specgram_y(0) - 2;
+                xGridSize = x(newVal.time_step) - x(0) + 2;
+                yGridSize = y(newVal.freq_step) - y(0) - 2;
 
                 function zoomFunc(lastTransform) {
 
@@ -797,20 +958,7 @@ angular.module('pgdb.query').filter('secondsToDateTime', [function () {
                     .on("zoom", zoomed))
                     .call(drag);
 
-                function drawSpectrogram() {
-                    specgram_svg.select('.yaxis').call(specgram_yaxis);
-                    newVal.values.forEach(drawRect);
-                }
 
-                function drawRect(d) {
-                    var begin = xt.invert(0);
-                    var end = xt.invert(width);
-                    //Draw the rectangle
-                    if (d.time >= begin - 0.01 && d.time <= end + 0.01) {
-                        specgram_context.fillStyle = specgram_z(d.power);
-                        specgram_context.fillRect(x(d.time), specgram_y(d.frequency), xGridSize + 2, yGridSize);
-                    }
-                }
 
                 drawSpectrogram();
 
