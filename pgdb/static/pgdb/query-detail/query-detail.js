@@ -22,18 +22,6 @@ angular.module('queryDetail', [
             return match.charAt(0).toUpperCase() + match.substr(1);
         });
     }
-}).directive('myEnter', function () {
-    return function (scope, element, attrs) {
-        element.bind("keydown keypress", function (event) {
-            if (event.which === 13) {
-                scope.$apply(function () {
-                    scope.$eval(attrs.myEnter);
-                });
-
-                event.preventDefault();
-            }
-        });
-    };
 }).directive('blur', [function () {
     return {
         restrict: 'A',
@@ -275,6 +263,9 @@ angular.module('queryDetail', [
                 $state.go('home');
         });
 
+        $scope.back_to_query = function(){
+            $state.go('query', {corpus_id: $scope.corpus.id, query_id: $scope.query.id});
+        };
 
             $scope.get_next = function () {
                 console.log('index', $scope.detail_index)
@@ -400,8 +391,9 @@ angular.module('queryDetail', [
             };
 
             $document.bind('keypress', function (event) {
-                if (event.keyCode == 32) {
+                if (event.charCode == 32) {
                     event.preventDefault();
+                    console.log($scope.can_listen)
                     if ($scope.can_listen) {
                         if (!$scope.player.playing()) {
                             $scope.player.play();

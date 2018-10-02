@@ -22,14 +22,16 @@
             <span>Result {{ detail_index + 1 }} of {{query.result_count}}</span>
         </div>
         <div>
-            <button ng-click="get_previous()" class="btn"
+            <md-button ng-click="get_previous()" class="md-raised"
                     ng-disabled="queryState.detailIndex == 0 && queryState.currentPage==1" blur>Previous result
-            </button>
-            <a ui-sref="query({corpus_id: corpus.id, query_id: query.id})">Back to query</a>
-            <button ng-click="get_next()" class="btn"
+            </md-button>
+            <md-button ng-click="back_to_query()" class="md-raised">
+                Back to query
+            </md-button>
+            <md-button ng-click="get_next()" class="md-raised"
                     ng-disabled="queryState.detailIndex == queryState.results.length -1 && queryState.currentPage==queryState.numPages"
                     blur>Next result
-            </button>
+            </md-button>
         </div>
     </div>
         <div class="detail-container">

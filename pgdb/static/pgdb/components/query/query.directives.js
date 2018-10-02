@@ -251,7 +251,7 @@ angular.module('pgdb.query').filter('secondsToDateTime', [function () {
 
                     var drag = d3.drag()
                         .filter(function () {
-                            return event.button == 0;
+                            return d3.event.button == 0;
                         })
                         .on("start", function () {
                             var coords = d3.mouse(this);
@@ -285,7 +285,7 @@ angular.module('pgdb.query').filter('secondsToDateTime', [function () {
                         .scaleExtent(zoom_scales)
                         .translateExtent([[0, 0], [width, height]])
                         .filter(function () {
-                            return event.button == 2 || event.type == 'wheel';
+                            return d3.event.button == 2 || d3.event.type == 'wheel';
                         })
                         .on("zoom", zoomed)
                         .on('end', zoomended))
@@ -630,7 +630,7 @@ angular.module('pgdb.query').filter('secondsToDateTime', [function () {
 
                     var drag = d3.drag()
                         .filter(function () {
-                            return event.button == 0;
+                            return d3.event.button == 0;
                         })
                         .on("start", function () {
                             var coords = d3.mouse(this);
@@ -665,7 +665,7 @@ angular.module('pgdb.query').filter('secondsToDateTime', [function () {
                         .translateExtent([[0, 0], [width, height]])
                         .extent([[0, 0], [width, height]])
                         .filter(function () {
-                            return event.button == 2 || event.type == 'wheel';
+                            return d3.event.button == 2 || d3.event.type == 'wheel';
                         })
                         .on("zoom", zoomed)
                         .on('end', zoomended))
@@ -934,7 +934,7 @@ angular.module('pgdb.query').filter('secondsToDateTime', [function () {
 
                 var drag = d3.drag()
                     .filter(function () {
-                        return event.button == 0;
+                        return d3.event.button == 0;
                     })
                     .on("start", function () {
                         var coords = d3.mouse(this);
@@ -953,7 +953,7 @@ angular.module('pgdb.query').filter('secondsToDateTime', [function () {
                     .translateExtent([[0, 0], [width, height]])
                     .extent([[0, 0], [width, height]])
                     .filter(function () {
-                        return event.button == 2 || event.type == 'wheel';
+                        return d3.event.button == 2 || d3.event.type == 'wheel';
                     })
                     .on("zoom", zoomed))
                     .call(drag);
