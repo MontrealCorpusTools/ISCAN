@@ -198,7 +198,7 @@ class CorpusViewSet(viewsets.ModelViewSet):
             if not len(permissions):
                 return Response(status=status.HTTP_401_UNAUTHORIZED)
         if not corpus.database.is_running:
-            return Response("Database is not running, cannot import", 
+            return Response("Database is not running, cannot import",
                     status=status.HTTP_400_BAD_REQUEST)
 
         import_corpus_task.delay(corpus.pk)
@@ -236,14 +236,14 @@ class CorpusViewSet(viewsets.ModelViewSet):
             category += '_type'
         prop = request.GET.get('prop', 'label')
         if prefix is None:
-            return Response("Please provide a prefix", 
+            return Response("Please provide a prefix",
                     status=status.HTTP_400_BAD_REQUEST)
 
         for x in ['\'', '\"']:
             #Escape characters
             prefix = prefix.replace(x, '\\{}'.format(x))
         if prop not in ["name", "label", "transcription"]:
-            return Response("Provided property:{} is invalid".format(prop), 
+            return Response("Provided property:{} is invalid".format(prop),
                     status=status.HTTP_400_BAD_REQUEST)
         corpus = self.get_object()
         with CorpusContext(corpus.config) as c:
@@ -284,10 +284,15 @@ class CorpusViewSet(viewsets.ModelViewSet):
                 'There must be a requested number of words',
                 status=status.HTTP_400_BAD_REQUEST)
         with CorpusContext(corpus.config) as c:
-            #FIXME: currently choosing top n words is done here, would be much faster to do in PolyglotDB directly
-            q = c.query_graph(c.word).group_by(c.word.label.column_name('label')).order_by(Count(), descending=True)
-            results = [dict(x) for x in q.aggregate(Count())[:int(count)]]
-        return Response(json.dumps(results))
+            statement = '''MATCH (n:{}:word)
+            WITH n.label as label, count(n.label) as c
+            ORDER BY c DESC, label
+            with label
+            LIMIT {}
+            return label'''.format(c.cypher_safe_name, count)
+            results = c.execute_cypher(statement)
+            results = [x['label'] for x in results]
+        return Response(results)
 
     @detail_route(methods=['get'])
     def default_subsets(self, request, pk=None):
@@ -312,6 +317,12 @@ class CorpusViewSet(viewsets.ModelViewSet):
         if 'tutorial' in corpus_name:
             corpus_name = 'tutorial'
 
+        if corpus_name not in ['SCOTS', 'Buckeye', 'SOTC', 'ICE-Can', "Raleigh", "SantaBarbara", "tutorial"]:
+            with CorpusContext(corpus.config) as c:
+                q = c.query_lexicon(c.lexicon_phone).columns(c.lexicon_phone.label.column_name('label'))
+                phones = q.all()
+                phones = [r['label'] for r in phones if not r['label'].startswith('<')]
+
         if subset_class == 'syllabics':
             if corpus_name == 'SCOTS':
                 subset = ["@", "@`", "e", "e`", "O`", "3`", "E", "E@", "E`", "I", "O", "O@`", "OI", "O`", "e", "e@",
@@ -324,27 +335,39 @@ class CorpusViewSet(viewsets.ModelViewSet):
             elif corpus_name == 'SOTC':
                 subset = ["I", "E", "{", "V", "Q", "U", "@", "i","#", "$", "u", "3", "1", "2","4", "5", "6", "7", "8",
                              "9", "c","q", "O", "~", "B","F","H","L", "P", "C"]
-            elif corpus_name in ["ICE-Can", "Raleigh", "SantaBarbara", "tutorial", "acoustic"]:
+            elif corpus_name in ["ICE-Can", "Raleigh", "SantaBarbara", "tutorial"]:
                 subset = ["ER0", "IH2", "EH1", "AE0", "UH1", "AY2", "AW2", "UW1", "OY2", "OY1", "AO0", "AH2", "ER1", "AW1",
                    "OW0", "IY1", "IY2", "UW0", "AA1", "EY0", "AE1", "AA0", "OW1", "AW0", "AO1", "AO2", "IH0", "ER2",
                    "UW2", "IY0", "AE2", "AH0", "AH1", "UH2", "EH2", "UH0", "EY1", "AY0", "AY1", "EH0", "EY2", "AA2",
                    "OW2", "IH1"]
             else:
                 subset = []
+                vow_check = ['a', 'i','e','u','o']
+                for p in phones:
+                    if any(s in p.lower() for s in vow_check):
+                        subset.append(p)
         elif subset_class == "sibilants":
             if corpus_name in ['SOTC', 'SCOTS']:
                 subset = ["s", "z", "S", "Z"]
             elif corpus_name == 'Buckeye':
                 subset = ["s", "z", "sh", "zh"]
-            elif corpus_name in ["ICE-Can", "Raleigh", "SantaBarbara", "tutorial", "acoustic"]:
+            elif corpus_name in ["ICE-Can", "Raleigh", "SantaBarbara", "tutorial"]:
                 subset = ["S", "Z", "SH", "ZH"]
             else:
                 subset = []
+                sib_check = ['s', 'z']
+                for p in phones:
+                    if any(s in p.lower() for s in sib_check):
+                        subset.append(p)
         elif subset_class == "stressed_vowels":
-            if corpus_name in ["ICE-Can", "Raleigh", "SantaBarbara", "tutorial", "acoustic"]:
+            if corpus_name in ["ICE-Can", "Raleigh", "SantaBarbara", "tutorial"]:
                 subset = ["EH1", "UH1", "UW1", "OY1", "ER1", "AW1", "IY1", "AA1", "AE1", "OW1",  "AO1", "AH1", "EY1", "AY1", "IH1"]
             else:
                 subset = []
+                for p in phones:
+                    if "1" in p:
+                        subset.append(p)
+        print(subset)
         return Response(json.dumps(subset))
 
     @detail_route(methods=['get'])
@@ -358,7 +381,7 @@ class CorpusViewSet(viewsets.ModelViewSet):
                 return Response(status=status.HTTP_401_UNAUTHORIZED)
 
         with CorpusContext(corpus.config) as c:
-            phones = c.query_lexicon(c.phone).columns(c.phone.label).all()
+            phones = c.query_lexicon(c.lexicon_phone).columns(c.lexicon_phone.label).all()
             print(phones.to_json())
 
         return Response(phones.to_json())
@@ -375,12 +398,10 @@ class CorpusViewSet(viewsets.ModelViewSet):
 
         with CorpusContext(corpus.config) as c:
             q = c.query_lexicon(c.lexicon_phone).columns(c.lexicon_phone.label.column_name('label'))
-            print(q.cypher())
             phones = q.all()
 
             # Remove duplicates to get phone set
-            phones = sorted(set(x['label'] for x in phones))
-            print(phones)
+            phones = sorted(x['label'] for x in phones)
 
         return Response(phones)
 
@@ -401,13 +422,10 @@ class CorpusViewSet(viewsets.ModelViewSet):
 
             # Remove duplicates to get phone set
             words = sorted(set(x['label'] for x in words))
-            print(words)
-
         return Response(words)
 
     @detail_route(methods=['get'])
     def hierarchy(self, request, pk=None):
-        print(request.user)
         if isinstance(request.user, django.contrib.auth.models.AnonymousUser):
             return Response(status=status.HTTP_401_UNAUTHORIZED)
         corpus = self.get_object()
@@ -658,75 +676,102 @@ class EnrichmentViewSet(viewsets.ModelViewSet):
             if not len(permissions):
                 return Response(status=status.HTTP_401_UNAUTHORIZED)
         print(request.data)
-        if not request.data.get('name', ''):
-            return Response(
-                'A name for this enrichment must be specified.',
-                status=status.HTTP_400_BAD_REQUEST)
-        if request.data['enrichment_type'] in ['pitch', 'formants', 'sibilant_script']:
-            q = models.Enrichment.objects.filter(corpus=corpus).all()
-            for r in q:
-                if r.config['enrichment_type'] == request.data['enrichment_type']:
-                    return Response(
-                        'There already exists a {} enrichment for this corpus.'.format(request.data['enrichment_type']),
-                        status=status.HTTP_409_CONFLICT)
-            if not request.data.get('source', ''):
+        data = request.data
+        enrich_type = data['enrichment_type']
+        if enrich_type in ['pitch', 'formants', 'intensity']:
+            if not data.get('source', ''):
                 return Response(
                     'A program to use for this enrichment must be specified.',
                     status=status.HTTP_400_BAD_REQUEST)
-
+            name = 'Encode {} tracks'.format(enrich_type)
+        elif enrich_type == 'praat_script':
+            name = 'Enrich praat_script'
+        elif enrich_type  in ['pauses', 'utterances', 'syllables']:
+            name = 'Encode {}'.format(enrich_type)
         # Subset validation
-        elif request.data['enrichment_type'] in ['subset']:
-            #q = models.Enrichment.objects.filter(corpus=corpus).all()
-            #for r in q:
-            r = request.data
-            if 'subset_label' not in r or not r['subset_label']:
+        elif enrich_type == 'subset':
+            label = data.get('subset_label', '')
+            if not label:
                 return Response(
-                    str(r) + 'The subset must have a name.',
+                    'The subset must have a name.',
                     status=status.HTTP_400_BAD_REQUEST)
-            if 'annotation_labels' not in r or not r['annotation_labels']:
+            if data.get('annotation_labels', []):
                 return Response(
-                    str(r) + 'The subset cannot be empty.',
+                    'The subset cannot be empty.',
                     status=status.HTTP_400_BAD_REQUEST)
+            name = 'Encode {} subset'.format(label)
 
         #Stress pattern validation
         elif request.data['enrichment_type'] in ['patterned_stress']:
-            #q = models.Enrichment.objects.filter(corpus=corpus).all()
-            #for r in q:
-            r = request.data
-            if 'word_property' not in r or r['word_property'] is None:
+            prop = data.get('word_property', '')
+            if not prop:
                 return Response(
                     'There must be a word property.',
                     status=status.HTTP_400_BAD_REQUEST)
+            name = 'Encode lexical stress from {}'.format(prop)
 
         # Hierarchical property validation
         elif request.data['enrichment_type'] in ['hierarchical_property']:
-            r = request.data
-            if 'property_label' not in r or not r['property_label']:
+            label = data.get('property_label', '')
+            if not label:
                 return Response(
-                    str(r) + 'The hierarchical property must have a name.',
+                    'The hierarchical property must have a name.',
                     status=status.HTTP_400_BAD_REQUEST)
-            if (r['higher_annotation'] == 'utterance' and r['lower_annotation'] not in ['word', 'syllable', 'phone']) or (r['higher_annotation'] == 'word' and r['lower_annotation'] not in ['syllable', 'phone']) or (r['higher_annotation'] == 'syllable' and r['lower_annotation'] != 'phone'):
+            higher = data.get('higher_annotation', '')
+            if not higher:
                 return Response(
-                    str(r) + 'The lower annotation level must be lower than the higher annotation level.',
+                    'Higher annotation must be specified.',
                     status=status.HTTP_400_BAD_REQUEST)
-
+            lower = data.get('lower_annotation', '')
+            if not lower:
+                return Response(
+                    'Lower annotation must be specified.',
+                    status=status.HTTP_400_BAD_REQUEST)
+            with CorpusContext(corpus.config) as c:
+                annotation_types = c.hierarchy.highest_to_lowest
+            if higher not in annotation_types:
+                return Response(
+                    'Must specify a higher annotation that has been encoded.',
+                    status=status.HTTP_400_BAD_REQUEST)
+            if lower not in annotation_types:
+                return Response(
+                    'Must specify a lower annotation that has been encoded.',
+                    status=status.HTTP_400_BAD_REQUEST)
+            if annotation_types.index(lower) <= annotation_types.index(higher):
+                return Response(
+                    'The lower annotation level must be lower than the higher annotation level.',
+                    status=status.HTTP_400_BAD_REQUEST)
+            name = 'Encode {}'.format(label)
+        elif enrich_type in ['speaker_csv', 'discourse_csv', 'lexicon_csv', 'phone_csv']:
+            name = 'Enrich {}'.format(enrich_type.split('_')[0])
         # Formant validation
-        elif request.data['enrichment_type'] == 'refined_formant_points':
-            if request.data['duration_threshold'] is not None or request.data['duration_threshold'] != "":
+        elif enrich_type == 'refined_formant_points':
+            dur_thresh = data.get('duration_threshold', '')
+            n_iterations = data.get('number_of_iterations', '')
+            if dur_thresh:
                 try:
-                    float(request.data['duration_threshold'])
+                    int(dur_thresh)
                 except ValueError:
                     return Response(
-                        'The duration threshold must be either blank or a float',
+                        'The duration threshold must be either blank or an integer.',
                         status=status.HTTP_400_BAD_REQUEST)
             try:
-                int(request.data['number_of_iterations'])
+                int(n_iterations)
             except ValueError:
                 return Response(
-                    'The duration threshold must be an integer',
+                    'The number of iterations must be an integer.',
                     status=status.HTTP_400_BAD_REQUEST)
-        enrichment = models.Enrichment.objects.create(name=request.data['name'], corpus=corpus)
-        enrichment.config = request.data
+            name = 'Encode point formant values via refinement'
+        else:
+            return Response(
+                'The enrichment type specified is not supported.',
+                status=status.HTTP_400_BAD_REQUEST)
+        if models.Enrichment.objects.filter(corpus=corpus, name=name).count() > 0:
+            return Response(
+                'There already exists an enrichment to {} for this corpus.'.format(name),
+                status=status.HTTP_409_CONFLICT)
+        enrichment = models.Enrichment.objects.create(name=name, corpus=corpus)
+        enrichment.config = data
         return Response(serializers.EnrichmentSerializer(enrichment).data)
 
     @detail_route(methods=["post"])
@@ -750,6 +795,9 @@ class EnrichmentViewSet(viewsets.ModelViewSet):
         file_path = os.path.join(enrichment.directory, request.data["file_name"])
         with open(file_path, "w") as f:
             f.write(request.data["text"])
+        enrich_type = enrichment.config.get('enrichment_type')
+        enrichment.name = 'Enrich {} from {}'.format(enrich_type.split('_')[0], request.data['file_name'])
+        enrichment.save()
         enrichment.config = {**enrichment.config,
                              **{'path': str(file_path)}}
         return Response(True)
@@ -770,7 +818,7 @@ class EnrichmentViewSet(viewsets.ModelViewSet):
                     status=status.HTTP_400_BAD_REQUEST)
 
         if not enrichment.corpus.database.is_running:
-            return Response("Database is not running, cannot run enrichment", 
+            return Response("Database is not running, cannot run enrichment",
                     status=status.HTTP_400_BAD_REQUEST)
         run_enrichment_task.delay(enrichment.pk)
         time.sleep(1)
@@ -787,7 +835,7 @@ class EnrichmentViewSet(viewsets.ModelViewSet):
                 return Response(status=status.HTTP_401_UNAUTHORIZED)
         enrichment = models.Enrichment.objects.filter(pk=pk, corpus=corpus).get()
         if not enrichment.corpus.database.is_running:
-            return Response("Database is not running, cannot reset enrichment", 
+            return Response("Database is not running, cannot reset enrichment",
                     status=status.HTTP_400_BAD_REQUEST)
         reset_enrichment_task.delay(enrichment.pk)
         time.sleep(1)
@@ -806,9 +854,8 @@ class EnrichmentViewSet(viewsets.ModelViewSet):
         if enrichment is None:
             return Response(None, status=status.HTTP_400_BAD_REQUEST)
         if not enrichment.corpus.database.is_running:
-            return Response("Database is not running, cannot update enrichment", 
+            return Response("Database is not running, cannot update enrichment",
                     status=status.HTTP_400_BAD_REQUEST)
-        enrichment.name = request.data.get('name')
         enrichment.config = request.data
         enrichment.save()
         return Response(serializers.EnrichmentSerializer(enrichment).data)
@@ -823,8 +870,9 @@ class EnrichmentViewSet(viewsets.ModelViewSet):
                 return Response(status=status.HTTP_401_UNAUTHORIZED)
         enrichment = models.Enrichment.objects.filter(pk=pk, corpus=corpus).get()
         if not enrichment.corpus.database.is_running:
-            return Response("Database is not running, cannot delete enrichment", 
+            return Response("Database is not running, cannot delete enrichment",
                     status=status.HTTP_400_BAD_REQUEST)
+        print(enrichment)
         delete_enrichment_task.delay(enrichment.pk)
         time.sleep(1)
         return Response(True)
@@ -859,7 +907,7 @@ class QueryViewSet(viewsets.ModelViewSet):
             if not len(permissions):
                 return Response(status=status.HTTP_401_UNAUTHORIZED)
         if not corpus.database.is_running:
-            return Response("Database is not running, cannot create query", 
+            return Response("Database is not running, cannot create query",
                     status=status.HTTP_400_BAD_REQUEST)
         print(request.data)
         query = models.Query.objects.create(name=request.data['name'], user=request.user,
@@ -878,7 +926,7 @@ class QueryViewSet(viewsets.ModelViewSet):
             if not len(permissions):
                 return Response(status=status.HTTP_401_UNAUTHORIZED)
         if not corpus.database.is_running:
-            return Response("Database is not running, cannot update query", 
+            return Response("Database is not running, cannot update query",
                     status=status.HTTP_400_BAD_REQUEST)
         print(request.data)
         query = models.Query.objects.filter(pk=pk, corpus=corpus).get()
@@ -1092,7 +1140,7 @@ class QueryViewSet(viewsets.ModelViewSet):
             if not len(permissions) or not permissions[0].can_view_detail:
                 return Response(status=status.HTTP_401_UNAUTHORIZED)
         if not corpus.database.is_running:
-            return Response("Database is not running, cannot export", 
+            return Response("Database is not running, cannot export",
                     status=status.HTTP_400_BAD_REQUEST)
         query = models.Query.objects.filter(pk=pk, corpus=corpus).get()
         if query is None:

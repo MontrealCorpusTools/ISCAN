@@ -1,124 +1,204 @@
-<h3 ng-if="corpus.busy" style="color: red">Corpus is currently busy!</h3>
 
-<div class="row" ng-show="corpus.imported  && corpus.database_running">
-    <div class="col-md-9 scroll-container text-center" style="height:1280px">
-        <table class="table table-bordered table-striped scrollable-table">
+<div layout="column">
+    <div layout="row" layout-align="center start">
 
-            <thead>
-            <tr>
-                <td ng-click="sortEnrichmentsBy='name'; reverseEnrichments=!reverseEnrichments;">
-                    Name
-                    <span ng-show="sortEnrichmentsBy == 'name' && reverseEnrichments" class="fa fa-caret-down"></span>
-                    <span ng-show="sortEnrichmentsBy == 'name' && !reverseEnrichments" class="fa fa-caret-up"></span>
-                </td>
-                <td ng-click="sortEnrichmentsBy='runnable'; reverseEnrichments=!reverseEnrichments;">
-                    Runnable
-                    <span ng-show="sortEnrichmentsBy == 'runnable' && reverseEnrichments" class="fa fa-caret-down"></span>
-                    <span ng-show="sortEnrichmentsBy == 'runnable' && !reverseEnrichments" class="fa fa-caret-up"></span>
-                </td>
-                <td ng-click="sortEnrichmentsBy='running'; reverseEnrichments=!reverseEnrichments;">
-                    Running
-                    <span ng-show="sortEnrichmentsBy == 'running' && reverseEnrichments" class="fa fa-caret-down"></span>
-                    <span ng-show="sortEnrichmentsBy == 'running' && !reverseEnrichments" class="fa fa-caret-up"></span>
-                </td>
-                <td ng-click="sortEnrichmentsBy='completed'; reverseEnrichments=!reverseEnrichments;">
-                    Completed
-                    <span ng-show="sortEnrichmentsBy == 'completed' && reverseEnrichments" class="fa fa-caret-down"></span>
-                    <span ng-show="sortEnrichmentsBy == 'completed' && !reverseEnrichments" class="fa fa-caret-up"></span>
-                </td>
-                <td ng-click="sortEnrichmentsBy='last_run'; reverseEnrichments=!reverseEnrichments;">
-                    Last run
-                    <span ng-show="sortEnrichmentsBy == 'last_run' && reverseEnrichments" class="fa fa-caret-down"></span>
-                    <span ng-show="sortEnrichmentsBy == 'last_run' && !reverseEnrichments" class="fa fa-caret-up"></span>
-                </td>
-		<td>
-                    Actions
-                </td>
-            </tr>
-            </thead>
-            <tbody style="height:50%">
-            <tr ng-repeat="enrichment in enrichments | orderBy:tableSortExpression:reverseEnrichments">
-                <td>
-                    {{enrichment.name}}
-                </td>
-		<td ng-show="enrichment.runnable == 'runnable'">
-		    <span class="glyphicon glyphicon-ok" style="color:green"></span>
-                </td>
-		<td ng-show="enrichment.runnable != 'runnable'" title="{{ enrichment.runnable }}" data-toggle="tooltip" data-container="body" data-placement="auto" tooltip>
-		    <span class="glyphicon glyphicon-remove" style="color:red"></span>
-                </td>
-                <td>
-		    <span ng-show="enrichment.running" class="glyphicon glyphicon-ok" style="color:green"></span>
-		    <span ng-show="!enrichment.running" class="glyphicon glyphicon-remove" style="color:red"></span>
-                </td>
-                <td>
-		    <span ng-show="enrichment.completed" class="glyphicon glyphicon-ok" style="color:green"></span>
-		    <span ng-show="!enrichment.completed" class="glyphicon glyphicon-remove" style="color:red"></span>
-                </td>
-                <td>
-                    {{enrichment.last_run}}
-                </td>
-                <td>
-                    <button class='btn btn-success' ng-if="!corpus.busy" ng-disabled="enrichment.runnable != 'runnable'" ng-click="runEnrichment(enrichment.id)">
-			    <span> Run </span>
-		    </button>
-                    <button class='btn btn-warning' ng-if="!corpus.busy" ng-click="resetEnrichment(enrichment.id)">
-			    <span> Reset </span>
-		    </button>
-                    <button class='btn btn-warning' ng-if="!corpus.busy" ng-disabled="!isEnrichmentEditable(enrichment)" ng-click="editEnrichment(enrichment)">
-			    <span> Edit </span>
-		    </button>
-                    <button class='btn btn-danger' ng-if="!corpus.busy" ng-disabled="!isEnrichmentDeletable(enrichment)" ng-click="deleteEnrichment(enrichment)">
-			    <span> Delete </span>
-		    </button>
-                </td>
-            </tr>
-            </tbody>
-        </table>
+        <div class="alert alert-warning" ng-show="!corpus.database_running">
+            <span>The {{ corpus.name }} database is not currently running, please start it at <a ui-sref="database-list">databases</a>.</span>
+        </div>
+        <h3 ng-if="corpus.busy" style="color: red">Corpus is currently busy!</h3>
     </div>
-    <div class="col-md-3">
+    <div layout="row" layout-align="center start" ng-show="corpus.imported  && corpus.database_running">
+
+    <div class="column">
+        <md-table-container>
+            <table md-table>
+
+                <thead md-head>
+                <tr md-row>
+                    <th md-column ng-click="sortEnrichmentsBy='name'; reverseEnrichments=!reverseEnrichments;">
+                        Name
+                        <span ng-show="sortEnrichmentsBy == 'name' && reverseEnrichments"
+                              class="fa fa-caret-down"></span>
+                        <span ng-show="sortEnrichmentsBy == 'name' && !reverseEnrichments"
+                              class="fa fa-caret-up"></span>
+                    </th>
+                    <th md-column ng-click="sortEnrichmentsBy='runnable'; reverseEnrichments=!reverseEnrichments;">
+                        Runnable
+                        <span ng-show="sortEnrichmentsBy == 'runnable' && reverseEnrichments"
+                              class="fa fa-caret-down"></span>
+                        <span ng-show="sortEnrichmentsBy == 'runnable' && !reverseEnrichments"
+                              class="fa fa-caret-up"></span>
+                    </th>
+                    <th md-column ng-click="sortEnrichmentsBy='running'; reverseEnrichments=!reverseEnrichments;">
+                        Running
+                        <span ng-show="sortEnrichmentsBy == 'running' && reverseEnrichments"
+                              class="fa fa-caret-down"></span>
+                        <span ng-show="sortEnrichmentsBy == 'running' && !reverseEnrichments"
+                              class="fa fa-caret-up"></span>
+                    </th>
+                    <th md-column ng-click="sortEnrichmentsBy='completed'; reverseEnrichments=!reverseEnrichments;">
+                        Completed
+                        <span ng-show="sortEnrichmentsBy == 'completed' && reverseEnrichments"
+                              class="fa fa-caret-down"></span>
+                        <span ng-show="sortEnrichmentsBy == 'completed' && !reverseEnrichments"
+                              class="fa fa-caret-up"></span>
+                    </th>
+                    <th md-column ng-click="sortEnrichmentsBy='last_run'; reverseEnrichments=!reverseEnrichments;">
+                        Last run
+                        <span ng-show="sortEnrichmentsBy == 'last_run' && reverseEnrichments"
+                              class="fa fa-caret-down"></span>
+                        <span ng-show="sortEnrichmentsBy == 'last_run' && !reverseEnrichments"
+                              class="fa fa-caret-up"></span>
+                    </th>
+                    <th md-column>
+                        Actions
+                    </th>
+                </tr>
+                </thead>
+                <tbody md-body>
+                <tr md-row ng-repeat="enrichment in enrichments | orderBy:tableSortExpression:reverseEnrichments">
+                    <td>
+                        {{enrichment.name}}
+                    </td>
+                    <td md-cell ng-show="enrichment.runnable == 'runnable'">
+                        <span class="glyphicon glyphicon-ok" style="color:green"></span>
+                    </td>
+                    <td md-cell ng-show="enrichment.runnable != 'runnable'" title="{{ enrichment.runnable }}"
+                        data-toggle="tooltip" data-container="body" data-placement="auto" tooltip>
+                        <span class="glyphicon glyphicon-remove" style="color:red"></span>
+                    </td>
+                    <td md-cell>
+                        <span ng-show="enrichment.running" class="glyphicon glyphicon-ok" style="color:green"></span>
+                        <span ng-show="!enrichment.running" class="glyphicon glyphicon-remove" style="color:red"></span>
+                    </td>
+                    <td md-cell>
+                        <span ng-show="enrichment.completed" class="glyphicon glyphicon-ok" style="color:green"></span>
+                        <span ng-show="!enrichment.completed" class="glyphicon glyphicon-remove"
+                              style="color:red"></span>
+                    </td>
+                    <td md-cell>
+                        {{enrichment.last_run}}
+                    </td>
+                    <td md-cell>
+                        <md-button class='md-raised md-primary' ng-if="!corpus.busy"
+                                ng-disabled="enrichment.runnable != 'runnable'" ng-click="runEnrichment(enrichment.id)">
+                            <span> Run </span>
+                        </md-button>
+                        <md-button class='md-raised md-warn' ng-if="!corpus.busy"
+                                ng-disabled="!isEnrichmentDeletable(enrichment)" ng-click="resetEnrichment(enrichment.id)">
+                            <span> Reset </span>
+                        </md-button>
+                        <md-button class='md-raised' ng-if="!corpus.busy" ng-click="editEnrichment(enrichment)">
+                            <span> Edit </span>
+                        </md-button>
+                        <md-button class='md-accent md-raised md-hue-1' ng-if="!corpus.busy"
+                                ng-disabled="!isEnrichmentDeletable(enrichment)"
+                                ng-click="deleteEnrichment(enrichment)">
+                            <span> Delete </span>
+                        </md-button>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </md-table-container>
+    </div>
+    <div class="column">
         <h3>Create new enrichments</h3>
-        <ul>
-            <li>
-                <button ng-click="newPhoneSubset()">Phone subset</button>
-            </li>
-            <li>
-                <button ng-click="newWordSubset()">Word subset</button>
-            </li>
-            <li>
-                <button ng-click="newHierarchicalProperty()">Hierarchical property</button>
-            </li>
-            <li>
-                <button ng-click="newStressWordProp()">Stress from word property</button>
-            </li>
-            <li>
-                <button ng-click="newCSVProperties()">Properties from a CSV</button>
-            </li>
-            <li>
-                <button ng-click="createAcoustics()">Acoustics</button>
-            </li>
-            </li>
-            <li>
-                <button ng-click="relativizeProperty()">Relativize a property</button>
-            </li>
-            <li>
-                <button ng-click="relativizeTrack()">Relativize an acoustic track</button>
-            </li>
-        </ul>
-        <h4>Annotation levels</h4>
-        <ul>
-            <li>
-                <button ng-click="createPauses()">Pauses</button>
-            </li>
-            <li>
-                <button ng-click="createUtterances()">Utterances</button>
-            </li>
-            <li>
-                <button ng-click="createSyllables()">Syllables</button>
-            </li>
-        </ul>
+        <md-card>
+            <md-card-title>
+                <md-card-title-text>
+                    <span class="md-headline">Annotation levels</span>
+                </md-card-title-text>
+
+
+            </md-card-title>
+            <md-card-content>
+
+                <div>
+                    <md-button class="md-raised" ng-click="createPauses()">Pauses</md-button>
+                </div>
+                <div>
+                    <md-button class="md-raised" ng-click="createUtterances()">Utterances</md-button>
+                </div>
+                <div>
+                    <md-button class="md-raised" ng-click="createSyllables()">Syllables</md-button>
+                </div>
+            </md-card-content>
+        </md-card>
+        <md-card>
+
+            <md-card-title>
+                <md-card-title-text>
+                    <span class="md-headline">Subsets</span>
+                </md-card-title-text>
+
+
+            </md-card-title>
+            <md-card-content>
+                <div>
+                    <md-button class="md-raised" ng-click="newPhoneSubset()">Phone subset</md-button>
+                </div>
+                <div>
+                    <md-button class="md-raised" ng-click="newWordSubset()">Word subset</md-button>
+                </div>
+            </md-card-content>
+        </md-card>
+        <md-card>
+
+            <md-card-title>
+                <md-card-title-text>
+                    <span class="md-headline">Annotation properties</span>
+                </md-card-title-text>
+
+
+            </md-card-title>
+
+            <md-card-content>
+                <div>
+                    <md-button class="md-raised" ng-click="newHierarchicalProperty()">Hierarchical property</md-button>
+                </div>
+                <div>
+                    <md-button class="md-raised" ng-click="newStressWordProp()">Stress from word property</md-button>
+                </div>
+                <div>
+                    <md-button class="md-raised" ng-click="newCSVProperties()">Properties from a CSV</md-button>
+                </div>
+                <div>
+                    <md-button class="md-raised" ng-click="relativizeProperty()">Relativize a property</md-button>
+                </div>
+            </md-card-content>
+        </md-card>
+        <md-card>
+            <md-card-title>
+                <md-card-title-text>
+                    <span class="md-headline">Acoustics</span>
+                </md-card-title-text>
+
+
+            </md-card-title>
+        <md-card-content>
+            <div>
+                <md-button class="md-raised" ng-click="createPitchTracks()">Pitch tracks</md-button>
+            </div>
+            <div>
+                <md-button class="md-raised" ng-click="createFormantTracks()">Formant tracks</md-button>
+            </div>
+            <div>
+                <md-button class="md-raised" ng-click="createIntensityTracks()">Intensity tracks</md-button>
+            </div>
+            <div>
+                <md-button class="md-raised" ng-click="createFormantPoints()">Formant points</md-button>
+            </div>
+            <div>
+                <md-button class="md-raised" ng-click="createPraatScript()">Custom Praat script</md-button>
+            </div>
+            <div>
+                <md-button class="md-raised" ng-click="relativizeTrack()">Relativize an acoustic track</md-button>
+            </div>
+        </md-card-content>
+
+        </md-card>
     </div>
 </div>
-<div class="alert alert-warning" ng-show="!corpus.database_running">
-	<span>The {{ corpus.name }} database is not currently running, please start it at <a ui-sref="database-list">databases</a>.</span>
+
 </div>

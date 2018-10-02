@@ -1,0 +1,36 @@
+<div layout="row" layout-align="center start">
+    <div layout="column">
+        <h4>Run a custom Praat script</h4>
+        <div>
+
+            <input class="ng-hide" id="praat-script-file" type="file" />
+<label for="praat-script-file" class="md-button md-raised">Choose Praat script</label>
+            <md-button class="md-raised md-warn" ng-show="enrichment.path != null" ng-click="enrichment.path = null">
+                Delete file
+            </md-button>
+      <md-button class="md-icon-button" aria-label="Help" ng-click="getHelp($event, 'praat_script')">
+       <i class="material-icons">info</i>
+      </md-button>
+        </div>
+
+        <div layout="row" flex layout-align="space-between none">
+
+        <md-input-container>
+            <label>
+                Phone class
+            </label>
+            <md-select ng-model="enrichment.phone_class">
+                <md-option ng-repeat="choice in phone_class_options" ng-value="choice">{{choice}}</md-option>
+            </md-select>
+
+        </md-input-container>
+      <md-button class="md-icon-button" aria-label="Help" ng-click="getHelp($event, 'phone_class')">
+       <i class="material-icons">info</i>
+      </md-button>
+        </div>
+
+
+        <span ng-bind="error_message" style="color: red"></span>
+        <md-button class="md-primary md-raised" ng-click="save()">Save enrichment</md-button>
+    </div>
+</div>

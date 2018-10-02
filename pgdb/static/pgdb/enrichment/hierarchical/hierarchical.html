@@ -1,0 +1,93 @@
+<div layout="row" layout-align="center start">
+    <div class="alert alert-warning" ng-show="higher_annotations.length < 3">
+        <span>In order to use the {{ missingAnnotations }}  annotations, you must encode them under enrichments. </span>
+    </div>
+    <div layout="column">
+            <h4>Create a hierarchical property</h4>
+            <div layout="row" flex layout-align="space-between none">
+
+                <md-input-container>
+
+                    <label>Property name</label>
+                    <input ng-model="enrichment.property_label" required>
+                </md-input-container>
+
+      <md-button class="md-icon-button" aria-label="Help" ng-click="getHelp($event, 'property_label')">
+       <i class="material-icons">info</i>
+      </md-button>
+            </div>
+
+            <div layout="row" flex layout-align="space-between none">
+                    <md-input-container>
+
+
+                        <label>Property type
+                        </label>
+
+                        <md-select ng-model="enrichment.property_type">
+                                        <md-option ng-value="hp_type" ng-repeat="hp_type in hp_types">
+                                            {{ hp_type }}
+                                        </md-option>
+                        </md-select>
+                    </md-input-container>
+      <md-button class="md-icon-button" aria-label="Help" ng-click="getHelp($event, 'property_type')">
+       <i class="material-icons">info</i>
+      </md-button>
+            </div>
+
+            <div layout="row" flex layout-align="space-between none">
+                <md-input-container>
+            <label>Higher linguistic type</label>
+            <md-select ng-model="enrichment.higher_annotation"
+                    ng-change="configLowerAnnotations()" required>
+                                        <md-option ng-value="higher_annotation" ng-repeat="higher_annotation in higher_annotations">
+                                            {{ higher_annotation }}
+                                        </md-option>
+            </md-select>
+            </md-input-container>
+      <md-button class="md-icon-button" aria-label="Help" ng-click="getHelp($event, 'higher_annotation')">
+       <i class="material-icons">info</i>
+      </md-button>
+            </div>
+
+            <div layout="row" flex layout-align="space-between none">
+            <md-input-container>
+
+                <label>Lower linguistic type
+                </label>
+                <md-select ng-model="enrichment.lower_annotation" required>
+                                        <md-option ng-value="lower_annotation" ng-repeat="lower_annotation in lower_annotations">
+                                            {{ lower_annotation }}
+                                        </md-option>
+                </md-select>
+            </md-input-container>
+      <md-button class="md-icon-button" aria-label="Help" ng-click="getHelp($event, 'lower_annotation')">
+       <i class="material-icons">info</i>
+      </md-button>
+            </div>
+            <div layout="row" flex layout-align="space-between none">
+            <md-input-container>
+
+                <label>Subset of lower linguistic type
+                </label>
+                <md-select ng-model="enrichment.subset_label">
+                                        <md-option ng-value="s" ng-repeat="s in subsets[enrichment.lower_annotation]">
+                                            {{ s }}
+                                        </md-option>
+                </md-select>
+            </md-input-container>
+      <md-button class="md-icon-button" aria-label="Help" ng-click="getHelp($event, 'subset_label')">
+       <i class="material-icons">info</i>
+      </md-button>
+            </div>
+
+
+            <p><span ng-bind="error_message" style="color: red"></span></p>
+            <md-button class='md-primary md-raised' ng-click="createEnrichmant()">
+                <span>Save hierarchical property</span>
+            </md-button>
+
+
+    </div>
+
+</div>

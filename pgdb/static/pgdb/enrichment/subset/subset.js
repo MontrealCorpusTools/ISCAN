@@ -8,7 +8,7 @@ angular.module('subset', [
             return new Date(1970, 0, 1).setSeconds(seconds);
         };
     }])
-    .controller('NewSubsetCtrl', function ($scope, $rootScope, Query, Corpora, $state, $stateParams, Enrichment) {
+    .controller('NewSubsetCtrl', function ($scope, $rootScope, Query, Corpora, $state, $stateParams, Enrichment, $mdDialog) {
         // Making a new subset vs editing an existing one
         $scope.newEnrichment = false;
         if ($stateParams.enrichment_id == null) {
@@ -29,10 +29,10 @@ angular.module('subset', [
         // If editing, load list of existing phones
         if (!$scope.newEnrichment) {
             Enrichment.one($stateParams.corpus_id, $stateParams.enrichment_id).then(function (res) {
-                $scope.enrichment = res.data;
+                $scope.enrichment = res.data.config;
                 console.log($scope.enrichment)
                 // Change display name to existing name
-                Corpora.annotation_set($stateParams.corpus_id, $scope.enrichment.config.annotation_type).then(function (res) {
+                Corpora.annotation_set($stateParams.corpus_id, $scope.enrichment.annotation_type).then(function (res) {
                     $scope.annotations = res.data;
                 }).finally(function () {
                     $scope.dataLoading = false;
@@ -52,7 +52,7 @@ angular.module('subset', [
                 annotation_type: $stateParams.type,
                 enrichment_type: 'subset',
                 annotation_labels: [],
-                subset_label: $stateParams.type + " subset"
+                subset_label: ""
             };
 
         }
@@ -61,12 +61,12 @@ angular.module('subset', [
         $scope.createEnrichment = function () {
             // Create from scratch
             console.log($scope.enrichment);
-            $scope.enrichment.name = 'Encode ' + $scope.enrichment.subset_label;
 
             if ($scope.newEnrichment) {
                 Enrichment.create($stateParams.corpus_id, $scope.enrichment).then(function (res) {
                     $state.go('enrichment', {corpus_id: $stateParams.corpus_id});
                 }).catch(function (res) {
+                    console.log(res)
                     $scope.error_message = res.data;
                 });
             }
@@ -75,6 +75,7 @@ angular.module('subset', [
                 Enrichment.update($stateParams.corpus_id, $stateParams.enrichment_id, $scope.enrichment).then(function (res) {
                     $state.go('enrichment', {corpus_id: $stateParams.corpus_id});
                 }).catch(function (res) {
+                    console.log(res.data)
                     $scope.error_message = res.data;
                 });
             }

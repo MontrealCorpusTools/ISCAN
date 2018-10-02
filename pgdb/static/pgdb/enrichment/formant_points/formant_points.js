@@ -1,7 +1,7 @@
-angular.module('acoustics', [
+angular.module('formant_points', [
     'pgdb.corpora',
     'pgdb.enrichment'
-]).controller('AcousticCtrl', function ($scope, $rootScope, Enrichment, Corpora, $state, $stateParams, djangoAuth) {
+]).controller('FormantPointCtrl', function ($scope, $rootScope, Enrichment, Corpora, $state, $stateParams, djangoAuth, $mdDialog) {
 
 
 
@@ -16,31 +16,10 @@ angular.module('acoustics', [
                 $state.go('home');
         });
 
-    $scope.acoustic_options = [{
-        name: 'Pitch tracks',
-        type: 'pitch'
-    },
-        {
-            name: 'Formant tracks',
-            type: 'formants'
-        },
-        {
-            name: 'Intensity tracks',
-            type: 'intensity'
-        },
-        {
-            name: 'FAVE-style point formants',
-            type: 'refined_formant_points'
-        },
-        {
-            name: 'Custom praat script',
-            type: 'praat_script'
-        }];
     $scope.error_message = '';
-    $scope.binary_options = ['praat'];
     if ($stateParams.enrichment_id == null) {
         $scope.newAcoustic = true;
-        $scope.enrichment = {source: 'praat', number_of_iterations: 1};
+        $scope.enrichment = {enrichment_type: "refined_formant_points", number_of_iterations: 1};
     } else {
         $scope.newAcoustic = false;
         Enrichment.one($stateParams.corpus_id, $stateParams.enrichment_id).then(function (res) {
@@ -61,20 +40,15 @@ angular.module('acoustics', [
             }).catch(function (res) {
                 $scope.error_message = res.data;
             });
-        }
+        };
         r.readAsText(f);
     };
     $scope.save = function () {
         if ($scope.newAcoustic) {
             Enrichment.create($stateParams.corpus_id, $scope.enrichment).then(function (res) {
-                if ($scope.enrichment.enrichment_type == 'praat_script') {
-                    $scope.uploadFile(res.data.id, "praat-script-file");
-                } else if ($scope.enrichment.enrichment_type == 'refined_formant_points') {
-                    $scope.enrichment.duration_threshold = $scope.enrichment.duration_threshold;
                     if (document.getElementById("formants-file").files.length > 0) {
                         $scope.uploadFile(res.data.id, "formants-file");
                     }
-                }
                 else {
                     $state.go('enrichment', {corpus_id: $stateParams.corpus_id});
 
@@ -84,14 +58,9 @@ angular.module('acoustics', [
             });
         } else {
             Enrichment.update($stateParams.corpus_id, $stateParams.enrichment_id, $scope.enrichment).then(function (res) {
-                if ($scope.enrichment.enrichment_type == 'praat_script') {
-                    $scope.uploadFile($stateParams.enrichment_id, "praat-script-file");
-                } else if ($scope.enrichment.enrichment_type == 'refined_formant_points') {
-                    $scope.enrichment.duration_threshold = $scope.enrichment.duration_threshold / 1000;
                     if (document.getElementById("formants-file").files.length > 0) {
                         $scope.uploadFile($stateParams.enrichment_id, "formants-file");
                     }
-                }
                 else {
                     $state.go('enrichment', {corpus_id: $stateParams.corpus_id});
 
@@ -100,5 +69,41 @@ angular.module('acoustics', [
                 $scope.error_message = res.data;
             });
         }
-    }
+    };
+
+
+    $scope.help_titles = {
+        phone_class: 'Phone class',
+        num_iterations: 'Number of iterations',
+        duration_threshold: 'Minimum duration',
+        vowel_prototypes: 'Vowel Prototypes CSV'
+    };
+    $scope.help_text = {
+        phone_class: 'Specify the subset of phones that represents vowel or other segments that should have ' +
+        'their formants analyzed.',
+        num_iterations: 'Specify the number of refinement iterations.  There is a minimum of 1 iteration ' +
+        'that must be done, further iterations may improve convergence and more accurate measurements, but ' +
+        'each iteration can take a significant amount of time.',
+        duration_threshold: 'Optionally specify the minimum duration of a phone to be analyzed (in milliseconds).',
+        vowel_prototypes: 'Optionally specify a CSV file that contains formant measure prototypes for use ' +
+        'in seeding the algorithm before the first refinement iteration.  If not specified, these prototypes ' +
+        'are generated from the data.'
+    };
+
+    $scope.getHelp = function (ev, helpType) {
+        // Appending dialog to document.body to cover sidenav in docs app
+        // Modal dialogs should fully cover application
+        // to prevent interaction outside of dialog
+        $mdDialog.show(
+            $mdDialog.alert()
+                .parent(angular.element(document.querySelector('html')))
+                .clickOutsideToClose(true)
+                .title($scope.help_titles[helpType])
+                .textContent($scope.help_text[helpType])
+                .ariaLabel('Help')
+                .ok('Got it!')
+                .targetEvent(ev)
+        );
+    };
+
 });

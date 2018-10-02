@@ -1,0 +1,19 @@
+<div layout="row" layout-align="center start">
+    <div layout="column">
+        <h4>Generate intensity tracks</h4>
+        <div layout="row" flex layout-align="space-between none">
+        <md-input-container>
+            <label>Program</label>
+            <md-select ng-model="enrichment.source">
+                <md-option ng-repeat="choice in binary_options" ng-value="choice">{{choice}}</md-option>
+            </md-select>
+        </md-input-container>
+
+      <md-button class="md-icon-button" aria-label="Help" ng-click="getHelp($event, 'source')">
+       <i class="material-icons">info</i>
+      </md-button>
+    </div>
+        <span ng-bind="error_message" style="color: red"></span>
+        <md-button class="md-raised md-primary" ng-click="save()">Save enrichment</md-button>
+    </div>
+</div>

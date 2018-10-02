@@ -1,36 +1,44 @@
-<div class="row">
-	<div class="col-md-6">
-		<div class="row">
-		<span ng-bind="error_message" style="color: red"></span>
-		<label>Name: <input ng-model="enrichment.name"></label>
+<div layout="column">
+    <div layout="row" layout-align="center start">
+        <h4>Encode pauses</h4>
+    </div>
 
-		<button ng-click="save()">Save enrichment</button>
-		</div>
-		<div class="row">
-			<label> Custom words not in top <span ng-bind="count"></span>(comma seperated words):
-				<input type="text" name="custom_words" ng-model="customWords" min="0">
-			</label>
-		</div>
-	</div>
-	<div class="col-md-3 text-center" style="height:400px">
-		<table class="table table-bordered table-striped scrollable-table">
-			<thead>
-			<label> Get top 
-				<input type="number" name="word_count" ng-model="count" min="1" ng-change="getWords()" ng-model-options="{debounce:750}"> words.  
-			</label>
-			</thead>
-			<thead>
-				<td><b>Words</b></td>
-				<td><b>Label as pause</b></td>
-			</thead>
-			<tbody>
-				<tr ng-repeat="word in words">
-					<td>{{ word.label }}</td>
-					<td>
-						<input type="checkbox" ng-model=word.checked>
-					</td>
-				</tr>
-			</tbody>
-		</table>
-	</div>
+    <div layout="row" layout-align="center start">
+        <div layout="column">
+
+            <span ng-bind="error_message" style="color: red"></span>
+
+            <md-button class="md-primary md-raised" ng-click="save()">Save enrichment</md-button>
+        </div>
+        <div layout="column">
+        <div layout="row" flex layout-align="space-between none">
+
+            <md-input-container>
+
+            <label> Custom words
+            </label>
+                <input type="text" name="custom_words" ng-model="customWords">
+            </md-input-container>
+      <md-button class="md-icon-button" aria-label="Help" ng-click="getHelp($event, 'custom_words')">
+       <i class="material-icons">info</i>
+      </md-button>
+            </div>
+
+            <md-input-container>
+            <label>
+                Checklist limit
+            </label>
+                <input type="number" name="word_count" ng-model="count" min="1" ng-change="getWords()"
+                       ng-model-options="{debounce:750}">
+            </md-input-container>
+            <div>
+                <div ng-repeat="annotation in words">
+                    <md-checkbox checklist-model="annotation_labels" checklist-value="annotation"> {{annotation}}
+                    </md-checkbox>
+                </div>
+            </div>
+
+
+        </div>
+    </div>
 </div>

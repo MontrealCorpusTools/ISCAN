@@ -1,17 +1,32 @@
-<div class="row">
-	<div class="col-md-9">
-		<span ng-bind="error_message" style="color: red"></span>
-		<label>Name: <input ng-model="enrichment.name"></label>
-		<label>Algorithm:
-			<select ng-model="enrichment.encode_syllables" ng-options="choice.type as choice.name for choice in algorithm_options" >
-				<option value="">Select algorithm</option>
-			</select>
-		</label>
-		<label>Phone Subset:
-			<select ng-model="enrichment.phone_class" ng-options="choice as choice for choice in phone_class_options" >
-				<option value="">Select subset</option>
-			</select>
-		</label>
-		<button ng-click="save()">Save enrichment</button>
-	</div>
+<div layout="row" layout-align="center start">
+    <div layout="column">
+        <h4>Generate syllables</h4>
+        <div layout="row" flex layout-align="space-between none">
+            <md-input-container>
+        <label>Algorithm
+        </label>
+            <md-select ng-model="enrichment.algorithm">
+                <md-option ng-value="choice.type" ng-repeat="choice in algorithm_options">{{choice.name}}</md-option>
+            </md-select>
+            </md-input-container>
+      <md-button class="md-icon-button" aria-label="Help" ng-click="getHelp($event, 'algorithm')">
+       <i class="material-icons">info</i>
+      </md-button>
+        </div>
+        <div layout="row" flex layout-align="space-between none">
+            <md-input-container>
+
+        <label>Syllabic subset
+        </label>
+            <md-select ng-model="enrichment.phone_class">
+                <md-option ng-value="choice" ng-repeat="choice in phone_class_options">{{choice}}</md-option>
+            </md-select>
+            </md-input-container>
+      <md-button class="md-icon-button" aria-label="Help" ng-click="getHelp($event, 'phone_class')">
+       <i class="material-icons">info</i>
+      </md-button>
+        </div>
+        <span ng-bind="error_message" style="color: red"></span>
+        <md-button class="md-raised md-primary" ng-click="save()">Save enrichment</md-button>
+    </div>
 </div>

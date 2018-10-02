@@ -1,19 +1,36 @@
-<div class="row">
-    <div class="col-md-9">
-        <span ng-bind="error_message" style="color: red"></span>
-            <label>Name: <input ng-model="enrichment.name"></label>
-        
-            <label>Analysis:
-                 <select ng-model="enrichment.enrichment_type" ng-options="choice.type as choice.name for choice in csv_options" >
-                     <option value="">Select analysis</option>
-                 </select>
+<div layout="row" layout-align="center start">
+    <div layout="column">
+        <h4>Enrich from a CSV file</h4>
+        <div layout="row" flex layout-align="space-between none">
+        <md-input-container>
+
+            <label>File type
 	    </label>
-	<button class="btn btn-warning" ng-show="enrichment.path != null" ng-click="enrichment.path = null">
-		Delete file 
-	</button>
-	<label>File
-            <input custom-on-change="newFiles" type="file" id="CSV-properties-file" name="file" ng-disabled="enrichment.path != null" />
-	</label>
-        <button ng-disabled="!hasFiles" ng-click="save()">Save enrichment</button>
+                 <md-select ng-model="enrichment.enrichment_type">
+                                        <md-option ng-value="choice.type"
+                                                   ng-repeat="choice in csv_options">{{choice.name }}
+                                        </md-option>
+                 </md-select>
+        </md-input-container>
+      <md-button class="md-icon-button" aria-label="Help" ng-click="getHelp($event, 'file_type')">
+       <i class="material-icons">info</i>
+      </md-button>
+
+        </div>
+
+
+        <div layout="row" flex layout-align="space-between none">
+
+            <input class="ng-hide" id="CSV-properties-file" type="file" />
+<label for="CSV-properties-file" class="md-button md-raised">Choose CSV file</label>
+            <md-button class="md-raised md-warn" ng-show="enrichment.path != null" ng-click="enrichment.path = null">
+                Delete file
+            </md-button>
+      <md-button class="md-icon-button" aria-label="Help" ng-click="getHelp($event, 'csv_file')">
+       <i class="material-icons">info</i>
+      </md-button>
+        </div>
+        <span ng-bind="error_message" style="color: red"></span>
+        <md-button class="md-primary md-raised" ng-disabled="!hasFiles" ng-click="save()">Save enrichment</md-button>
     </div>
 </div>

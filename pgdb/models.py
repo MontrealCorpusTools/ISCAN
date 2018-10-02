@@ -757,12 +757,13 @@ class Enrichment(models.Model):
                 elif enrichment_type == 'syllables':
                     syllabic_label = config.get('phone_class', 'syllabic')
                     if c.hierarchy.has_type_subset('phone', syllabic_label):
-                        c.encode_syllables('maxonset', syllabic_label=syllabic_label)
+                        algorithm = config.get('algorithm', 'maxonset')
+                        c.encode_syllables(algorithm, syllabic_label=syllabic_label)
                 elif enrichment_type == 'pauses':
                     pause_label = config.get('pause_label')
                     c.encode_pauses(pause_label)
                 elif enrichment_type == 'utterances':
-                    pause_length = float(config.get('pause_length', 0.15))
+                    pause_length = float(config.get('pause_length', 150)) / 1000
                     c.encode_utterances(min_pause_length=pause_length)
                 elif enrichment_type == 'hierarchical_property':
                     property_type = config.get('property_type')

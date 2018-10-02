@@ -1,26 +1,38 @@
+<div layout="row" layout-align="center start">
 
-<div class="col-md-9 text-center" style="height:1280px">
-    <div>
-        <h4>Relativize an acoustic track</h4>
+    <div layout="column">
 
-        <button class='btn btn-success' ng-click="createEnrichment()">
-            <span>Save relativized property</span>
-        </button>
+    <h4>Relativize an acoustic track</h4>
+
+        <div layout="row" flex layout-align="space-between none">
+            <md-input-container>
+
+                <label>Acoustic track</label>
+                <md-select ng-model="enrichment.enrichment_type" required>
+                    <md-option ng-value="t.value" ng-repeat="t in avaiilable_acoustics">{{t.name}}</md-option>
+                </md-select>
+
+            </md-input-container>
+      <md-button class="md-icon-button" aria-label="Help" ng-click="getHelp($event, 'enrichment_type')">
+       <i class="material-icons">info</i>
+      </md-button>
+
+        </div>
+        <div layout="row" flex layout-align="space-between none">
+
+            <md-input-container>
+                <md-checkbox ng-model="enrichment.by_speaker">Perform relativization by speaker</md-checkbox>
+
+            </md-input-container>
+      <md-button class="md-icon-button" aria-label="Help" ng-click="getHelp($event, 'by_speaker')">
+       <i class="material-icons">info</i>
+      </md-button>
+        </div>
+
 
         <p><span ng-bind="error_message" style="color: red"></span></p>
-
-
-    <label>Acoustic track:
-        <select ng-model="enrichment.enrichment_type" class="form-control"
-                ng-options="t.value as t.name for t in avaiilable_acoustics">
-            <option value="">Select track</option>
-        </select>
-    </label>
-
-    <label>Perform relativization by speaker:
-        <input type="checkbox" ng-model="enrichment.by_speaker">
-    </label>
-
-
+        <md-button class='md-raised md-primary' ng-click="createEnrichment()">
+            <span>Save relativized property</span>
+        </md-button>
     </div>
 </div>

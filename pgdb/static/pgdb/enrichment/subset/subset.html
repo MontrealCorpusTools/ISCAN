@@ -1,0 +1,61 @@
+<div layout="row" layout-align="center start">
+
+<div>
+    <div>
+        <h4>Create a <span ng-bind="enrichment.annotation_type"></span> subset</h4>
+		<md-input-container>
+        <label>Subset name</label>
+			<input ng-model="enrichment.subset_label" required>
+
+		</md-input-container>
+
+
+
+    </div>
+
+
+        <md-button class="md-raised md-primary" ng-click="createEnrichment()">
+            Save subset
+        </md-button>
+        <md-button class='md-raised md-warn' ng-click="clearMembers()" ng-disabled="">
+            Clear members
+        </md-button>
+
+        <p><span ng-bind="error_message" style="color: red"></span></p>
+
+</div>
+<div style="height:50%; overflow: hidden">
+
+    <div ng-if="dataLoading">
+        <i>Loading phones...</i>
+    </div>
+    <div style="height: 100%; overflow-y: scroll" ng-if="!dataLoading">
+			<div ng-repeat="annotation in annotations">
+				<md-checkbox checklist-model="enrichment.annotation_labels" checklist-value="annotation"> {{annotation}}</md-checkbox>
+			</div>
+
+
+    </div>
+</div>
+<div ng-if="enrichment.annotation_type=='phone'">
+    <div>
+
+		<md-button class="md-raised" ng-disabled="dataLoading|| defaultSubsets['sibilants'] === undefined || defaultSubsets['sibilants'].length == 0" ng-click="select('sibilants')">
+		    <span>Select sibilants</span>
+		</md-button>
+    </div>
+    <div>
+		<md-button class="md-raised" ng-disabled="dataLoading|| defaultSubsets['syllabics'] === undefined || defaultSubsets['syllabics'].length == 0" ng-click="select('syllabics')">
+		    <span>Select syllabics</span>
+		</md-button>
+
+    </div>
+    <div>
+
+		<md-button class="md-raised" ng-disabled="dataLoading || defaultSubsets['stressed_vowels'] === undefined || defaultSubsets['stressed_vowels'].length == 0" ng-click="select('stressed_vowels')">
+		    <span>Select stressed vowels</span>
+		</md-button>
+    </div>
+</div>
+
+</div>

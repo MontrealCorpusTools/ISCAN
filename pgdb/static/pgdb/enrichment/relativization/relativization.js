@@ -17,7 +17,7 @@ angular.module('relativization', [
         return a;
     };
 })
-    .controller('TrackRelativizationCtrl', function ($scope, $rootScope, Query, Corpora, $state, $stateParams, Enrichment, djangoAuth) {
+    .controller('TrackRelativizationCtrl', function ($scope, $rootScope, Query, Corpora, $state, $stateParams, Enrichment, djangoAuth, $mdDialog) {
         $scope.newEnrichment = false;
         if ($stateParams.enrichment_id == null) {
             $scope.newEnrichment = true;
@@ -61,7 +61,6 @@ angular.module('relativization', [
         $scope.createEnrichment = function () {
             // Create from scratch
             console.log($scope.enrichment);
-            $scope.enrichment.name = 'Relativize ' + $scope.enrichment.enrichment_type.split('_')[1];
 
             if ($scope.newEnrichment) {
                 Enrichment.create($stateParams.corpus_id, $scope.enrichment).then(function (res) {
@@ -79,8 +78,34 @@ angular.module('relativization', [
                 });
             }
         };
+        $scope.help_titles = {
+        enrichment_type: 'Acoustic track',
+        by_speaker: 'CSV File'
+    };
+    $scope.help_text = {
+        enrichment_type: 'Specify which of the already encoded acoustic tracks should be relativized.',
+        by_speaker: 'Specify whether relativization should be performed within speaker (using by-speaker ' +
+        'means and standard deviations). If not checked, means and standard deviations will be calculated across the ' +
+        'the whole corpus.'
+    };
+
+    $scope.getHelp = function (ev, helpType) {
+        // Appending dialog to document.body to cover sidenav in docs app
+        // Modal dialogs should fully cover application
+        // to prevent interaction outside of dialog
+        $mdDialog.show(
+            $mdDialog.alert()
+                .parent(angular.element(document.querySelector('html')))
+                .clickOutsideToClose(true)
+                .title($scope.help_titles[helpType])
+                .textContent($scope.help_text[helpType])
+                .ariaLabel('Help')
+                .ok('Got it!')
+                .targetEvent(ev)
+        );
+    };
     })
-    .controller('PropertyRelativizationCtrl', function ($scope, $rootScope, Query, Corpora, $state, $stateParams, Enrichment) {
+    .controller('PropertyRelativizationCtrl', function ($scope, $rootScope, Query, Corpora, $state, $stateParams, Enrichment, $mdDialog) {
         $scope.newEnrichment = false;
         if ($stateParams.enrichment_id == null) {
             $scope.newEnrichment = true;
@@ -114,7 +139,6 @@ angular.module('relativization', [
         $scope.createEnrichment = function () {
             // Create from scratch
             console.log($scope.enrichment);
-            $scope.enrichment.name = 'Relativize ' + $scope.enrichment.property_name;
 
             if ($scope.newEnrichment) {
                 Enrichment.create($stateParams.corpus_id, $scope.enrichment).then(function (res) {
@@ -132,4 +156,32 @@ angular.module('relativization', [
                 });
             }
         };
+        $scope.help_titles = {
+        annotation_type: 'Linguistic type',
+            property_name: 'Property',
+        by_speaker: 'CSV File'
+    };
+    $scope.help_text = {
+        annotation_type: 'Specify which the linguistic type of the property to relativize.',
+        property_name: 'Specify which property of the selected linguistic type to relativize.',
+        by_speaker: 'Specify whether relativization should be performed within speaker (using by-speaker ' +
+        'means and standard deviations). If not checked, means and standard deviations will be calculated across the ' +
+        'the whole corpus.'
+    };
+
+    $scope.getHelp = function (ev, helpType) {
+        // Appending dialog to document.body to cover sidenav in docs app
+        // Modal dialogs should fully cover application
+        // to prevent interaction outside of dialog
+        $mdDialog.show(
+            $mdDialog.alert()
+                .parent(angular.element(document.querySelector('html')))
+                .clickOutsideToClose(true)
+                .title($scope.help_titles[helpType])
+                .textContent($scope.help_text[helpType])
+                .ariaLabel('Help')
+                .ok('Got it!')
+                .targetEvent(ev)
+        );
+    };
     });

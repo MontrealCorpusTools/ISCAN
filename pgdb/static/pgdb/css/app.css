@@ -105,3 +105,23 @@ md-table-pagination .label{
     color: rgba(0, 0, 0, 0.54);
     font-size: 12px;
 }
+
+#login_view {
+    width:25%;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+ul.nav a:hover { color: red !important; }
+
+.navbar-brand{
+    color:white !important;
+}
+
+main{
+    overflow-x: hidden;
+}
+
+.md-dialog-content p {
+    font-size: 14px;
+}

@@ -14,7 +14,7 @@ angular.module("login", ['pgdb.auth'])
         },function(data){
         	// error case
             console.log('error', data)
-        	$scope.errors = data;
+        	$scope.errors = data.data;
         });
       }
     }

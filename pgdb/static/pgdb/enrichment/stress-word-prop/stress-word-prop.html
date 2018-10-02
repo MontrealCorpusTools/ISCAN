@@ -1,12 +1,26 @@
-<div class="row">
-	<div class="col-md-9">
-		<span ng-bind="error_message" style="color: red"></span>
-		<label>Name: <input ng-model="enrichment.name"></label>
-		<label>Word property:
-			<select ng-model="enrichment.word_property" ng-options="choice.type as choice.name for choice in word_properties" >
-				<option value="">Select subset</option>
-			</select>
-		</label>
-		<button ng-click="save()">Save enrichment</button>
-	</div>
+<div layout="row" layout-align="center start">
+    <div layout="column">
+        <h4>Encode syllable stress from a word property</h4>
+        <div layout="row" flex layout-align="space-between none">
+
+            <md-input-container>
+
+                <label>Word property
+                </label>
+                <md-select ng-model="enrichment.word_property">
+                    <md-option ng-value="choice.type" ng-repeat="choice in word_properties">{{ choice.name }}
+                    </md-option>
+                </md-select>
+            </md-input-container>
+
+      <md-button class="md-icon-button" aria-label="Help" ng-click="getHelp($event, 'word_property')">
+       <i class="material-icons">info</i>
+      </md-button>
+        </div>
+        <div>
+
+            <span ng-bind="error_message" style="color: red"></span>
+            <md-button class="md-primary md-raised" ng-click="save()">Save enrichment</md-button>
+        </div>
+    </div>
 </div>

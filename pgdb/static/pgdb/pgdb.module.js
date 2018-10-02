@@ -24,7 +24,11 @@ var app = angular.module('pgdb', [
     'query',
     'relativization',
     'enrichment',
-    'acoustics',
+    'pitch_tracks',
+    'formant_tracks',
+    'intensity_tracks',
+    'formant_points',
+    'praat_script',
     'navbar',
     'login',
     'logout',
@@ -91,19 +95,19 @@ app.config(function ($stateProvider, $urlRouterProvider) {
         controller: 'QueryDetailCtrl'
     }).state('edit_subset', {
         url: '/subset/:corpus_id/{enrichment_id:int}',
-        templateUrl: static('pgdb/subset/subset.html'),
+        templateUrl: static('pgdb/enrichment/subset/subset.html'),
         controller: 'NewSubsetCtrl'
     }).state('new_subset', {
         url: '/subset/:corpus_id/:type',
-        templateUrl: static('pgdb/subset/subset.html'),
+        templateUrl: static('pgdb/enrichment/subset/subset.html'),
         controller: 'NewSubsetCtrl'
     }).state('edit_hierarchical_property', {
         url: '/hierarchical/:corpus_id/{enrichment_id:int}',
-        templateUrl: static('pgdb/hierarchical/hierarchical.html'),
+        templateUrl: static('pgdb/enrichment/hierarchical/hierarchical.html'),
         controller: 'NewHierarchicalCtrl'
     }).state('new_hierarchical_property', {
         url: '/hierarchical/:corpus_id',
-        templateUrl: static('pgdb/hierarchical/hierarchical.html'),
+        templateUrl: static('pgdb/enrichment/hierarchical/hierarchical.html'),
         controller: 'NewHierarchicalCtrl'
     }).state('edit_relativize_property', {
         url: '/property_relativization/:corpus_id/{enrichment_id:int}',
@@ -136,14 +140,46 @@ app.config(function ($stateProvider, $urlRouterProvider) {
             controller: 'LogoutCtrl',
             resolve: {
             }
-        }).state('acoustic_enrichment', {
-        url: '/corpora/:corpus_id/enrichment/acoustics',
-        templateUrl: static('pgdb/enrichment/acoustics/acoustics.html'),
-        controller: 'AcousticCtrl'
-        }).state('edit_acoustic_enrichment', {
-	url: '/corpora/:corpus_id/enrichment/acoustics/{enrichment_id:int}',
-        templateUrl: static('pgdb/enrichment/acoustics/acoustics.html'),
-        controller: 'AcousticCtrl'
+        }).state('new_pitch_tracks', {
+        url: '/corpora/:corpus_id/enrichment/pitch_tracks',
+        templateUrl: static('pgdb/enrichment/pitch_tracks/pitch_tracks.html'),
+        controller: 'PitchTrackCtrl'
+        }).state('edit_pitch_tracks', {
+	url: '/corpora/:corpus_id/enrichment/pitch_tracks/{enrichment_id:int}',
+        templateUrl: static('pgdb/enrichment/pitch_tracks/pitch_tracks.html'),
+        controller: 'PitchTrackCtrl'
+        }).state('new_formant_tracks', {
+        url: '/corpora/:corpus_id/enrichment/formant_tracks',
+        templateUrl: static('pgdb/enrichment/formant_tracks/formant_tracks.html'),
+        controller: 'FormantTrackCtrl'
+        }).state('edit_formant_tracks', {
+	url: '/corpora/:corpus_id/enrichment/formant_tracks/{enrichment_id:int}',
+        templateUrl: static('pgdb/enrichment/formant_tracks/formant_tracks.html'),
+        controller: 'FormantTrackCtrl'
+        }).state('new_intensity_tracks', {
+        url: '/corpora/:corpus_id/enrichment/intensity_tracks',
+        templateUrl: static('pgdb/enrichment/intensity_tracks/intensity_tracks.html'),
+        controller: 'IntensityTrackCtrl'
+        }).state('edit_intensity_tracks', {
+	url: '/corpora/:corpus_id/enrichment/intensity_tracks/{enrichment_id:int}',
+        templateUrl: static('pgdb/enrichment/intensity_tracks/intensity_tracks.html'),
+        controller: 'IntensityTrackCtrl'
+        }).state('new_formant_points', {
+        url: '/corpora/:corpus_id/enrichment/formant_points',
+        templateUrl: static('pgdb/enrichment/formant_points/formant_points.html'),
+        controller: 'FormantPointCtrl'
+        }).state('edit_formant_points', {
+	url: '/corpora/:corpus_id/enrichment/formant_points/{enrichment_id:int}',
+        templateUrl: static('pgdb/enrichment/formant_points/formant_points.html'),
+        controller: 'FormantPointCtrl'
+        }).state('new_custom_praat_script', {
+        url: '/corpora/:corpus_id/enrichment/praat_script',
+        templateUrl: static('pgdb/enrichment/praat_script/praat_script.html'),
+        controller: 'PraatScriptCtrl'
+        }).state('edit_custom_praat_script', {
+	url: '/corpora/:corpus_id/enrichment/praat_script/{enrichment_id:int}',
+        templateUrl: static('pgdb/enrichment/praat_script/praat_script.html'),
+        controller: 'PraatScriptCtrl'
         }).state('new_csv-properties', {
         url: '/corpora/:corpus_id/enrichment/csv-properties',
         templateUrl: static('pgdb/enrichment/csv-properties/csv-properties.html'),
@@ -156,12 +192,24 @@ app.config(function ($stateProvider, $urlRouterProvider) {
         url: '/corpora/:corpus_id/enrichment/utterances',
         templateUrl: static('pgdb/enrichment/annotation-level/utterance.html'),
         controller: 'UtterancesEnrichmentCtrl'
+        }).state('edit_utterances', {
+        url: '/corpora/:corpus_id/enrichment/utterances/{enrichment_id:int}',
+        templateUrl: static('pgdb/enrichment/annotation-level/utterance.html'),
+        controller: 'UtterancesEnrichmentCtrl'
         }).state('new_pauses', {
         url: '/corpora/:corpus_id/enrichment/pauses',
         templateUrl: static('pgdb/enrichment/annotation-level/pause.html'),
         controller: 'PausesEnrichmentCtrl'
+        }).state('edit_pauses', {
+        url: '/corpora/:corpus_id/enrichment/pauses/{enrichment_id:int}',
+        templateUrl: static('pgdb/enrichment/annotation-level/pause.html'),
+        controller: 'PausesEnrichmentCtrl'
         }).state('new_syllables', {
         url: '/corpora/:corpus_id/enrichment/syllables',
+        templateUrl: static('pgdb/enrichment/annotation-level/syllable.html'),
+        controller: 'SyllableEnrichmentCtrl'
+        }).state('edit_syllables', {
+        url: '/corpora/:corpus_id/enrichment/syllables/{enrichment_id:int}',
         templateUrl: static('pgdb/enrichment/annotation-level/syllable.html'),
         controller: 'SyllableEnrichmentCtrl'
         }).state('new_stress-word-prop', {
