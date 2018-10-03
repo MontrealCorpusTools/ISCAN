@@ -21,7 +21,7 @@
 
         <div layout="row" flex layout-align="space-between none">
 
-            <input class="ng-hide" id="CSV-properties-file" type="file" />
+            <input class="ng-hide" id="CSV-properties-file" type="file" custom-on-change="newFiles" />
 <label for="CSV-properties-file" class="md-button md-raised">Choose CSV file</label>
             <md-button class="md-raised md-warn" ng-show="enrichment.path != null" ng-click="enrichment.path = null">
                 Delete file

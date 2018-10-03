@@ -73,6 +73,7 @@ angular.module('query', [
         $scope.annotation_types = Query.annotation_types;
         $scope.refreshing = false;
         $scope.properties = [];
+        $scope.options = {};
         $scope.detailDisabled = false;
         $scope.acoustic_aggregates = [{name: 'Mean', function: 'mean'},
             {name: 'SD', function: 'stdev'},
@@ -82,7 +83,7 @@ angular.module('query', [
         ];
         $scope.operators = {};
         $scope.operators[0] = ['==', '!=', '<', '>', '<=', '>='];
-        $scope.operators[''] = ['==', '!='];
+        $scope.operators[''] = ['==', '!=', 'in', 'not in'];
 
         function success(results) {
             $scope.results = results;
@@ -218,7 +219,7 @@ angular.module('query', [
                 Corpora.hierarchy($stateParams.corpus_id).then(function (res) {
                     $scope.hierarchy = res.data;
                     $scope.annotation_types = $scope.hierarchy.annotation_types;
-                    if ($scope.annotation_types.indexOf('utterance') == -1 || $scope.annotation_types.indexOf('syllable') == -1){
+                    if ($scope.annotation_types.indexOf('utterance') == -1 || $scope.annotation_types.indexOf('syllable') == -1) {
                         $scope.detailDisabled = true;
                     }
                     $scope.column_values = [];
@@ -628,6 +629,31 @@ angular.module('query', [
             if ($scope.refreshing || ($scope.query != undefined && ($scope.query.running || $scope.query.result_count == null))) {
                 Query.one($stateParams.corpus_id, $stateParams.query_id).then(function (res) {
                     $scope.query = res.data;
+                    var filter, a_type;
+
+                    for (j = 0; j < $scope.annotation_types.length; j++) {
+                        a_type = $scope.annotation_types[j];
+                        for (i = 0; i < $scope.query.positions[a_type]; i++) {
+                            for (k=0; k < $scope.query.filters[a_type][$scope.query.positions[a_type][i]].property_filters.length; k ++){
+                                filter = $scope.query.filters[a_type][$scope.query.positions[a_type][i]].property_filters[k];
+                                if (filter.operator.endsWith('in')){
+                                    $scope.checkOptions(a_type, filter.property);
+                                }
+                            }
+                        }
+                    }
+                    for (i=0; i<$scope.query.filters.speaker.length; i++){
+                        filter = $scope.query.filters.speaker[i];
+                        if (filter.operator.endsWith('in')){
+                            $scope.checkOptions('speaker', filter.property);
+                        }
+                    }
+                    for (i=0; i<$scope.query.filters.discourse.length; i++){
+                        filter = $scope.query.filters.discourse[i];
+                        if (filter.operator.endsWith('in')){
+                            $scope.checkOptions('discourse', filter.property);
+                        }
+                    }
                     $scope.paginateParams.ordering = $scope.query.ordering;
                     $scope.query.annotation_type = $scope.query.annotation_type.toLowerCase();
                     $scope.getHierarchy();
@@ -675,13 +701,30 @@ angular.module('query', [
             cancelNextLoad();
         });
 
+        $scope.checkOptions = function (operator, type, prop) {
+            if (!(operator.endsWith('in'))){
+                return
+            }
+            if (!(type in $scope.options)) {
+                $scope.options[type] = {};
+            }
+
+            if (!(prop in $scope.options[type])) {
+                Corpora.property_values($scope.corpus.id, type, prop).then(function (res) {
+                    console.log(res)
+                    $scope.options[type][prop] = res.data;
+                    console.log($scope.options)
+                })
+            }
+
+        };
 
         djangoAuth.authenticationStatus(true).then(function () {
 
             Users.current_user().then(function (res) {
                 $scope.user = res.data;
                 console.log($scope.user)
-            $scope.refreshPermissions();
+                $scope.refreshPermissions();
             });
         }).catch(function (res) {
             console.log(res)

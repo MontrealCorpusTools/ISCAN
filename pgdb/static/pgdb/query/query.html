@@ -37,7 +37,7 @@
 
                                     <md-input-container>
                                         <label>Operator</label>
-                                        <md-select ng-model="filter.operator">
+                                        <md-select ng-model="filter.operator" ng-change="checkOptions(filter.operator, t, filter.property)">
                                             <md-option ng-value="o"
                                                        ng-repeat="o in operators[propertyTypes[t][filter.property]]">
                                                 {{ o }}
@@ -45,7 +45,7 @@
                                         </md-select>
 
                                     </md-input-container>
-                                    <md-autocomplete flex ng-if="propertyTypes[t][filter.property] === ''"
+                                    <md-autocomplete flex ng-if="propertyTypes[t][filter.property] === '' && filter.operator.endsWith('=')"
                                                      class="no-animate"
                                                      md-selected-item="filter.value"
                                                      md-search-text="filter.searchText"
@@ -61,6 +61,13 @@
                                             No label matching "{{filter.searchText}}" were found.
                                         </md-not-found>
                                     </md-autocomplete>
+
+
+                                        <md-select multiple class="no-animate" flex
+                                                     ng-if="propertyTypes[t][filter.property] === '' && filter.operator.endsWith('in')"
+                                                     ng-model="filter.value">
+                                            <md-option ng-value="o" ng-repeat="o in options[t][filter.property]">{{o}}</md-option>
+                                        </md-select>
                                     <md-input-container ng-if="propertyTypes[t][filter.property]=== false"
                                                         class="no-animate">
                                         <input type="checkbox"
@@ -216,7 +223,7 @@
 
                                     <md-input-container>
                                         <label>Operator</label>
-                                        <md-select ng-model="filter.operator">
+                                        <md-select ng-model="filter.operator" ng-change="checkOptions(filter.operator, 'speaker', filter.property)">
                                             <md-option ng-value="o"
                                                        ng-repeat="o in operators[propertyTypes.speaker[filter.property]]">
                                                 {{
@@ -225,7 +232,7 @@
                                         </md-select>
 
                                     </md-input-container>
-                                    <md-autocomplete flex ng-if="propertyTypes.speaker[filter.property] === ''"
+                                    <md-autocomplete flex ng-if="propertyTypes.speaker[filter.property] === ''&& filter.operator.endsWith('=')"
                                                      class="no-animate"
                                                      md-selected-item="filter.value"
                                                      md-search-text="filter.searchText"
@@ -241,6 +248,12 @@
                                             No label matching "{{filter.searchText}}" were found.
                                         </md-not-found>
                                     </md-autocomplete>
+
+                                        <md-select multiple class="no-animate" flex
+                                                     ng-if="propertyTypes.speaker[filter.property] === '' && filter.operator.endsWith('in')"
+                                                     ng-model="filter.value">
+                                            <md-option ng-value="o" ng-repeat="o in options.speaker[filter.property]">{{o}}</md-option>
+                                        </md-select>
                                     <md-input-container ng-if="propertyTypes.speaker[filter.property]=== false"
                                                         class="no-animate">
                                         <input type="checkbox"
@@ -283,7 +296,7 @@
 
                                     <md-input-container>
                                         <label>Operator</label>
-                                        <md-select ng-model="filter.operator">
+                                        <md-select ng-model="filter.operator" ng-change="checkOptions(filter.operator, 'discourse', filter.property)">
                                             <md-option ng-value="o"
                                                        ng-repeat="o in operators[propertyTypes.discourse[filter.property]]">
                                                 {{
@@ -292,7 +305,7 @@
                                         </md-select>
 
                                     </md-input-container>
-                                    <md-autocomplete flex ng-if="propertyTypes.discourse[filter.property] === ''"
+                                    <md-autocomplete flex ng-if="propertyTypes.discourse[filter.property] === '' && filter.operator.endsWith('=')"
                                                      class="no-animate"
                                                      md-selected-item="filter.value"
                                                      md-search-text="filter.searchText"
@@ -308,6 +321,12 @@
                                             No label matching "{{filter.searchText}}" were found.
                                         </md-not-found>
                                     </md-autocomplete>
+
+                                        <md-select multiple class="no-animate" flex
+                                                     ng-if="propertyTypes.discourse[filter.property] === '' && filter.operator.endsWith('in')"
+                                                     ng-model="filter.value">
+                                            <md-option ng-value="o" ng-repeat="o in options.discourse[filter.property]">{{o}}</md-option>
+                                        </md-select>
                                     <md-input-container ng-if="propertyTypes.discourse[filter.property]=== false"
                                                         class="no-animate">
                                         <input type="checkbox"

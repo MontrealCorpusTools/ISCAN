@@ -1112,7 +1112,7 @@ class Query(models.Model):
                                 q = q.filter(att == value)
                         else:
                             for d in a_filters:
-                                field, value = d['property'], d['value']
+                                field, value, operator = d['property'], d['value'], d.get('operator', '==')
                                 att = getattr(ann, field)
                                 if value == 'null':
                                     value = None
@@ -1120,7 +1120,8 @@ class Query(models.Model):
                                     value = att.coerce_value(value)
                                 if value is None:
                                     continue
-                                q = q.filter(att == value)
+                                filter = self.generate_filter(att, value, operator)
+                                q = q.filter(filter)
                     subset_filters = filter_types.get('subset_filters', [])
 
                     for s in subset_filters:
@@ -1144,7 +1145,7 @@ class Query(models.Model):
                                 q = q.filter(att == value)
                         else:
                             for d in a_filters:
-                                field, value = d['property'], d['value']
+                                field, value, operator = d['property'], d['value'], d.get('operator', '==')
                                 att = getattr(s_ann, field)
                                 if value == 'null':
                                     value = None
@@ -1152,7 +1153,8 @@ class Query(models.Model):
                                     value = att.coerce_value(value)
                                 if value is None:
                                     continue
-                                q = q.filter(att == value)
+                                filter = self.generate_filter(att, value, operator)
+                                q = q.filter(filter)
 
                     left_aligned_filter = filter_types.get('left_aligned_filter', '')
                     right_aligned_filter = filter_types.get('right_aligned_filter', '')
