@@ -14,10 +14,10 @@
                 <th md-column>
                     Number of corpora
                 </th>
-                <th md-column>
+                <th md-column ng-if="user.is_superuser">
                     Neo4j admin site
                 </th>
-                <th md-column>
+                <th md-column ng-if="user.is_superuser">
                     InfluxDB admin site
                 </th>
                 <th md-column>
@@ -38,10 +38,10 @@
                     {{ db.num_corpora }}
                 <a ui-sref="database-detail({database_id: db.id })">View</a>
                 </td>
-                <td md-cell>
+                <td md-cell ng-if="user.is_superuser">
                     <a href="http://{{ host+ ':' + db.neo4j_http_port }}">http://{{ host+ ':' + db.neo4j_http_port }}</a>
                 </td>
-                <td md-cell>
+                <td md-cell ng-if="user.is_superuser">
                     <a href="http://{{ host + ':' + db.influxdb_admin_port }}">http://{{ host + ':' + db.influxdb_admin_port }}</a>
                 </td>
                 <td md-cell>

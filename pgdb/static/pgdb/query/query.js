@@ -66,7 +66,7 @@ angular.module('query', [
         };
     }])
 
-    .controller('QueryCtrl', function ($scope, $rootScope, Query, Corpora, $state, $stateParams, FileSaver, Blob, $timeout, $q, $query, djangoAuth) {
+    .controller('QueryCtrl', function ($scope, $rootScope, Query, Corpora, $state, $stateParams, FileSaver, Blob, $timeout, $q, $query, djangoAuth, Users) {
 
         Query.reset_state($stateParams.query_id);
         $scope.paginateParams = Query.paginateParams;
@@ -312,14 +312,9 @@ angular.module('query', [
 
         };
         $scope.refreshPermissions = function () {
-            console.log('REFRESHING');
-            $scope.user = $rootScope.user;
-            $scope.authenticated = $rootScope.authenticated;
             $scope.exporting = false;
             $scope.refreshing = true;
-            if ($scope.user == undefined) {
-                $state.go('home');
-            }
+
             if ($scope.user.is_superuser) {
                 $scope.can_view = true;
                 $scope.can_listen = true;
@@ -680,8 +675,13 @@ angular.module('query', [
 
         djangoAuth.authenticationStatus(true).then(function () {
 
+            Users.current_user().then(function (res) {
+                $scope.user = res.data;
+                console.log($scope.user)
             $scope.refreshPermissions();
-        }).catch(function () {
+            });
+        }).catch(function (res) {
+            console.log(res)
             $state.go('home');
         });
 
