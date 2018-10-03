@@ -73,7 +73,7 @@ angular.module('query', [
         $scope.annotation_types = Query.annotation_types;
         $scope.refreshing = false;
         $scope.properties = [];
-
+        $scope.detailDisabled = false;
         $scope.acoustic_aggregates = [{name: 'Mean', function: 'mean'},
             {name: 'SD', function: 'stdev'},
             {name: 'Median', function: 'median'},
@@ -218,6 +218,9 @@ angular.module('query', [
                 Corpora.hierarchy($stateParams.corpus_id).then(function (res) {
                     $scope.hierarchy = res.data;
                     $scope.annotation_types = $scope.hierarchy.annotation_types;
+                    if ($scope.annotation_types.indexOf('utterance') == -1 || $scope.annotation_types.indexOf('syllable') == -1){
+                        $scope.detailDisabled = true;
+                    }
                     $scope.column_values = [];
                     console.log($scope.hierarchy);
                     $scope.properties = {

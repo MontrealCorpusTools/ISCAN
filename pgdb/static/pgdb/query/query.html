@@ -72,6 +72,7 @@
                                     </md-input-container>
                                     <md-button md-colors="{background:'red'}" class="md-icon-button md-primary"
                                                aria-label="Remove" ng-click="removeFilter(t, position, $index)">
+        <md-tooltip md-direction="below">Remove</md-tooltip>
                                         <span>X</span>
                                     </md-button>
                                 </div>
@@ -173,6 +174,7 @@
                                         <md-button md-colors="{background:'red'}" class="md-icon-button md-primary"
                                                    aria-label="Remove"
                                                    ng-click="removeSubannotationFilter(t, position, s, $index)">
+        <md-tooltip md-direction="below">Remove</md-tooltip>
                                             <span>X</span>
                                         </md-button>
                                     </div>
@@ -250,6 +252,7 @@
                                     </md-input-container>
                                     <md-button md-colors="{background:'red'}" class="md-icon-button md-primary"
                                                aria-label="Remove" ng-click="removeSpokenFilter('speaker', $index)">
+        <md-tooltip md-direction="below">Remove</md-tooltip>
                                         <span>X</span>
                                     </md-button>
                                 </div>
@@ -316,6 +319,7 @@
                                     </md-input-container>
                                     <md-button md-colors="{background:'red'}" class="md-icon-button md-primary"
                                                aria-label="Remove" ng-click="removeSpokenFilter('discourse', $index)">
+        <md-tooltip md-direction="below">Remove</md-tooltip>
                                         <span>X</span>
                                     </md-button>
                                 </div>
@@ -416,12 +420,14 @@
                             <tr md-row ng-repeat="result in results.data">
                                 <td md-cell>
 
-                                    <md-button class="md-icon-button" aria-label="View" ng-click="getDetail($index)">
+                                    <md-button class="md-icon-button" aria-label="View" ng-click="getDetail($index)" ng-disabled="detailDisabled">
+        <md-tooltip md-direction="right" ng-if="detailDisabled">Detail view only available when utterances and syllables are encoded</md-tooltip>
                                         <i class="material-icons">search</i>
                                     </md-button>
                                     <md-button class="md-icon-button" aria-label="Listen"
                                                ng-click="listen(result[query.annotation_type].current.id)"
                                                ng-if="can_listen && query.annotation_type =='utterance'">
+        <md-tooltip md-direction="right">Listen to utterance</md-tooltip>
                                         <i class="material-icons">play_arrow</i>
                                     </md-button>
                                 <td md-cell ng-repeat="value in column_values"
@@ -476,22 +482,26 @@
                                             <th md-column>
                                                 <md-button class='md-icon-button' ng-click="addPrevious(t)">
 
+        <md-tooltip md-direction="below">Add next previous</md-tooltip>
                                                     <i class="material-icons">add</i>
                                                 </md-button>
                                             </th>
                                             <th md-column ng-repeat="position in query.positions[t]">{{ position }}
                                                 <md-button class='md-icon-button' ng-click="removePrevious(t)"
                                                            ng-if="position!='current' && position.startsWith('previous')">
+        <md-tooltip md-direction="below">Remove</md-tooltip>
                                                     <i class="material-icons">remove</i>
                                                 </md-button>
                                                 <md-button class='md-icon-button' ng-click="removeFollowing(t)"
                                                            ng-if="position!='current' && position.startsWith('following')">
+        <md-tooltip md-direction="below">Remove</md-tooltip>
                                                     <i class="material-icons">remove</i>
                                                 </md-button>
                                             </th>
 
                                             <th md-column>
                                                 <md-button class='md-icon-button' ng-click="addFollowing(t)">
+        <md-tooltip md-direction="below">Add next following</md-tooltip>
 
                                                     <i class="material-icons">add</i>
                                                 </md-button>
