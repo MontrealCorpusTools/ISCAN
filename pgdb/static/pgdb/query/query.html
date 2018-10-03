@@ -9,10 +9,10 @@
                     data-ng-if="$index >= annotation_types.indexOf(query.annotation_type.toLowerCase())">
                 <md-content class="md-padding annotation-content">
                     <div style="display:inline-block;">
-                        <button class='btn' style="display: block;" ng-click="addPrevious(t)">Add previous</button>
-                        <button class='btn btn-danger' style="display: block;" ng-click="removePrevious(t)">Remove
+                        <md-button class='md-raised' style="display: block;" ng-click="addPrevious(t)">Add previous</md-button>
+                        <md-button class='md-raised md-warn' style="display: block;" ng-click="removePrevious(t)">Remove
                             previous
-                        </button>
+                        </md-button>
 
                     </div>
 
@@ -73,8 +73,8 @@
                                     </md-button>
                                 </div>
 
-                        <button class='btn' ng-click="addFilter(t, position)" ng-disabled="query.running"><span>Add filter</span>
-                        </button>
+                        <md-button class='md-raised' ng-click="addFilter(t, position)" ng-disabled="query.running"><span>Add filter</span>
+                        </md-button>
                                 <div class="row">
                                     <md-input-container>
                                         <label>Subset</label>
@@ -171,9 +171,9 @@
                                             <span>X</span>
                                         </md-button>
                                     </div>
-                            <button class='btn' ng-click="addSubannotationFilter(t, position, s)"
+                            <md-button class='md-raised' ng-click="addSubannotationFilter(t, position, s)"
                                     ng-disabled="query.running"><span>Add filter</span>
-                            </button>
+                            </md-button>
                         </div>
 
                                 </md-card-content>
@@ -181,10 +181,10 @@
 
                     <div style="display:inline-block;">
 
-                        <button class='btn' style="display: block;" ng-click="addFollowing(t)">Add following</button>
-                        <button class='btn btn-danger' style="display: block;" ng-click="removeFollowing(t)">Remove
+                        <md-button class='md-raised' style="display: block;" ng-click="addFollowing(t)">Add following</md-button>
+                        <md-button class='md-raised md-warn' style="display: block;" ng-click="removeFollowing(t)">Remove
                             following
-                        </button>
+                        </md-button>
                     </div>
                 </md-content>
             </md-tab>
@@ -247,9 +247,9 @@
 
                         </md-card-content>
                     </md-card>
-                    <button class='btn' ng-click="addFilter('speaker')" ng-disabled="query.running">
+                    <md-button class='md-raised' ng-click="addFilter('speaker')" ng-disabled="query.running">
                         <span>Add filter</span>
-                    </button>
+                    </md-button>
                 </md-content>
             </md-tab>
             <md-tab label="Sound file properties">
@@ -313,24 +313,24 @@
                         </md-card-content>
                     </md-card>
 
-                    <button class='btn' ng-click="addFilter('discourse')" ng-disabled="query.running">
+                    <md-button class='md-raised' ng-click="addFilter('discourse')" ng-disabled="query.running">
                         <span>Add filter</span>
-                    </button>
+                    </md-button>
                 </md-content>
             </md-tab>
 
         </md-tabs>
 
 
-        <button class='btn btn-success' ng-click="updateQuery()" ng-disabled="!newQuery && (query.running || refreshing || exporting)">Run query</button>
-        <button class='btn btn-success' ng-show="!newQuery" ng-click="refreshQuery()" ng-disabled="!newQuery && (query.running || refreshing || exporting)">
+        <md-button class='md-raised md-primary' ng-click="updateQuery()" ng-disabled="!newQuery && (query.running || refreshing || exporting)">Run query</md-button>
+        <md-button class='md-raised' ng-show="!newQuery" ng-click="refreshQuery()" ng-disabled="!newQuery && (query.running || refreshing || exporting)">
             Refresh
-        </button>
-        <button class='btn btn-success' ng-show="!newQuery" ng-click="updateOrdering()" ng-disabled="!newQuery && (query.running || refreshing || exporting)">
-            <span>Save current ordering</span></button>
-        <button class='btn btn-danger' ng-click="clearFilters()" ng-disabled="!newQuery && (query.running || refreshing || exporting)"><span>Clear filters</span>
-        </button>
-        <button class="btn" ng-disabled="!newQuery && (query.running || refreshing || exporting)" ng-show="!newQuery" ng-click="export()">Export to CSV</button>
+        </md-button>
+        <md-button class='md-raised' ng-show="!newQuery" ng-click="updateOrdering()" ng-disabled="!newQuery && (query.running || refreshing || exporting)">
+            <span>Save current ordering</span></md-button>
+        <md-button class='md-raised md-warn' ng-click="clearFilters()" ng-disabled="!newQuery && (query.running || refreshing || exporting)"><span>Clear filters</span>
+        </md-button>
+        <md-button class="md-raised" ng-disabled="!newQuery && (query.running || refreshing || exporting)" ng-show="!newQuery" ng-click="export()">Export to CSV</md-button>
     </div>
     <div ng-show="query.result_count==0 && !newQuery">
         <span>No results found</span>

@@ -1,7 +1,7 @@
 angular.module('databaseList', [
     'pgdb.databases'
 ])
-    .controller('DatabaseListCtrl', function ($scope, Databases, Corpora, $state, $location, djangoAuth) {
+    .controller('DatabaseListCtrl', function ($scope, Databases, Corpora, $state, $location, djangoAuth,Users) {
         $scope.addDatabase = function () {
             Databases.addOne($scope.newDatabase).then($scope.refreshDatabases);
             $scope.newDatabase = {}
@@ -36,13 +36,18 @@ angular.module('databaseList', [
         };
 
         $scope.deleteDatabase = function (id) {
-            Databases.delete(id);
-            // update the list in ui
-            $scope.databases = $scope.databases.filter(function (database) {
-                return database.id !== id;
+            Databases.delete(id).then(function (res) {
+                $scope.databases = $scope.databases.filter(function (database) {
+                    return database.id !== id;
+                });
+
             })
         };
         djangoAuth.authenticationStatus(true).then(function () {
+            Users.current_user().then(function (res) {
+                $scope.user = res.data;
+                console.log($scope.user)
+            });
             $scope.start_button = 'Start';
             $scope.stop_button = 'Stop';
             $scope.delete_button = 'Delete';

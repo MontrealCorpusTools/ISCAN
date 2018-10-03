@@ -97,13 +97,27 @@ class DatabaseViewSet(viewsets.ModelViewSet):
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+    def list(self, request, *args, **kwargs):
+        if isinstance(request.user, django.contrib.auth.models.AnonymousUser):
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
+        if request.user.is_superuser:
+            databases = models.Database.objects.all()
+        else:
+            databases = models.Database.objects.filter(corpora__user_permissions__user=request.user,
+                                                       corpora__user_permissions__can_access_database=True).all()
+
+        return Response(self.serializer_class(databases, many=True).data)
+
     @detail_route(methods=['post'])
     def start(self, request, pk=None):
         if isinstance(request.user, django.contrib.auth.models.AnonymousUser):
             return Response(status=status.HTTP_401_UNAUTHORIZED)
-        if not request.user.is_superuser:
-            return Response(status=status.HTTP_401_UNAUTHORIZED)
         database = self.get_object()
+        if not request.user.is_superuser:
+            permissions = models.CorpusPermissions.objects.filter(user=request.user, corpus__database=database).all()
+            permissions = [x.can_access_database for x in permissions]
+            if not len(permissions) or not any(permissions):
+                return Response(status=status.HTTP_401_UNAUTHORIZED)
         success = database.start()
         return Response(data=success)
 
@@ -111,19 +125,32 @@ class DatabaseViewSet(viewsets.ModelViewSet):
     def stop(self, request, pk=None):
         if isinstance(request.user, django.contrib.auth.models.AnonymousUser):
             return Response(status=status.HTTP_401_UNAUTHORIZED)
-        if not request.user.is_superuser:
-            return Response(status=status.HTTP_401_UNAUTHORIZED)
         database = self.get_object()
+        if not request.user.is_superuser:
+            permissions = models.CorpusPermissions.objects.filter(user=request.user, corpus__database=database).all()
+            permissions = [x.can_access_database for x in permissions]
+            if not len(permissions) or not any(permissions):
+                return Response(status=status.HTTP_401_UNAUTHORIZED)
         success = database.stop()
         return Response(data=success)
+
+    def destroy(self, request, pk=None):
+        if isinstance(request.user, django.contrib.auth.models.AnonymousUser):
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
+        if not request.user.is_superuser:
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
+        return super(DatabaseViewSet, self).destroy(request, pk)
 
     @detail_route(methods=['get'])
     def ports(self, request, pk=None):
         if isinstance(request.user, django.contrib.auth.models.AnonymousUser):
             return Response(status=status.HTTP_401_UNAUTHORIZED)
-        if not request.user.is_superuser:
-            return Response(status=status.HTTP_401_UNAUTHORIZED)
         database = self.get_object()
+        if not request.user.is_superuser:
+            permissions = models.CorpusPermissions.objects.filter(user=request.user, corpus__database=database).all()
+            permissions = [x.can_access_database for x in permissions]
+            if not len(permissions) or not any(permissions):
+                return Response(status=status.HTTP_401_UNAUTHORIZED)
         data = database.ports
         return Response(data)
 
@@ -131,9 +158,12 @@ class DatabaseViewSet(viewsets.ModelViewSet):
     def data_directory(self, request, pk=None):
         if isinstance(request.user, django.contrib.auth.models.AnonymousUser):
             return Response(status=status.HTTP_401_UNAUTHORIZED)
-        if not request.user.is_superuser:
-            return Response(status=status.HTTP_401_UNAUTHORIZED)
         database = self.get_object()
+        if not request.user.is_superuser:
+            permissions = models.CorpusPermissions.objects.filter(user=request.user, corpus__database=database).all()
+            permissions = [x.can_access_database for x in permissions]
+            if not len(permissions) or not any(permissions):
+                return Response(status=status.HTTP_401_UNAUTHORIZED)
         data = database.directory
         return Response(data)
 
@@ -141,9 +171,12 @@ class DatabaseViewSet(viewsets.ModelViewSet):
     def corpora(self, request, pk=None):
         if isinstance(request.user, django.contrib.auth.models.AnonymousUser):
             return Response(status=status.HTTP_401_UNAUTHORIZED)
-        if not request.user.is_superuser:
-            return Response(status=status.HTTP_401_UNAUTHORIZED)
         database = self.get_object()
+        if not request.user.is_superuser:
+            permissions = models.CorpusPermissions.objects.filter(user=request.user, corpus__database=database).all()
+            permissions = [x.can_access_database for x in permissions]
+            if not len(permissions) or not any(permissions):
+                return Response(status=status.HTTP_401_UNAUTHORIZED)
         corpora = models.Corpus.objects.filter(database=database)
         serializer = serializers.CorpusSerializer(corpora, many=True)
         return Response(serializer.data)
@@ -637,10 +670,10 @@ class AnnotationViewSet(viewsets.ViewSet):
         if isinstance(request.user, django.contrib.auth.models.AnonymousUser):
             return Response(status=status.HTTP_401_UNAUTHORIZED)
         corpus = models.Corpus.objects.get(pk=corpus_pk)
-        # if not request.user.is_superuser: # FIXME Needs actual authentication
-        #    permissions = corpus.user_permissions.filter(user=request.user).all()
-        #    if not len(permissions) or permissions[0].can_listen:
-        #       return Response(status=status.HTTP_401_UNAUTHORIZED)
+        if not request.user.is_superuser:
+            permissions = corpus.user_permissions.filter(user=request.user).all()
+            if not len(permissions) or permissions[0].can_listen:
+               return Response(status=status.HTTP_401_UNAUTHORIZED)
         with CorpusContext(corpus.config) as c:
             fname = c.utterance_sound_file(pk, 'consonant')
 

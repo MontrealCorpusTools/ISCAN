@@ -301,6 +301,8 @@ SOURCE_DATA_DIRECTORY = os.path.join('/site/proj/test_data', 'source')
 
 POLYGLOT_DATA_DIRECTORY = os.path.join('/site/proj/test_data', 'data')
 
+SPADE_CONFIG = {}
+
 if not IS_TESTING:
     try:
         from .local_settings import *

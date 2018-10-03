@@ -1,162 +1,134 @@
-<div class="row" ng-show="corpus.imported && corpus.database_running">
-    <h1>Summary of the {{ corpus.name }} corpus</h1>
-    <div class="col-md-6">
-        <h1>Linguistic Units</h1>
-        <div ng-show="hierarchy.annotation_types.includes('utterance')" class="row" style="min-height: 450px; padding: 40px">
-            <div  class="row" style="min-height:400px">
-		<h2>Utterances</h2>
-	        <button class="btn btn-primary" ng-click="newQuery('utterance')">New query</button>
-                <label>Previous queries:
-                    <select ng-model="queryIds.utterance" class="form-control"
-                            ng-options="query.id as query.name for query in available_queries.utterance">
-                        <option value="">Select query</option>
+<div layout="row" layout-align="center start">
+    <div class="alert alert-warning" ng-show="!corpus.database_running">
+        <span>The {{ corpus.name }} database is not currently running, please start it at <a ui-sref="database-list">databases</a>.</span>
+    </div>
+    <div class="row" ng-show="!corpus.imported && !corpus.busy&& corpus.database_running">
+        <h1>The {{ corpus.name }} corpus has not been imported yet</h1>
+        <button ng-click="importCorpus()">Begin import</button>
+    </div>
+    <div class="row" ng-show="!corpus.imported && corpus.busy && corpus.database_running">
+        <h1>The {{ corpus.name }} corpus is currently importing, please be patient.</h1>
+    </div>
 
-                    </select></label>
-                <button class="btn btn-secondary" ng-disabled="queryIds.utterance===undefined" ng-click="openQuery('utterance')">Open selected query</button>
-                <div>
-                    <p>Currently encoded properties</p>
-                    <ul>
-                        <li ng-repeat="prop in properties.utterance">
-                            {{ prop }}
-                        </li>
-                    </ul>
-                    <p>Currently encoded subsets</p>
-                    <ul>
-                        <li ng-repeat="subset in subsets.utterance">
-                            {{ subset }}
-                        </li>
-                    </ul>
-                </div>
-            </div>
-            <div ng-show="hierarchy.indexOf('utterance') == -1">
-                Utterances are not encoded.
-            </div>
+</div>
+
+<div layout="column" ng-show="corpus.imported && corpus.database_running">
+    <div layout="row" layout-align="center start">
+        <h1>Summary of the {{ corpus.name }} corpus</h1>
+    </div>
+    <div layout="row" layout-align="space-around start">
+        <div class="column">
+            <h2>Linguistic Units</h2>
+            <md-card ng-repeat="type in hierarchy.annotation_types.slice().reverse()">
+                <md-card-title>
+                    <md-card-title-text>
+                        <span class="md-headline">{{type |titlecase}}</span>
+                    </md-card-title-text>
+
+
+                </md-card-title>
+                <md-card-content>
+                    <md-button class="md-raised md-primary" ng-click="newQuery(type)">New query</md-button>
+                    <div>
+                        <md-input-container>
+
+                            <label>Previous queries</label>
+
+                            <md-select ng-model="queryIds[type]">
+                                <md-option ng-value="query.id" ng-repeat="query in available_queries[type]">
+                                    {{query.name}}
+                                </md-option>
+
+                            </md-select>
+                        </md-input-container>
+                        <md-button class="md-icon-button" ng-disabled="queryIds[type]===undefined"
+                                   ng-click="openQuery(type)">
+                            <i class="material-icons">open_in_new</i>
+                        </md-button>
+                    </div>
+                    <div>
+
+                        <md-list>
+                        <md-subheader class="md-no-sticky">Properties</md-subheader>
+                            <md-list-item ng-repeat="prop in properties[type]">
+                                {{ prop }}
+                            </md-list-item>
+                        </md-list>
+                        <md-list>
+                        <md-subheader class="md-no-sticky">Subsets</md-subheader>
+                            <md-list-item ng-repeat="subset in subsets[type]">
+                                {{ subset }}
+                            </md-list-item>
+                        </md-list>
+                    </div>
+                </md-card-content>
+
+
+            </md-card>
+
         </div>
-        <div class="row" style="min-height: 450px; padding: 40px">
-            <h2>Words</h2>
-            <button class="btn btn-primary" ng-click="newQuery('word')">New query</button>
-            <label>Previous queries:
-                <select ng-model="queryIds.word" class="form-control"
-                        ng-options="query.id as query.name for query in available_queries.word">
-                    <option value="">Select query</option>
-
-                </select></label>
-            <button class="btn btn-secondary" ng-disabled="queryIds.word===undefined" ng-click="openQuery('word')">Open selected query</button>
-            <div class="row" style="min-height:400px">
-
-                <div>
-                    <p>Currently encoded properties</p>
-                    <ul>
-                        <li ng-repeat="prop in properties.word">
-                            {{ prop }}
-                        </li>
-                    </ul>
-                    <p>Currently encoded subsets</p>
-                    <ul>
-                        <li ng-repeat="subset in subsets.word">
-                            {{ subset }}
-                        </li>
-                    </ul>
-                </div>
-            </div>
-        </div>
-        <div class="row" ng-show="hierarchy.annotation_types.includes('syllable')" style="min-height: 450px; padding: 40px">
-            <h2>Syllables</h2>
+        <div layout="column">
+            <h2>Enrichments</h2>
             <div>
-                <button class="btn btn-primary" ng-click="newQuery('syllable')">New query</button>
-                <label>Previous queries:
-                    <select ng-model="queryIds.syllable" class="form-control"
-                            ng-options="query.id as query.name for query in available_queries.syllable">
-                        <option value="">Select query</option>
-
-                    </select></label>
-                <button class="btn btn-secondary" ng-disabled="queryIds.syllable===undefined" ng-click="openQuery('syllable')">Open selected query</button>
-                <p>Currently encoded properties</p>
-                <ul>
-                    <li ng-repeat="prop in properties.syllable">
-                        {{ prop }}
-                    </li>
-                </ul>
-                <p>Currently encoded subsets</p>
-                <ul>
-                    <li ng-repeat="subset in subsets.syllable">
-                        {{ subset }}
-                    </li>
-                </ul>
-
-            </div>
-            <div ng-show="hierarchy.indexOf('syllable') == -1">
-                Syllables are not encoded.
+                <md-button class="md-raised md-primary" ng-click="enrichment()">Create, run and edit enrichments
+                </md-button>
             </div>
         </div>
-        <div class="row" style="min-height: 450px; padding: 40px">
-            <h2>Phones</h2>
-            <button class="btn btn-primary" ng-click="newQuery('phone')">New query</button>
-            <label>Previous queries:
-                <select ng-model="queryIds.phone" class="form-control"
-                        ng-options="query.id as query.name for query in available_queries.phone">
-                    <option value="">Select query</option>
+        <div layout="column">
+            <h2>Metadata</h2>
 
-                </select></label>
-            <button class="btn btn-secondary" ng-disabled="queryIds.phone===undefined" ng-click="openQuery('phone')">Open selected query</button>
-            <p>Currently encoded properties</p>
-            <ul>
-                <li ng-repeat="prop in properties.phone">
-                    {{ prop }}
-                </li>
-            </ul>
-            <p>Currently encoded subsets</p>
-            <ul>
-                <li ng-repeat="subset in subsets.phone">
-                    {{ subset }}
-                </li>
-            </ul>
+            <md-card>
+                <md-card-title>
+                    <md-card-title-text>
+                        <span class="md-headline">Speakers</span>
+                    </md-card-title-text>
+
+
+                </md-card-title>
+                <md-card-content>
+
+                    <md-list>
+                        <md-subheader class="md-no-sticky">Properties</md-subheader>
+                        <md-list-item ng-repeat="prop in hierarchy.speaker_properties">
+                            {{ prop[0]}}
+                        </md-list-item>
+                    </md-list>
+                </md-card-content>
+            </md-card>
+            <md-card>
+                <md-card-title>
+                    <md-card-title-text>
+                        <span class="md-headline">Sound files</span>
+                    </md-card-title-text>
+
+
+                </md-card-title>
+                <md-card-content>
+                    <md-list>
+                        <md-subheader class="md-no-sticky">Properties</md-subheader>
+                        <md-list-item ng-repeat="prop in hierarchy.discourse_properties">
+                            {{ prop[0]}}
+                        </md-list-item>
+                    </md-list>
+                </md-card-content>
+            </md-card>
+            <md-card>
+                <md-card-title>
+                    <md-card-title-text>
+                        <span class="md-headline">Acoustic tracks</span>
+                    </md-card-title-text>
+
+
+                </md-card-title>
+                <md-card-content>
+                    <md-list>
+                        <md-subheader class="md-no-sticky">Tracks</md-subheader>
+                        <md-list-item ng-if="hierarchy.has_pitch_tracks">Pitch tracks</md-list-item>
+                        <md-list-item ng-if="hierarchy.has_formant_tracks">Formant tracks</md-list-item>
+                        <md-list-item ng-if="hierarchy.has_intensity_tracks">Intensity tracks</md-list-item>
+                    </md-list>
+                </md-card-content>
+            </md-card>
         </div>
     </div>
-    <div class="col-md-3">
-        <h1>Enrichments</h1>
-        <div>
-            <button class="btn btn-primary" ng-click="enrichment()">Create, run and edit enrichments</button>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <h1>Metadata</h1>
-        <div>
-            <h2>Speakers</h2>
-            <p>Currently encoded properties</p>
-            <ul>
-                <li ng-repeat="prop in hierarchy.speaker_properties">
-                    {{ prop[0]}}
-                </li>
-            </ul>
-        </div>
-        <div>
-            <h2>Sound files</h2>
-            <p>Currently encoded properties</p>
-            <ul>
-                <li ng-repeat="prop in hierarchy.discourse_properties">
-                    {{ prop[0]}}
-                </li>
-            </ul>
-        </div>
-        <div>
-            <h2>Acoustic tracks</h2>
-            <p>Currently encoded acoustic tracks</p>
-            <ul>
-                <li ng-if="hierarchy.has_pitch_tracks">Pitch tracks</li>
-                <li ng-if="hierarchy.has_formant_tracks">Formant tracks</li>
-                <li ng-if="hierarchy.has_intensity_tracks">Intensity tracks</li>
-            </ul>
-        </div>
-    </div>
-</div>
-<div class="alert alert-warning" ng-show="!corpus.database_running">
-	<span>The {{ corpus.name }} database is not currently running, please start it at <a ui-sref="database-list">databases</a>.</span>
-</div>
-<div class="row" ng-show="!corpus.imported && !corpus.busy&& corpus.database_running">
-    <h1>The {{ corpus.name }} corpus has not been imported yet</h1>
-    <button ng-click="importCorpus()">Begin import</button>
-</div>
-<div class="row" ng-show="!corpus.imported && corpus.busy && corpus.database_running">
-    <h1>The {{ corpus.name }} corpus is currently importing, please be patient.</h1>
 </div>
