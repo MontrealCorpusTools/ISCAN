@@ -258,6 +258,21 @@ class CorpusViewSet(viewsets.ModelViewSet):
         return Response('ready')
 
     @detail_route(methods=['get'])
+    def property_values(self, request, pk=None):
+        if isinstance(request.user, django.contrib.auth.models.AnonymousUser):
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
+        type = request.GET.get('type', None)
+
+        prop = request.GET.get('prop', 'label')
+
+
+        corpus = self.get_object()
+        with CorpusContext(corpus.config) as c:
+            ann = getattr(c, type)
+            resp = c.query_metadata(ann).levels(getattr(ann, prop))
+        return Response(resp)
+
+    @detail_route(methods=['get'])
     def autocomplete(self, request, pk=None):
         if isinstance(request.user, django.contrib.auth.models.AnonymousUser):
             return Response(status=status.HTTP_401_UNAUTHORIZED)
@@ -275,16 +290,15 @@ class CorpusViewSet(viewsets.ModelViewSet):
         for x in ['\'', '\"']:
             #Escape characters
             prefix = prefix.replace(x, '\\{}'.format(x))
-        if prop not in ["name", "label", "transcription"]:
-            return Response("Provided property:{} is invalid".format(prop),
-                    status=status.HTTP_400_BAD_REQUEST)
+
         corpus = self.get_object()
         with CorpusContext(corpus.config) as c:
             statement = """MATCH (n:{category}:{corpus_name})
-                         WHERE n.{prop} STARTS WITH {{prefix}}
+                         WHERE n.{prop} =~ '(?i){prefix}.*'
                          RETURN DISTINCT n.{prop}
-                         LIMIT 10""".format(corpus_name=c.cypher_safe_name, category=category, prop=prop)
-            resp = c.execute_cypher(statement, prefix=prefix).value()
+                         LIMIT 10""".format(corpus_name=c.cypher_safe_name, category=category, prop=prop, prefix=prefix)
+            print(statement, repr(prefix))
+            resp = c.execute_cypher(statement).value()
         return Response(resp)
 
     @detail_route(methods=['get'])
@@ -728,7 +742,7 @@ class EnrichmentViewSet(viewsets.ModelViewSet):
                 return Response(
                     'The subset must have a name.',
                     status=status.HTTP_400_BAD_REQUEST)
-            if data.get('annotation_labels', []):
+            if not data.get('annotation_labels', []):
                 return Response(
                     'The subset cannot be empty.',
                     status=status.HTTP_400_BAD_REQUEST)

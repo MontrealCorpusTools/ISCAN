@@ -64,6 +64,10 @@ angular.module('pgdb.corpora')
         return $http.get(base_url + id + '/pitch_tracks/');
     };
 
+    Corpora.property_values = function(id, type, prop){
+        return $http.get(base_url + id + '/property_values/', {params: {type: type, prop:prop}});
+    };
+
     Corpora.autocomplete = function (id, prefix, category, prop) {
         return $http.get(base_url + id + '/autocomplete/?prefix=' + prefix + '&category=' + category + '&prop=' + prop);
     };

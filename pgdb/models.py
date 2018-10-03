@@ -1046,6 +1046,7 @@ class Query(models.Model):
     def generate_base_query(self, corpus_context):
         a_type = self.get_annotation_type_display().lower()
         config = self.config
+        print(config)
         a = getattr(corpus_context, a_type)
         q = corpus_context.query_graph(a)
         for f_a_type, positions in config['filters'].items():
