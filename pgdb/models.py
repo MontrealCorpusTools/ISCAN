@@ -1127,6 +1127,11 @@ class Query(models.Model):
                     for s in subset_filters:
                         q = q.filter(ann.subset == s)
 
+                    inverse_subset_filters = filter_types.get('inverse_subset_filters', [])
+
+                    for s in inverse_subset_filters:
+                        q = q.filter(ann.subset != s)
+
                     subannotation_filters = filter_types.get('subannotation_filters', {})
                     for s_type, a_filters in subannotation_filters.items():
                         s_ann = getattr(ann, s_type)

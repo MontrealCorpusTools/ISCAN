@@ -37,7 +37,8 @@
 
                                     <md-input-container>
                                         <label>Operator</label>
-                                        <md-select ng-model="filter.operator" ng-change="checkOptions(filter.operator, t, filter.property)">
+                                        <md-select ng-model="filter.operator"
+                                                   ng-change="checkOptions(filter.operator, t, filter.property)">
                                             <md-option ng-value="o"
                                                        ng-repeat="o in operators[propertyTypes[t][filter.property]]">
                                                 {{ o }}
@@ -45,7 +46,8 @@
                                         </md-select>
 
                                     </md-input-container>
-                                    <md-autocomplete flex ng-if="propertyTypes[t][filter.property] === '' && filter.operator.endsWith('=')"
+                                    <md-autocomplete flex
+                                                     ng-if="propertyTypes[t][filter.property] === '' && filter.operator.endsWith('=')"
                                                      class="no-animate"
                                                      md-selected-item="filter.value"
                                                      md-search-text="filter.searchText"
@@ -63,11 +65,12 @@
                                     </md-autocomplete>
 
 
-                                        <md-select multiple class="no-animate" flex
-                                                     ng-if="propertyTypes[t][filter.property] === '' && filter.operator.endsWith('in')"
-                                                     ng-model="filter.value">
-                                            <md-option ng-value="o" ng-repeat="o in options[t][filter.property]">{{o}}</md-option>
-                                        </md-select>
+                                    <md-select multiple class="no-animate" flex
+                                               ng-if="propertyTypes[t][filter.property] === '' && filter.operator.endsWith('in')"
+                                               ng-model="filter.value">
+                                        <md-option ng-value="o" ng-repeat="o in options[t][filter.property]">{{o}}
+                                        </md-option>
+                                    </md-select>
                                     <md-input-container ng-if="propertyTypes[t][filter.property]=== false"
                                                         class="no-animate">
                                         <input type="checkbox"
@@ -79,7 +82,7 @@
                                     </md-input-container>
                                     <md-button md-colors="{background:'red'}" class="md-icon-button md-primary"
                                                aria-label="Remove" ng-click="removeFilter(t, position, $index)">
-        <md-tooltip md-direction="below">Remove</md-tooltip>
+                                        <md-tooltip md-direction="below">Remove</md-tooltip>
                                         <span>X</span>
                                     </md-button>
                                 </div>
@@ -87,22 +90,41 @@
                                 <md-button class='md-raised' ng-click="addFilter(t, position)"
                                            ng-disabled="query.running"><span>Add filter</span>
                                 </md-button>
-                                <div class="row">
-                                    <md-input-container>
+                                <div layout="row" ng-if="subsets[t].length > 0">
+                                    <md-input-container flex>
                                         <label>Subset</label>
-                                        <multiselect class="input-small multiselect"
-                                                     ng-model="query.filters[t][position].subset_filters"
-                                                     options="s for s in subsets[t]"
-                                                     header="All" selected-header="subsets" enable-check-all="false"
-                                                     enable-uncheck-all="true" multiple="true" enable-filter="false"
-                                                     ng-init='e.initial = true'>
-                                        </multiselect>
+                                        <md-select multiple ng-model="query.filters[t][position].subset_filters">
+                                            <md-option ng-value="s" ng-repeat="s in subsets[t]">{{s}}</md-option>
+                                        </md-select>
 
                                     </md-input-container>
+                                    <md-button class="md-icon-button" aria-label="Help"
+                                               ng-click="getHelp($event, 'subset')">
+
+                                        <md-tooltip md-direction="below">Help</md-tooltip>
+                                        <i class="material-icons">info</i>
+                                    </md-button>
 
                                 </div>
-                                <div class="row">
-                                    <md-input-container>
+                                <div layout="row" ng-if="subsets[t].length > 0">
+                                    <md-input-container flex>
+                                        <label>Inverse subset</label>
+                                        <md-select multiple
+                                                   ng-model="query.filters[t][position].inverse_subset_filters">
+                                            <md-option ng-value="s" ng-repeat="s in subsets[t]">{{s}}</md-option>
+                                        </md-select>
+
+                                    </md-input-container>
+                                    <md-button class="md-icon-button" aria-label="Help"
+                                               ng-click="getHelp($event, 'inverse_subset')">
+
+                                        <md-tooltip md-direction="below">Help</md-tooltip>
+                                        <i class="material-icons">info</i>
+                                    </md-button>
+
+                                </div>
+                                <div layout="row" ng-if="annotation_types.slice($parent.$index+1).length > 0">
+                                    <md-input-container flex>
                                         <label>Left alignment</label>
                                         <md-select ng-model="query.filters[t][position].left_aligned_filter">
                                             <md-option ng-value="higher_type"
@@ -112,9 +134,15 @@
                                         </md-select>
                                     </md-input-container>
 
+                                    <md-button class="md-icon-button" aria-label="Help"
+                                               ng-click="getHelp($event, 'left_alignment')">
+
+                                        <md-tooltip md-direction="below">Help</md-tooltip>
+                                        <i class="material-icons">info</i>
+                                    </md-button>
                                 </div>
-                                <div class="row">
-                                    <md-input-container>
+                                <div layout="row" ng-if="annotation_types.slice($parent.$index+1).length > 0">
+                                    <md-input-container flex>
                                         <label>Right alignment</label>
                                         <md-select ng-model="query.filters[t][position].right_aligned_filter">
                                             <md-option ng-value="higher_type"
@@ -124,6 +152,13 @@
                                         </md-select>
                                     </md-input-container>
 
+
+                                    <md-button class="md-icon-button" aria-label="Help"
+                                               ng-click="getHelp($event, 'right_alignment')">
+
+                                        <md-tooltip md-direction="below">Help</md-tooltip>
+                                        <i class="material-icons">info</i>
+                                    </md-button>
                                 </div>
 
                                 <div ng-repeat="s in hierarchy.subannotations[t]">
@@ -181,7 +216,7 @@
                                         <md-button md-colors="{background:'red'}" class="md-icon-button md-primary"
                                                    aria-label="Remove"
                                                    ng-click="removeSubannotationFilter(t, position, s, $index)">
-        <md-tooltip md-direction="below">Remove</md-tooltip>
+                                            <md-tooltip md-direction="below">Remove</md-tooltip>
                                             <span>X</span>
                                         </md-button>
                                     </div>
@@ -223,7 +258,8 @@
 
                                     <md-input-container>
                                         <label>Operator</label>
-                                        <md-select ng-model="filter.operator" ng-change="checkOptions(filter.operator, 'speaker', filter.property)">
+                                        <md-select ng-model="filter.operator"
+                                                   ng-change="checkOptions(filter.operator, 'speaker', filter.property)">
                                             <md-option ng-value="o"
                                                        ng-repeat="o in operators[propertyTypes.speaker[filter.property]]">
                                                 {{
@@ -232,7 +268,8 @@
                                         </md-select>
 
                                     </md-input-container>
-                                    <md-autocomplete flex ng-if="propertyTypes.speaker[filter.property] === ''&& filter.operator.endsWith('=')"
+                                    <md-autocomplete flex
+                                                     ng-if="propertyTypes.speaker[filter.property] === ''&& filter.operator.endsWith('=')"
                                                      class="no-animate"
                                                      md-selected-item="filter.value"
                                                      md-search-text="filter.searchText"
@@ -249,11 +286,13 @@
                                         </md-not-found>
                                     </md-autocomplete>
 
-                                        <md-select multiple class="no-animate" flex
-                                                     ng-if="propertyTypes.speaker[filter.property] === '' && filter.operator.endsWith('in')"
-                                                     ng-model="filter.value">
-                                            <md-option ng-value="o" ng-repeat="o in options.speaker[filter.property]">{{o}}</md-option>
-                                        </md-select>
+                                    <md-select multiple class="no-animate" flex
+                                               ng-if="propertyTypes.speaker[filter.property] === '' && filter.operator.endsWith('in')"
+                                               ng-model="filter.value">
+                                        <md-option ng-value="o" ng-repeat="o in options.speaker[filter.property]">
+                                            {{o}}
+                                        </md-option>
+                                    </md-select>
                                     <md-input-container ng-if="propertyTypes.speaker[filter.property]=== false"
                                                         class="no-animate">
                                         <input type="checkbox"
@@ -265,7 +304,7 @@
                                     </md-input-container>
                                     <md-button md-colors="{background:'red'}" class="md-icon-button md-primary"
                                                aria-label="Remove" ng-click="removeSpokenFilter('speaker', $index)">
-        <md-tooltip md-direction="below">Remove</md-tooltip>
+                                        <md-tooltip md-direction="below">Remove</md-tooltip>
                                         <span>X</span>
                                     </md-button>
                                 </div>
@@ -296,7 +335,8 @@
 
                                     <md-input-container>
                                         <label>Operator</label>
-                                        <md-select ng-model="filter.operator" ng-change="checkOptions(filter.operator, 'discourse', filter.property)">
+                                        <md-select ng-model="filter.operator"
+                                                   ng-change="checkOptions(filter.operator, 'discourse', filter.property)">
                                             <md-option ng-value="o"
                                                        ng-repeat="o in operators[propertyTypes.discourse[filter.property]]">
                                                 {{
@@ -305,7 +345,8 @@
                                         </md-select>
 
                                     </md-input-container>
-                                    <md-autocomplete flex ng-if="propertyTypes.discourse[filter.property] === '' && filter.operator.endsWith('=')"
+                                    <md-autocomplete flex
+                                                     ng-if="propertyTypes.discourse[filter.property] === '' && filter.operator.endsWith('=')"
                                                      class="no-animate"
                                                      md-selected-item="filter.value"
                                                      md-search-text="filter.searchText"
@@ -322,11 +363,13 @@
                                         </md-not-found>
                                     </md-autocomplete>
 
-                                        <md-select multiple class="no-animate" flex
-                                                     ng-if="propertyTypes.discourse[filter.property] === '' && filter.operator.endsWith('in')"
-                                                     ng-model="filter.value">
-                                            <md-option ng-value="o" ng-repeat="o in options.discourse[filter.property]">{{o}}</md-option>
-                                        </md-select>
+                                    <md-select multiple class="no-animate" flex
+                                               ng-if="propertyTypes.discourse[filter.property] === '' && filter.operator.endsWith('in')"
+                                               ng-model="filter.value">
+                                        <md-option ng-value="o" ng-repeat="o in options.discourse[filter.property]">
+                                            {{o}}
+                                        </md-option>
+                                    </md-select>
                                     <md-input-container ng-if="propertyTypes.discourse[filter.property]=== false"
                                                         class="no-animate">
                                         <input type="checkbox"
@@ -338,7 +381,7 @@
                                     </md-input-container>
                                     <md-button md-colors="{background:'red'}" class="md-icon-button md-primary"
                                                aria-label="Remove" ng-click="removeSpokenFilter('discourse', $index)">
-        <md-tooltip md-direction="below">Remove</md-tooltip>
+                                        <md-tooltip md-direction="below">Remove</md-tooltip>
                                         <span>X</span>
                                     </md-button>
                                 </div>
@@ -355,12 +398,8 @@
             </md-tabs>
 
 
-            <md-button class='md-raised md-primary' ng-click="updateQuery()"
+            <md-button class='md-raised md-primary' ng-click="refreshQuery()"
                        ng-disabled="!newQuery && (query.running || refreshing || exporting)">Run query
-            </md-button>
-            <md-button class='md-raised' ng-show="!newQuery" ng-click="refreshQuery()"
-                       ng-disabled="!newQuery && (query.running || refreshing || exporting)">
-                Refresh
             </md-button>
             <md-button class='md-raised' ng-show="!newQuery" ng-click="updateOrdering()"
                        ng-disabled="!newQuery && (query.running || refreshing || exporting)">
@@ -439,14 +478,19 @@
                             <tr md-row ng-repeat="result in results.data">
                                 <td md-cell>
 
-                                    <md-button class="md-icon-button" aria-label="View" ng-click="getDetail($index)" ng-disabled="detailDisabled">
-        <md-tooltip md-direction="right" ng-if="detailDisabled">Detail view only available when utterances and syllables are encoded</md-tooltip>
+                                    <md-button class="md-icon-button" aria-label="View" ng-click="getDetail($index)"
+                                               ng-disabled="detailDisabled">
+                                        <md-tooltip md-direction="right" ng-if="detailDisabled">Detail view only
+                                            available when utterances and syllables are encoded
+                                        </md-tooltip>
+                                        <md-tooltip md-direction="right" ng-if="!detailDisabled">View detail
+                                        </md-tooltip>
                                         <i class="material-icons">search</i>
                                     </md-button>
                                     <md-button class="md-icon-button" aria-label="Listen"
                                                ng-click="listen(result[query.annotation_type].current.id)"
                                                ng-if="can_listen && query.annotation_type =='utterance'">
-        <md-tooltip md-direction="right">Listen to utterance</md-tooltip>
+                                        <md-tooltip md-direction="right">Listen to utterance</md-tooltip>
                                         <i class="material-icons">play_arrow</i>
                                     </md-button>
                                 <td md-cell ng-repeat="value in column_values"
@@ -501,26 +545,26 @@
                                             <th md-column>
                                                 <md-button class='md-icon-button' ng-click="addPrevious(t)">
 
-        <md-tooltip md-direction="below">Add next previous</md-tooltip>
+                                                    <md-tooltip md-direction="below">Add next previous</md-tooltip>
                                                     <i class="material-icons">add</i>
                                                 </md-button>
                                             </th>
                                             <th md-column ng-repeat="position in query.positions[t]">{{ position }}
                                                 <md-button class='md-icon-button' ng-click="removePrevious(t)"
                                                            ng-if="position!='current' && position.startsWith('previous')">
-        <md-tooltip md-direction="below">Remove</md-tooltip>
+                                                    <md-tooltip md-direction="below">Remove</md-tooltip>
                                                     <i class="material-icons">remove</i>
                                                 </md-button>
                                                 <md-button class='md-icon-button' ng-click="removeFollowing(t)"
                                                            ng-if="position!='current' && position.startsWith('following')">
-        <md-tooltip md-direction="below">Remove</md-tooltip>
+                                                    <md-tooltip md-direction="below">Remove</md-tooltip>
                                                     <i class="material-icons">remove</i>
                                                 </md-button>
                                             </th>
 
                                             <th md-column>
                                                 <md-button class='md-icon-button' ng-click="addFollowing(t)">
-        <md-tooltip md-direction="below">Add next following</md-tooltip>
+                                                    <md-tooltip md-direction="below">Add next following</md-tooltip>
 
                                                     <i class="material-icons">add</i>
                                                 </md-button>

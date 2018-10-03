@@ -66,7 +66,41 @@ angular.module('query', [
         };
     }])
 
-    .controller('QueryCtrl', function ($scope, $rootScope, Query, Corpora, $state, $stateParams, FileSaver, Blob, $timeout, $q, $query, djangoAuth, Users) {
+    .controller('QueryCtrl', function ($scope, $rootScope, Query, Corpora, $state, $stateParams, FileSaver, Blob, $timeout,
+                                       $q, $query, djangoAuth, Users, $mdDialog) {
+
+        $scope.help_titles = {
+        subset: 'Subset',
+            inverse_subset: 'Inverse subset',
+        right_alignment: 'Right alignment',
+        left_alignment: 'Left alignment',
+    };
+    $scope.help_text = {
+        subset: 'Specifies one or more subsets that the linguistic unit MUST belong to. If multiple are selected, ' +
+        'the query will look for units that match ALL of them.',
+            inverse_subset: 'Specifies one or more subsets that the linguistic unit MUST NOT belong to. If multiple are selected, ' +
+        'the query will look for units that do not match ANY of them.',
+        right_alignment: 'Specifies higher linguistic types that the right edges will be aligned.  For example, ' +
+        'right aligning words to utterances will get all utterance-final words.',
+        left_alignment: 'Specifies higher linguistic types that the left edges will be aligned.  For example, ' +
+        'left aligning words to utterances will get all utterance-initial words.',
+    };
+
+    $scope.getHelp = function (ev, helpType) {
+        // Appending dialog to document.body to cover sidenav in docs app
+        // Modal dialogs should fully cover application
+        // to prevent interaction outside of dialog
+        $mdDialog.show(
+            $mdDialog.alert()
+                .parent(angular.element(document.querySelector('html')))
+                .clickOutsideToClose(true)
+                .title($scope.help_titles[helpType])
+                .textContent($scope.help_text[helpType])
+                .ariaLabel('Help')
+                .ok('Got it!')
+                .targetEvent(ev)
+        );
+    };
 
         Query.reset_state($stateParams.query_id);
         $scope.paginateParams = Query.paginateParams;
@@ -352,6 +386,7 @@ angular.module('query', [
                             current: {
                                 property_filters: [],
                                 subset_filters: [],
+                                inverse_subset_filters: [],
                                 subannotation_filters: {}
                             }
 
@@ -360,6 +395,7 @@ angular.module('query', [
                             current: {
                                 property_filters: [],
                                 subset_filters: [],
+                                inverse_subset_filters: [],
                                 subannotation_filters: {}
                             }
 
@@ -368,6 +404,7 @@ angular.module('query', [
                             current: {
                                 property_filters: [],
                                 subset_filters: [],
+                                inverse_subset_filters: [],
                                 subannotation_filters: {}
                             }
 
@@ -376,6 +413,7 @@ angular.module('query', [
                             current: {
                                 property_filters: [],
                                 subset_filters: [],
+                                inverse_subset_filters: [],
                                 subannotation_filters: {}
                             }
 
@@ -483,6 +521,7 @@ angular.module('query', [
             $scope.query.filters[a_type][pos] = {};
             $scope.query.filters[a_type][pos].property_filters = [];
             $scope.query.filters[a_type][pos].subset_filters = [];
+            $scope.query.filters[a_type][pos].inverse_subset_filters = [];
             $scope.query.filters[a_type][pos].subannotation_filters = {};
             $scope.query.filters[a_type][pos].left_aligned_filter = undefined;
             $scope.query.filters[a_type][pos].right_aligned_filter = undefined;
@@ -493,6 +532,7 @@ angular.module('query', [
             if ($scope.query.positions[a_type][0] != 'current') {
                 $scope.query.filters[a_type][$scope.query.positions[a_type][0]].property_filters = [];
                 $scope.query.filters[a_type][$scope.query.positions[a_type][0]].subset_filters = [];
+                $scope.query.filters[a_type][$scope.query.positions[a_type][0]].inverse_subset_filters = [];
                 $scope.query.filters[a_type][$scope.query.positions[a_type][0]].subannotation_filters = [];
                 $scope.query.filters[a_type][$scope.query.positions[a_type][0]].left_aligned_filter = undefined;
                 $scope.query.filters[a_type][$scope.query.positions[a_type][0]].right_aligned_filter = undefined;
@@ -512,6 +552,7 @@ angular.module('query', [
             $scope.query.filters[a_type][pos] = {};
             $scope.query.filters[a_type][pos].property_filters = [];
             $scope.query.filters[a_type][pos].subset_filters = [];
+            $scope.query.filters[a_type][pos].inverse_subset_filters = [];
             $scope.query.filters[a_type][pos].subannotation_filters = {};
             $scope.query.filters[a_type][pos].left_aligned_filter = undefined;
             $scope.query.filters[a_type][pos].right_aligned_filter = undefined;
@@ -521,6 +562,7 @@ angular.module('query', [
             if ($scope.query.positions[a_type][$scope.query.positions[a_type].length - 1] != 'current') {
                 $scope.query.filters[a_type][$scope.query.positions[a_type][$scope.query.positions[a_type].length - 1]].property_filters = [];
                 $scope.query.filters[a_type][$scope.query.positions[a_type][$scope.query.positions[a_type].length - 1]].subset_filters = [];
+                $scope.query.filters[a_type][$scope.query.positions[a_type][$scope.query.positions[a_type].length - 1]].inverse_subset_filters = [];
                 $scope.query.filters[a_type][$scope.query.positions[a_type][$scope.query.positions[a_type].length - 1]].subannotation_filters = [];
                 $scope.query.filters[a_type][$scope.query.positions[a_type][$scope.query.positions[a_type].length - 1]].left_aligned_filter = undefined;
                 $scope.query.filters[a_type][$scope.query.positions[a_type][$scope.query.positions[a_type].length - 1]].right_aligned_filter = undefined;
