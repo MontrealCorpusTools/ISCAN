@@ -91,7 +91,7 @@
                         <md-button class='md-raised' ng-if="!corpus.busy" ng-click="editEnrichment(enrichment)">
                             <span> Edit </span>
                         </md-button>
-                        <md-button class='md-accent md-raised md-hue-1' ng-if="!corpus.busy"
+                        <md-button class='md-raised md-warn' ng-if="!corpus.busy"
                                 ng-disabled="!isEnrichmentDeletable(enrichment)"
                                 ng-click="deleteEnrichment(enrichment)">
                             <span> Delete </span>
