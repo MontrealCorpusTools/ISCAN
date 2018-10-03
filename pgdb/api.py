@@ -264,12 +264,10 @@ class CorpusViewSet(viewsets.ModelViewSet):
         type = request.GET.get('type', None)
 
         prop = request.GET.get('prop', 'label')
-
-
         corpus = self.get_object()
         with CorpusContext(corpus.config) as c:
             ann = getattr(c, type)
-            resp = c.query_metadata(ann).levels(getattr(ann, prop))
+            resp = sorted(c.query_metadata(ann).levels(getattr(ann, prop)))
         return Response(resp)
 
     @detail_route(methods=['get'])
