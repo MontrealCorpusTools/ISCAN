@@ -107,8 +107,7 @@ To enrich the database with speaker information:
 1. Select the 'Properties from a CSV' option
 2. Select 'Speaker CSV' from the 'Analysis' dropdown menu. Normally this file would be available from the SPADE Git repository; for this tutorial, however, the CSV is available `here`_. 
 3. Upload the ICE-CAN 'speaker_info.csv' file from your local machine.
-4. Add the name 'speaker info'
-5. Select 'Save Enrichment' and then 'Run' from the Enrichment view.
+4. Select 'Save Enrichment' and then 'Run' from the Enrichment view.
 
 
 **Lexicon**
@@ -119,6 +118,9 @@ As with the speaker information, lexical information can be uploaded in an analo
 
 For our purposes, we define an utterance as a stretch of speech separated by pauses. So now we will specify minimum duration of pause that separates utterances (150ms is typically a good default).
 
+First, select 'pauses' from 'Annotation levels', and select '<SIL>' as the unit representing pauses. As before, select 'Save enrichment' and then 'run'.
+
+With the positions of pauses encoded, we are now able to encode information about utterances:
 
 1. Under the ‘Annotation levels’ header, select ‘utterances’.
 2. Name the new addition ‘utterance’
