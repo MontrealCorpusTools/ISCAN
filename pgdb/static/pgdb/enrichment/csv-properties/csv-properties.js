@@ -65,6 +65,11 @@ angular.module('csvProperties', [
     $scope.newFiles = function (e) {
         $scope.$apply(function () {
             $scope.hasFiles = document.getElementById('CSV-properties-file').files.length > 0;
+            $scope.fileName = '';
+            if ($scope.hasFiles){
+            $scope.fileName = document.getElementById('CSV-properties-file').files[0].name;
+
+            }
         });
     };
 

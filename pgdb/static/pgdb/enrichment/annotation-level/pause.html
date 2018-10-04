@@ -31,12 +31,15 @@
                 <input type="number" name="word_count" ng-model="count" min="1" ng-change="getWords()"
                        ng-model-options="{debounce:750}">
             </md-input-container>
-            <div>
-                <div ng-repeat="annotation in words">
+<div>
+    <md-virtual-repeat-container id="vertical-container">
+			<div md-virtual-repeat="annotation in words"
+          class="repeated-item" flex>
                     <md-checkbox checklist-model="annotation_labels" checklist-value="annotation"> {{annotation}}
                     </md-checkbox>
-                </div>
-            </div>
+    </md-virtual-repeat-container>
+
+</div>
 
 
         </div>

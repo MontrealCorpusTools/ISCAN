@@ -90,6 +90,17 @@ angular.module('formant_points', [
         'are generated from the data.'
     };
 
+    $scope.newFiles = function (e) {
+        $scope.$apply(function () {
+            $scope.hasFiles = document.getElementById('formants-file').files.length > 0;
+            $scope.fileName = '';
+            if ($scope.hasFiles){
+            $scope.fileName = document.getElementById('formants-file').files[0].name;
+
+            }
+        });
+    };
+
     $scope.getHelp = function (ev, helpType) {
         // Appending dialog to document.body to cover sidenav in docs app
         // Modal dialogs should fully cover application

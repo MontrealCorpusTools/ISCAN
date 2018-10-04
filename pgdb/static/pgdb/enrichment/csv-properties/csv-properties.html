@@ -32,6 +32,10 @@
        <i class="material-icons">info</i>
       </md-button>
         </div>
+
+        <div ng-if="hasFiles">
+            Selected file: <span ng-bind="fileName"></span>
+        </div>
         <span ng-bind="error_message" style="color: red"></span>
         <md-button class="md-primary md-raised" ng-disabled="!hasFiles" ng-click="save()">Save enrichment</md-button>
     </div>

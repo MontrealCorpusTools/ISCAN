@@ -125,3 +125,8 @@ main{
 .md-dialog-content p {
     font-size: 14px;
 }
+#vertical-container {
+  height: 292px;
+    min-width:100px;
+  width: 100%;
+  max-width: 400px; }

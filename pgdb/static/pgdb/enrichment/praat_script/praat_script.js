@@ -69,6 +69,17 @@ angular.module('praat_script', [
         phone_class: 'Optionally specify a subset of phones to run this script on.'
     };
 
+    $scope.newFiles = function (e) {
+        $scope.$apply(function () {
+            $scope.hasFiles = document.getElementById('praat-script-file').files.length > 0;
+            $scope.fileName = '';
+            if ($scope.hasFiles){
+            $scope.fileName = document.getElementById('praat-script-file').files[0].name;
+
+            }
+        });
+    };
+
     $scope.getHelp = function (ev, helpType) {
         // Appending dialog to document.body to cover sidenav in docs app
         // Modal dialogs should fully cover application

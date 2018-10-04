@@ -3,7 +3,7 @@
         <h4>Run a custom Praat script</h4>
         <div>
 
-            <input class="ng-hide" id="praat-script-file" type="file" />
+            <input class="ng-hide" id="praat-script-file" type="file"  custom-on-change="newFiles" />
 <label for="praat-script-file" class="md-button md-raised">Choose Praat script</label>
             <md-button class="md-raised md-warn" ng-show="enrichment.path != null" ng-click="enrichment.path = null">
                 Delete file
@@ -11,6 +11,9 @@
       <md-button class="md-icon-button" aria-label="Help" ng-click="getHelp($event, 'praat_script')">
        <i class="material-icons">info</i>
       </md-button>
+        </div>
+        <div ng-if="hasFiles">
+            Selected file: <span ng-bind="fileName"></span>
         </div>
 
         <div layout="row" flex layout-align="space-between none">
@@ -31,6 +34,6 @@
 
 
         <span ng-bind="error_message" style="color: red"></span>
-        <md-button class="md-primary md-raised" ng-click="save()">Save enrichment</md-button>
+        <md-button class="md-primary md-raised" ng-disabled="!hasFiles" ng-click="save()">Save enrichment</md-button>
     </div>
 </div>

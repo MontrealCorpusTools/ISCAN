@@ -24,18 +24,14 @@
         <p><span ng-bind="error_message" style="color: red"></span></p>
 
 </div>
-<div style="height:50%; overflow: hidden">
-
-    <div ng-if="dataLoading">
-        <i>Loading phones...</i>
-    </div>
-    <div style="height: 100%; overflow-y: scroll" ng-if="!dataLoading">
-			<div ng-repeat="annotation in annotations">
+<div>
+    <md-virtual-repeat-container id="vertical-container">
+			<div md-virtual-repeat="annotation in annotations"
+          class="repeated-item" flex>
 				<md-checkbox checklist-model="enrichment.annotation_labels" checklist-value="annotation"> {{annotation}}</md-checkbox>
 			</div>
+    </md-virtual-repeat-container>
 
-
-    </div>
 </div>
 <div ng-if="enrichment.annotation_type=='phone'">
     <div>
