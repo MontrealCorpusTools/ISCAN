@@ -399,9 +399,10 @@
 
 
             <md-button class='md-raised md-primary' ng-click="updateQuery()"
-                       ng-disabled="newQuery">Run query
+                       ng-if="newQuery">Run query
             </md-button>
             <md-button class='md-raised md-primary' ng-click="refreshQuery()"
+                       ng-if="!newQuery"
                        ng-disabled="!newQuery && (query.running || refreshing || exporting)">Refresh query
             </md-button>
             <md-button class='md-raised' ng-show="!newQuery" ng-click="updateOrdering()"
