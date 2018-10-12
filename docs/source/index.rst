@@ -1,9 +1,9 @@
-.. polyglot-server documentation master file, created by
+.. iscan-server documentation master file, created by
    sphinx-quickstart on Fri Jul 28 12:50:43 2017.
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to polyglot-server's documentation!
+Welcome to iscan-server's documentation!
 ===========================================
 
 .. toctree::
@@ -13,7 +13,7 @@ Welcome to polyglot-server's documentation!
    introduction.rst
    installation_via_docker.rst
    use_via_docker.rst
-   getting_started.rst
+   installation_without_docker.rst
    enrichment(ISCAN).rst
    tutorials_iscan.rst
 

@@ -151,7 +151,6 @@ class UserSerializer(serializers.ModelSerializer):
                   'corpus_permissions')
 
 
-
 class UnauthorizedUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
