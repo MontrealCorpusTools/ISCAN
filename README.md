@@ -1,18 +1,18 @@
-# polyglot-server
+# iscan-server
 
-[![Build Status](https://travis-ci.org/MontrealCorpusTools/polyglot-server.svg?branch=master)](https://travis-ci.org/MontrealCorpusTools/polyglot-server)
-[![Coverage Status](https://coveralls.io/repos/github/MontrealCorpusTools/polyglot-server/badge.svg?branch=master)](https://coveralls.io/github/MontrealCorpusTools/polyglot-server?branch=master)
+[![Build Status](https://travis-ci.org/MontrealCorpusTools/iscan-server.svg?branch=master)](https://travis-ci.org/MontrealCorpusTools/iscan-server)
+[![Coverage Status](https://coveralls.io/repos/github/MontrealCorpusTools/iscan-server/badge.svg?branch=master)](https://coveralls.io/github/MontrealCorpusTools/iscan-server?branch=master)
 
 ## Introduction
 
-Polyglot servers are a way to manage and analyze corpora on a single server with support for multiple clients enriching and querying the corpora as needed.  The Polyglot server contains tools to install/start/stop the databases that PolyglotDB (the Python API) uses.
+ISCAN (Integrated Speech Corpus ANalysis) is a tool to manage and analyze corpora on a single server with support for multiple clients enriching and querying the corpora as needed.  The ISCAN server contains tools to install/start/stop the databases that PolyglotDB (the Python API) uses.
 
-Additionally, the Polyglot server is used to manage multiple different Polyglot databases, so users can isolate corpora as needed, and start and stop databases as they need access to them.
+Additionally, the ISCAN server is used to manage multiple different Polyglot databases, so users can isolate corpora as needed, and start and stop databases as they need access to them.
 
-**Note**: At the moment, polyglot-server is only supported on Ubuntu.
+**Note**: At the moment, iscan-server is only supported on Ubuntu.
 
 ## Prerequisites
-Polyglot-server uses [Docker](https://www.docker.com/what-docker). This containerization means that the only dependency the user must install is Docker itself.
+ISCAN server uses [Docker](https://www.docker.com/what-docker). This containerization means that the only dependency the user must install is Docker itself.
 
 ### Preparing Docker
 * Install [Docker for Ubuntu](https://docs.docker.com/install/linux/docker-ce/ubuntu/#install-docker-ce). It is easiest to install using the *Install from repository* method.
@@ -21,9 +21,9 @@ Polyglot-server uses [Docker](https://www.docker.com/what-docker). This containe
 
 ## Installation
 
-First, clone the polyglot-server repository to your machine:
+First, clone the iscan-server repository to your machine:
 
-``git clone https://github.com/MontrealCorpusTools/polyglot-server.git``
+``git clone https://github.com/MontrealCorpusTools/iscan-server.git``
 
 Included are a `Dockerfile` and a `docker-compose.yml`. In order to build a Docker image from these files, navigate to the root of the repository and run:
 
@@ -37,14 +37,14 @@ This will launch the containers.
 
 ### Initial migrations
 
-The first time you use polyglot-server, you will need to make database migrations. In another terminal, while the containers are up, run:
+The first time you use iscan-server, you will need to make database migrations. In another terminal, while the containers are up, run:
 
 ``docker-compose run app init``
 
 The needed migrations to perform will be detected and made.
 
 ### Superuser creation
-The first time you use polyglot-server, you will need to set up a username and password to log in with. In another terminal, while the containers are up, run:
+The first time you use iscan-server, you will need to set up a username and password to log in with. In another terminal, while the containers are up, run:
 
 ``docker-compose run app manage createsuperuser``
 
