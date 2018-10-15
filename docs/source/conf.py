@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
-# polyglot-server documentation build configuration file, created by
+# iscan-server documentation build configuration file, created by
 # sphinx-quickstart on Fri Jul 28 12:50:43 2017.
 #
 # This file is execfile()d with the current directory set to its
@@ -73,8 +73,8 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = 'polyglot-server'
-copyright = '2017, Michael McAuliffe'
+project = 'iscan-server'
+copyright = '2017-2018, Montreal Corpus Tools'
 author = 'Michael McAuliffe'
 
 # The version info for the project you're documenting, acts as replacement for
@@ -122,13 +122,13 @@ html_sidebars = { '*': ['globaltoc.html']}
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
-html_static_path = ['_static']
+html_static_path = []
 
 
 # -- Options for HTMLHelp output ------------------------------------------
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = 'polyglot-serverdoc'
+htmlhelp_basename = 'iscan-serverdoc'
 
 
 # -- Options for LaTeX output ---------------------------------------------
@@ -155,7 +155,7 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-    (master_doc, 'polyglot-server.tex', 'polyglot-server Documentation',
+    (master_doc, 'iscan-server.tex', 'iscan-server Documentation',
      'Michael McAuliffe', 'manual'),
 ]
 
@@ -165,7 +165,7 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    (master_doc, 'polyglot-server', 'polyglot-server Documentation',
+    (master_doc, 'iscan-server', 'iscan-server Documentation',
      [author], 1)
 ]
 
@@ -176,8 +176,8 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-    (master_doc, 'polyglot-server', 'polyglot-server Documentation',
-     author, 'polyglot-server', 'One line description of project.',
+    (master_doc, 'iscan-server', 'iscan-server Documentation',
+     author, 'iscan-server', 'One line description of project.',
      'Miscellaneous'),
 ]
 

@@ -5,7 +5,6 @@
 .. _`RabbitMQ`: https://www.rabbitmq.com/
 .. _`Celery`: http://www.celeryproject.org/
 .. _`Django`: https://www.djangoproject.com/
-.. _`Tutorial`: https://spade.glasgow.ac.uk/iscan-tutorial-1-sibilants/
 
 .. _introduction:
 
@@ -24,9 +23,9 @@ needed, and start and stop databases as they need access to them.
 
    At the moment, iscan-server is only supported on Ubuntu.
 
-This documentation is meant to be more technical and is geared towards advanced users interested in setting up their own
-ISCAN servers, either on a desktop computer for local use or on a dedicated server for communal use. Please see the `Tutorial`_
-for more information on how to use ISCAN once it has been set up.
+Much of this documentation is meant to be more technical and is geared towards advanced users interested in setting up their own
+ISCAN servers, either on a desktop computer for local use or on a dedicated server for communal use. Please see the :ref:`tutorials_iscan`
+section for more information and a walkthrough on how to use ISCAN once it has been set up.
 
 Moving parts
 ============

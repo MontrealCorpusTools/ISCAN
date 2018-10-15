@@ -830,7 +830,7 @@ class Enrichment(models.Model):
         except Exception:
             self.corpus.busy = False  # If it fails, don't stay busy and block everything
             self.corpus.save()
-            self.busy = False
+            self.running = False
             self.completed = False
             print(traceback.format_exc())
 

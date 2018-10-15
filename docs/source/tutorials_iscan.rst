@@ -3,7 +3,6 @@
 .. _`Lexicon CSV`: http://spade.glasgow.ac.uk/wp-content/uploads/2018/07/can_comparison.csv
 .. _`Enriching`: https://polyglot-server.readthedocs.io/en/latest/enrichment_iscan.html
 .. _`Enrichment`: https://polyglot-server.readthedocs.io/en/latest/enrichment_iscan.html
-.. _`Enriching`: https://polyglot-server.readthedocs.io/en/latest/enrichment_iscan.html
 .. _`Praat script`: https://raw.githubusercontent.com/MontrealCorpusTools/SPADE/master/Common/sibilant_jane_optimized.praat
 .. _`FAVE`: https://github.com/JoFrhwld/FAVE/wiki/FAVE-align
 .. _`ISCAN Prototypes`: http://spade.glasgow.ac.uk/wp-content/uploads/2018/08/ICECAN_prototypes.csv
@@ -182,21 +181,21 @@ Step 4: Export
 This query has found all word-initial stressed syllables for words in utterance-final position. We now want to export information about these linguistic objects to a CSV file. We want it to contain everything we need to examine how vowel duration (in seconds) depends on word length. Here we may check all boxes which will be relevant to our later analysis to add these columns to our CSV file. The preview at the bottom of the page will be updated as we select new boxes:
 
 1. Under the **SYLLABLE** label, select:
-	* label
-	* duration
+   * label
+   * duration
 
 2. Under the **WORD** label, select:
-	* label
-	* begin
-	* end
-	* num_syllables
-	* stresspattern
+   * label
+   * begin
+   * end
+   * num_syllables
+   * stresspattern
 
 3. Under the **UTTERANCE** label, select:
-	* label
+   * label
 
 4. Under the **SPEAKER** label, select:
-	* name
+   * name
 
 Once you have checked all relevant boxes, select 'Export to CSV'. Your results will be exported to a CSV file on your computer. The name will be the one you chose to save plus "export.csv". In our case, the resulting file will be called "syllable_duration export.csv".
 
@@ -208,56 +207,57 @@ In **R**, load the data as follows:
 
 .. code-block:: R
 
-	library(tidyverse)
-	df <- read.csv('syllable_duration export.csv')
+   library(tidyverse)
+   df <- read.csv('syllable_duration export.csv')
 
 First, by checking how many words there are for each number of syllables in the CSV, we can see that only 1 word has 5 syllables:
 
 .. code-block:: R
-	group_by(df, word_num_syllables) %>% summarise(n_distinct(word_label))
 
-	#   word_num_syllables `n_distinct(word_label)`
-	#                <int>                    <int>
-	# 1                  1                      236
-	# 2                  2                      119
-	# 3                  3                       35
-	# 4                  4                        9
-	# 5                  5                        1
+   group_by(df, word_num_syllables) %>% summarise(n_distinct(word_label))
+
+   #   word_num_syllables `n_distinct(word_label)`
+   #                <int>                    <int>
+   # 1                  1                      236
+   # 2                  2                      119
+   # 3                  3                       35
+   # 4                  4                        9
+   # 5                  5                        1
 
 And so the word with 5 syllables should be removed:
 
 .. code-block:: R
 
-	df <- filter(df, word_num_syllables < 5)
+   df <- filter(df, word_num_syllables < 5)
 
 Similarly, it is worth checking the distribution of syllable durations to see if there are any extreme values:
 
 .. code-block:: R
 
-	ggplot(df, aes(x = syllable_duration)) + 
-	geom_histogram() +
-	xlab("Syllable duration")
+   ggplot(df, aes(x = syllable_duration)) +
+   geom_histogram() +
+   xlab("Syllable duration")
 
 .. image:: images/syll_hist_plot.png
-	:width: 400
+   :width: 400
 
 As we can see here, there are a handful of extremely long syllables, which perhaps are the result of pragmatic lengthening or alignment error. To exclude these cases from analysis:
 
 .. code-block:: R
 
-	df <- filter(df, syllable_duration < 1.5)
+   df <- filter(df, syllable_duration < 1.5)
 
 Plot of the duration of the initial stressed syllable as a function of word duration (in syllables):
 
 .. code-block:: R
 
-	ggplot(df, aes(x = factor(word_num_syllables), y = syllable_duration)) +
-	geom_boxplot() +
-	xlab("Duration of word-initial syllable") + ylab("Syllable duration") +
-	scale_y_sqrt()
+   ggplot(df, aes(x = factor(word_num_syllables), y = syllable_duration)) +
+   geom_boxplot() +
+   xlab("Duration of word-initial syllable") + ylab("Syllable duration") +
+   scale_y_sqrt()
 
 .. image:: images/syll_dur_plot.png
-	:width: 400
+   :width: 400
 
 Here it's possible to see some polysyllabic shortening effect between 1 and 2 syllables; this effect seems much smaller between 2+ syllables, though the effect continues in the expected (negative) direction.
 
@@ -299,33 +299,33 @@ While adding each enrichment below, remember to choose an appropriate name for t
 
 *Syllable Count 1 (Number of Syllables in a Word)*
 
-	* From the **Higher linguistic type** menu, select *word*
-	* From the **Lower linguistic type** menu, select *syllable*
-	* From the **Property type** menu, select *count*
+   * From the **Higher linguistic type** menu, select *word*
+   * From the **Lower linguistic type** menu, select *syllable*
+   * From the **Property type** menu, select *count*
 
 *Syllable Count 2 (Number of Syllables in an Utterance)*
 
-	* From the **Higher linguistic type** menu, select *utterance*
-	* From the **Lower linguistic type** menu, select *syllable*
-	* From the **Property type** menu, select *count*
+   * From the **Higher linguistic type** menu, select *utterance*
+   * From the **Lower linguistic type** menu, select *syllable*
+   * From the **Property type** menu, select *count*
 
 *Phone Count (Number of Phones per Word)*
 
-	* From the **Higher linguistic type** menu, select *word*
-	* From the **Lower linguistic type** menu, select *phone*
-	* From the **Property type** menu, select *count*
+   * From the **Higher linguistic type** menu, select *word*
+   * From the **Lower linguistic type** menu, select *phone*
+   * From the **Property type** menu, select *count*
 
 *Word Count (Number of Words in an Utterance)*
 
-	* From the **Higher linguistic type** menu, select *utterance*
-	* From the **Lower linguistic type** menu, select *word*
-	* From the **Property type** menu, select *count*
+   * From the **Higher linguistic type** menu, select *utterance*
+   * From the **Lower linguistic type** menu, select *word*
+   * From the **Property type** menu, select *count*
 
 *Phone Position*
 
-	* From the **Higher linguistic type** menu, select *syllable*
-	* From the **Lower linguistic type** menu, select *phone*
-	* From the **Property type** menu, select *position*
+   * From the **Higher linguistic type** menu, select *syllable*
+   * From the **Lower linguistic type** menu, select *phone*
+   * From the **Property type** menu, select *position*
 
 Step 2: Query
 -------------
@@ -335,7 +335,7 @@ The next step is to search the dataset to find a set of linguistic objects of in
 First, return to the the 'spade-yourUsername' Corpus Summary view, then navigate to the 'Phones' section and select **New Query**. This will take you to a new page, called the Query view, where we can put together and execute searches. In this view, there is a series of property categories which you can navigate through to add filters to your search. Under 'Phone Properties', there is a dropdown menu labelled **'Subset'**. Select 'sibilants'. You may select 'Add filter' if you would like to see more options to narrow down your search.
 
 .. image:: images/Screenshot-from-2018-10-04-10-12-52-300x151.png
-	:width: 400
+   :width: 400
 
 The selected filter settings will be saved for further use. It will automatically be saved as 'New phone query', but let's change that to something more memorable, say 'SibilantsTutorial'. When you are done, click the 'Run query' button. The search may take a while, especially for large datasets.
 
@@ -349,31 +349,31 @@ Once you hit 'Run query', your search results will appear below the search windo
 Here we may check all boxes which will be relevant to our later analysis to add these columns to our CSV file. The preview at the bottom of the page will be updated as we select new boxes:
 
 .. image:: images/Screenshot-from-2018-10-04-11-41-32-300x111.png
-	:width: 400
+   :width: 400
 
 
 Under the **Phone** header, select:
-	* label
-	* begin
-	* end
-	* peak
-	* slope
-	* spread
+   * label
+   * begin
+   * end
+   * peak
+   * slope
+   * spread
 
 Under the **Syllable** header, select:
-	* stress
+   * stress
 
 Under the **Word** header, select:
-	* label
+   * label
 
 Under the **Utterance** header, select:
-	* label
+   * label
 
 Under the **Speaker** header, select:
-	* name
+   * name
 
 Under the **Sound File** header, select:
-	* name
+   * name
 
 
 Once you have checked all relevant boxes, click the 'Export to CSV' button. Your results will be exported to a CSV file on your computer. The name will be the one you chose to save for the Query plus "export.csv". In our case, the resulting file will be called "SibilantsTutorial export.csv".
@@ -424,33 +424,33 @@ Here we may check all boxes which will be relevant to our later analysis to add 
 
 
 Under the **Phone** header, select:
-	* label
-	* begin
-	* end
-	* F1
-	* F2
-	* F3
-	* B1 (The bandwidth of Formant 1)
-	* B2 (The bandwidth of Formant 2)
-	* B3 (The bandwidth of Formant 3)
-	* num_formants
+   * label
+   * begin
+   * end
+   * F1
+   * F2
+   * F3
+   * B1 (The bandwidth of Formant 1)
+   * B2 (The bandwidth of Formant 2)
+   * B3 (The bandwidth of Formant 3)
+   * num_formants
 
 Under the **Syllable** header, select:
-	* stress
-	* position_in_word
+   * stress
+   * position_in_word
 
 Under the **Word** header, select:
-	* label
-	* stresspattern
+   * label
+   * stresspattern
 
 Under the **Utterance** header, select:
-	* label
+   * label
 
 Under the **Speaker** header, select:
-	* name
+   * name
 
 Under the **Sound File** header, select:
-	* name
+   * name
 
 Once you have checked all relevant boxes, select 'Export to CSV'. Your results will be exported to a CSV file on your computer. The name will be the one you chose to save plus "export.csv". In our case, the resulting file will be called "ICE-Can Tutorial Formants export.csv".
 

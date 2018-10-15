@@ -14,8 +14,9 @@ Welcome to iscan-server's documentation!
    installation_via_docker.rst
    use_via_docker.rst
    installation_without_docker.rst
-   enrichment(ISCAN).rst
+   enrichment_iscan.rst
    tutorials_iscan.rst
+   administration.rst
 
 
 Indices and tables

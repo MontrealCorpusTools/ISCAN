@@ -94,6 +94,8 @@ Installation of the front end JavaScript and dependencies is handled by NPM, whi
 
    sudo apt-get install nodejs npm
 
+.. _nondocker_installation:
+
 Installation
 ============
 
