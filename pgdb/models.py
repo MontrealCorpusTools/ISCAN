@@ -671,73 +671,75 @@ class Enrichment(models.Model):
         self.corpus.save()
         config = self.config
         enrichment_type = config.get('enrichment_type')
-        with CorpusContext(self.corpus.config) as c:
-            if enrichment_type == 'subset':
-                annotation_type = config.get('annotation_type')
-                subset_label = config.get('subset_label')
-                c.reset_type_subset(annotation_type, subset_label)
-            elif enrichment_type == 'syllables':
-                c.reset_syllables()
-            elif enrichment_type == 'pauses':
-                c.reset_pauses()
-            elif enrichment_type == 'utterances':
-                c.reset_utterances()
-            elif enrichment_type == 'hierarchical_property':
-                property_type = config.get('property_type')
-                higher_annotation = config.get('higher_annotation')
-                lower_annotation = config.get('lower_annotation')
-                property_label = config.get('property_label')
-                if property_type == 'rate':
-                    c.reset_property(higher_annotation, property_label)
-                elif property_type == 'count':
-                    c.reset_property(higher_annotation, property_label)
-                elif property_type == 'position':
-                    c.reset_property(lower_annotation, property_label)
-            elif enrichment_type == 'pitch':
-                c.reset_pitch()
-            elif enrichment_type == 'relativize_pitch':
-                c.reset_relativized_pitch()
-            elif enrichment_type == 'discourse_csv':
-                # FIXME: Currently empty call in PolyglotDB
-                c.reset_discourses()
-            elif enrichment_type == 'phone_csv':
-                c.reset_to_old_label()
-            elif enrichment_type == 'speaker_csv':
-                # FIXME: Currently empty call in PolyglotDB
-                c.reset_speakers()
-            elif enrichment_type == 'lexicon_csv':
-                # FIXME: Currently empty call in PolyglotDB
-                c.reset_lexicon()
-            elif enrichment_type == 'formants':
-                c.reset_formants()
-            elif enrichment_type == 'refined_formant_points':
-                # FIXME Can't find appropriate call
-                pass
-            elif enrichment_type == 'intensity':
-                c.reset_intensity()
-            elif enrichment_type == 'relativize_property':
-                annotation_type = config.get('annotation_type')
-                property_name = 'relativized_' + config.get('property_name')
-                by_speaker = config.get('by_speaker')
-                if by_speaker:
-                    property_name += '_by_speaker'
-                c.reset_property(annotation_type, property_name)
-            elif enrichment_type == 'relativize_intensity':
-                c.reset_relativized_intensity()
-            elif enrichment_type == 'relativize_formants':
-                c.reset_relativized_formants()
-            elif enrichment_type == 'patterned_stress':
-                # FIXME Can't find appropriate call
-                pass
-            elif enrichment_type == 'praat_script':
-                # FIXME Can't find appropriate call
-                pass
-        self.running = False
-        self.completed = False
-        self.last_run = None
-        self.save()
-        self.corpus.busy = False
-        self.corpus.save()
+        try:
+            with CorpusContext(self.corpus.config) as c:
+                if enrichment_type == 'subset':
+                    annotation_type = config.get('annotation_type')
+                    subset_label = config.get('subset_label')
+                    c.reset_type_subset(annotation_type, subset_label)
+                elif enrichment_type == 'syllables':
+                    c.reset_syllables()
+                elif enrichment_type == 'pauses':
+                    c.reset_pauses()
+                elif enrichment_type == 'utterances':
+                    c.reset_utterances()
+                elif enrichment_type == 'hierarchical_property':
+                    property_type = config.get('property_type')
+                    higher_annotation = config.get('higher_annotation')
+                    lower_annotation = config.get('lower_annotation')
+                    property_label = config.get('property_label')
+                    if property_type == 'rate':
+                        c.reset_property(higher_annotation, property_label)
+                    elif property_type == 'count':
+                        c.reset_property(higher_annotation, property_label)
+                    elif property_type == 'position':
+                        c.reset_property(lower_annotation, property_label)
+                elif enrichment_type == 'pitch':
+                    c.reset_pitch()
+                elif enrichment_type == 'relativize_pitch':
+                    c.reset_relativized_pitch()
+                elif enrichment_type == 'discourse_csv':
+                    c.reset_discourse_csv(config.get('path'))
+                elif enrichment_type == 'phone_csv':
+                    c.reset_inventory_csv(config.get('path'))
+                elif enrichment_type == 'speaker_csv':
+                    c.reset_speaker_csv(config.get('path'))
+                elif enrichment_type == 'lexicon_csv':
+                    c.reset_lexicon_csv(config.get('path'))
+                elif enrichment_type == 'formants':
+                    c.reset_formants()
+                elif enrichment_type == 'refined_formant_points':
+                    c.reset_formant_points()
+                elif enrichment_type == 'intensity':
+                    c.reset_intensity()
+                elif enrichment_type == 'relativize_property':
+                    annotation_type = config.get('annotation_type')
+                    property_name = 'relativized_' + config.get('property_name')
+                    by_speaker = config.get('by_speaker')
+                    if by_speaker:
+                        property_name += '_by_speaker'
+                    c.reset_property(annotation_type, property_name)
+                elif enrichment_type == 'relativize_intensity':
+                    c.reset_relativized_intensity()
+                elif enrichment_type == 'relativize_formants':
+                    c.reset_relativized_formants()
+                elif enrichment_type == 'patterned_stress':
+                    q = c.query_graph(c.syllable).set_properties(stress=None)
+                elif enrichment_type == 'praat_script':
+                    props = config.get('properties', ['cog', 'slope', 'spread', 'peak'])
+                    q = c.query_graph(c.phone).filter(c.phone.type_subset == config.get('phone_class'))
+                    q.set_properties(**{x: None for x in props})
+            self.running = False
+            self.completed = False
+            self.last_run = None
+            self.save()
+            self.corpus.busy = False
+            self.corpus.save()
+        except Exception:
+            self.corpus.busy = False  # If it fails, don't stay busy and block everything
+            self.corpus.save()
+            self.running = False
+            print(traceback.format_exc())
 
     def run_enrichment(self):
         self.running = True
@@ -817,8 +819,10 @@ class Enrichment(models.Model):
                 elif enrichment_type == 'relativize_formants':
                     c.relativize_formants(by_speaker=True)
                 elif enrichment_type == 'praat_script':
-                    c.analyze_script(phone_class=config.get('phone_class'), script_path=config.get('path'),
-                                     multiprocessing=False)
+                    properties = c.analyze_script(phone_class=config.get('phone_class'), script_path=config.get('path'),
+                                                  multiprocessing=False)
+                    config['properties'] = properties
+                    self.config = config
                 elif enrichment_type == 'patterned_stress':
                     c.encode_stress_from_word_property(config.get('word_property'))
             self.running = False
@@ -1010,7 +1014,8 @@ class Query(models.Model):
                                         continue
                                     att = getattr(getattr(ann, s_name), s_field)
                                     try:
-                                        att = att.column_name(column_names[f_a_type][position]['subannotations'][s_name][s_field])
+                                        att = att.column_name(
+                                            column_names[f_a_type][position]['subannotations'][s_name][s_field])
                                     except KeyError:
                                         pass
                                     q = q.columns(att)
@@ -1042,7 +1047,7 @@ class Query(models.Model):
                 q = q.columns(acoustic)
         print(q.cypher(), q.cypher_params())
         return q
-                  
+
     def generate_base_query(self, corpus_context):
         a_type = self.get_annotation_type_display().lower()
         config = self.config

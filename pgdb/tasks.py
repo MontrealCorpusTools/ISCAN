@@ -43,7 +43,8 @@ def delete_enrichment_task(enrichment_id):
     # First reset, to "de-encode", if it has been run
     try:
         print("Resetting enrichment to remove encoding...")
-        enrichment.reset_enrichment()
+        if enrichment.completed:
+            enrichment.reset_enrichment()
     except:
         print("No resetting needed.")
         enrichment.corpus.busy = False

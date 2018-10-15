@@ -121,6 +121,9 @@ ul.nav a:hover { color: red !important; }
 main{
     overflow-x: hidden;
 }
+md-table-container table {
+    overflow-x: auto;
+}
 
 .md-dialog-content p {
     font-size: 14px;

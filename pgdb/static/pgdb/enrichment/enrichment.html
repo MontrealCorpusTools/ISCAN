@@ -85,14 +85,13 @@
                             <span> Run </span>
                         </md-button>
                         <md-button class='md-raised md-warn' ng-if="!corpus.busy"
-                                ng-disabled="!isEnrichmentDeletable(enrichment)" ng-click="resetEnrichment(enrichment.id)">
+                                ng-disabled="!enrichment.completed" ng-click="resetEnrichment(enrichment.id)">
                             <span> Reset </span>
                         </md-button>
                         <md-button class='md-raised' ng-if="!corpus.busy" ng-click="editEnrichment(enrichment)">
                             <span> Edit </span>
                         </md-button>
                         <md-button class='md-raised md-warn' ng-if="!corpus.busy"
-                                ng-disabled="!isEnrichmentDeletable(enrichment)"
                                 ng-click="deleteEnrichment(enrichment)">
                             <span> Delete </span>
                         </md-button>

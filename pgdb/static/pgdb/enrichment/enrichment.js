@@ -122,17 +122,7 @@ angular.module('enrichment', [
             $state.go('edit_csv-properties', {corpus_id: $stateParams.corpus_id, enrichment_id: enrichment.id});
         }
     };
-
-    $scope.isEnrichmentDeletable = function (enrichment) {
-        if (enrichment.runnable != 'runnable' || !enrichment.completed) {
-            return true;
-        }
-        return !['discourse_csv', 'speaker_csv', 'lexicon_csv', 'refined_formant_points', 'patterened_stress', 'praat_script'].includes(enrichment.enrichment_type);
-
-    };
-
     $scope.deleteEnrichment = function (enrichment) {
-        if ($scope.isEnrichmentDeletable(enrichment)) {
             if (confirm("Are you sure you want to delete \"" + enrichment.name + "\" ?")) {
                 console.log("Deleting " + enrichment.name + "...");
                 Enrichment.destroy($stateParams.corpus_id, enrichment.id).then(function (res) {
@@ -144,10 +134,6 @@ angular.module('enrichment', [
                     console.log(res);
                 })
             }
-        }
-        else {
-            alert("You cannot delete this enrichment.")
-        }
     };
 
     $scope.createUtterances = function () {
