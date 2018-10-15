@@ -33,9 +33,11 @@ Preliminaries
 Access
 ------
 
-Before you can begin the tutorial, you will need access to log in to the ISCAN server via your web browser. To use ISCAN you need to get a username and password from whoever the administrator for the server is. For now, the only ISCAN server is at McGill, so the first step is to contact Vanna (On Slack in the #iscan-help channel or email to savanna.willerton@mail.mcgill.ca) to request access, who will provide you with a username and password.
+Before you can begin the tutorial, you will need access to log in to the ISCAN server via your web browser. To log in to the McGill ISCAN server via your web browser visit https://roquefort.linguistics.mcgill.ca, press the ‘Log in’ button on the top right of the screen and enter the username and password provided.
 
-To log in to the McGill ISCAN server via your web browser visit https://roquefort.linguistics.mcgill.ca, press the ‘Log in’ button on the top right of the screen and enter the username and password provided by Vanna.
+.. To use ISCAN you need to get a username and password from whoever the administrator for the server is. For now, the only ISCAN server is at McGill, so the first step is to contact Vanna (On Slack in the #iscan-help channel or email to savanna.willerton@mail.mcgill.ca) to request access, who will provide you with a username and password.
+
+
 
 
 Questions, Bugs, Suggestions
@@ -265,8 +267,6 @@ Here it's possible to see some polysyllabic shortening effect between 1 and 2 sy
 Tutorial 2: Sibilants
 =====================
 
-Intro stuff here.
-
 We will continue with the same corpus as in the Tutorial 1, so there is no need to import a new corpus. If you would like to test this analysis on a different corpus, please follow the import steps in Tutorial 1.
 
 Step 1: Enrichment
@@ -285,9 +285,9 @@ Then choose a name for the subset (in this case 'sibilants' will be filled in au
 
 **Acoustics**
 
-For this section, you will need a special praat script saved in the MontrealCorpusTools/SPADE GitHub repository which takes a few spectral measures (including COG and spectral slope) for a given segment of speech. With this script, ISCAN will take these measures for each sibilant in the corpus. A link is provided below, please save the <code>sibilant_jane_optimized.praat</code> file to your computer: `Praat script`_
+For this section, you will need a special praat script saved in the MontrealCorpusTools/SPADE GitHub repository which takes a few spectral measures (including COG and spectral slope) for a given segment of speech. With this script, ISCAN will take these measures for each sibilant in the corpus. A link is provided below, please save the ``sibilant_jane_optimized.praat`` file to your computer: `Praat script`_
 
-From the Enrichment View, press the 'Custom Praat Script' button under the 'Acoustics' header. As usual, this will bring you to a new page. First, upload the saved file 'sibilant_jane_optimized.praat' from your computer using 'Choose Praat Script' button. Under the **Phone class** dropdown menu, select <i>sibilant</i>.
+From the Enrichment View, press the 'Custom Praat Script' button under the 'Acoustics' header. As usual, this will bring you to a new page. First, upload the saved file 'sibilant_jane_optimized.praat' from your computer using 'Choose Praat Script' button. Under the **Phone class** dropdown menu, select *sibilant*.
 
 Finally, hit the 'Save enrichment' button, and 'Run' from the Enrichment View.
 
@@ -392,7 +392,7 @@ This tutorial assumes you have completed the *import* and *enrichment* sections 
 Step 1: Enrichment
 ------------------
 
-*Acoustics*
+**Acoustics**
 
 Now we will compute vowel formants for all stressed syllables using an algorithm similar to `FAVE`_.
 
@@ -400,7 +400,7 @@ For this last section, you will need a vowel prototype file. This one is also no
 
 `ISCAN Prototypes`_
 
-From the Enrichment View, under the 'Acoustics' header, select 'Formant Points'. As usual, this will bring you to a new page. From the **Phone class** menu, select <em>stressed_vowels</em>. Using the 'Choose Vowel Prototypes CSV' button, upload the ICECAN_prototypes.csv file you saved. For **Number of iterations**, type 3 and for **Min Duration (ms)** type 50ms.
+From the Enrichment View, under the 'Acoustics' header, select 'Formant Points'. As usual, this will bring you to a new page. From the **Phone class** menu, select *stressed_vowels*. Using the 'Choose Vowel Prototypes CSV' button, upload the ICECAN_prototypes.csv file you saved. For **Number of iterations**, type 3 and for **Min Duration (ms)** type 50ms.
 
 Finally, hit the 'Save enrichment' button. Then click 'Run' from the Enrichment View.
 
