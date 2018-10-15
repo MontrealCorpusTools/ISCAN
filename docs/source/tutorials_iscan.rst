@@ -1,9 +1,12 @@
 .. _`Montreal Forced Aligner`: https://github.com/MontrealCorpusTools/Montreal-Forced-Aligner
 .. _`here`: http://spade.glasgow.ac.uk/wp-content/uploads/2018/07/speaker_info.csv
 .. _`Lexicon CSV`: http://spade.glasgow.ac.uk/wp-content/uploads/2018/07/can_comparison.csv
+.. _`Enriching`: https://polyglot-server.readthedocs.io/en/latest/enrichment_iscan.html
 .. _`Enrichment`: https://polyglot-server.readthedocs.io/en/latest/enrichment_iscan.html
 .. _`Enriching`: https://polyglot-server.readthedocs.io/en/latest/enrichment_iscan.html
-
+.. _`Praat script`: https://raw.githubusercontent.com/MontrealCorpusTools/SPADE/master/Common/sibilant_jane_optimized.praat
+.. _`FAVE`: https://github.com/JoFrhwld/FAVE/wiki/FAVE-align
+.. _`ISCAN Prototypes`: http://spade.glasgow.ac.uk/wp-content/uploads/2018/08/ICECAN_prototypes.csv
 
 .. _tutorials_iscan:
 
@@ -15,7 +18,7 @@ The ISCAN system is a system for going from a raw speech corpus to a data file (
 
 1. **Importing the corpus into ISCAN**
 	Result: a structured database of linguistic objects (words, phones, sound files).
-2. **`Enriching`_ the database**
+2. **Enriching the database**
 	Result: Further linguistic objects (utterances, syllables), and information about objects (e.g. speech rate, word frequencies).
 3. **Querying the database**
 	Result: A set of linguistic objects of interest (e.g. utterance-final word-initial syllables),
@@ -117,6 +120,7 @@ As with the speaker information, lexical information can be uploaded in an analo
 **Utterances**
 
 For our purposes, we define an utterance as a stretch of speech separated by pauses. So now we will specify minimum duration of pause that separates utterances (150ms is typically a good default).
+
 
 First, select 'pauses' from 'Annotation levels', and select '<SIL>' as the unit representing pauses. As before, select 'Save enrichment' and then 'run'.
 
@@ -256,3 +260,201 @@ Plot of the duration of the initial stressed syllable as a function of word dura
 	:width: 400
 
 Here it's possible to see some polysyllabic shortening effect between 1 and 2 syllables; this effect seems much smaller between 2+ syllables, though the effect continues in the expected (negative) direction.
+
+
+Tutorial 2: Sibilants
+=====================
+
+Intro stuff here.
+
+We will continue with the same corpus as in the Tutorial 1, so there is no need to import a new corpus. If you would like to test this analysis on a different corpus, please follow the import steps in Tutorial 1.
+
+Step 1: Enrichment
+------------------
+
+It is not necessary to re-enrich the corpus with the elements from the previous tutorial, and so here will only include the enrichments necessary to analyse sibilants.
+
+**Sibilants**
+
+Start by looking at the options under 'Create New Enrichments', press the 'Phone Subset' button under the 'Subsets' header. Here we select and name subsets of phones. If we wish to search for sibilants, we have two options for this corpus:
+
+* For our subset of ICE-Can we have the option to press the pre-set button 'Select sibilants'.
+* For some datasets the 'Select sibilants' button will not be available. In this case you may manually select a subset of phones of interest.
+
+Then choose a name for the subset (in this case 'sibilants' will be filled in automatically) and click 'Save subset'. This will return you to the Enrichment view where you will see the new enrichment in your table. In this view, press 'Run' under 'Actions'.
+
+**Acoustics**
+
+For this section, you will need a special praat script saved in the MontrealCorpusTools/SPADE GitHub repository which takes a few spectral measures (including COG and spectral slope) for a given segment of speech. With this script, ISCAN will take these measures for each sibilant in the corpus. A link is provided below, please save the <code>sibilant_jane_optimized.praat</code> file to your computer: `Praat script`_
+
+From the Enrichment View, press the 'Custom Praat Script' button under the 'Acoustics' header. As usual, this will bring you to a new page. First, upload the saved file 'sibilant_jane_optimized.praat' from your computer using 'Choose Praat Script' button. Under the **Phone class** dropdown menu, select <i>sibilant</i>.
+
+Finally, hit the 'Save enrichment' button, and 'Run' from the Enrichment View.
+
+**Hierarchical Properties**
+
+Next, from the **Enrichment View** press the 'Hierarchical property' button under 'Annotation properties' header. This will bring you to a page with four drop down menus (Higher linguistic type, Lower linguistic type, Subset of lower linguistic type, and Property type) where we can encode speech rates, number of syllables in a word, and phone position.
+
+While adding each enrichment below, remember to choose an appropriate name for the enrichment, hit the 'save enrichment' button, and then click 'Run' in the Enrichment View.
+
+*Syllable Count 1 (Number of Syllables in a Word)*
+
+	* From the **Higher linguistic type** menu, select *word*
+	* From the **Lower linguistic type** menu, select *syllable*
+	* From the **Property type** menu, select *count*
+
+*Syllable Count 2 (Number of Syllables in an Utterance)*
+
+	* From the **Higher linguistic type** menu, select *utterance*
+	* From the **Lower linguistic type** menu, select *syllable*
+	* From the **Property type** menu, select *count*
+
+*Phone Count (Number of Phones per Word)*
+
+	* From the **Higher linguistic type** menu, select *word*
+	* From the **Lower linguistic type** menu, select *phone*
+	* From the **Property type** menu, select *count*
+
+*Word Count (Number of Words in an Utterance)*
+
+	* From the **Higher linguistic type** menu, select *utterance*
+	* From the **Lower linguistic type** menu, select *word*
+	* From the **Property type** menu, select *count*
+
+*Phone Position*
+
+	* From the **Higher linguistic type** menu, select *syllable*
+	* From the **Lower linguistic type** menu, select *phone*
+	* From the **Property type** menu, select *position*
+
+Step 2: Query
+-------------
+
+The next step is to search the dataset to find a set of linguistic objects of interest. In our case, we're looking for all sibilants. Let's see how to do this using the **Query view**.
+
+First, return to the the 'spade-yourUsername' Corpus Summary view, then navigate to the 'Phones' section and select **New Query**. This will take you to a new page, called the Query view, where we can put together and execute searches. In this view, there is a series of property categories which you can navigate through to add filters to your search. Under 'Phone Properties', there is a dropdown menu labelled **'Subset'**. Select 'sibilants'. You may select 'Add filter' if you would like to see more options to narrow down your search.
+
+.. image:: images/Screenshot-from-2018-10-04-10-12-52-300x151.png
+	:width: 400
+
+The selected filter settings will be saved for further use. It will automatically be saved as 'New phone query', but let's change that to something more memorable, say 'SibilantsTutorial'. When you are done, click the 'Run query' button. The search may take a while, especially for large datasets.
+
+Step 3: Export
+--------------
+
+Now that we have made our query and extracted the set of objects of interest, we'll want to export this to a CSV file for later use and further analysis (i.e. in R, MatLab, etc.)
+
+Once you hit 'Run query', your search results will appear below the search window. Since we selected to find all sibilants only, a long list of phone tokens (every time a sibilant occurs in the dataset) should now be visible. This list of sibilants may not be useful to our research without some further information, so let's select what information will be visible in the resulting CSV file using the window next to the search view.
+
+Here we may check all boxes which will be relevant to our later analysis to add these columns to our CSV file. The preview at the bottom of the page will be updated as we select new boxes:
+
+.. image:: images/Screenshot-from-2018-10-04-11-41-32-300x111.png
+	:width: 400
+
+
+Under the **Phone** header, select:
+	* label
+	* begin
+	* end
+	* peak
+	* slope
+	* spread
+
+Under the **Syllable** header, select:
+	* stress
+
+Under the **Word** header, select:
+	* label
+
+Under the **Utterance** header, select:
+	* label
+
+Under the **Speaker** header, select:
+	* name
+
+Under the **Sound File** header, select:
+	* name
+
+
+Once you have checked all relevant boxes, click the 'Export to CSV' button. Your results will be exported to a CSV file on your computer. The name will be the one you chose to save for the Query plus "export.csv". In our case, the resulting file will be called "SibilantsTutorial export.csv".
+
+Step 4: Results
+---------------
+
+With the tutorial complete, we should now have a CSV file saved on our personal machine containing information about the set of objects we queried for and all other relevant information.
+
+
+Tutorial 3: Vowel formants
+==========================
+
+This tutorial assumes you have completed the *import* and *enrichment* sections from the previous two tutorials, and so will only include the information specific to analysing formants.
+
+Step 1: Enrichment
+------------------
+
+*Acoustics*
+
+Now we will compute vowel formants for all stressed syllables using an algorithm similar to `FAVE`_.
+
+For this last section, you will need a vowel prototype file. This one is also normally accessed after you've checked out the ICE-Can or tutorial corpus from the master SPADE Git repositories held on the McGill Roquefort server. Again, for the purposes of the tutorial, it is provided below. Please save the file to your computer.
+
+`ISCAN Prototypes`_
+
+From the Enrichment View, under the 'Acoustics' header, select 'Formant Points'. As usual, this will bring you to a new page. From the **Phone class** menu, select <em>stressed_vowels</em>. Using the 'Choose Vowel Prototypes CSV' button, upload the ICECAN_prototypes.csv file you saved. For **Number of iterations**, type 3 and for **Min Duration (ms)** type 50ms.
+
+Finally, hit the 'Save enrichment' button. Then click 'Run' from the Enrichment View.
+
+Step 2: Query
+-------------
+
+The next step is to search the dataset to find a set of linguistic objects of interest. In our case, we're looking for all stressed vowels, and we will get formants for each of these. Let's see how to do this using the **Query view**.
+
+First, return to the the 'spade-yourUsername' Corpus Summary view, then navigate to the 'Phones' section and select **New Query**. This will take you to a new page, called the Query view, where we can put together and execute searches. In this view, there is a series of property categories which you can navigate through to add filters to your search. Under 'Phone Properties', there is a dropdown menu with search options labelled 'Subset'. Select 'stressed_vowels'. You may select 'Add filter' if you would like to see more options to narrow down your search.
+
+The selected filter settings will be saved for further use. It will automatically be saved as 'New phone query', but let's change that to something more memorable, say 'ICE-Can Tutorial Formants'. When you are done, click the 'Save and run query' button. The search may take a while, especially for large datasets, but should not take more than a couple of minutes for this small subset of the ICE-Can corpus we're using for the tutorials.
+
+Step 3: Export
+--------------
+
+Now that we have made our query and extracted the set of objects of interest, we'll want to export this to a CSV file for later use and further analysis (i.e. in R, MatLab, etc.)
+
+Once you hit 'Save query', your search results will appear below the search window. Since we selected to find all stressed vowels only, a long list of phone tokens (every time a stressed vowel occurs in the dataset) should now be visible. This list of objects may not be useful to our research without some further information, so let's select what information will be visible in the resulting CSV file using the window next to the search view.
+
+Here we may check all boxes which will be relevant to our later analysis to add these columns to our CSV file. The preview at the bottom of the page will be updated as we select new boxes:
+
+
+Under the **Phone** header, select:
+	* label
+	* begin
+	* end
+	* F1
+	* F2
+	* F3
+	* B1 (The bandwidth of Formant 1)
+	* B2 (The bandwidth of Formant 2)
+	* B3 (The bandwidth of Formant 3)
+	* num_formants
+
+Under the **Syllable** header, select:
+	* stress
+	* position_in_word
+
+Under the **Word** header, select:
+	* label
+	* stresspattern
+
+Under the **Utterance** header, select:
+	* label
+
+Under the **Speaker** header, select:
+	* name
+
+Under the **Sound File** header, select:
+	* name
+
+Once you have checked all relevant boxes, select 'Export to CSV'. Your results will be exported to a CSV file on your computer. The name will be the one you chose to save plus "export.csv". In our case, the resulting file will be called "ICE-Can Tutorial Formants export.csv".
+
+Step 5: Results
+---------------
+
+With the tutorial complete, we should now have a CSV file saved on our personal machine containing information about the set of objects we queried for and all other relevant information.
