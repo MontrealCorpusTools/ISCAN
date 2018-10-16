@@ -1079,6 +1079,9 @@ class Query(models.Model):
                     else:
                         for d in a_filters:
                             field, value, operator = d['property'], d['value'], d.get('operator', '==')
+                            text = d.get('searchText', '')
+                            if value is None and text:
+                                value = text
                             att = getattr(ann, field)
                             if value == 'null':
                                 value = None
@@ -1118,6 +1121,9 @@ class Query(models.Model):
                         else:
                             for d in a_filters:
                                 field, value, operator = d['property'], d['value'], d.get('operator', '==')
+                                text = d.get('searchText', '')
+                                if value is None and text:
+                                    value = text
                                 att = getattr(ann, field)
                                 if value == 'null':
                                     value = None

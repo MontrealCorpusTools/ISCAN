@@ -123,12 +123,12 @@
                                     </md-button>
 
                                 </div>
-                                <div layout="row" ng-if="annotation_types.slice($parent.$index+1).length > 0">
+                                <div layout="row" ng-if="annotation_types.slice(annotation_types.indexOf(t)+1).length > 0">
                                     <md-input-container flex>
                                         <label>Left alignment</label>
                                         <md-select ng-model="query.filters[t][position].left_aligned_filter">
                                             <md-option ng-value="higher_type"
-                                                       ng-repeat="higher_type in annotation_types.slice($parent.$index+1)">
+                                                       ng-repeat="higher_type in annotation_types.slice(annotation_types.indexOf(t)+1)">
                                                 {{higher_type}}
                                             </md-option>
                                         </md-select>
@@ -146,7 +146,7 @@
                                         <label>Right alignment</label>
                                         <md-select ng-model="query.filters[t][position].right_aligned_filter">
                                             <md-option ng-value="higher_type"
-                                                       ng-repeat="higher_type in annotation_types.slice($parent.$index+1)">
+                                                       ng-repeat="higher_type in annotation_types.slice(annotation_types.indexOf(t)+1)">
                                                 {{higher_type}}
                                             </md-option>
                                         </md-select>
