@@ -1174,10 +1174,10 @@ class Query(models.Model):
 
                     left_aligned_filter = filter_types.get('left_aligned_filter', '')
                     right_aligned_filter = filter_types.get('right_aligned_filter', '')
-                    if left_aligned_filter:
+                    if left_aligned_filter and left_aligned_filter != a_type:
                         q = q.filter(
                             getattr(ann, 'begin') == getattr(getattr(current_ann, left_aligned_filter), 'begin'))
-                    if right_aligned_filter:
+                    if right_aligned_filter and left_aligned_filter != a_type:
                         q = q.filter(getattr(ann, 'end') == getattr(getattr(current_ann, right_aligned_filter), 'end'))
         print(q.cypher(), q.cypher_params())
         return q
