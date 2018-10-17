@@ -169,7 +169,7 @@ Here, find the selection titled 'Syllables' and select 'New Query'. To make sure
 Under **syllable** properties:
 
 * Left aligned with: *word*
-* Select 'add' filter, select 'stress' in the drop-down box, and enter '1' in the text box
+.. * Select 'add' filter, select 'stress' in the drop-down box, and enter '1' in the text box
 
 Under **word** properties:
 
@@ -183,21 +183,25 @@ Step 4: Export
 This query has found all word-initial stressed syllables for words in utterance-final position. We now want to export information about these linguistic objects to a CSV file. We want it to contain everything we need to examine how vowel duration (in seconds) depends on word length. Here we may check all boxes which will be relevant to our later analysis to add these columns to our CSV file. The preview at the bottom of the page will be updated as we select new boxes:
 
 1. Under the **SYLLABLE** label, select:
-   * label
-   * duration
+
+	* label
+	* duration
 
 2. Under the **WORD** label, select:
-   * label
-   * begin
-   * end
-   * num_syllables
-   * stresspattern
+
+	* label
+	* begin
+	* end
+	* num_syllables
+	* stresspattern
 
 3. Under the **UTTERANCE** label, select:
-   * label
+
+	* label
 
 4. Under the **SPEAKER** label, select:
-   * name
+
+	* name
 
 Once you have checked all relevant boxes, select 'Export to CSV'. Your results will be exported to a CSV file on your computer. The name will be the one you chose to save plus "export.csv". In our case, the resulting file will be called "syllable_duration export.csv".
 
@@ -209,14 +213,14 @@ In **R**, load the data as follows:
 
 .. code-block:: R
 
-   library(tidyverse)
-   df <- read.csv('syllable_duration export.csv')
+	library(tidyverse)
+	dur <- read.csv('syllable_duration export.csv')
 
 First, by checking how many words there are for each number of syllables in the CSV, we can see that only 1 word has 5 syllables:
 
 .. code-block:: R
 
-   group_by(df, word_num_syllables) %>% summarise(n_distinct(word_label))
+	group_by(dur, word_num_syllables) %>% summarise(n_distinct(word_label))
 
    #   word_num_syllables `n_distinct(word_label)`
    #                <int>                    <int>
@@ -230,15 +234,15 @@ And so the word with 5 syllables should be removed:
 
 .. code-block:: R
 
-   df <- filter(df, word_num_syllables < 5)
+	dur <- filter(dur, word_num_syllables < 5)
 
 Similarly, it is worth checking the distribution of syllable durations to see if there are any extreme values:
 
 .. code-block:: R
 
-   ggplot(df, aes(x = syllable_duration)) +
-   geom_histogram() +
-   xlab("Syllable duration")
+	ggplot(dur, aes(x = syllable_duration)) + 
+	geom_histogram() +
+	xlab("Syllable duration")
 
 .. image:: images/syll_hist_plot.png
    :width: 400
@@ -247,27 +251,135 @@ As we can see here, there are a handful of extremely long syllables, which perha
 
 .. code-block:: R
 
-   df <- filter(df, syllable_duration < 1.5)
+	dur <- filter(dur, syllable_duration < 1.5)
 
 Plot of the duration of the initial stressed syllable as a function of word duration (in syllables):
 
 .. code-block:: R
 
-   ggplot(df, aes(x = factor(word_num_syllables), y = syllable_duration)) +
-   geom_boxplot() +
-   xlab("Duration of word-initial syllable") + ylab("Syllable duration") +
-   scale_y_sqrt()
+	ggplot(dur, aes(x = factor(word_num_syllables), y = syllable_duration)) +
+	geom_boxplot() +
+	xlab("Duration of word-initial syllable") + ylab("Syllable duration") +
+	scale_y_sqrt()
 
 .. image:: images/syll_dur_plot.png
    :width: 400
 
 Here it's possible to see some polysyllabic shortening effect between 1 and 2 syllables; this effect seems much smaller between 2+ syllables, though the effect continues in the expected (negative) direction.
 
+Tutorial 2: Vowel formants
+==========================
 
-Tutorial 2: Sibilants
+Vowel quality is well known to vary according to a range of social and linguistic factors (Labov, 2001). The precursor to any sociolinguistic and/or phonetic analysis of acoustic vowel quality is the successful identification, measurement, extraction, and visualization of the particular vowel variables for the speakers under consideration. It is often useful to consider vowels in terms of their overall patterning together in the acoustic vowel space.
+
+In this tutorial, we will use ISCAN to measure the first and second formants for the two speakers in the imported sound file, for the following vowels (keywords after Wells, 1982): FLEECE, KIT, FACE, DRESS, TRAP/BATH, PRICE, MOUTH, STRUT, NURSE, LOT/PALM, CLOTH/THOUGHT, CHOICE, GOAT, FOOT, GOOSE. We will only consider vowels whose duration is longer than 50ms, to avoid including reduced tokens. This tutorial assumes you have completed the *import* and *enrichment* sections from the previous tutorial, and so will only include the information specific to analysing formants.
+
+Step 1: Enrichment
+------------------
+
+**Acoustics**
+
+Now we will compute vowel formants for all stressed syllables using an algorithm similar to `FAVE`_.
+
+For this last section, you will need a vowel prototype file. This one is also normally accessed after you've checked out the ICE-Can or tutorial corpus from the master SPADE Git repositories held on the McGill Roquefort server. Again, for the purposes of the tutorial, it is provided below. Please save the file to your computer.
+
+`ISCAN Prototypes`_
+
+From the Enrichment View, under the 'Acoustics' header, select 'Formant Points'. As usual, this will bring you to a new page. From the **Phone class** menu, select *stressed_vowels*. Using the 'Choose Vowel Prototypes CSV' button, upload the ICECAN_prototypes.csv file you saved. For **Number of iterations**, type 3 and for **Min Duration (ms)** type 50ms.
+
+Finally, hit the 'Save enrichment' button. Then click 'Run' from the Enrichment View.
+
+Step 2: Query
+-------------
+
+The next step is to search the dataset to find a set of linguistic objects of interest. In our case, we're looking for all stressed vowels, and we will get formants for each of these. Let's see how to do this using the **Query view**.
+
+First, return to the the 'spade-yourUsername' Corpus Summary view, then navigate to the 'Phones' section and select **New Query**. This will take you to a new page, called the Query view, where we can put together and execute searches. In this view, there is a series of property categories which you can navigate through to add filters to your search. Under 'Phone Properties', there is a dropdown menu with search options labelled 'Subset'. Select 'stressed_vowels'. You may select 'Add filter' if you would like to see more options to narrow down your search.
+
+The selected filter settings will be saved for further use. It will automatically be saved as 'New phone query', but let's change that to something more memorable, say 'ICE-Can Tutorial Formants'. When you are done, click the 'Save and run query' button. The search may take a while, especially for large datasets, but should not take more than a couple of minutes for this small subset of the ICE-Can corpus we're using for the tutorials.
+
+Step 3: Export
+--------------
+
+Now that we have made our query and extracted the set of objects of interest, we'll want to export this to a CSV file for later use and further analysis (i.e. in R, MatLab, etc.)
+
+Once you hit 'Save query', your search results will appear below the search window. Since we selected to find all stressed vowels only, a long list of phone tokens (every time a stressed vowel occurs in the dataset) should now be visible. This list of objects may not be useful to our research without some further information, so let's select what information will be visible in the resulting CSV file using the window next to the search view.
+
+Here we may check all boxes which will be relevant to our later analysis to add these columns to our CSV file. The preview at the bottom of the page will be updated as we select new boxes:
+
+
+Under the **Phone** header, select:
+	* label
+	* begin
+	* end
+	* F1
+	* F2
+	* F3
+	* B1 (The bandwidth of Formant 1)
+	* B2 (The bandwidth of Formant 2)
+	* B3 (The bandwidth of Formant 3)
+	* num_formants
+
+Under the **Syllable** header, select:
+	* stress
+	* position_in_word
+
+Under the **Word** header, select:
+	* label
+	* stresspattern
+
+Under the **Utterance** header, select:
+	* label
+
+Under the **Speaker** header, select:
+	* name
+
+Under the **Sound File** header, select:
+	* name
+
+Once you have checked all relevant boxes, select 'Export to CSV'. Your results will be exported to a CSV file on your computer. The name will be the one you chose to save plus "export.csv". In our case, the resulting file will be called "ICE-Can Tutorial Formants export.csv".
+
+Step 4. Examining & analysing the data
+--------------------------------------
+
+With the tutorial complete, we should now have a CSV file saved on our personal machine containing information about the set of objects we queried for and all other relevant information. In R, load the data as follows:
+
+.. code-block:: R
+
+	library(tidyverse)
+	v <- read.csv("ICE-Can Tutorial Formants export.csv")
+
+Rename the variable containing the vowel labels to ‘Vowel’, and reorder the vowels so that they pattern according to usual representation in acoustic/auditory vowel space:
+
+.. code-block:: R
+
+	v$Vowel <- v$phone_label
+	v$Vowel = factor(v$Vowel, levels = c('IY1', 'IH1', 'EY1', 'EH1', 'AE1', 'AY1','AW1', 'AH1', 'ER1', 'AA1', 'AO1', 'OY1', 'OW1', 'UH1', 'UW1'))
+
+Plot the vowels for the two speakers in this sound file:
+
+.. code-block:: R
+
+	ggplot(v, aes(x = phone_F2, y = phone_F1, color=Vowel)) + 
+	geom_point() + 
+	facet_wrap(~speaker_name) + 
+	scale_colour_hue(labels = c("FLEECE", "KIT", "FACE", "DRESS", "TRAP/BATH", "PRICE", "MOUTH", "STRUT", "NURSE", "LOT/PALM", "CLOTH/THOUGHT", "CHOICE", "GOAT", "FOOT", "GOOSE")) + 
+	scale_y_reverse() + 
+	scale_x_reverse() + 
+	xlab("F2(Hz)") + 
+	ylab("F1(Hz)")
+
+.. image:: images/vowels.png
+	:width: 800
+
+Tutorial 3: Sibilants
 =====================
 
-We will continue with the same corpus as in the Tutorial 1, so there is no need to import a new corpus. If you would like to test this analysis on a different corpus, please follow the import steps in Tutorial 1.
+Sibilants, and in particular, /s/, have been observed to show interesting sociolinguistic variation according to a range of intersecting factors, including gendered, class, and ethnic identities (Stuart-Smith, 2007; Levon, Maegaard and Pharao, 2017). Sibilants - /s ʃ z ʒ/ - also show systematic variation according to place of articulation (Johnson, 2003). Alveolar fricatives /s z/ as in send, zen, are formed as a jet of air is forced through a narrow constriction between the tongue tip/blade held close to the alveolar ridge, and the air strikes the upper teeth as it escapes, resulting in high pitched friction. The postalveolar fricatives /ʃ  ʒ/, as in 'sheet', 'Asia', have a more retracted constriction, the cavity in front of the constriction is a bit longer/bigger, and the pitch is correspondingly lower. In many varieties of English, the postalveolar fricatives also have some liprounding, reducing the pitch further. 
+
+Acoustically, sibilants show a spectral ‘mountain’ profile, with peaks and troughs reflecting the resonances of the cavities formed by the articulators (Jesus and Shadle, 2002). The frequency of the main spectral peak, and/or main area of acoustic energy (Centre of Gravity), corresponds quite well to shifts in place of articulation, including quite fine-grained differences, such as those which are interesting for sociolinguistic analysis: alveolars show higher frequencies, more retracted postalveolars show lower frequencies.
+
+As with the previous tutorials, we will use ISCAN to select all sibilants from the imported sound file for the two Canadian speakers, and take a set of acoustic spectral measures including spectral peak, which we will then export as a CSV, for inspection.
 
 Step 1: Enrichment
 ------------------
@@ -285,7 +397,7 @@ Then choose a name for the subset (in this case 'sibilants' will be filled in au
 
 **Acoustics**
 
-For this section, you will need a special praat script saved in the MontrealCorpusTools/SPADE GitHub repository which takes a few spectral measures (including COG and spectral slope) for a given segment of speech. With this script, ISCAN will take these measures for each sibilant in the corpus. A link is provided below, please save the ``sibilant_jane_optimized.praat`` file to your computer: `Praat script`_
+For this section, you will need a special praat script saved in the MontrealCorpusTools/SPADE GitHub repository which takes a few spectral measures (including peak and spectral slope) for a given segment of speech. With this script, ISCAN will take these measures for each sibilant in the corpus. A link is provided below, please save the ``sibilant_jane_optimized.praat`` file to your computer: `Praat script`_
 
 From the Enrichment View, press the 'Custom Praat Script' button under the 'Acoustics' header. As usual, this will bring you to a new page. First, upload the saved file 'sibilant_jane_optimized.praat' from your computer using 'Choose Praat Script' button. Under the **Phone class** dropdown menu, select *sibilant*.
 
@@ -378,83 +490,53 @@ Under the **Sound File** header, select:
 
 Once you have checked all relevant boxes, click the 'Export to CSV' button. Your results will be exported to a CSV file on your computer. The name will be the one you chose to save for the Query plus "export.csv". In our case, the resulting file will be called "SibilantsTutorial export.csv".
 
-Step 4: Results
----------------
+Step 4: Examining & analysing the data
+--------------------------------------
 
-With the tutorial complete, we should now have a CSV file saved on our personal machine containing information about the set of objects we queried for and all other relevant information.
+With the tutorial complete, we should now have a CSV file saved on our personal machine containing information about the set of objects we queried for and all other relevant information. To examine the data, open the CSV in R as follows:
 
+.. code-block:: R
 
-Tutorial 3: Vowel formants
-==========================
-
-This tutorial assumes you have completed the *import* and *enrichment* sections from the previous two tutorials, and so will only include the information specific to analysing formants.
-
-Step 1: Enrichment
-------------------
-
-**Acoustics**
-
-Now we will compute vowel formants for all stressed syllables using an algorithm similar to `FAVE`_.
-
-For this last section, you will need a vowel prototype file. This one is also normally accessed after you've checked out the ICE-Can or tutorial corpus from the master SPADE Git repositories held on the McGill Roquefort server. Again, for the purposes of the tutorial, it is provided below. Please save the file to your computer.
-
-`ISCAN Prototypes`_
-
-From the Enrichment View, under the 'Acoustics' header, select 'Formant Points'. As usual, this will bring you to a new page. From the **Phone class** menu, select *stressed_vowels*. Using the 'Choose Vowel Prototypes CSV' button, upload the ICECAN_prototypes.csv file you saved. For **Number of iterations**, type 3 and for **Min Duration (ms)** type 50ms.
-
-Finally, hit the 'Save enrichment' button. Then click 'Run' from the Enrichment View.
-
-Step 2: Query
--------------
-
-The next step is to search the dataset to find a set of linguistic objects of interest. In our case, we're looking for all stressed vowels, and we will get formants for each of these. Let's see how to do this using the **Query view**.
-
-First, return to the the 'spade-yourUsername' Corpus Summary view, then navigate to the 'Phones' section and select **New Query**. This will take you to a new page, called the Query view, where we can put together and execute searches. In this view, there is a series of property categories which you can navigate through to add filters to your search. Under 'Phone Properties', there is a dropdown menu with search options labelled 'Subset'. Select 'stressed_vowels'. You may select 'Add filter' if you would like to see more options to narrow down your search.
-
-The selected filter settings will be saved for further use. It will automatically be saved as 'New phone query', but let's change that to something more memorable, say 'ICE-Can Tutorial Formants'. When you are done, click the 'Save and run query' button. The search may take a while, especially for large datasets, but should not take more than a couple of minutes for this small subset of the ICE-Can corpus we're using for the tutorials.
-
-Step 3: Export
---------------
-
-Now that we have made our query and extracted the set of objects of interest, we'll want to export this to a CSV file for later use and further analysis (i.e. in R, MatLab, etc.)
-
-Once you hit 'Save query', your search results will appear below the search window. Since we selected to find all stressed vowels only, a long list of phone tokens (every time a stressed vowel occurs in the dataset) should now be visible. This list of objects may not be useful to our research without some further information, so let's select what information will be visible in the resulting CSV file using the window next to the search view.
-
-Here we may check all boxes which will be relevant to our later analysis to add these columns to our CSV file. The preview at the bottom of the page will be updated as we select new boxes:
+	s <- read.csv("SibilantsTutorial export.csv")
 
 
-Under the **Phone** header, select:
-   * label
-   * begin
-   * end
-   * F1
-   * F2
-   * F3
-   * B1 (The bandwidth of Formant 1)
-   * B2 (The bandwidth of Formant 2)
-   * B3 (The bandwidth of Formant 3)
-   * num_formants
+Check that the sibilants have been exported correctly:
 
-Under the **Syllable** header, select:
-   * stress
-   * position_in_word
+.. code-block:: R
 
-Under the **Word** header, select:
-   * label
-   * stresspattern
+	levels(s$phone_label)
 
-Under the **Utterance** header, select:
-   * label
+Change the column name to 'sibilant':
 
-Under the **Speaker** header, select:
-   * name
+.. code-block:: R
 
-Under the **Sound File** header, select:
-   * name
+	s$sibilant <- s$phone_label
 
-Once you have checked all relevant boxes, select 'Export to CSV'. Your results will be exported to a CSV file on your computer. The name will be the one you chose to save plus "export.csv". In our case, the resulting file will be called "ICE-Can Tutorial Formants export.csv".
+Check the counts for the different voiceless/voiced sibilants - /ʒ/ is rare!
 
-Step 5: Results
----------------
+.. code-block:: R
+	
+	summary(s$sibilant)
 
-With the tutorial complete, we should now have a CSV file saved on our personal machine containing information about the set of objects we queried for and all other relevant information.
+	# S   SH    Z     ZH 
+	# 2268  187 1296  3 
+
+Reorder the sibilants into a more intuitive order (alveolars then postalveolars):
+
+.. code-block:: R
+
+	s$sibilant <- factor(s$sibilant, levels = c('S', 'Z', 'SH', 'ZH'))
+
+Finally, plot the sibilants for the two speakers:
+
+.. code-block:: R
+
+	ggplot(s, aes(x = factor(sibilant), y = phone_peak)) + 
+	geom_boxplot() + 
+	xlab("Spectral Peak (Hz)") + 
+	ylab("sibilant") + 
+	scale_y_sqrt() + 
+	facet_wrap(~speaker_name)
+
+.. image:: images/sibilants.png
+	:width: 800
