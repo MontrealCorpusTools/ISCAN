@@ -1,6 +1,6 @@
 .. _`Montreal Forced Aligner`: https://github.com/MontrealCorpusTools/Montreal-Forced-Aligner
 .. _`here`: http://spade.glasgow.ac.uk/wp-content/uploads/2018/07/speaker_info.csv
-.. _`Lexicon CSV`: http://spade.glasgow.ac.uk/wp-content/uploads/2018/07/can_comparison.csv
+.. _`Lexicon CSV`: http://spade.glasgow.ac.uk/wp-content/uploads/2018/10/iscan_lexicon.csv
 .. _`Enriching`: https://polyglot-server.readthedocs.io/en/latest/enrichment_iscan.html
 .. _`Enrichment`: https://polyglot-server.readthedocs.io/en/latest/enrichment_iscan.html
 .. _`Praat script`: https://raw.githubusercontent.com/MontrealCorpusTools/SPADE/master/Common/sibilant_jane_optimized.praat
@@ -151,10 +151,7 @@ Upon return to the Enrichment view, hit ‘Run’ on the new addition to the tab
 To enrich the database with speaker information:
 
 1. Select the 'Properties from a CSV' option
-2. Select 'Speaker CSV' from the 'Analysis' dropdown menu.
-   .. Normally, this file would be available from the SPADE Git
-      repository; (TODO: make this something sensible for spade team)
-   The CSV for speakers in the tutorial corpus is `here`_. 
+2. Select 'Speaker CSV' from the 'Analysis' dropdown menu. The CSV for speakers in the tutorial corpus is `here`_. 
 3. Upload the tutorial corpus 'speaker_info.csv' file from your local machine.
 4. Select 'Save Enrichment' and then 'Run' from the Enrichment view.
 
@@ -198,7 +195,7 @@ And then, as with previous enrichments, select 'Save enrichment' and then run.
 Finally, to encode the stress position within each word:
 
 * Select 'Stress from word property' from the Enrichment view menu. 
-* From the 'wordproperty' dropdown box, select 'stresspattern'.
+* From the 'wordproperty' dropdown box, select 'stress_pattern'.
 * Select 'Save enrichment' and run the enrichment in the Enrichment view.
 
 
@@ -244,7 +241,7 @@ This query has found all word-initial stressed syllables for words in utterance-
 	* begin
 	* end
 	* num_syllables
-	* stresspattern
+	* stress_pattern
 
 3. Under the **UTTERANCE** label, select:
 
@@ -273,28 +270,26 @@ In **R**, load the data as follows:
 	library(tidyverse)
 	dur <- read.csv('syllable_duration export.csv')
 
-(You may need to first install the `tidyverse` library.)
+You may need to first install the `tidyverse` library using ``install.packages('tidyverse')``. If you are unable to install tidyverse, you may also use ``library(ggplot2)`` instead (note: if you do this, please use ``subset()`` instead of ``filter()`` for the remaining steps).
 
-First, by checking how many words there are for each number of syllables in the CSV, we can see that only 1 word has 5 syllables:
+First, by checking how many word (types) there are for each number of syllables in the CSV, we can see that only 1 word has 4 syllables:
 
 .. code-block:: R
 
 	group_by(dur, word_num_syllables) %>% summarise(n_distinct(word_label))
 
-   #   word_num_syllables `n_distinct(word_label)`
-   #                <int>                    <int>
-   # 1                  1                      236
-   # 2                  2                      119
-   # 3                  3                       35
-   # 4                  4                        9
-   # 5                  5                        1
+	#  	word_num_syllables `n_distinct(word_label)`
+	#                <int>                    <int>
+	# 1                  1                      109
+	# 2                  2                       34
+	# 3                  3                        7
+	# 4                  4                        1
 
-We remove the word with 5 syllables, since we can't generalize based
-on one word type:
+We remove the word with 4 syllables, since we can't generalize based on one word type:
 
 .. code-block:: R
 
-	dur <- filter(dur, word_num_syllables < 5)
+	dur <- filter(dur, word_num_syllables < 4)
 
 Similarly, it is worth checking the distribution of syllable durations to see if there are any extreme values:
 
@@ -304,14 +299,14 @@ Similarly, it is worth checking the distribution of syllable durations to see if
 	geom_histogram() +
 	xlab("Syllable duration")
 
-.. image:: images/syll_hist_plot.png
+.. image:: _images/syll_hist_2.png
    :width: 400
 
-As we can see here, there are a handful of extremely long syllables, which perhaps are the result of pragmatic lengthening or alignment error. To exclude these cases from analysis:
+As we can see here, there is one observation which appears to be some kind of outlier, which perhaps are the result of pragmatic lengthening or alignment error. To exclude this from analysis:
 
 .. code-block:: R
 
-	dur <- filter(dur, syllable_duration < 1.5)
+	dur <- filter(dur, syllable_duration < 0.6)
 
 Plot of the duration of the initial stressed syllable as a function of word duration (in syllables):
 
@@ -319,13 +314,13 @@ Plot of the duration of the initial stressed syllable as a function of word dura
 
 	ggplot(dur, aes(x = factor(word_num_syllables), y = syllable_duration)) +
 	geom_boxplot() +
-	xlab("Duration of word-initial syllable") + ylab("Syllable duration") +
+	xlab("Number of syllables") + ylab("Syllable duration") +
 	scale_y_sqrt()
 
-.. image:: images/syll_dur_plot.png
+.. image:: _images/syll_dur_3.png
    :width: 400
 
-Here it's possible to see some polysyllabic shortening effect between 1 and 2 syllables; this effect seems much smaller between 2+ syllables, though the effect continues in the expected (negative) direction.
+Here it's possible to see that there is a consistent shortening effect based on the number of syllables in the word, where the more syllables in a word the shorter the initial stressed syllable becomes.
 
 Tutorial 2: Vowel formants
 ==========================
@@ -397,7 +392,7 @@ Under the **Syllable** header, select:
 
 Under the **Word** header, select:
 	* label
-	* stresspattern
+	* stress_pattern
 
 Under the **Utterance** header, select:
 	* label
@@ -448,7 +443,7 @@ Plot the vowels for the two speakers in this sound file:
 	xlab("F2(Hz)") + 
 	ylab("F1(Hz)")
 
-.. image:: images/vowels.png
+.. image:: _images/vowels.png
 	:width: 800
 
 Tutorial 3: Sibilants
@@ -527,7 +522,7 @@ The next step is to search the dataset to find a set of linguistic objects of in
 
 First, return to the 'iscan-tutorial-X' Corpus Summary view, then navigate to the 'Phones' section and select **New Query**. This will take you to a new page, called the Query view, where we can put together and execute searches. In this view, there is a series of property categories which you can navigate through to add filters to your search. Under 'Phone Properties', there is a dropdown menu labelled **'Subset'**. Select 'sibilants'. You may select 'Add filter' if you would like to see more options to narrow down your search.
 
-.. image:: images/Screenshot-from-2018-10-04-10-12-52-300x151.png
+.. image:: _images/Screenshot-from-2018-10-04-10-12-52-300x151.png
    :width: 400
 
 The selected filter settings will be saved for further use. It will automatically be saved as 'New phone query', but let's change that to something more memorable, say 'SibilantsTutorial'. When you are done, click the 'Run query' button. The search may take a while, especially for large datasets.
@@ -541,7 +536,7 @@ Once you hit 'Run query', your search results will appear below the search windo
 
 Here we may check all boxes which will be relevant to our later analysis to add these columns to our CSV file. The preview at the bottom of the page will be updated as we select new boxes:
 
-.. image:: images/Screenshot-from-2018-10-04-11-41-32-300x111.png
+.. image:: _images/Screenshot-from-2018-10-04-11-41-32-300x111.png
    :width: 400
 
 
@@ -627,5 +622,5 @@ Finally, plot the sibilants for the two speakers:
 	scale_y_sqrt() + 
 	facet_wrap(~speaker_name)
 
-.. image:: images/sibilants.png
+.. image:: _images/sibilants.png
 	:width: 800
