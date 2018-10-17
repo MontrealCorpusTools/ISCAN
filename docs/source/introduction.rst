@@ -12,6 +12,8 @@
 Introduction
 ************
 
+**If you are a new ISCAN user, please go directly to**  :ref:`tutorials_iscan`.
+
 ISCAN (Integrated Speech Corpus ANalysis) is a tool to manage and analyze corpora on a single server with support for
 multiple clients enriching and querying the corpora as needed.  The ISCAN server contains tools to install/start/stop
 the databases that `PolyglotDB`_ (the Python API) uses.

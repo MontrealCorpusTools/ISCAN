@@ -11,11 +11,11 @@ Welcome to iscan-server's documentation!
    :caption: Contents:
 
    introduction.rst
+   tutorials_iscan.rst
+   enrichment_iscan.rst
    installation_via_docker.rst
    use_via_docker.rst
    installation_without_docker.rst
-   enrichment_iscan.rst
-   tutorials_iscan.rst
    administration.rst
 
 
