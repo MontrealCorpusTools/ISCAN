@@ -32,12 +32,16 @@
                        ng-model-options="{debounce:750}">
             </md-input-container>
 <div>
-    <md-virtual-repeat-container id="vertical-container">
-			<div md-virtual-repeat="annotation in words"
-          class="repeated-item" flex>
-                    <md-checkbox checklist-model="annotation_labels" checklist-value="annotation"> {{annotation}}
-                    </md-checkbox>
-    </md-virtual-repeat-container>
+
+<div id="vertical-container">
+    <md-list>
+			<md-list-item ng-repeat="annotation in words">
+				<md-checkbox checklist-model="annotation_labels" checklist-value="annotation"></md-checkbox> {{annotation}}
+			</md-list-item>
+    </md-list>
+
+</div>
+    
 
 </div>
 

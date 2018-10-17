@@ -389,6 +389,8 @@ class CorpusViewSet(viewsets.ModelViewSet):
                 subset = []
                 vow_check = ['a', 'i','e','u','o']
                 for p in phones:
+                    if p in ['sp', 'sil']:
+                        continue
                     if any(s in p.lower() for s in vow_check):
                         subset.append(p)
         elif subset_class == "sibilants":
@@ -402,6 +404,8 @@ class CorpusViewSet(viewsets.ModelViewSet):
                 subset = []
                 sib_check = ['s', 'z']
                 for p in phones:
+                    if p in ['sp', 'sil']:
+                        continue
                     if any(s in p.lower() for s in sib_check):
                         subset.append(p)
         elif subset_class == "stressed_vowels":
@@ -1158,6 +1162,9 @@ class QueryViewSet(viewsets.ModelViewSet):
                 utterances = q.all()
                 if utterances is None:
                     data['utterance'] = None
+                elif not len(utterances):
+                    return Response('The utterance IDs in this query look to be outdated. '
+                                    'Please refresh the query.', status=status.HTTP_400_BAD_REQUEST)
                 else:
 
                     serializer = serializers.serializer_factory(c.hierarchy, 'utterance',
