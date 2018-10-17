@@ -5,7 +5,7 @@
 .. _`Enrichment`: https://polyglot-server.readthedocs.io/en/latest/enrichment_iscan.html
 .. _`Praat script`: https://raw.githubusercontent.com/MontrealCorpusTools/SPADE/master/Common/sibilant_jane_optimized.praat
 .. _`FAVE`: https://github.com/JoFrhwld/FAVE/wiki/FAVE-align
-.. _`ISCAN Prototypes`: http://spade.glasgow.ac.uk/wp-content/uploads/2018/08/ICECAN_prototypes.csv
+.. _`ISCAN_Prototypes`: http://spade.glasgow.ac.uk/wp-content/uploads/2018/08/ICECAN_prototypes.csv
 
 .. _tutorials_iscan:
 
@@ -32,7 +32,19 @@ Preliminaries
 Access
 ------
 
-Before you can begin the tutorial, you will need access to log in to the ISCAN server via your web browser. To log in to the McGill ISCAN server via your web browser visit https://roquefort.linguistics.mcgill.ca, press the ‘Log in’ button on the top right of the screen and enter the username and password provided.
+Before you can begin the tutorial, you will need access to log in to
+the ISCAN server via your web browser. To log in to the McGill ISCAN
+server via your web browser visit
+https://roquefort.linguistics.mcgill.ca, press the ‘Log in’ button on
+the top right of the screen and enter the username and password
+provided.
+
+**NWAV 2018 Workshop**: the workshop organizers will give you a username
+and password.
+
+**After NWAV 2018 Workshop**: Please contact
+savanna.willerton@mail.mcgill.ca to request access to one of the ISCAN
+tutorial accounts.
 
 .. To use ISCAN you need to get a username and password from whoever the administrator for the server is. For now, the only ISCAN server is at McGill, so the first step is to contact Vanna (On Slack in the #iscan-help channel or email to savanna.willerton@mail.mcgill.ca) to request access, who will provide you with a username and password.
 
@@ -42,9 +54,31 @@ Before you can begin the tutorial, you will need access to log in to the ISCAN s
 Questions, Bugs, Suggestions
 ----------------------------
 
-If at any point while using ISCAN you get stuck, have a question, encounter a bug (like a button which doesn’t work), or you see some way in which you believe the user interface could be improved to make usage more clear/smooth/straightforward/etc, then please see ISCAN – Getting Help and Giving Feedback (link TODO).
+If at any point while using ISCAN you get stuck, have a question,
+encounter a bug (like a button which doesn’t work), or you see some
+way in which you believe the user interface could be improved to make
+usage more clear/smooth/straightforward/etc, then please `file an issue <https://github.com/MontrealCorpusTools/iscan-server/issues/>`_
+on the ISCAN GitHub repository.
+
+There is also a Slack channel you can join if you have quick questions
+or would like real-time help. Please contact
+savanna.willerton@mail.mcgill.ca for access.
+
+.. TODO: public-facing page on "Getting Help and Giving Feedback" (we
+   currently only have a project-internal page). please see ISCAN – Getting Help and Giving Feedback (link TODO).
 
 
+Dataset
+--------
+
+These tutorials use a tutorial corpus, which is (as of Oct 15, 2018) a
+small subset of `ICE-Canada
+<https://dataverse.library.ualberta.ca/dataverse/VOICE>`_ containing
+speech from all "S2A" files (two male Canadian English speakers).
+These files can be downloaded from the ICE Canada site, but doing so
+is not necessary for these tutorials!
+
+   
 Tutorial 1: Polysyllabic shortening
 ===================================
 
@@ -52,12 +86,12 @@ Tutorial 1: Polysyllabic shortening
 Motivation
 ----------
 
-Polysyllabic shortening refers to the "same" rhymic unit (syllable or vowel) becoming shorter as the size of the containing domain (word or prosodic domain) increases. Two classic examples:
+Polysyllabic shortening refers to the "same" rhythmic unit (syllable or vowel) becoming shorter as the size of the containing domain (word or prosodic domain) increases. Two classic examples:
 
 * English: stick, sticky, stickiness (Lehiste, 1972)
 * French: pâte, pâté, pâtisserie (Grammont, 1914)
 
-Polysyllabic shortening is often – but not always – defined as being restricted to accented syllables. (As in the English, but not the French example.) Using ISCAN, we can check whether a simple version of polysyllabic shortening holds in the ICE-CAN corpus, namely:
+Polysyllabic shortening is often – but not always – defined as being restricted to accented syllables. (As in the English, but not the French example.) Using ISCAN, we can check whether a simple version of polysyllabic shortening holds in the tutorial corpus, namely:
 
 * Considering all utterance-final words, does the initial vowel duration decrease as word length increases?
 
@@ -65,29 +99,37 @@ Polysyllabic shortening is often – but not always – defined as being restric
 Step 1: Import
 --------------
 
-This tutorial will use the tutorial corpus available for you, available under the title 'spade-username'. The data for this corpus was parsed using the `Montreal Forced Aligner`_, with the result being one Praat TextGrid per sound file, aligned with word and phone boundaries. These files are stored on a remote server, and so do not require you to upload any audio or TextGrid files.
+This tutorial will use the tutorial corpus available for you,
+available under the title 'iscan-tutorial-X' (where X is a number). The data for this corpus was parsed using the `Montreal Forced Aligner`_, with the result being one Praat TextGrid per sound file, aligned with word and phone boundaries. These files are stored on a remote server, and so do not require you to upload any audio or TextGrid files.
 
 The first step of this analysis is to create a *Polyglot DB* object of the corpus which is suitable for analysis. This is performed in two steps:
 
 + *Importing* the dataset using ISCAN, using the phone, word, and speaker information contained in the corpus
 + *Enriching* the dataset to include additional information about (e.g., syllables, utterances), as well as properties about these objects (e.g., speech rate)
 
-To import the corpus into ISCAN, select 'spade-username' corpus from the dropdown menu under the 'Corpora' tab in the navigation bar. Next, click the 'Import' button. This will import the corpus into ISCAN and return a structured database of objects: words, phones, and sound files), that will be interacted with in the following steps.
+To import the corpus into ISCAN, select 'iscan-tutorial-x' corpus
+(replacing "x" with the number you're using) from the dropdown menu under the 'Corpora' tab in the navigation bar. Next, click the 'Import' button. This will import the corpus into ISCAN and return a structured database of objects: words, phones, and sound files), that will be interacted with in the following steps.
 
 
 Step 2: Enrichment
 ------------------
 
-Now that the corpus has been imported as a database, it is now necessary to *enrich* the database with information about linguistic objects, such as word frequency, speech rate, vowel duration, and so on. See the `Enrichment`_ page for more details
+Now that the corpus has been imported as a database, it is now
+necessary to *enrich* the database with information about linguistic
+objects, such as word frequency, speech rate, vowel duration, and so
+on. You can see the `Enrichment`_ page to learn more about what enrichments
+are possible, but in this tutorial we will just use a subset.
 
-First, select the 'tutorial-username' under the 'Corpora' menu, which presents all of the current information available for this specific corpus. To start enrichment, click the 'create, edit, and run enrichments' button from this page. This page is referred to as the *Enrichment view*. At first, this page will contain an empty table - as enrichments are added, this table will be populated to include each of these enrichment objects. On the right hand side of the page are a list of new enrichments that can be created for this database.
+First, select the 'iscan-tutorial-x' under the 'Corpora' menu, which presents all of the current information available for this specific corpus. To start enrichment, click the 'create, edit, and run enrichments' button. This page is referred to as the *Enrichment view*. At first, this page will contain an empty table - as enrichments are added, this table will be populated to include each of these enrichment objects. On the right hand side of the page are a list of new enrichments that can be created for this database.
 
-Here, we will walk through each enrichment in turn necessary for examining vowel duration.
+Here, we will walk through each enrichment that is necessary for
+examining vowel duration to address our question ("Considering all
+utterance final...").
 
 
 **Syllables**
 
-Syllables are encoded in two steps. First, the set of syllabic segments in the phonological inventory have to be specified. To encode the syllablic segments:
+Syllables are encoded in two steps. First, the set of syllabic segments in the phonological inventory have to be specified. To encode the syllabic segments:
 
 1. Select 'Phone Subset' button under the 'Create New Enrichments' header
 2. Select the 'Select Syllabics' preset option
@@ -109,19 +151,24 @@ Upon return to the Enrichment view, hit ‘Run’ on the new addition to the tab
 To enrich the database with speaker information:
 
 1. Select the 'Properties from a CSV' option
-2. Select 'Speaker CSV' from the 'Analysis' dropdown menu. Normally this file would be available from the SPADE Git repository; for this tutorial, however, the CSV is available `here`_. 
-3. Upload the ICE-CAN 'speaker_info.csv' file from your local machine.
+2. Select 'Speaker CSV' from the 'Analysis' dropdown menu.
+   .. Normally, this file would be available from the SPADE Git
+      repository; (TODO: make this something sensible for spade team)
+   The CSV for speakers in the tutorial corpus is `here`_. 
+3. Upload the tutorial corpus 'speaker_info.csv' file from your local machine.
 4. Select 'Save Enrichment' and then 'Run' from the Enrichment view.
 
 
 **Lexicon**
 
-As with the speaker information, lexical information can be uploaded in an analogous way. Using the `Lexicon CSV`_, select 'Lexicon CSV' from the dropdown menu, save the enrichment, and run it.
+As with the speaker information, lexical information can be uploaded
+in an analogous way. Download the `Lexicon CSV`_, for the tutorial
+corpus, select 'Lexicon CSV' from the dropdown menu, save the enrichment, and run it.
 
 **Utterances**
 
-For our purposes, we define an utterance as a stretch of speech separated by pauses. So now we will specify minimum duration of pause that separates utterances (150ms is typically a good default).
-
+For our purposes, we define an utterance as a stretch of speech
+separated by pauses. So now we will specify a minimum duration of pause that separates utterances (150ms is typically a good default).
 
 First, select 'pauses' from 'Annotation levels', and select '<SIL>' as the unit representing pauses. As before, select 'Save enrichment' and then 'run'.
 
@@ -135,7 +182,10 @@ With the positions of pauses encoded, we are now able to encode information abou
 
 **Speech rate**
 
-To encode speech rate information, select 'Hierarchical property' from the Enrichment view. This mode allows you to encode rates, counts or positions, based on certain hierarchical properties (e.g., utterances, words). Here select the following attributes:
+To encode speech rate information, select 'Hierarchical property' from
+the Enrichment view. This mode allows you to encode rates, counts or
+positions, based on certain hierarchical properties (e.g., utterances,
+words).  (For example: number of syllables in a word;  Here select the following attributes:
 
 1. From the Higher annotation menu, select *utterance*
 2. From the Lower annotation menu, select *syllable*
@@ -155,9 +205,10 @@ Finally, to encode the stress position within each word:
 Step 3: Query
 ---------------------
 
-Now that the database has been enriched with all of the properties necessary for analysis, it is not necessary to construct a **query**. Queries enable us to search the database for particular set of linguistic objects of interest.
+Now that the database has been enriched with all of the properties
+necessary for analysis, it is now necessary to construct a **query**. Queries enable us to search the database for particular set of linguistic objects of interest.
 
-First, return to the Corpus Summary view by selecting 'tutorial-username' from the top navigation header. In this view, there is a series of property categories which you can navigate through to add filters to your search.
+First, return to the Corpus Summary view by selecting 'iscan-tutorial-x' from the top navigation header. In this view, there is a series of property categories which you can navigate through to add filters to your search.
 
 In this case, we want to make a query for:
 
@@ -209,12 +260,20 @@ Once you have checked all relevant boxes, select 'Export to CSV'. Your results w
 Examining & analysing the data
 ------------------------------
 
+Now that the CSV has been exported, it can be analyzed to
+address whether polysyllabic shortening holds in the tutorial corpus.
+This part does not involve ISCAN, so it's not necessary to actually
+carry out the steps below unless you want to (and have R installed and
+are familiar with using it).
+
 In **R**, load the data as follows:
 
 .. code-block:: R
 
 	library(tidyverse)
 	dur <- read.csv('syllable_duration export.csv')
+
+(You may need to first install the `tidyverse` library.)
 
 First, by checking how many words there are for each number of syllables in the CSV, we can see that only 1 word has 5 syllables:
 
@@ -230,7 +289,8 @@ First, by checking how many words there are for each number of syllables in the 
    # 4                  4                        9
    # 5                  5                        1
 
-And so the word with 5 syllables should be removed:
+We remove the word with 5 syllables, since we can't generalize based
+on one word type:
 
 .. code-block:: R
 
@@ -272,7 +332,8 @@ Tutorial 2: Vowel formants
 
 Vowel quality is well known to vary according to a range of social and linguistic factors (Labov, 2001). The precursor to any sociolinguistic and/or phonetic analysis of acoustic vowel quality is the successful identification, measurement, extraction, and visualization of the particular vowel variables for the speakers under consideration. It is often useful to consider vowels in terms of their overall patterning together in the acoustic vowel space.
 
-In this tutorial, we will use ISCAN to measure the first and second formants for the two speakers in the imported sound file, for the following vowels (keywords after Wells, 1982): FLEECE, KIT, FACE, DRESS, TRAP/BATH, PRICE, MOUTH, STRUT, NURSE, LOT/PALM, CLOTH/THOUGHT, CHOICE, GOAT, FOOT, GOOSE. We will only consider vowels whose duration is longer than 50ms, to avoid including reduced tokens. This tutorial assumes you have completed the *import* and *enrichment* sections from the previous tutorial, and so will only include the information specific to analysing formants.
+In this tutorial, we will use ISCAN to measure the first and second
+formants for the two speakers in the tutorial corpus, for the following vowels (keywords after Wells, 1982): FLEECE, KIT, FACE, DRESS, TRAP/BATH, PRICE, MOUTH, STRUT, NURSE, LOT/PALM, CLOTH/THOUGHT, CHOICE, GOAT, FOOT, GOOSE. We will only consider vowels whose duration is longer than 50ms, to avoid including reduced tokens. This tutorial assumes you have completed the *import* and *enrichment* sections from the previous tutorial, and so will only include the information specific to analysing formants.
 
 Step 1: Enrichment
 ------------------
@@ -281,9 +342,17 @@ Step 1: Enrichment
 
 Now we will compute vowel formants for all stressed syllables using an algorithm similar to `FAVE`_.
 
-For this last section, you will need a vowel prototype file. This one is also normally accessed after you've checked out the ICE-Can or tutorial corpus from the master SPADE Git repositories held on the McGill Roquefort server. Again, for the purposes of the tutorial, it is provided below. Please save the file to your computer.
+For this last section, you will need a vowel prototype file. For the
+purposes of this tutorial, the file for the tutorial corpus is
+provided here:
 
-`ISCAN Prototypes`_
+.. This one is also normally accessed after you've checked out the
+   tutorial corpus from the master SPADE Git repositories held on the McGill Roquefort server. Again, for the purposes of the tutorial, it is provided below.
+
+`ISCAN_Prototypes`_
+
+Please save the file to your computer.
+
 
 From the Enrichment View, under the 'Acoustics' header, select 'Formant Points'. As usual, this will bring you to a new page. From the **Phone class** menu, select *stressed_vowels*. Using the 'Choose Vowel Prototypes CSV' button, upload the ICECAN_prototypes.csv file you saved. For **Number of iterations**, type 3 and for **Min Duration (ms)** type 50ms.
 
@@ -294,9 +363,11 @@ Step 2: Query
 
 The next step is to search the dataset to find a set of linguistic objects of interest. In our case, we're looking for all stressed vowels, and we will get formants for each of these. Let's see how to do this using the **Query view**.
 
-First, return to the the 'spade-yourUsername' Corpus Summary view, then navigate to the 'Phones' section and select **New Query**. This will take you to a new page, called the Query view, where we can put together and execute searches. In this view, there is a series of property categories which you can navigate through to add filters to your search. Under 'Phone Properties', there is a dropdown menu with search options labelled 'Subset'. Select 'stressed_vowels'. You may select 'Add filter' if you would like to see more options to narrow down your search.
+First, return to the 'iscan-tutorial-x' Corpus Summary view, then navigate to the 'Phones' section and select **New Query**. This will take you to a new page, called the Query view, where we can put together and execute searches. In this view, there is a series of property categories which you can navigate through to add filters to your search. Under 'Phone Properties', there is a dropdown menu with search options labelled 'Subset'. Select 'stressed_vowels'. You may select 'Add filter' if you would like to see more options to narrow down your search.
 
-The selected filter settings will be saved for further use. It will automatically be saved as 'New phone query', but let's change that to something more memorable, say 'ICE-Can Tutorial Formants'. When you are done, click the 'Save and run query' button. The search may take a while, especially for large datasets, but should not take more than a couple of minutes for this small subset of the ICE-Can corpus we're using for the tutorials.
+The selected filter settings will be saved for further use. It will
+automatically be saved as 'New phone query', but let's change that to
+something more memorable, say 'Tutorial corpus Formants'. When you are done, click the 'Save and run query' button. The search may take a while, especially for large datasets, but should not take more than a couple of minutes for this small subset of the ICE-Can corpus we're using for the tutorials.
 
 Step 3: Export
 --------------
@@ -337,17 +408,25 @@ Under the **Speaker** header, select:
 Under the **Sound File** header, select:
 	* name
 
-Once you have checked all relevant boxes, select 'Export to CSV'. Your results will be exported to a CSV file on your computer. The name will be the one you chose to save plus "export.csv". In our case, the resulting file will be called "ICE-Can Tutorial Formants export.csv".
+Once you have checked all relevant boxes, select 'Export to CSV'. Your results will be exported to a CSV file on your computer. The name will be the one you chose to save plus "export.csv". In our case, the resulting file will be called "Tutorial Formants export.csv".
 
 Step 4. Examining & analysing the data
 --------------------------------------
 
-With the tutorial complete, we should now have a CSV file saved on our personal machine containing information about the set of objects we queried for and all other relevant information. In R, load the data as follows:
+With the tutorial complete, we should now have a CSV file saved on our
+personal machine containing information about the set of objects we
+queried for and all other relevant information.
+
+We now examine this data. This part doesn't use ISCAN, so it's not necessary to actually
+carry out the steps below unless you want to.
+
+In R, load the data as follows:
+
 
 .. code-block:: R
 
 	library(tidyverse)
-	v <- read.csv("ICE-Can Tutorial Formants export.csv")
+	v <- read.csv("Tutorial Formants export.csv")
 
 Rename the variable containing the vowel labels to ‘Vowel’, and reorder the vowels so that they pattern according to usual representation in acoustic/auditory vowel space:
 
@@ -375,11 +454,13 @@ Plot the vowels for the two speakers in this sound file:
 Tutorial 3: Sibilants
 =====================
 
-Sibilants, and in particular, /s/, have been observed to show interesting sociolinguistic variation according to a range of intersecting factors, including gendered, class, and ethnic identities (Stuart-Smith, 2007; Levon, Maegaard and Pharao, 2017). Sibilants - /s ʃ z ʒ/ - also show systematic variation according to place of articulation (Johnson, 2003). Alveolar fricatives /s z/ as in send, zen, are formed as a jet of air is forced through a narrow constriction between the tongue tip/blade held close to the alveolar ridge, and the air strikes the upper teeth as it escapes, resulting in high pitched friction. The postalveolar fricatives /ʃ  ʒ/, as in 'sheet', 'Asia', have a more retracted constriction, the cavity in front of the constriction is a bit longer/bigger, and the pitch is correspondingly lower. In many varieties of English, the postalveolar fricatives also have some liprounding, reducing the pitch further. 
+Sibilants, and in particular, /s/, have been observed to show interesting sociolinguistic variation according to a range of intersecting factors, including gendered, class, and ethnic identities (Stuart-Smith, 2007; Levon, Maegaard and Pharao, 2017). Sibilants - /s ʃ z ʒ/ - also show systematic variation according to place of articulation (Johnson, 2003). Alveolar fricatives /s z/ as in send, zen, are formed as a jet of air is forced through a narrow constriction between the tongue tip/blade held close to the alveolar ridge, and the air strikes the upper teeth as it escapes, resulting in high pitched friction. The post-alveolar fricatives /ʃ  ʒ/, as in 'sheet', 'Asia', have a more retracted constriction, the cavity in front of the constriction is a bit longer/bigger, and the pitch is correspondingly lower. In many varieties of English, the post-alveolar fricatives also have some lip-rounding, reducing the pitch further. 
 
-Acoustically, sibilants show a spectral ‘mountain’ profile, with peaks and troughs reflecting the resonances of the cavities formed by the articulators (Jesus and Shadle, 2002). The frequency of the main spectral peak, and/or main area of acoustic energy (Centre of Gravity), corresponds quite well to shifts in place of articulation, including quite fine-grained differences, such as those which are interesting for sociolinguistic analysis: alveolars show higher frequencies, more retracted postalveolars show lower frequencies.
+Acoustically, sibilants show a spectral ‘mountain’ profile, with peaks and troughs reflecting the resonances of the cavities formed by the articulators (Jesus and Shadle, 2002). The frequency of the main spectral peak, and/or main area of acoustic energy (Centre of Gravity), corresponds quite well to shifts in place of articulation, including quite fine-grained differences, such as those which are interesting for sociolinguistic analysis: alveolars show higher frequencies, more retracted post-alveolars show lower frequencies.
 
-As with the previous tutorials, we will use ISCAN to select all sibilants from the imported sound file for the two Canadian speakers, and take a set of acoustic spectral measures including spectral peak, which we will then export as a CSV, for inspection.
+As with the previous tutorials, we will use ISCAN to select all
+sibilants from the imported sound file for the two speakers in the
+tutorial corpus, and take a set of acoustic spectral measures including spectral peak, which we will then export as a CSV, for inspection.
 
 Step 1: Enrichment
 ------------------
@@ -444,7 +525,7 @@ Step 2: Query
 
 The next step is to search the dataset to find a set of linguistic objects of interest. In our case, we're looking for all sibilants. Let's see how to do this using the **Query view**.
 
-First, return to the the 'spade-yourUsername' Corpus Summary view, then navigate to the 'Phones' section and select **New Query**. This will take you to a new page, called the Query view, where we can put together and execute searches. In this view, there is a series of property categories which you can navigate through to add filters to your search. Under 'Phone Properties', there is a dropdown menu labelled **'Subset'**. Select 'sibilants'. You may select 'Add filter' if you would like to see more options to narrow down your search.
+First, return to the 'iscan-tutorial-X' Corpus Summary view, then navigate to the 'Phones' section and select **New Query**. This will take you to a new page, called the Query view, where we can put together and execute searches. In this view, there is a series of property categories which you can navigate through to add filters to your search. Under 'Phone Properties', there is a dropdown menu labelled **'Subset'**. Select 'sibilants'. You may select 'Add filter' if you would like to see more options to narrow down your search.
 
 .. image:: images/Screenshot-from-2018-10-04-10-12-52-300x151.png
    :width: 400
@@ -493,7 +574,15 @@ Once you have checked all relevant boxes, click the 'Export to CSV' button. Your
 Step 4: Examining & analysing the data
 --------------------------------------
 
-With the tutorial complete, we should now have a CSV file saved on our personal machine containing information about the set of objects we queried for and all other relevant information. To examine the data, open the CSV in R as follows:
+With the tutorial complete, we should now have a CSV file saved on our
+personal machine containing information about the set of objects we
+queried for and all other relevant information.
+
+We now examine this data. This part doesn't use ISCAN, so it's not necessary to actually
+carry out the steps below unless you want to.
+
+
+First, open the CSV in R:
 
 .. code-block:: R
 
@@ -521,7 +610,7 @@ Check the counts for the different voiceless/voiced sibilants - /ʒ/ is rare!
 	# S   SH    Z     ZH 
 	# 2268  187 1296  3 
 
-Reorder the sibilants into a more intuitive order (alveolars then postalveolars):
+Reorder the sibilants into a more intuitive order (alveolars then post-alveolars):
 
 .. code-block:: R
 
