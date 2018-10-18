@@ -218,7 +218,6 @@ Here, find the selection titled 'Syllables' and select 'New Query'. To make sure
 Under **syllable** properties:
 
 * Left aligned with: *word*
-.. * Select 'add' filter, select 'stress' in the drop-down box, and enter '1' in the text box
 
 Under **word** properties:
 
@@ -310,7 +309,7 @@ Similarly, it is worth checking the distribution of syllable durations to see if
 	geom_histogram() +
 	xlab("Syllable duration")
 
-.. image:: _images/syll_hist_2.png
+.. image:: images/syll_hist_2.png
    :width: 400
 
 As we can see here, there is one observation which appears to be some kind of outlier, which perhaps are the result of pragmatic lengthening or alignment error. To exclude this from analysis:
@@ -328,7 +327,7 @@ Plot of the duration of the initial stressed syllable as a function of word dura
 	xlab("Number of syllables") + ylab("Syllable duration") +
 	scale_y_sqrt()
 
-.. image:: _images/syll_dur_3.png
+.. image:: images/syll_dur_3.png
    :width: 400
 
 Here it's possible to see that there is a consistent shortening effect based on the number of syllables in the word, where the more syllables in a word the shorter the initial stressed syllable becomes.
@@ -465,7 +464,7 @@ Plot the vowels for the two speakers in this sound file:
 	xlab("F2(Hz)") + 
 	ylab("F1(Hz)")
 
-.. image:: _images/vowels.png
+.. image:: images/vowels.png
 	:width: 800
 
 Tutorial 3: Sibilants
@@ -550,7 +549,7 @@ The next step is to search the dataset to find a set of linguistic objects of in
 
 First, return to the 'iscan-tutorial-X' Corpus Summary view, then navigate to the 'Phones' section and select **New Query**. This will take you to a new page, called the Query view, where we can put together and execute searches. In this view, there is a series of property categories which you can navigate through to add filters to your search. Under 'Phone Properties', there is a dropdown menu labelled **'Subset'**. Select 'sibilants'. You may select 'Add filter' if you would like to see more options to narrow down your search.
 
-.. image:: _images/Screenshot-from-2018-10-04-10-12-52-300x151.png
+.. image:: images/Screenshot-from-2018-10-04-10-12-52-300x151.png
    :width: 400
 
 The selected filter settings will be saved for further use. It will automatically be saved as 'New phone query', but let's change that to something more memorable, say 'SibilantsTutorial'. When you are done, click the 'Run query' button. The search may take a while, especially for large datasets.
@@ -564,7 +563,7 @@ Once you hit 'Run query', your search results will appear below the search windo
 
 Here we may check all boxes which will be relevant to our later analysis to add these columns to our CSV file. The preview at the bottom of the page will be updated as we select new boxes:
 
-.. image:: _images/Screenshot-from-2018-10-04-11-41-32-300x111.png
+.. image:: images/Screenshot-from-2018-10-04-11-41-32-300x111.png
    :width: 400
 
 
@@ -651,5 +650,5 @@ Finally, plot the sibilants for the two speakers:
 	scale_y_sqrt() + 
 	facet_wrap(~speaker_name)
 
-.. image:: _images/sibilants.png
+.. image:: images/sibilants.png
 	:width: 800
