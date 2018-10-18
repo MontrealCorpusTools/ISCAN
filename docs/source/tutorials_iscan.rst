@@ -210,7 +210,7 @@ First, return to the Corpus Summary view by selecting 'iscan-tutorial-x' from th
 
 In this case, we want to make a query for:
 
-* Word-initial syllables
+* Word-initial stressed syllables
 * only in words at the end of utterances (fixed prosodic position)
 
 Here, find the selection titled 'Syllables' and select 'New Query'. To make sure we select the correctly positioned syllables, apply the following filters:
@@ -218,6 +218,7 @@ Here, find the selection titled 'Syllables' and select 'New Query'. To make sure
 Under **syllable** properties:
 
 * Left aligned with: *word*
+* Under 'add filter', select 'stress' from the dropdown box, and enter '1' in the text box. This will only select syllables with primary stress in this position.
 
 Under **word** properties:
 
