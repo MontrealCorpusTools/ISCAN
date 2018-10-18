@@ -4,7 +4,7 @@
    contain the root `toctree` directive.
 
 Welcome to iscan-server's documentation!
-===========================================
+========================================
 
 .. toctree::
    :maxdepth: 2
@@ -13,10 +13,7 @@ Welcome to iscan-server's documentation!
    introduction.rst
    tutorials_iscan.rst
    enrichment_iscan.rst
-   installation_via_docker.rst
-   use_via_docker.rst
-   installation_without_docker.rst
-   administration.rst
+   admin.rst
 
 
 Indices and tables
