@@ -184,9 +184,10 @@ the Enrichment view. This mode allows you to encode rates, counts or
 positions, based on certain hierarchical properties (e.g., utterances,
 words).  (For example: number of syllables in a word;  Here select the following attributes:
 
-1. From the Higher annotation menu, select *utterance*
-2. From the Lower annotation menu, select *syllable*
-3. From the Property type menu, select *rate*
+1. Enter "speech_rate" as the property name
+2. From the Property type menu, select *rate*
+3. From the Higher annotation menu, select *utterance*
+4. From the Lower annotation menu, select *syllable*
 
 And then, as with previous enrichments, select 'Save enrichment' and then run.
 
@@ -223,6 +224,12 @@ Under **word** properties:
 
 * Right aligned with: *utterance*
 
+.. warning::
+
+   Note that if right alignment with utterances is specified for syllables in this query, this will inadvertently
+   restrict the query to monosyllabic words, as aligning with a higher linguistic type (in this case,
+   utterances) implicitly aligns it to an intermediate linguistic type (in this case, words).
+
 Provide a name for this query (e.g., 'syllable_duration') and select 'Save and run query'.
 
 Step 4: Export
@@ -243,11 +250,15 @@ This query has found all word-initial stressed syllables for words in utterance-
 	* num_syllables
 	* stress_pattern
 
-3. Under the **UTTERANCE** label, select:
+3. Under the **UTTERANCES** label, select:
 
-	* label
+   * speech_rate
 
 4. Under the **SPEAKER** label, select:
+
+	* name
+
+5. Under the **SOUND FILE** label, select:
 
 	* name
 
@@ -333,6 +344,17 @@ formants for the two speakers in the tutorial corpus, for the following vowels (
 Step 1: Enrichment
 ------------------
 
+**Stressed vowels**
+
+First, the set of stress vowels in the phonological inventory have to be specified. To encode these:
+
+1. Select 'Phone Subset' button under the 'Create New Enrichments' header
+2. Select the 'Select Stressed Vowels' preset option
+3. Name the environment 'stressed_vowels'
+4. Select 'Save subset'
+
+This will return you to the Enrichment view page. Here, press the 'Run' button listed under 'Actions'.
+
 **Acoustics**
 
 Now we will compute vowel formants for all stressed syllables using an algorithm similar to `FAVE`_.
@@ -395,7 +417,7 @@ Under the **Word** header, select:
 	* stress_pattern
 
 Under the **Utterance** header, select:
-	* label
+	* speech_rate
 
 Under the **Speaker** header, select:
 	* name
@@ -487,33 +509,39 @@ While adding each enrichment below, remember to choose an appropriate name for t
 
 *Syllable Count 1 (Number of Syllables in a Word)*
 
-   * From the **Higher linguistic type** menu, select *word*
-   * From the **Lower linguistic type** menu, select *syllable*
-   * From the **Property type** menu, select *count*
+1. Enter "num_syllables" as the property name
+2. From the Property type menu, select *count*
+3. From the Higher annotation menu, select *word*
+4. From the Lower annotation menu, select *syllable*
 
 *Syllable Count 2 (Number of Syllables in an Utterance)*
 
-   * From the **Higher linguistic type** menu, select *utterance*
-   * From the **Lower linguistic type** menu, select *syllable*
-   * From the **Property type** menu, select *count*
+1. Enter "num_syllables" as the property name
+2. From the Property type menu, select *count*
+3. From the Higher annotation menu, select *utterance*
+4. From the Lower annotation menu, select *syllable*
 
 *Phone Count (Number of Phones per Word)*
 
-   * From the **Higher linguistic type** menu, select *word*
-   * From the **Lower linguistic type** menu, select *phone*
-   * From the **Property type** menu, select *count*
+1. Enter "num_phones" as the property name
+2. From the Property type menu, select *count*
+3. From the Higher annotation menu, select *word*
+4. From the Lower annotation menu, select *phone*
 
 *Word Count (Number of Words in an Utterance)*
 
-   * From the **Higher linguistic type** menu, select *utterance*
-   * From the **Lower linguistic type** menu, select *word*
-   * From the **Property type** menu, select *count*
+1. Enter "num_words" as the property name
+2. From the Property type menu, select *count*
+3. From the Higher annotation menu, select *utterance*
+4. From the Lower annotation menu, select *word*
+
 
 *Phone Position*
 
-   * From the **Higher linguistic type** menu, select *syllable*
-   * From the **Lower linguistic type** menu, select *phone*
-   * From the **Property type** menu, select *position*
+1. Enter "position_in_syllable" as the property name
+2. From the Property type menu, select *position*
+3. From the Higher annotation menu, select *syllable*
+4. From the Lower annotation menu, select *phone*
 
 Step 2: Query
 -------------
@@ -544,6 +572,7 @@ Under the **Phone** header, select:
    * label
    * begin
    * end
+   * cog
    * peak
    * slope
    * spread
@@ -555,7 +584,7 @@ Under the **Word** header, select:
    * label
 
 Under the **Utterance** header, select:
-   * label
+   * speech_rate
 
 Under the **Speaker** header, select:
    * name
