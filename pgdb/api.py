@@ -789,6 +789,10 @@ class EnrichmentViewSet(viewsets.ModelViewSet):
             name = 'Encode {}'.format(label)
         elif enrich_type in ['speaker_csv', 'discourse_csv', 'lexicon_csv', 'phone_csv']:
             name = 'Enrich {}'.format(enrich_type.split('_')[0])
+        elif enrich_type in ['relativize_pitch', 'relativize_intensity', 'relativize_formants']:
+            name = 'Relativize {}'.format(enrich_type.split('_')[1])
+        elif enrich_type == 'relativize_property':
+            name = 'Relativize {}'.format(data.get('property_name'))
         # Formant validation
         elif enrich_type == 'refined_formant_points':
             dur_thresh = data.get('duration_threshold', '')
