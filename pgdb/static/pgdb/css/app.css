@@ -130,6 +130,7 @@ md-table-container table {
 }
 #vertical-container {
   height: 292px;
+    overflow-y: auto;
     min-width:100px;
   width: 100%;
-  max-width: 400px; }
+  max-width: 300px; }

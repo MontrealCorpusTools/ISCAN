@@ -24,13 +24,12 @@
         <p><span ng-bind="error_message" style="color: red"></span></p>
 
 </div>
-<div>
-    <md-virtual-repeat-container id="vertical-container">
-			<div md-virtual-repeat="annotation in annotations"
-          class="repeated-item" flex>
-				<md-checkbox checklist-model="enrichment.annotation_labels" checklist-value="annotation"> {{annotation}}</md-checkbox>
-			</div>
-    </md-virtual-repeat-container>
+<div id="vertical-container">
+    <md-list>
+			<md-list-item ng-repeat="annotation in annotations">
+				<md-checkbox checklist-model="enrichment.annotation_labels" checklist-value="annotation"></md-checkbox> {{annotation}}
+			</md-list-item>
+    </md-list>
 
 </div>
 <div ng-if="enrichment.annotation_type=='phone'">

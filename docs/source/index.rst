@@ -4,19 +4,16 @@
    contain the root `toctree` directive.
 
 Welcome to iscan-server's documentation!
-===========================================
+========================================
 
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
 
    introduction.rst
-   installation_via_docker.rst
-   use_via_docker.rst
-   installation_without_docker.rst
-   enrichment_iscan.rst
    tutorials_iscan.rst
-   administration.rst
+   enrichment_iscan.rst
+   admin.rst
 
 
 Indices and tables
