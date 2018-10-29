@@ -815,7 +815,7 @@ class Enrichment(models.Model):
                 elif enrichment_type == 'relativize_pitch':
                     c.relativize_pitch(by_speaker=config.get('by_speaker', True), by_phone=config.get('by_phone', True))
                 elif enrichment_type == 'relativize_intensity':
-                    c.relativize_intensity(by_speaker=config.get('by_speaker', True), by_phone=config.get('by_phone', True))
+                    c.relativize_intensity(by_speaker=config.get('by_speaker', True))
                 elif enrichment_type == 'relativize_formants':
                     c.relativize_formants(by_speaker=config.get('by_speaker', True), by_phone=config.get('by_phone', True))
                 elif enrichment_type == 'praat_script':
