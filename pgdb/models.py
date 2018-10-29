@@ -813,11 +813,11 @@ class Enrichment(models.Model):
                     by_speaker = config.get('by_speaker')
                     c.encode_relativized(annotation_type, property_name, by_speaker)
                 elif enrichment_type == 'relativize_pitch':
-                    c.relativize_pitch(by_speaker=True)
+                    c.relativize_pitch(by_speaker=config.get('by_speaker', True), by_phone=config.get('by_phone', True))
                 elif enrichment_type == 'relativize_intensity':
-                    c.relativize_intensity(by_speaker=True)
+                    c.relativize_intensity(by_speaker=config.get('by_speaker', True), by_phone=config.get('by_phone', True))
                 elif enrichment_type == 'relativize_formants':
-                    c.relativize_formants(by_speaker=True)
+                    c.relativize_formants(by_speaker=config.get('by_speaker', True), by_phone=config.get('by_phone', True))
                 elif enrichment_type == 'praat_script':
                     properties = c.analyze_script(phone_class=config.get('phone_class'), script_path=config.get('path'),
                                                   multiprocessing=False)
