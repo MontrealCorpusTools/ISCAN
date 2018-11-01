@@ -414,7 +414,7 @@
             <md-button class="md-raised" ng-disabled="!newQuery && (query.running || refreshing || exporting)"
                        ng-show="!newQuery" ng-click="generate_export()">Generate CSV export file
             </md-button>
-            <md-button class="md-raised" ng-disabled="!query.export_available"
+            <md-button class="md-raised" ng-disabled="!query.export_available || exporting"
                        ng-show="!newQuery" ng-click="save_export()">Save CSV export file
             </md-button>
         </div>

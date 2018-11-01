@@ -486,6 +486,7 @@ angular.module('query', [
         };
 
         $scope.generate_export = function () {
+            $scope.exporting = true;
             console.log($scope.query)
             Query.generate_export($stateParams.corpus_id, $stateParams.query_id, $scope.query).then(function (res) {
                 $scope.query = res.data;
@@ -678,10 +679,7 @@ angular.module('query', [
 
 
         var getData = function () {
-            if ($scope.exporting) {
-                return
-            }
-            if ($scope.refreshing || ($scope.query != undefined && ($scope.query.running || $scope.query.result_count == null))) {
+            if ($scope.refreshing || $scope.exporting || ($scope.query != undefined && ($scope.query.running || $scope.query.result_count == null))) {
                 Query.one($stateParams.corpus_id, $stateParams.query_id).then(function (res) {
                     $scope.query = res.data;
                     var filter, a_type;
@@ -714,11 +712,22 @@ angular.module('query', [
                     $scope.getHierarchy();
                     console.log('GOT QUERY getdata');
                     console.log($scope.query);
-                    if (!$scope.query.running && $scope.query.result_count != null) {
-                        $scope.refreshing = false;
-                        $scope.paginatorCallback();
-                        cancelNextLoad();
-                        return
+                    if ($scope.exporting){
+                        if (!$scope.query.running && $scope.query.export_available) {
+                            $scope.exporting = false;
+                            cancelNextLoad();
+                            return
+                        }
+
+                    }
+                    else{
+                        if (!$scope.query.running && $scope.query.result_count != null) {
+                            $scope.refreshing = false;
+                            $scope.paginatorCallback();
+                            cancelNextLoad();
+                            return
+                        }
+
                     }
 
                 });
