@@ -315,12 +315,13 @@ class QuerySerializer(serializers.ModelSerializer):
     acoustic_columns = serializers.SerializerMethodField()
     ordering = serializers.SerializerMethodField()
     positions = serializers.SerializerMethodField()
+    export_available = serializers.SerializerMethodField()
 
     class Meta:
         model = models.Query
         fields = ('id', 'name', 'user', 'corpus', 'annotation_type', 'result_count', 'running', 'filters',
                   'positions',
-                  'columns', 'column_names', 'acoustic_columns', 'ordering')
+                  'columns', 'column_names', 'acoustic_columns', 'ordering', 'export_available')
 
     def get_annotation_type(self, obj):
         return obj.get_annotation_type_display()
@@ -342,3 +343,6 @@ class QuerySerializer(serializers.ModelSerializer):
 
     def get_ordering(self, obj):
         return obj.config.get('ordering', '')
+
+    def get_export_available(self, obj):
+        return obj.config.get('export_available', False)

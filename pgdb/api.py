@@ -1,5 +1,4 @@
 import os
-import csv
 import time
 import json
 
@@ -20,7 +19,7 @@ from polyglotdb.query.base.func import Count
 from . import models
 from . import serializers
 from .utils import get_used_ports
-from .tasks import import_corpus_task, run_query_task, run_enrichment_task, reset_enrichment_task, delete_enrichment_task
+from .tasks import import_corpus_task, run_query_task, run_enrichment_task, reset_enrichment_task, delete_enrichment_task, run_query_export_task
 
 import logging
 log = logging.getLogger('polyglot_server')
@@ -1186,10 +1185,9 @@ class QueryViewSet(viewsets.ModelViewSet):
         return Response(data)
 
     @detail_route(methods=['post'])
-    def export(self, request, pk=None, corpus_pk=None):
+    def generate_export(self, request, pk=None, corpus_pk=None):
         if isinstance(request.user, django.contrib.auth.models.AnonymousUser):
             return Response(status=status.HTTP_401_UNAUTHORIZED)
-        response = HttpResponse(content_type='text/csv')
         corpus = models.Corpus.objects.get(pk=corpus_pk)
         if not request.user.is_superuser:
             permissions = corpus.user_permissions.filter(user=request.user).all()
@@ -1203,18 +1201,34 @@ class QueryViewSet(viewsets.ModelViewSet):
             return Response(None, status=status.HTTP_400_BAD_REQUEST)
         if query.running:
             return Response(None, status=status.HTTP_423_LOCKED)
-        print(corpus)
-        do_run = query.config['filters'] != request.data['filters'] or \
-                 query.config['positions'] != request.data['positions']
-        query.config = request.data
-        response['Content-Disposition'] = 'attachment; filename="{}_query_export.csv"'.format(
-            query.get_annotation_type_display())
-        print(query.config)
-        begin = time.time()
-        with CorpusContext(corpus.config) as c:
-            q = query.generate_query_for_export(c)
-            print('GENERATED QUERY')
-            writer = csv.writer(response)
-            q.to_csv(writer)
-        print('DONE WRITING', time.time() - begin)
-        return response
+        c = query.config
+        c.update(request.data)
+        query.config = c
+        run_query_export_task.delay(query.pk)
+        time.sleep(1)
+        return Response(serializers.QuerySerializer(query).data)
+
+    @detail_route(methods=['get'])
+    def get_export_csv(self, request, pk=None, corpus_pk=None):
+        if isinstance(request.user, django.contrib.auth.models.AnonymousUser):
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
+        corpus = models.Corpus.objects.get(pk=corpus_pk)
+        if not request.user.is_superuser:
+            permissions = corpus.user_permissions.filter(user=request.user).all()
+            if not len(permissions) or not permissions[0].can_view_detail:
+                return Response(status=status.HTTP_401_UNAUTHORIZED)
+        if not corpus.database.is_running:
+            return Response("Database is not running, cannot export",
+                    status=status.HTTP_400_BAD_REQUEST)
+        query = models.Query.objects.filter(pk=pk, corpus=corpus).get()
+        if query is None:
+            return Response(None, status=status.HTTP_400_BAD_REQUEST)
+        if query.running:
+            return Response(None, status=status.HTTP_423_LOCKED)
+        if os.path.exists(query.export_path):
+            with open(query.export_path, 'rb') as fh:
+                response = HttpResponse(fh.read(), content_type='text/csv')
+                response['Content-Disposition'] = 'attachment; filename="{}"'.format(
+                    os.path.basename(query.export_path))
+                return response
+        return Response(None, status=status.HTTP_400_BAD_REQUEST)

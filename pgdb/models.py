@@ -6,6 +6,7 @@ import signal
 import json
 import time
 import logging
+import csv
 import socket
 import yaml
 import shutil
@@ -1279,6 +1280,34 @@ class Query(models.Model):
             self.running = False
             self.save()
 
+    def export_query(self):
+        self.running = True
+        config = self.config
+        config['export_available'] = False
+        self.config = config
+        self.save()
+        while os.path.exists(self.lockfile_path):
+            pass
+        with open(self.lockfile_path, 'w') as f:
+            pass
+        try:
+            begin = time.time()
+            with CorpusContext(self.corpus.config) as c, open(self.export_path, 'w', newline='', encoding='utf8') as f:
+                q = self.generate_query_for_export(c)
+                print('GENERATED QUERY')
+                writer = csv.writer(f)
+                q.to_csv(writer)
+            print('DONE WRITING', time.time() - begin)
+            config = self.config
+            config['export_available'] = True
+            self.config = config
+        except:
+            raise
+        finally:
+            os.remove(self.lockfile_path)
+            self.running = False
+            self.save()
+
     def save(self, force_insert=False, force_update=False, using=None,
              update_fields=None):
         super(Query, self).save(force_insert, force_update, using, update_fields)
@@ -1305,3 +1334,7 @@ class Query(models.Model):
     @property
     def results_path(self):
         return os.path.join(self.directory, 'results.txt')
+
+    @property
+    def export_path(self):
+        return os.path.join(self.directory, '{}_export.csv'.format(self.name))

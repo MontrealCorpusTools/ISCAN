@@ -485,11 +485,24 @@ angular.module('query', [
             });
         };
 
+        $scope.generate_export = function () {
+            console.log($scope.query)
+            Query.generate_export($stateParams.corpus_id, $stateParams.query_id, $scope.query).then(function (res) {
+                $scope.query = res.data;
+                getData();
 
-        $scope.export = function () {
+            }).catch(function (res) {
+                console.log('error!', res);
+            });
+
+
+        };
+
+
+        $scope.save_export = function () {
             $scope.exporting = true;
             console.log($scope.query)
-            Query.export($stateParams.corpus_id, $stateParams.query_id, $scope.query).then(function (res) {
+            Query.save_export($stateParams.corpus_id, $stateParams.query_id).then(function (res) {
                 var data = new Blob([res.data], {type: 'text/plain;charset=utf-8'});
                 FileSaver.saveAs(data, $scope.query.name + ' export.csv');
                 $scope.exporting = false;

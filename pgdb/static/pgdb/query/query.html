@@ -412,7 +412,10 @@
                        ng-disabled="!newQuery && (query.running || refreshing || exporting)"><span>Clear filters</span>
             </md-button>
             <md-button class="md-raised" ng-disabled="!newQuery && (query.running || refreshing || exporting)"
-                       ng-show="!newQuery" ng-click="export()">Export to CSV
+                       ng-show="!newQuery" ng-click="generate_export()">Generate CSV export file
+            </md-button>
+            <md-button class="md-raised" ng-disabled="!query.export_available"
+                       ng-show="!newQuery" ng-click="save_export()">Save CSV export file
             </md-button>
         </div>
         <div ng-show="query.result_count==0 && !newQuery">
