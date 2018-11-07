@@ -814,6 +814,24 @@ class EnrichmentViewSet(viewsets.ModelViewSet):
                     'The number of iterations must be an integer.',
                     status=status.HTTP_400_BAD_REQUEST)
             name = 'Encode point formant values via refinement'
+        elif enrich_type == 'vot':
+            stops_label = data.get('stop_label', '')
+            vot_min = data.get('vot_min', '')
+            vot_max = data.get('vot_max', '')
+            window_min = data.get('window_min', '')
+            window_max = data.get('window_max', '')
+            if not stops_label:
+                return Response(
+                        'The stops label must not be blank',
+                        status=status.HTTP_400_BAD_REQUEST)
+            for x, x_name in [(vot_min, 'VOT minimum'), (vot_max, 'VOT maximum'), (window_min, 'window minimum'), (window_max, 'window maximum')]:
+                try: 
+                    int(x)
+                except ValueError:
+                    return Response(
+                            'The {} must be an integer'.format(x_name),
+                        status=status.HTTP_400_BAD_REQUEST)
+            name = 'Calculate VOT of {}'.format(stops_label)
         else:
             return Response(
                 'The enrichment type specified is not supported.',
