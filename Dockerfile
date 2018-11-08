@@ -37,6 +37,16 @@ RUN git clone https://github.com/google/REAPER.git && \
  make
 
 ENV PATH $PATH:/:/REAPER/build
+
+# Get autovot
+
+RUN git clone https://github.com/michaelgoodale/autovot && \
+  cd autovot/autovot/code && \
+  make clean && \
+  make
+
+ENV PATH $PATH:/autovot/autovot/bin
+
 # Get Dockerize
 RUN apt-get update && apt-get install -y wget
 ENV DOCKERIZE_VERSION v0.6.1
@@ -60,6 +70,15 @@ COPY requirements.txt requirements.txt
 RUN env/bin/pip install pip --upgrade
 RUN env/bin/pip install -r requirements.txt
 
+# install alternative conch
+
+RUN git clone -b autovot-support --depth=1 https://github.com/mmcauliffe/Conch-sounds/ && \
+cd Conch-sounds && \
+yes | /site/env/bin/pip uninstall conch_sounds && \
+/site/env/bin/pip install -r requirements.txt && \
+/site/env/bin/python setup.py install
+
+
 # Get django
 RUN find -L . -name . -o -type d -prune -o -type l -exec rm {} +
 RUN env/bin/pip install django psycopg2-binary
@@ -80,6 +99,9 @@ COPY . proj/
 WORKDIR proj/
 RUN DEBIAN_FRONTEND=noninteractive apt-get install -y nodejs npm && \
     npm install -y
+
+# get sox
+RUN apt-get install -y sox python-numpy
 
 # Put bin on path
 RUN export PATH=$PATH:/bin
