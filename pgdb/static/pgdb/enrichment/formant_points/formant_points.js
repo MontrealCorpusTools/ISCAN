@@ -30,6 +30,7 @@ angular.module('formant_points', [
         var f = document.getElementById(file_id).files[0],
             r = new FileReader();
         var name = f.name;
+	r.readAsDataURL(f);
         r.onloadend = function (e) {
             var data = e.target.result;
             var resp = {text: data, file_name: name};
@@ -39,6 +40,12 @@ angular.module('formant_points', [
                 }
             }).catch(function (res) {
                 $scope.error_message = res.data;
+		if($scope.newAcoustic){
+			//Delete half made enrichments which are new. 
+			Enrichment.destroy($stateParams.corpus_id, id).catch(function (res) {
+			    console.log(res);
+			})
+		}
             });
         };
         r.readAsText(f);

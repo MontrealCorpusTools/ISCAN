@@ -78,6 +78,7 @@ angular.module('csvProperties', [
         var f = document.getElementById('CSV-properties-file').files[0],
             r = new FileReader();
         var name = f.name;
+	r.readAsDataURL(f);
         r.onloadend = function (e) {
             var data = e.target.result;
             var resp = {text: data, file_name: name};
@@ -87,6 +88,12 @@ angular.module('csvProperties', [
                 }
             }).catch(function (res) {
                 $scope.error_message = res.data;
+		if($scope.newCSV){
+			//Delete half made enrichments which are new. 
+			Enrichment.destroy($stateParams.corpus_id, id).catch(function (res) {
+			    console.log(res);
+			})
+		}
             });
         }
         r.readAsText(f);
