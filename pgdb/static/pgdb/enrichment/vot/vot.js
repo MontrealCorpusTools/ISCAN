@@ -13,24 +13,38 @@ angular.module('vot', [
 
     if ($stateParams.enrichment_id == null) {
         $scope.newVOT = true;
+	$scope.using_custom_classifier = false;
         $scope.enrichment = {enrichment_type: "vot"};
     } else {
         $scope.newVOT = false;
+	$scope.using_custom_classifier = false;
         Enrichment.one($stateParams.corpus_id, $stateParams.enrichment_id).then(function (res) {
             $scope.enrichment = res.data.config;
         });
     }
 
     $scope.save = function () {
+	if ($scope.using_custom_classifier && document.getElementById('vot-classifier').files.length == 0) {
+		$scope.error_message = "You must upload a classifier"
+		return;
+	}
         if ($scope.newVOT) {
             Enrichment.create($stateParams.corpus_id, $scope.enrichment).then(function (res) {
-	        $state.go('enrichment', {corpus_id: $stateParams.corpus_id});
+		if($scope.using_custom_classifier){
+                     $scope.uploadVOTClassifier(res.data.id);
+		}else{
+	             $state.go('enrichment', {corpus_id: $stateParams.corpus_id});
+		}
             }).catch(function (res) {
                 $scope.error_message = res.data;
             });
         } else {
             Enrichment.update($stateParams.corpus_id, $stateParams.enrichment_id, $scope.enrichment).then(function (res) {
-	        $state.go('enrichment', {corpus_id: $stateParams.corpus_id});
+		if($scope.using_custom_classifier){
+                     $scope.uploadVOTClassifier($stateParams.enrichment_id);
+		}else{
+	             $state.go('enrichment', {corpus_id: $stateParams.corpus_id});
+		}
             }).catch(function (res) {
                 $scope.error_message = res.data;
             });
@@ -60,6 +74,31 @@ angular.module('vot', [
         $scope.enrichment.window_min = -30;
         $scope.enrichment.window_max = 30;
     }
+
+    $scope.uploadVOTClassifier = function (id) {
+        var f = document.getElementById('vot-classifier').files[0],
+            r = new FileReader();
+        var name = f.name;
+	r.readAsDataURL(f);
+        r.onloadend = function (e) {
+            var data = e.target.result;
+            var resp = {text: data, file_name: name};
+            Enrichment.create_file($stateParams.corpus_id, id, resp).then(function (e) {
+                if (e.data) {
+                    $state.go('enrichment', {corpus_id: $stateParams.corpus_id});
+                }
+            }).catch(function (res) {
+                $scope.error_message = res.data;
+		if($scope.newVOT){
+			//Delete half made custom classifier enrichments which are new. 
+			Enrichment.destroy($stateParams.corpus_id, id).catch(function (res) {
+			    console.log(res);
+			})
+		}
+            });
+        }
+        r.readAsText(f);
+    };
 
     $scope.getHelp = function (ev, helpType) {
         // Appending dialog to document.body to cover sidenav in docs app

@@ -10,7 +10,21 @@
 				</md-option>
 			 </md-select>
 		</md-input-container>
-		<md-button class="md-icon-button" aria-label="Help" ng-click="getHelp($event, 'file_type')">
+		<md-button class="md-icon-button" aria-label="Help" ng-click="getHelp($event, 'stop_subset')">
+			<md-tooltip md-direction="below">Help</md-tooltip>
+		       <i class="material-icons">info</i>
+		</md-button>
+	</div>
+        <div layout="row" flex layout-align="space-between none">
+		<md-input-container>
+			<label>Use {{ newVOT ? 'custom' : 'different' }} classifier</label>
+			<input type="checkbox" ng-model="using_custom_classifier"/>
+		</md-input-container>
+		<md-input-container ng-if="using_custom_classifier">
+			<label for="vot-classifier" class="md-raised">Upload classifier</label>
+			<input id="vot-classifier" type="file"/>
+		</md-input-container>
+		<md-button class="md-icon-button" aria-label="Help" ng-click="getHelp($event, 'classifier')">
 			<md-tooltip md-direction="below">Help</md-tooltip>
 		       <i class="material-icons">info</i>
 		</md-button>
