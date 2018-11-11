@@ -834,7 +834,7 @@ class Enrichment(models.Model):
                     c.encode_stress_from_word_property(config.get('word_property'))
                 elif enrichment_type == 'vot':
                     c.analyze_vot(stop_label=config.get('stop_label'),
-                            classifier='/site/proj/PolyglotDB/tests/data/classifier/sotc_classifiers/sotc_voiceless.classifier',
+                            classifier=config.get('classifier', '/site/proj/PolyglotDB/tests/data/classifier/sotc_classifiers/sotc_voiceless.classifier'),
                             vot_min=int(config.get('vot_min')),
                             vot_max=int(config.get('vot_max')),
                             window_min=int(config.get('window_min')),
