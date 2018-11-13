@@ -13,7 +13,9 @@ RUN apt-get update && apt-get install -y \
     python3-venv \
     zlib1g-dev \
     ruby-sass \
-    procps
+    procps \
+    sox \
+    python-numpy
 
 RUN add-apt-repository -y ppa:webupd8team/java && \
     apt-get update -y && \
@@ -40,7 +42,7 @@ ENV PATH $PATH:/:/REAPER/build
 
 # Get autovot
 
-RUN git clone https://github.com/michaelgoodale/autovot && \
+RUN git clone https://github.com/mlml/autovot && \
   cd autovot/autovot/code && \
   make clean && \
   make
@@ -70,14 +72,6 @@ COPY requirements.txt requirements.txt
 RUN env/bin/pip install pip --upgrade
 RUN env/bin/pip install -r requirements.txt
 
-# install alternative conch
-
-RUN git clone -b autovot-support --depth=1 https://github.com/mmcauliffe/Conch-sounds/ && \
-cd Conch-sounds && \
-yes | /site/env/bin/pip uninstall conch_sounds && \
-/site/env/bin/pip install -r requirements.txt && \
-/site/env/bin/python setup.py install
-
 
 # Get django
 RUN find -L . -name . -o -type d -prune -o -type l -exec rm {} +
@@ -100,8 +94,6 @@ WORKDIR proj/
 RUN DEBIAN_FRONTEND=noninteractive apt-get install -y nodejs npm && \
     npm install -y
 
-# get sox
-RUN apt-get install -y sox python-numpy
 
 # Put bin on path
 RUN export PATH=$PATH:/bin
