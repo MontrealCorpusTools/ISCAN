@@ -14,8 +14,7 @@ RUN apt-get update && apt-get install -y \
     zlib1g-dev \
     ruby-sass \
     procps \
-    sox \
-    python-numpy
+    sox
 
 RUN add-apt-repository -y ppa:webupd8team/java && \
     apt-get update -y && \
