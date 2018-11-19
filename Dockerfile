@@ -95,7 +95,10 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get install -y nodejs npm && \
 
 
 # Put bin on path
-RUN export PATH=$PATH:/bin
+ENV PATH=$PATH:/bin
+
+# Put venv on path
+ENV PATH=/site/env/bin:$PATH
 
 EXPOSE 8080
 
