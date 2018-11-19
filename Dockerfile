@@ -13,7 +13,9 @@ RUN apt-get update && apt-get install -y \
     python3-venv \
     zlib1g-dev \
     ruby-sass \
-    procps
+    procps \
+    sox \
+    python-numpy
 
 RUN add-apt-repository -y ppa:webupd8team/java && \
     apt-get update -y && \
@@ -37,6 +39,16 @@ RUN git clone https://github.com/google/REAPER.git && \
  make
 
 ENV PATH $PATH:/:/REAPER/build
+
+# Get autovot
+
+RUN git clone https://github.com/mlml/autovot && \
+  cd autovot/autovot/code && \
+  make clean && \
+  make
+
+ENV PATH $PATH:/autovot/autovot/bin
+
 # Get Dockerize
 RUN apt-get update && apt-get install -y wget
 ENV DOCKERIZE_VERSION v0.6.1
@@ -60,6 +72,7 @@ COPY requirements.txt requirements.txt
 RUN env/bin/pip install pip --upgrade
 RUN env/bin/pip install -r requirements.txt
 
+
 # Get django
 RUN find -L . -name . -o -type d -prune -o -type l -exec rm {} +
 RUN env/bin/pip install django psycopg2-binary
@@ -80,6 +93,7 @@ COPY . proj/
 WORKDIR proj/
 RUN DEBIAN_FRONTEND=noninteractive apt-get install -y nodejs npm && \
     npm install -y
+
 
 # Put bin on path
 RUN export PATH=$PATH:/bin

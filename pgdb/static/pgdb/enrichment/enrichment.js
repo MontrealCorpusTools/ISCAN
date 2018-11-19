@@ -165,6 +165,10 @@ angular.module('enrichment', [
         $state.go('new_pitch_tracks', {corpus_id: $stateParams.corpus_id});
     };
 
+    $scope.createVOT = function () {
+        $state.go('new_vot', {corpus_id: $stateParams.corpus_id});
+    };
+
     $scope.createFormantTracks = function () {
         $state.go('new_formant_tracks', {corpus_id: $stateParams.corpus_id});
     };

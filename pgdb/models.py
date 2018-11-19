@@ -654,6 +654,10 @@ class Enrichment(models.Model):
             elif enrichment_type == 'utterances':
                 if not (c.hierarchy.has_token_subset('word', 'pause')):
                     return 'Must encode pauses'
+            elif enrichment_type == 'vot':
+                #Check if utterances
+                if not True:
+                    return 'Must encode utterances'
             elif '_csv' in enrichment_type:
                 if config.get('path') is None:
                     return 'Must attach a file'
@@ -713,6 +717,8 @@ class Enrichment(models.Model):
                     c.reset_formant_points()
                 elif enrichment_type == 'intensity':
                     c.reset_intensity()
+                elif enrichment_type == 'vot':
+                    c.reset_vot()
                 elif enrichment_type == 'relativize_property':
                     annotation_type = config.get('annotation_type')
                     property_name = 'relativized_' + config.get('property_name')
@@ -826,6 +832,13 @@ class Enrichment(models.Model):
                     self.config = config
                 elif enrichment_type == 'patterned_stress':
                     c.encode_stress_from_word_property(config.get('word_property'))
+                elif enrichment_type == 'vot':
+                    c.analyze_vot(stop_label=config.get('stop_label'),
+                            classifier=config.get('classifier', '/site/proj/PolyglotDB/tests/data/classifier/sotc_classifiers/sotc_voiceless.classifier'),
+                            vot_min=int(config.get('vot_min')),
+                            vot_max=int(config.get('vot_max')),
+                            window_min=int(config.get('window_min')),
+                            window_max=int(config.get('window_max')))
             self.running = False
             self.completed = True
             self.last_run = datetime.datetime.now()

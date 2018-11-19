@@ -38,6 +38,7 @@ var app = angular.module('pgdb', [
     'stressWordPropEnrichment',
     'syllableEnrichment',
     'hierarchical',
+    'vot',
     'csvProperties'
 ]).run(
     function ($http, $cookies) {
@@ -188,6 +189,14 @@ app.config(function ($stateProvider, $urlRouterProvider) {
         url: '/corpora/:corpus_id/enrichment/csv-properties/{enrichment_id:int}',
         templateUrl: static('pgdb/enrichment/csv-properties/csv-properties.html'),
         controller: 'CSVPropertiesCtrl'
+        }).state('new_vot', {
+        url: '/corpora/:corpus_id/enrichment/vot',
+        templateUrl: static('pgdb/enrichment/vot/vot.html'),
+        controller: 'VOTCtrl'
+        }).state('edit_vot', {
+        url: '/corpora/:corpus_id/enrichment/vot/{enrichment_id:int}',
+        templateUrl: static('pgdb/enrichment/vot/vot.html'),
+        controller: 'VOTCtrl'
         }).state('new_utterances', {
         url: '/corpora/:corpus_id/enrichment/utterances',
         templateUrl: static('pgdb/enrichment/annotation-level/utterance.html'),

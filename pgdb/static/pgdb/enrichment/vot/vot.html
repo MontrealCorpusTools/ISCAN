@@ -1,0 +1,71 @@
+<div layout="row" layout-align="center start">
+    <div layout="column">
+        <h4>Enrich with AutoVOT</h4>
+        <div layout="row" flex layout-align="space-between none">
+		<md-input-container>
+			<label>Stop subset:</label>
+			 <md-select ng-model="enrichment.stop_label">
+				<md-option ng-value="choice"
+					   ng-repeat="choice in phone_subsets">{{choice }}
+				</md-option>
+			 </md-select>
+		</md-input-container>
+		<md-button class="md-icon-button" aria-label="Help" ng-click="getHelp($event, 'stop_subset')">
+			<md-tooltip md-direction="below">Help</md-tooltip>
+		       <i class="material-icons">info</i>
+		</md-button>
+	</div>
+        <div layout="row" flex layout-align="space-between none">
+		<md-input-container>
+			<label>Use {{ newVOT ? 'custom' : 'different' }} classifier</label>
+			<input type="checkbox" ng-model="using_custom_classifier"/>
+		</md-input-container>
+		<md-input-container ng-if="using_custom_classifier">
+			<label for="vot-classifier" class="md-raised">Upload classifier</label>
+			<input id="vot-classifier" type="file"/>
+		</md-input-container>
+		<md-button class="md-icon-button" aria-label="Help" ng-click="getHelp($event, 'classifier')">
+			<md-tooltip md-direction="below">Help</md-tooltip>
+		       <i class="material-icons">info</i>
+		</md-button>
+	</div>
+        <div layout="row" flex layout-align="space-between none">
+		<md-input-container>
+			 <label>VOT Min:</label>
+			 <input type="number" ng-model="enrichment.vot_min" min="0" max="500">
+		</md-input-container>
+		<md-input-container>
+			 <label>VOT Max:</label>
+			 <input type="number" ng-model="enrichment.vot_max" min="0" max="500">
+		</md-input-container>
+		<md-button class="md-icon-button" aria-label="Help" ng-click="getHelp($event, 'vot_minmax')">
+			<md-tooltip md-direction="below">Help</md-tooltip>
+		       <i class="material-icons">info</i>
+		</md-button>
+	</div>
+        <div layout="row" flex layout-align="space-between none">
+		<md-input-container>
+			 <label>Window Min:</label>
+			 <input type="number" ng-model="enrichment.window_min">
+		</md-input-container>
+		<md-input-container>
+			 <label>Window Max:</label>
+			 <input type="number" ng-model="enrichment.window_max">
+		</md-input-container>
+		<md-button class="md-icon-button" aria-label="Help" ng-click="getHelp($event, 'vot_minmax')">
+			<md-tooltip md-direction="below">Help</md-tooltip>
+		       <i class="material-icons">info</i>
+		</md-button>
+        </div>
+        <div layout="row" flex layout-align="space-between none">
+		<md-button class="md-button" ng-click="setToDefault(true)">
+			Voiced default
+		</md-button>
+		<md-button class="md-button" ng-click="setToDefault(false)">
+			Voiceless default
+		</md-button>
+        </div>
+        <span ng-bind="error_message" style="color: red"></span>
+        <md-button class="md-primary md-raised" ng-click="save()">Save enrichment</md-button>
+    </div>
+</div>

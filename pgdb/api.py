@@ -1,6 +1,8 @@
 import os
 import time
 import json
+import zipfile
+import base64
 
 import django
 from django.conf import settings
@@ -814,6 +816,24 @@ class EnrichmentViewSet(viewsets.ModelViewSet):
                     'The number of iterations must be an integer.',
                     status=status.HTTP_400_BAD_REQUEST)
             name = 'Encode point formant values via refinement'
+        elif enrich_type == 'vot':
+            stops_label = data.get('stop_label', '')
+            vot_min = data.get('vot_min', '')
+            vot_max = data.get('vot_max', '')
+            window_min = data.get('window_min', '')
+            window_max = data.get('window_max', '')
+            if not stops_label:
+                return Response(
+                        'The stops label must not be blank',
+                        status=status.HTTP_400_BAD_REQUEST)
+            for x, x_name in [(vot_min, 'VOT minimum'), (vot_max, 'VOT maximum'), (window_min, 'window minimum'), (window_max, 'window maximum')]:
+                try: 
+                    int(x)
+                except ValueError:
+                    return Response(
+                            'The {} must be an integer'.format(x_name),
+                        status=status.HTTP_400_BAD_REQUEST)
+            name = 'Calculate VOT of {}'.format(stops_label)
         else:
             return Response(
                 'The enrichment type specified is not supported.',
@@ -845,13 +865,32 @@ class EnrichmentViewSet(viewsets.ModelViewSet):
                 'The file must have a name.',
                 status=status.HTTP_400_BAD_REQUEST)
         file_path = os.path.join(enrichment.directory, request.data["file_name"])
-        with open(file_path, "w") as f:
-            f.write(request.data["text"])
+        with open(file_path, "wb+") as f:
+            f.write(base64.b64decode(request.data["text"].split(',')[1]))
         enrich_type = enrichment.config.get('enrichment_type')
-        enrichment.name = 'Enrich {} from {}'.format(enrich_type.split('_')[0], request.data['file_name'])
-        enrichment.save()
-        enrichment.config = {**enrichment.config,
-                             **{'path': str(file_path)}}
+        if enrich_type == "vot":
+            if not zipfile.is_zipfile(file_path):
+                return Response(
+                        'The classifier must be in a zip file',
+                        status=status.HTTP_400_BAD_REQUEST)
+            with zipfile.ZipFile(file_path) as classifier_zip:
+                classifier_names = list(filter(lambda x: x.endswith(".pos") or x.endswith(".neg"), classifier_zip.namelist()))
+                if len(classifier_names) != 2 or classifier_names[0][:-4:] != classifier_names[1][:-4:]:
+                    return Response(
+                            'Zip files must contain only the two classifier files which have the same filename except for .neg and .pos file extensions',
+                            status=status.HTTP_400_BAD_REQUEST)
+                for x in classifier_names:
+                    classifier_zip.extract(x, enrichment.directory)
+                classifier_path = os.path.join(enrichment.directory, classifier_names[0][:-4:])
+                enrichment.config = {**enrichment.config,
+                                     **{'classifier': str(classifier_path)}}
+                enrichment.save()
+            os.remove(file_path)
+        else:
+            enrichment.name = 'Enrich {} from {}'.format(enrich_type.split('_')[0], request.data['file_name'])
+            enrichment.save()
+            enrichment.config = {**enrichment.config,
+                                 **{'path': str(file_path)}}
         return Response(True)
 
     @detail_route(methods=['post'])
