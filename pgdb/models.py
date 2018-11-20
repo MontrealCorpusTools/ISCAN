@@ -656,7 +656,7 @@ class Enrichment(models.Model):
                     return 'Must encode pauses'
             elif enrichment_type == 'vot':
                 #Check if utterances
-                if not True:
+                if not "utterance" in c.hierarchy.annotation_types:
                     return 'Must encode utterances'
             elif '_csv' in enrichment_type:
                 if config.get('path') is None:
