@@ -14,8 +14,7 @@ RUN apt-get update && apt-get install -y \
     zlib1g-dev \
     ruby-sass \
     procps \
-    sox \
-    python-numpy
+    sox
 
 RUN add-apt-repository -y ppa:webupd8team/java && \
     apt-get update -y && \
@@ -96,7 +95,10 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get install -y nodejs npm && \
 
 
 # Put bin on path
-RUN export PATH=$PATH:/bin
+ENV PATH=$PATH:/bin
+
+# Put venv on path
+ENV PATH=/site/env/bin:$PATH
 
 EXPOSE 8080
 
