@@ -7,7 +7,7 @@ angular.module('vot', [
     djangoAuth.authenticationStatus(true).then(function () {
 	    Corpora.hierarchy($stateParams.corpus_id).then(function (res) {
 		$scope.hierarchy = res.data;
-		$scope.phone_subsets = $scope.hierarchy.subset_types.phone;
+		$scope.phone_subsets = $scope.hierarchy.subset_types.phone.concat($scope.hierarchy.subset_tokens.phone);
 	    });
     })
 
