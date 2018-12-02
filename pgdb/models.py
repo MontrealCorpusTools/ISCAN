@@ -1308,7 +1308,7 @@ class Query(models.Model):
             begin = time.time()
             with CorpusContext(self.corpus.config) as c:
                 q = self.generate_query_for_export(c)
-                q.create_subset(config["name"])
+                q.create_subset(config["subset_name"])
                 c.encode_hierarchy()
             config = self.config
             config['subset_encoded'] = True

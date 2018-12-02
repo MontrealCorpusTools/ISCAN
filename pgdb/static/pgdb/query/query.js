@@ -499,18 +499,31 @@ angular.module('query', [
 
         };
 
-        $scope.generate_subset = function () {
+        $scope.generate_subset = function(ev) {
             $scope.exporting = true;
             console.log($scope.query)
-            Query.generate_subset($stateParams.corpus_id, $stateParams.query_id, $scope.query).then(function (res) {
-                $scope.query = res.data;
-                getData();
-
-            }).catch(function (res) {
-                console.log('error!', res);
-            });
-
-
+	    var name_prompt = $mdDialog.prompt()
+	    	                       .parent(angular.element(document.querySelector('html')))
+	    	                       .title("Subset name")
+	    	                       .textContent("Choose a name for the new subset")
+		                       .initialValue($scope.query.subset_name ? $scope.query.subset_name : $scope.query.name)
+		                       .targetEvent(ev)
+		                       .required(true)
+	    	                       .ok("Okay")
+		                       .cancel("Cancel subset encoding")
+	    $mdDialog.show(name_prompt).then(function(subset_name) {
+		    $scope.query.subset_name = subset_name;
+		    Query.generate_subset($stateParams.corpus_id, $stateParams.query_id, $scope.query).then(function (res) {
+			$scope.query = res.data;
+			getData();
+		    }).catch(function (res) {
+			console.log('error!', res);
+		    });
+	    }, function() {
+		    console.log("Subset encoding canceled");
+		    $scope.exporting = false;
+	    }
+	    );
         };
 
 

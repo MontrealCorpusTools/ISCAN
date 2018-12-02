@@ -418,7 +418,7 @@
                        ng-show="!newQuery" ng-click="save_export()">Save CSV export file
             </md-button>
             <md-button class="md-raised" ng-disabled="!newQuery && (query.running || refreshing || exporting)"
-                       ng-show="!newQuery" ng-click="generate_subset()">Generate subset from query
+                       ng-show="!newQuery" ng-click="generate_subset($event)">Generate subset from query
             </md-button>
         </div>
         <div ng-show="query.result_count==0 && !newQuery">

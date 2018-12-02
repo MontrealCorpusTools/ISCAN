@@ -1224,7 +1224,7 @@ class QueryViewSet(viewsets.ModelViewSet):
         return Response(data)
 
     @detail_route(methods=['post'])
-    def generate_subset(self, request, pk=None, corpus_pk=None):
+    def generate_subset(self, request, pk=None, corpus_pk=None, *args, **kwargs):
         if isinstance(request.user, django.contrib.auth.models.AnonymousUser):
             return Response(status=status.HTTP_401_UNAUTHORIZED)
         corpus = models.Corpus.objects.get(pk=corpus_pk)
@@ -1232,9 +1232,17 @@ class QueryViewSet(viewsets.ModelViewSet):
             permissions = corpus.user_permissions.filter(user=request.user).all()
             if not len(permissions) or not permissions[0].can_view_detail:
                 return Response(status=status.HTTP_401_UNAUTHORIZED)
+        if not request.data.get('subset_name', ''):
+            return Response(
+                'The subset must have a name.',
+                status=status.HTTP_400_BAD_REQUEST)
         if not corpus.database.is_running:
             return Response("Database is not running, cannot generate subset",
                     status=status.HTTP_400_BAD_REQUEST)
+        with CorpusContext(corpus.config) as g:
+            if g.hierarchy.has_token_subset(request.data.get('annotation_type', ''), request.data.get('subset_name', '')):
+                return Response("There is already a subset with the name, {}".format(request.data.get('subset_name', '')), 
+                        status=status.HTTP_400_BAD_REQUEST)
         query = models.Query.objects.filter(pk=pk, corpus=corpus).get()
         if query is None:
             return Response(None, status=status.HTTP_400_BAD_REQUEST)
