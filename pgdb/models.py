@@ -1293,6 +1293,33 @@ class Query(models.Model):
             self.running = False
             self.save()
 
+    def generate_subset(self):
+        self.running = True
+        config = self.config
+        config['subset_encoded'] = False
+        self.config = config
+        print(config)
+        self.save()
+        while os.path.exists(self.lockfile_path):
+            pass
+        with open(self.lockfile_path, 'w') as f:
+            pass
+        try:
+            begin = time.time()
+            with CorpusContext(self.corpus.config) as c:
+                q = self.generate_query_for_export(c)
+                q.create_subset(config["name"])
+                c.encode_hierarchy()
+            config = self.config
+            config['subset_encoded'] = True
+            self.config = config
+        except:
+            raise
+        finally:
+            os.remove(self.lockfile_path)
+            self.running = False
+            self.save()
+
     def export_query(self):
         self.running = True
         config = self.config

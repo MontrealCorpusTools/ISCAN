@@ -99,6 +99,11 @@ angular.module('pgdb.query')
             return base_url + corpus_id + '/query/' + id + '/export/';
         };
 
+        Query.generate_subset = function (corpus_id, id, query_data) {
+
+            return $http.post(base_url + corpus_id + '/query/' + id + '/generate_subset/', query_data);
+        };
+
         Query.generate_export = function (corpus_id, id, query_data) {
 
             return $http.post(base_url + corpus_id + '/query/' + id + '/generate_export/', query_data);

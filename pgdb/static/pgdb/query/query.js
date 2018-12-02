@@ -499,6 +499,20 @@ angular.module('query', [
 
         };
 
+        $scope.generate_subset = function () {
+            $scope.exporting = true;
+            console.log($scope.query)
+            Query.generate_subset($stateParams.corpus_id, $stateParams.query_id, $scope.query).then(function (res) {
+                $scope.query = res.data;
+                getData();
+
+            }).catch(function (res) {
+                console.log('error!', res);
+            });
+
+
+        };
+
 
         $scope.save_export = function () {
             $scope.exporting = true;
@@ -712,6 +726,7 @@ angular.module('query', [
                     $scope.getHierarchy();
                     console.log('GOT QUERY getdata');
                     console.log($scope.query);
+		    console.log($scope.hierarchy);
                     if ($scope.exporting){
                         if (!$scope.query.running && $scope.query.export_available) {
                             $scope.exporting = false;

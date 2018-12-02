@@ -33,6 +33,10 @@ def run_query_export_task(query_id):
     query = Query.objects.get(pk=query_id)
     query.export_query()
 
+@shared_task
+def run_query_generate_subset_task(query_id):
+    query = Query.objects.get(pk=query_id)
+    query.generate_subset()
 
 @shared_task
 def run_enrichment_task(enrichment_id):
