@@ -645,6 +645,9 @@ class Enrichment(models.Model):
                 annotation_type = config.get('annotation_type')
                 if not (annotation_type in c.hierarchy.annotation_types):
                     return 'Must encode {}'.format(annotation_type)
+                if c.hierarchy.has_token_subset(annotation_type, data.get('subset_label', '')) or \
+                        c.hierarchy.has_type_subset(annotation_type, data.get('subset_label', '')):
+                    return "The {} subset already exists".format(data.get('subset_label', ''))
             elif enrichment_type == 'syllables':
                 if not (c.hierarchy.has_type_subset('phone', config.get('phone_class', 'syllabic'))):
                     return 'Must encode {}'.format(config.get('phone_class', 'syllabic'))

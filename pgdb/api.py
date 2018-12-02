@@ -749,6 +749,12 @@ class EnrichmentViewSet(viewsets.ModelViewSet):
                 return Response(
                     'The subset cannot be empty.',
                     status=status.HTTP_400_BAD_REQUEST)
+            with CorpusContext(corpus.config) as c:
+                if c.hierarchy.has_token_subset(data.get('annotation_type', ''), data.get('subset_label', '')) or \
+                        c.hierarchy.has_type_subset(data.get('annotation_type', ''), data.get('subset_label', '')):
+                    return Response(
+                            "The {} subset already exists".format(data.get('subset_label', '')),
+                            status=status.HTTP_400_BAD_REQUEST)
             name = 'Encode {} subset'.format(label)
 
         #Stress pattern validation
@@ -1240,7 +1246,8 @@ class QueryViewSet(viewsets.ModelViewSet):
             return Response("Database is not running, cannot generate subset",
                     status=status.HTTP_400_BAD_REQUEST)
         with CorpusContext(corpus.config) as g:
-            if g.hierarchy.has_token_subset(request.data.get('annotation_type', ''), request.data.get('subset_name', '')):
+            if g.hierarchy.has_token_subset(request.data.get('annotation_type', ''), request.data.get('subset_name', '')) or \
+                    g.hierarchy.has_type_subset(request.data.get('annotation_type', ''), request.data.get('subset_name', '')):
                 return Response("There is already a subset with the name, {}".format(request.data.get('subset_name', '')), 
                         status=status.HTTP_400_BAD_REQUEST)
         query = models.Query.objects.filter(pk=pk, corpus=corpus).get()
