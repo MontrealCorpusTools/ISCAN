@@ -509,7 +509,7 @@ angular.module('query', [
 		                       .initialValue($scope.query.subset_name ? $scope.query.subset_name : $scope.query.name)
 		                       .targetEvent(ev)
 		                       .required(true)
-	    	                       .ok("Okay")
+	    	                       .ok("Use this name")
 		                       .cancel("Cancel subset encoding")
 	    $mdDialog.show(name_prompt).then(function(subset_name) {
 		    $scope.query.subset_name = subset_name;
