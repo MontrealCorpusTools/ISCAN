@@ -516,8 +516,10 @@ angular.module('query', [
 		    Query.generate_subset($stateParams.corpus_id, $stateParams.query_id, $scope.query).then(function (res) {
 			$scope.query = res.data;
 			getData();
+		        $scope.exporting = false;
 		    }).catch(function (res) {
 			console.log('error!', res);
+			$scope.exporting = false;
 		    });
 	    }, function() {
 		    console.log("Subset encoding canceled");
