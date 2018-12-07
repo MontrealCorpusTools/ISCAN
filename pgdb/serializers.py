@@ -283,7 +283,6 @@ def serializer_factory(hierarchy, a_type, positions=None, exclude=None, acoustic
                 supertype = hierarchy[supertype]
         if with_lower_annotations:
             subs = hierarchy.contains(a_type)
-
             for s in subs:
                 attrs[s] = serializer_factory(hierarchy, s, with_subannotations=with_subannotations)(many=True)
     return type(base)(class_name, (base,), attrs)

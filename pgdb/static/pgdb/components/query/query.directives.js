@@ -52,6 +52,15 @@ angular.module('pgdb.query').filter('secondsToDateTime', [function () {
                                 return xt(d.end) - xt(d.begin)
                             });
 
+                        vis.selectAll("rect.subannotation")
+                            .attr("height", function (d) {
+                                return y(1) - y(2)
+                            })
+                            .attr("x", annotation_x_function)
+                            .attr("width", function (d) {
+                                return xt(d.end) - xt(d.begin)
+                            });
+
                         vis.selectAll("text.annotation")
                             .attr("x", function (d) {
                                 return (xt(d.end) - xt(d.begin)) / 2 + xt(d.begin)
@@ -92,7 +101,12 @@ angular.module('pgdb.query').filter('secondsToDateTime', [function () {
                             .attr("y", function (d) {
                                 return y(2.5)
                             });
-
+			for(var i = 0; i < scope.data.viewableSubannotations.length; i++){
+				vis.selectAll("rect."+scope.data.viewableSubannotations[i][1])
+				    .attr("y", function (d) {
+					return y(-i)
+				    });
+			}
                     }
 
             function resize() {
@@ -146,6 +160,7 @@ angular.module('pgdb.query').filter('secondsToDateTime', [function () {
 
                 var zoom_scales = [1, 30];
                 var y = d3.scaleLinear().range([height, 0]).nice();
+                //y.domain([-(scope.data.viewableSubannotations.length), 3]);
                 y.domain([0, 3]);
 
                 var annotation_x_function = function (d) {
@@ -243,6 +258,26 @@ angular.module('pgdb.query').filter('secondsToDateTime', [function () {
                         return;
                     }
                     console.log('datachanged', newVal)
+		    y.domain([-(scope.data.viewableSubannotations.length), 3]);
+		    console.log(y.domain());
+		    
+	            //Updates ticks to be from the bottom of subannotations up.
+		    yaxis.tickValues(Array.from(new Array(y.domain()[1]-y.domain()[0]), (x,i) => i + y.domain()[0] + 0.5))
+                    .tickFormat(function (d) {
+			if (d < 0) {
+			    //gets the corresponding subannotation by turning the negative tick into a positive int. 
+			    return scope.data.viewableSubannotations[-1*(d+0.5)][1]
+			}
+                        if (d === 0.5) {
+                            return 'Phone'
+                        }
+                        if (d === 1.5) {
+                            return 'Syllable'
+                        }
+                        if (d === 2.5) {
+                            return 'Word'
+                        }
+                    });
                     x.domain([newVal.begin, newVal.end]);
                     annotation_vis.select('.xaxis').call(xaxis.scale(xt));
                     if (scope.selectedAnnotation) {
@@ -405,7 +440,21 @@ angular.module('pgdb.query').filter('secondsToDateTime', [function () {
                             .text(function (d) {
                                 return d.label
                             });
-
+			newVal.viewableSubannotations.forEach(function (x) {
+				var annotation_type = x[0];
+				var subannotation = x[1];
+				b = boxes.selectAll('g.subannotation.'+subannotation).data(newVal[annotation_type].map(x => x[subannotation]).flat())
+				    .enter().append("g");
+				b.append("rect")
+				    .classed("subannotation", true)
+				    .classed(subannotation, true)
+				    .attr("x", annotation_x_function)
+				    .attr('fill-opacity', 0)
+				    .attr("stroke", 'black')
+				    .attr("width", function (d) {
+					return xt(d.end) - xt(d.begin)
+				    });
+			});
                         drawAnnotations();
                     }
 

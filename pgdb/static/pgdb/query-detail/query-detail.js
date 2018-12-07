@@ -72,7 +72,8 @@ angular.module('queryDetail', [
                         discourse: {},
                         speaker: {}
                     };
-
+		    //List of subannotations where subannotations are a 2-array of type and subannotation_type
+	            $scope.subannotations = Object.keys($scope.hierarchy.subannotations).map(x => $scope.hierarchy.subannotations[x].map(y => [x, y])).flat(1);
                     console.log($scope.query);
                     $scope.runQuery();
                 });
@@ -198,6 +199,7 @@ angular.module('queryDetail', [
                 }
                 Query.oneAnnotation($stateParams.corpus_id, $stateParams.query_id, $scope.detail_index, $scope.paginateParams.ordering, true, true, true).then(function (res) {
                     $scope.utterance = res.data.utterance;
+		    $scope.utterance.viewableSubannotations = [];
                     console.log("SANITY", $scope.utterance);
                     $scope.selectedResult = res.data.result;
                     $scope.speaker = $scope.selectedResult.speaker;
@@ -280,6 +282,12 @@ angular.module('queryDetail', [
                 $state.go('query-detail', {corpus_id: $stateParams.corpus_id, query_id: $stateParams.query_id, detail_index:$scope.detail_index-1});
                 }
             };
+
+	    $scope.$watch('subannotations', function(nv) {
+		    if($scope.utterance && $scope.utterance.viewableSubannotations)
+			    $scope.utterance.viewableSubannotations = nv.filter(x => x[2]).map(x => [x[0], x[1]]);
+		    console.log("weeeeewoooo");
+	    }, true);
 
             Corpora.one($stateParams.corpus_id).then(function (res) {
                 $scope.corpus = res.data;
