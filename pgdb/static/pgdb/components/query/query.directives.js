@@ -461,7 +461,7 @@ angular.module('pgdb.query').filter('secondsToDateTime', [function () {
                     updateAnnotations();
 
 
-                });
+                }, true);
             }
         }
     })

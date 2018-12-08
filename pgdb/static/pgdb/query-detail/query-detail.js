@@ -286,7 +286,6 @@ angular.module('queryDetail', [
 	    $scope.$watch('subannotations', function(nv) {
 		    if($scope.utterance && $scope.utterance.viewableSubannotations)
 			    $scope.utterance.viewableSubannotations = nv.filter(x => x[2]).map(x => [x[0], x[1]]);
-		    console.log("weeeeewoooo");
 	    }, true);
 
             Corpora.one($stateParams.corpus_id).then(function (res) {
