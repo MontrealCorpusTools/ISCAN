@@ -3,6 +3,7 @@ import time
 import json
 import zipfile
 import base64
+from distutils.util import strtobool
 
 import django
 from django.conf import settings
@@ -1169,9 +1170,9 @@ class QueryViewSet(viewsets.ModelViewSet):
         limit = 1
         offset = index
 
-        with_waveform = request.query_params.get('with_waveform', False)
-        with_spectrogram = request.query_params.get('with_spectrogram', False)
-        with_subannotations = request.query_params.get('with_subannotations', True)
+        with_waveform = bool(strtobool(request.query_params.get('with_waveform', 'False')))
+        with_spectrogram = bool(strtobool(request.query_params.get('with_spectrogram', 'False')))
+        with_subannotations = bool(strtobool(request.query_params.get('with_subannotations', 'True')))
         result = query.get_results(ordering, limit, offset)[0]
         utterance_id = result['utterance']['current']['id']
         data = {'result': result}
