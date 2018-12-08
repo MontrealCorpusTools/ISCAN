@@ -43,70 +43,25 @@ angular.module('pgdb.query').filter('secondsToDateTime', [function () {
                 function drawAnnotations() {
                         vis.select('.yaxis').call(yaxis);
 
-                        vis.selectAll("rect.annotation")
-                            .attr("height", function (d) {
-                                return y(1) - y(2)
-                            })
+                        const annotations = vis.selectAll("g.annotation");
+			
+			annotations.select("rect")
+                            .attr("height", y(1) - y(2))
                             .attr("x", annotation_x_function)
-                            .attr("width", function (d) {
-                                return xt(d.end) - xt(d.begin)
-                            });
+                            .attr("width", d => xt(d.end) - xt(d.begin));
 
-                        vis.selectAll("rect.subannotation")
-                            .attr("height", function (d) {
-                                return y(1) - y(2)
-                            })
-                            .attr("x", annotation_x_function)
-                            .attr("width", function (d) {
-                                return xt(d.end) - xt(d.begin)
-                            });
+                        annotations.select("text")
+                            .attr("x", d => (xt(d.end) - xt(d.begin)) / 2 + xt(d.begin));
 
-                        vis.selectAll("text.annotation")
-                            .attr("x", function (d) {
-                                return (xt(d.end) - xt(d.begin)) / 2 + xt(d.begin)
-                            });
+			['phone', 'syllable', 'word'].forEach((tier, i) => {
+				vis.selectAll("g.annotation."+tier).select("rect").attr("y", y(i+1))
+				vis.selectAll("g.annotation."+tier).select("text").attr("y", y(i+0.5))
+			});
 
-
-                        vis.selectAll("rect.phone")
-                            .attr("width", function (d) {
-                                return xt(d.end) - xt(d.begin)
-                            })
-                            .attr("y", function (d) {
-                                return y(1)
-                            });
-
-                        vis.selectAll("text.phone")
-                            .attr("y", function (d) {
-                                return y(0.5)
-                            });
-
-
-                        vis.selectAll("rect.syllable")
-                            .attr("y", function (d) {
-                                return y(2)
-                            });
-
-                        vis.selectAll("text.syllable")
-                            .attr("y", function (d) {
-                                return y(1.5)
-                            });
-
-
-                        vis.selectAll("rect.word")
-                            .attr("y", function (d) {
-                                return y(3)
-                            });
-
-                        vis.selectAll("text.word")
-                            .attr("y", function (d) {
-                                return y(2.5)
-                            });
-			for(var i = 0; i < scope.data.viewableSubannotations.length; i++){
-				vis.selectAll("rect."+scope.data.viewableSubannotations[i][1])
-				    .attr("y", function (d) {
-					return y(-i)
-				    });
-			}
+			scope.data.viewableSubannotations.forEach((x, i) => {
+				vis.selectAll("g.annotation."+x[1]).select("rect")
+				    .attr("y", y(-i));
+			});
                     }
 
             function resize() {
@@ -160,7 +115,6 @@ angular.module('pgdb.query').filter('secondsToDateTime', [function () {
 
                 var zoom_scales = [1, 30];
                 var y = d3.scaleLinear().range([height, 0]).nice();
-                //y.domain([-(scope.data.viewableSubannotations.length), 3]);
                 y.domain([0, 3]);
 
                 var annotation_x_function = function (d) {
@@ -259,7 +213,6 @@ angular.module('pgdb.query').filter('secondsToDateTime', [function () {
                     }
                     console.log('datachanged', newVal)
 		    y.domain([-(scope.data.viewableSubannotations.length), 3]);
-		    console.log(y.domain());
 		    
 	            //Updates ticks to be from the bottom of subannotations up.
 		    yaxis.tickValues(Array.from(new Array(y.domain()[1]-y.domain()[0]), (x,i) => i + y.domain()[0] + 0.5))
@@ -283,185 +236,141 @@ angular.module('pgdb.query').filter('secondsToDateTime', [function () {
                     if (scope.selectedAnnotation) {
                         selected_annotation_rect.attr('opacity', 0.3).attr('x', xt(scope.selectedAnnotation.begin)).attr('width', xt(scope.selectedAnnotation.end) - xt(scope.selectedAnnotation.begin));
                     }
+		    updateAnnotations(newVal);
+		}, true);
 
-                    var drag = d3.drag()
-                        .filter(function () {
-                            return d3.event.button == 0;
-                        })
-                        .on("start", function () {
-                            var coords = d3.mouse(this);
-                            var point_time = xt.invert(coords[0]);
-                            scope.$emit('BEGIN_SELECTION', point_time);
-                        })
-                        .on("drag", function () {
-                            var p = d3.mouse(this);
-                            var point_time = xt.invert(p[0]);
-                            scope.$emit('UPDATE_SELECTION', point_time);
-
-
-                        });
-
-
-                    scope.$on('SELECTION_UPDATE', function (e, selection_begin, selection_end) {
-                        scope.selection_begin = selection_begin;
-                        scope.selection_end = selection_end;
-                        scope.play_begin = selection_begin;
-                        annotation_playline.attr("x1", xt(selection_begin))
-                            .attr("x2", xt(selection_begin));
-                        if (selection_end == null) {
-                            annotation_viewplot.select("rect.selection").attr('opacity', 0);
-                        }
-                        else {
-                            annotation_viewplot.select("rect.selection").attr('opacity', 0.3).attr('x', xt(selection_begin)).attr('width', xt(selection_end) - xt(selection_begin));
-                        }
-                    });
-
-                    annotation_vis.call(d3.zoom()
-                        .scaleExtent(zoom_scales)
-                        .translateExtent([[0, 0], [width, height]])
-                        .filter(function () {
-                            return d3.event.button == 2 || d3.event.type == 'wheel';
-                        })
-                        .on("zoom", zoomed)
-                        .on('end', zoomended))
-                    //.on("mousedown.zoom", null)
-                    //.on("touchstart.zoom", null)
-                    //.on("touchmove.zoom", null)
-                    //.on("touchend.zoom", null)
-                        .on('click', function () {
-                            if (d3.event.defaultPrevented) return; // click suppressed
-                            var coords = d3.mouse(this);
-                            var point_time = xt.invert(coords[0]);
-                            scope.$emit('BEGIN_SELECTION', point_time);
-
-                        })
-                        .call(drag);
-                    scope.$on('UPDATEPLAY', function (e, time) {
-                        scope.play_begin = time;
-                        annotation_playline.attr('x1', xt(time))
-                            .attr('x2', xt(time));
-                    });
-
-                    function zoomFunc(transform) {
-                        transform.x = Math.min(transform.x, 0);
-                        xt = transform.rescaleX(x);
-                        annotation_x_function = function (d) {
-                            return xt(d.begin);
-                        };
-                        annotation_vis.select('.xaxis').call(xaxis.scale(xt));
-
-                        annotation_playline.attr("x1", xt(scope.selection_begin))
-                            .attr("x2", xt(scope.selection_begin));
-
-                        if (selection_rect.attr('opacity') != 0) {
-                            selection_rect.attr('x', xt(scope.selection_begin)).attr('width', xt(scope.selection_end) - xt(scope.selection_begin));
-                        }
-                        if (selected_annotation_rect.attr('opacity') != 0) {
-                            selected_annotation_rect.attr('x', xt(scope.selectedAnnotation.begin)).attr('width', xt(scope.selectedAnnotation.end) - xt(scope.selectedAnnotation.begin));
-                        }
-                        drawAnnotations();
-                    }
-
-                    function zoomed() {
-                        scope.$emit('ZOOM_REQUESTED', d3.event.transform);
-                    }
-
-                    scope.$on('ZOOM', function (e, lastTransform) {
-                        zoomFunc(lastTransform);
-                    });
-
-                    function zoomended() {
-                        var e = d3.event.sourceEvent;
-                        if (e != null && e.button == 0 && e.movementX < 10) {
-                            var coords = d3.mouse(this);
-                            selection_begin = xt.invert(coords[0]);
-                            annotation_playline.attr("x1", xt(selection_begin))
-                                .attr("x2", xt(selection_begin));
-                        }
-                    }
-
-                    var boxes = annotation_viewplot;
-
-                    function updateAnnotations() {
-                        boxes.selectAll('g.annotation').remove();
+		var drag = d3.drag()
+		    .filter(function () {
+			return d3.event.button == 0;
+		    })
+		    .on("start", function () {
+			var coords = d3.mouse(this);
+			var point_time = xt.invert(coords[0]);
+			scope.$emit('BEGIN_SELECTION', point_time);
+		    })
+		    .on("drag", function () {
+			var p = d3.mouse(this);
+			var point_time = xt.invert(p[0]);
+			scope.$emit('UPDATE_SELECTION', point_time);
+		    });
 
 
-                        var b = boxes.selectAll('g.annotation.phone').data(newVal.phone)
-                            .enter().append("g");
-                        b.append("rect")
-                            .classed("annotation", true)
-                            .classed("phone", true)
-                            .attr("x", annotation_x_function)
-                            .attr("stroke", 'black')
-                            .attr('fill-opacity', 0)
-                            .attr("width", function (d) {
-                                return xt(d.end) - xt(d.begin)
-                            });
-                        b.append("text")
-                            .classed("annotation", true)
-                            .classed("phone", true)
-                            .style("text-anchor", "middle")
-                            .text(function (d) {
-                                return d.label
-                            });
-                        b = boxes.selectAll('g.annotation.syllable').data(newVal.syllable)
-                            .enter().append("g");
-                        b.append("rect")
-                            .classed("annotation", true)
-                            .classed("syllable", true)
-                            .attr("x", annotation_x_function)
-                            .attr('fill-opacity', 0)
-                            .attr("stroke", 'black')
-                            .attr("width", function (d) {
-                                return xt(d.end) - xt(d.begin)
-                            });
-                        b.append("text")
-                            .classed("annotation", true)
-                            .classed("syllable", true)
-                            .style("text-anchor", "middle")
-                            .text(function (d) {
-                                return d.label
-                            });
-                        b = boxes.selectAll('g.annotation.word').data(newVal.word)
-                            .enter().append("g");
-                        b.append("rect")
-                            .classed("annotation", true)
-                            .classed("word", true)
-                            .attr("x", annotation_x_function)
-                            .attr('fill-opacity', 0)
-                            .attr("stroke", 'black')
-                            .attr("width", function (d) {
-                                return xt(d.end) - xt(d.begin)
-                            });
-                        b.append("text")
-                            .classed("annotation", true)
-                            .classed("word", true)
-                            .style("text-anchor", "middle")
-                            .text(function (d) {
-                                return d.label
-                            });
-			newVal.viewableSubannotations.forEach(function (x) {
-				var annotation_type = x[0];
-				var subannotation = x[1];
-				b = boxes.selectAll('g.subannotation.'+subannotation).data(newVal[annotation_type].map(x => x[subannotation]).flat())
-				    .enter().append("g");
-				b.append("rect")
-				    .classed("subannotation", true)
-				    .classed(subannotation, true)
-				    .attr("x", annotation_x_function)
-				    .attr('fill-opacity', 0)
-				    .attr("stroke", 'black')
-				    .attr("width", function (d) {
-					return xt(d.end) - xt(d.begin)
-				    });
-			});
-                        drawAnnotations();
-                    }
+		scope.$on('SELECTION_UPDATE', function (e, selection_begin, selection_end) {
+		    scope.selection_begin = selection_begin;
+		    scope.selection_end = selection_end;
+		    scope.play_begin = selection_begin;
+		    annotation_playline.attr("x1", xt(selection_begin))
+			.attr("x2", xt(selection_begin));
+		    if (selection_end == null) {
+			annotation_viewplot.select("rect.selection").attr('opacity', 0);
+		    }
+		    else {
+			annotation_viewplot.select("rect.selection").attr('opacity', 0.3).attr('x', xt(selection_begin)).attr('width', xt(selection_end) - xt(selection_begin));
+		    }
+		});
 
-                    updateAnnotations();
+		annotation_vis.call(d3.zoom()
+		    .scaleExtent(zoom_scales)
+		    .translateExtent([[0, 0], [width, height]])
+		    .filter(function () {
+			return d3.event.button == 2 || d3.event.type == 'wheel';
+		    })
+		    .on("zoom", zoomed)
+		    .on('end', zoomended))
+		//.on("mousedown.zoom", null)
+		//.on("touchstart.zoom", null)
+		//.on("touchmove.zoom", null)
+		//.on("touchend.zoom", null)
+		    .on('click', function () {
+			if (d3.event.defaultPrevented) return; // click suppressed
+			var coords = d3.mouse(this);
+			var point_time = xt.invert(coords[0]);
+			scope.$emit('BEGIN_SELECTION', point_time);
+
+		    })
+		    .call(drag);
+		scope.$on('UPDATEPLAY', function (e, time) {
+		    scope.play_begin = time;
+		    annotation_playline.attr('x1', xt(time))
+			.attr('x2', xt(time));
+		});
+
+		function zoomFunc(transform) {
+		    transform.x = Math.min(transform.x, 0);
+		    xt = transform.rescaleX(x);
+		    annotation_x_function = function (d) {
+			return xt(d.begin);
+		    };
+		    annotation_vis.select('.xaxis').call(xaxis.scale(xt));
+
+		    annotation_playline.attr("x1", xt(scope.selection_begin))
+			.attr("x2", xt(scope.selection_begin));
+
+		    if (selection_rect.attr('opacity') != 0) {
+			selection_rect.attr('x', xt(scope.selection_begin)).attr('width', xt(scope.selection_end) - xt(scope.selection_begin));
+		    }
+		    if (selected_annotation_rect.attr('opacity') != 0) {
+			selected_annotation_rect.attr('x', xt(scope.selectedAnnotation.begin)).attr('width', xt(scope.selectedAnnotation.end) - xt(scope.selectedAnnotation.begin));
+		    }
+		    drawAnnotations();
+		}
+
+		function zoomed() {
+		    scope.$emit('ZOOM_REQUESTED', d3.event.transform);
+		}
+
+		scope.$on('ZOOM', function (e, lastTransform) {
+		    zoomFunc(lastTransform);
+		});
+
+		function zoomended() {
+		    var e = d3.event.sourceEvent;
+		    if (e != null && e.button == 0 && e.movementX < 10) {
+			var coords = d3.mouse(this);
+			selection_begin = xt.invert(coords[0]);
+			annotation_playline.attr("x1", xt(selection_begin))
+			    .attr("x2", xt(selection_begin));
+		    }
+		}
 
 
-                }, true);
+		function updateAnnotations(data_value) {
+		    ['phone', 'syllable', 'word'].forEach(tier => {
+			var tier_items = annotation_viewplot.selectAll('g.annotation.'+tier).data(data_value[tier], d => d.id)
+			tier_items.exit().remove();
+			tier_items = tier_items.enter().append('g');
+			tier_items.classed("annotation", true)
+				  .classed(tier, true);
+			tier_items.append("rect")
+			    .attr("x", annotation_x_function)
+			    .attr("stroke", 'black')
+			    .attr('fill-opacity', 0)
+			    .attr("width", d => xt(d.end) - xt(d.begin));
+			tier_items.append("text")
+			    .style("text-anchor", "middle")
+			    .text(d => d.label);
+		    });
+		    data_value.subannotations.forEach(function (x) {
+			    var annotation_type = x[0];
+			    var subannotation = x[1];
+			    subannotation_items = annotation_viewplot
+				.selectAll('g.annotation.'+subannotation)
+				.data(data_value.viewableSubannotations.filter(d => d[0] == x[0] && d[1] == x[1]).length > 0 
+				      ? data_value[annotation_type].map(x => x[subannotation]).flat()
+				      : [], d => d.id)
+
+			    subannotation_items.exit().remove();
+			    subannotation_items.enter().append('g')
+				.classed("annotation", true)
+				.classed(subannotation, true)
+			        .append("rect")
+				.attr("x", annotation_x_function)
+				.attr('fill-opacity', 0)
+				.attr("stroke", 'black')
+				.attr("width", d => xt(d.end) - xt(d.begin));
+		    });
+		    drawAnnotations();
+		}
             }
         }
     })

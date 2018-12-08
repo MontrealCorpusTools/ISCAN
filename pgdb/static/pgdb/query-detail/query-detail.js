@@ -200,6 +200,7 @@ angular.module('queryDetail', [
                 Query.oneAnnotation($stateParams.corpus_id, $stateParams.query_id, $scope.detail_index, $scope.paginateParams.ordering, true, true, true).then(function (res) {
                     $scope.utterance = res.data.utterance;
 		    $scope.utterance.viewableSubannotations = [];
+		    $scope.utterance.subannotations = $scope.subannotations;
                     console.log("SANITY", $scope.utterance);
                     $scope.selectedResult = res.data.result;
                     $scope.speaker = $scope.selectedResult.speaker;
