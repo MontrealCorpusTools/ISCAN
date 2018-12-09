@@ -714,18 +714,23 @@ angular.module('pgdb.query').filter('secondsToDateTime', [function () {
 
             specgram_svg.append("g")
                 .attr("class", "xaxis")
-                .attr("transform", "translate(0," + height + ")")
-                .call(xaxis)
+                .attr("transform", `translate(0,${height})`)
+                .call(xaxis);
+
+            specgram_svg.append("g")
                 .append("text")
                 .attr("class", "label")
                 .attr("x", width / 2)
-                .attr("y", margin.bottom - 10)
+                .attr("y", height+margin.bottom)
                 .style("text-anchor", "middle")
+                .style("font-size", "16px")
                 .text("Time (s)");
 
             specgram_svg.append("g")
                 .attr("class", "yaxis")
-                .call(yaxis)
+                .call(yaxis);
+
+            specgram_svg.append("g")
                 .append("text")
                 .attr("class", "label")
                 .attr("x", 0 - height / 2)
@@ -737,13 +742,13 @@ angular.module('pgdb.query').filter('secondsToDateTime', [function () {
 
             function drawSpectrogram() {
                 vis.select('.yaxis').call(yaxis);
-                var begin = xt.invert(0);
-                var end = xt.invert(width);
+                const visible_begin = xt.invert(0);
+                const visible_end = xt.invert(width);
                 scope.data.values.forEach((row, i) => {
                     row.forEach((power,j) => {
 			//drawRect
-                        time = j * scope.data.time_step + begin;
-                        if (time >= begin - 0.01 && time <= end + 0.01) {
+                        time = j * scope.data.time_step + scope.begin;
+                        if (time >= visible_begin - 0.01 && time <= visible_end + 0.01) {
                             freq = i * scope.data.freq_step;
                             specgram_context.fillStyle = z(power);
                             specgram_context.fillRect(x(time), y(freq), xGridSize + 2, yGridSize);
@@ -799,8 +804,10 @@ angular.module('pgdb.query').filter('secondsToDateTime', [function () {
                 z.domain(d3.extent(newVal.values.flat()));
                 specgram_context = specgram_canvas.node().getContext("2d");
 
-                xGridSize = x(newVal.time_step) - x(0) + 2;
+                xGridSize = xt(newVal.time_step) - xt(0) + 2;
                 yGridSize = y(newVal.freq_step) - y(0) - 2;
+
+                specgram_svg.select('.xaxis').call(xaxis.scale(xt));
 
                 specgram_canvas.call(d3.zoom()
                     .scaleExtent(zoom_scales)
