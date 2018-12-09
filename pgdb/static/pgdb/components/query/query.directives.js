@@ -198,9 +198,7 @@ angular.module('pgdb.query').filter('secondsToDateTime', [function () {
 
 
                 function onDataUpdate(newVal, oldVal) {
-                    if (!newVal) {
-                        return;
-                    }
+                    if (!newVal) return;
                     console.log('datachanged', newVal)
                     y.domain([-(scope.data.viewableSubannotations.length), 3]);
             
@@ -413,109 +411,104 @@ angular.module('pgdb.query').filter('secondsToDateTime', [function () {
                         .attr("transform", "translate(0," + height + ")").call(xaxis);
                     vis.select('.yaxis').call(yaxis);
                     vis.select('.playline')
-                            .attr("y1", 0)
-                            .attr("y2", height)
+                        .attr("y1", 0)
+                        .attr("y2", height)
                         .attr("x1", xt(scope.play_begin))
                         .attr("x2", xt(scope.play_begin));
 
-                        vis.select('.yaxis-label')
+                    vis.select('.yaxis-label')
                         .attr("x", 0 - height / 2)
 
                     if (selection_rect.attr('opacity') != 0) {
-                        selection_rect.attr('x', xt(scope.selection_begin)).attr('width', xt(scope.selection_end) - xt(scope.selection_begin));
+                        selection_rect.attr('x', xt(scope.selection_begin))
+                            .attr('width', xt(scope.selection_end) - xt(scope.selection_begin));
                     }
                     if (scope.selectedAnnotation) {
-                        selected_annotation_rect.attr('opacity', 0.3).attr('x', xt(scope.selectedAnnotation.begin)).attr('width', xt(scope.selectedAnnotation.end) - xt(scope.selectedAnnotation.begin));
+                        selected_annotation_rect.attr('opacity', 0.3)
+                            .attr('x', xt(scope.selectedAnnotation.begin))
+                            .attr('width', xt(scope.selectedAnnotation.end) - xt(scope.selectedAnnotation.begin));
                     }
-                            vis.select('.line')
-                    .attr('d', function (d) {
-                            return waveform_valueline(d);
-                        });
-
+                    vis.select('.line')
+                       .attr('d',d => waveform_valueline(d));
                 }
 
-            angular.element($window).bind('resize', resize);
+                angular.element($window).bind('resize', resize);
 
                 var xaxis = d3.axisBottom(x)
                         .ticks(10);
 
-                    var zoom_scales = [1, 30];
-                    var waveform_padding = (y.domain()[1] - y.domain()[0]) * 0.05;
-                    y.domain([y.domain()[0] - waveform_padding, y.domain()[1] + waveform_padding]);
+                var zoom_scales = [1, 30];
+                var waveform_padding = (y.domain()[1] - y.domain()[0]) * 0.05;
+                y.domain([y.domain()[0] - waveform_padding, y.domain()[1] + waveform_padding]);
 
-                    var waveform_valueline = d3.line()
-                        .x(function (d) {
-                            return x(d.time);
-                        }).y(function (d) {
-                            return y(d.amplitude);
-                        });
+                var waveform_valueline = d3.line()
+                    .x(d => x(d.time))
+                    .y(d => y(d.amplitude));
 
-                    var waveform_x_function = function (d) {
-                        return x(d.time);
-                    };
-                    var yaxis = d3.axisLeft(y)
-                        .ticks(5);
+                var waveform_x_function = d => x(d.time);
+                var yaxis = d3.axisLeft(y)
+                    .ticks(5);
 
-                    var waveform_vis = vis
-                        .append("svg")
+                var waveform_vis = vis
+                    .append("svg")
                     .style('height', (height + margin.top + margin.bottom) + 'px')
                     .style('width', (width + margin.left + margin.right) + 'px')
-                        .append("g")
-                        .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+                    .append("g")
+                    .attr("transform", `translate(${margin.left},${ margin.top})`);
 
 // Draw the Plotting region------------------------------
 // X axis lines (bottom and top).
-                    waveform_vis.append("g")
-                        .attr("class", "xaxis")
-                        .attr("transform", "translate(0," + height + ")")
-                        .call(xaxis);
+                waveform_vis.append("g")
+                    .attr("class", "xaxis")
+                    .attr("transform", "translate(0," + height + ")")
+                    .call(xaxis);
 
-                    waveform_vis.append("g")
-                        .attr("class", "yaxis")
-                        .call(yaxis);
+                waveform_vis.append("g")
+                    .attr("class", "yaxis")
+                    .call(yaxis);
 
-                    waveform_vis.append("text")
-                        .attr('class', 'yaxis-label')
-                        .attr("x", 0 - height / 2)
-                        .attr("y", -margin.left + 20)
-                        .attr("transform", "rotate(-90)")
-                        .style("text-anchor", "middle")
-                        .style("font-size", "16px")
-                        .text("Amplitude");
+                waveform_vis.append("text")
+                    .attr('class', 'yaxis-label')
+                    .attr("x", 0 - height / 2)
+                    .attr("y", -margin.left + 20)
+                    .attr("transform", "rotate(-90)")
+                    .style("text-anchor", "middle")
+                    .style("font-size", "16px")
+                    .text("Amplitude");
 
 
 // End Draw the Plotting region------------------------------
 
 
-                    waveform_vis.append("clipPath")
-                        .attr("id", "waveform_clip")
-                        .append("rect")
-                        .attr("x", 0)
-                        .attr("y", 0)
-                        .attr("width", width)
-                        .attr("height", height);
+                waveform_vis.append("clipPath")
+                    .attr("id", "waveform_clip")
+                    .append("rect")
+                    .attr("x", 0)
+                    .attr("y", 0)
+                    .attr("width", width)
+                    .attr("height", height);
 
-                    var waveform_viewplot = waveform_vis.append("g").attr("clip-path", "url(#waveform_clip)");
+                var waveform_viewplot = waveform_vis.append("g").attr("clip-path", "url(#waveform_clip)");
 
-                    var waveform_playline = waveform_viewplot.append('line').attr("class", "playline").style("stroke", "red")
-                        .attr("x1", xt(0))
-                        .attr("x2", xt(0))
-                        .attr("y1", 0)
-                        .attr("y2", height);
+                var waveform_playline = waveform_viewplot.append('line').attr("class", "playline").style("stroke", "red")
+                    .attr("x1", xt(0))
+                    .attr("x2", xt(0))
+                    .attr("y1", 0)
+                    .attr("y2", height);
 
-                    var waveform_pane = waveform_vis.append("rect")
-                        .attr("class", "pane")
-                        .attr("width", width)
-                        .attr("height", height);
+                var waveform_pane = waveform_vis.append("rect")
+                    .attr("class", "pane")
+                    .attr("width", width)
+                    .attr("height", height);
 
-                    var selection_rect = waveform_viewplot.append("rect")
-                        .attr('class', "selection")
-                        .attr('x', 0)
-                        .attr('y', 0)
-                        .attr('width', 0)
-                        .attr('height', height)
-                        .attr('fill', 'red')
-                        .attr('opacity', 0);
+                var selection_rect = waveform_viewplot.append("rect")
+                    .attr('class', "selection")
+                    .attr('x', 0)
+                    .attr('y', 0)
+                    .attr('width', 0)
+                    .attr('height', height)
+                    .attr('fill', 'red')
+                    .attr('opacity', 0);
 
                 var selected_annotation_rect = waveform_viewplot.append("rect")
                     .attr('class', "selected-annotation")
@@ -527,156 +520,142 @@ angular.module('pgdb.query').filter('secondsToDateTime', [function () {
                     .attr('opacity', 0);
 
                 scope.$watch('begin', function (newVal, oldVal) {
-                    if (!newVal) {
-                        return;
-                    }
+                    if (!newVal) return;
                     x.domain([newVal, x.domain()[1]]);
                 });
 
                 scope.$watch('end', function (newVal, oldVal) {
-                    if (!newVal) {
-                        return;
-                    }
+                    if (!newVal) return;
                     x.domain([x.domain()[0], newVal]);
                 });
 
 
                 scope.$watch('data', function (newVal, oldVal) {
-                    if (!newVal) {
-                        return;
-                    }
-                    y.domain(d3.extent(newVal, function (d) {
-                        return d.amplitude;
-                    }));
+                    if (!newVal) return;
+
+                    y.domain(d3.extent(newVal, d => d.amplitude));
                     waveform_vis.select('.xaxis').call(xaxis.scale(xt));
                     waveform_vis.select('.yaxis').call(yaxis.scale(y));
                     if (scope.selectedAnnotation) {
-                        selected_annotation_rect.attr('opacity', 0.3).attr('x', xt(scope.selectedAnnotation.begin)).attr('width', xt(scope.selectedAnnotation.end) - xt(scope.selectedAnnotation.begin));
+                        selected_annotation_rect.attr('opacity', 0.3)
+                            .attr('x', xt(scope.selectedAnnotation.begin))
+                            .attr('width', xt(scope.selectedAnnotation.end) - xt(scope.selectedAnnotation.begin));
                     }
 
 // Make x axis
 
 
                     waveform_viewplot.append("path")
-                        .attr("class", "line").data([newVal]).attr('d', function (d) {
-                        return waveform_valueline(d);
-                    })
+                        .data([newVal])
+                        .attr("class", "line")
+                        .attr('d', d => waveform_valueline(d))
                         .style('stroke', 'black');
+                });
 
-                    var drag = d3.drag()
-                        .filter(function () {
-                            return d3.event.button == 0;
-                        })
-                        .on("start", function () {
-                            var coords = d3.mouse(this);
-                            var point_time = xt.invert(coords[0]);
-                            scope.$emit('BEGIN_SELECTION', point_time);
-                        })
-                        .on("drag", function () {
-                            var p = d3.mouse(this);
-                            var point_time = xt.invert(p[0]);
-                            scope.$emit('UPDATE_SELECTION', point_time);
-
-
-                        });
-
-
-                    scope.$on('SELECTION_UPDATE', function (e, selection_begin, selection_end) {
-                        scope.selection_begin = selection_begin;
-                        scope.selection_end = selection_end;
-                        scope.play_begin = selection_begin;
-                        waveform_playline.attr("x1", xt(selection_begin))
-                            .attr("x2", xt(selection_begin));
-                        if (selection_end == null) {
-                            waveform_viewplot.select("rect.selection").attr('opacity', 0);
-                        }
-                        else {
-                            waveform_viewplot.select("rect.selection").attr('opacity', 0.3).attr('x', xt(selection_begin)).attr('width', xt(selection_end) - xt(selection_begin));
-                        }
+                var drag = d3.drag()
+                    .filter(() => d3.event.button == 0)
+                    .on("start", function () {
+                        var coords = d3.mouse(this);
+                        var point_time = xt.invert(coords[0]);
+                        scope.$emit('BEGIN_SELECTION', point_time);
+                    })
+                    .on("drag", function () {
+                        var p = d3.mouse(this);
+                        var point_time = xt.invert(p[0]);
+                        scope.$emit('UPDATE_SELECTION', point_time);
                     });
 
-                    waveform_vis.call(d3.zoom()
-                        .scaleExtent(zoom_scales)
-                        .translateExtent([[0, 0], [width, height]])
-                        .extent([[0, 0], [width, height]])
-                        .filter(function () {
-                            return d3.event.button == 2 || d3.event.type == 'wheel';
-                        })
-                        .on("zoom", zoomed)
-                        .on('end', zoomended))
-                    //.on("mousedown.zoom", null)
-                    //.on("touchstart.zoom", null)
-                    //.on("touchmove.zoom", null)
-                    //.on("touchend.zoom", null)
-                        .on('click', function () {
-                            if (d3.event.defaultPrevented) return; // click suppressed
-                            var coords = d3.mouse(this);
-                            var point_time = xt.invert(coords[0]);
-                            scope.$emit('BEGIN_SELECTION', point_time);
 
-                        })
-                        .call(drag);
-                    scope.$on('UPDATEPLAY', function (e, time) {
-                        scope.play_begin = time;
-
-                        waveform_playline.attr('x1', xt(time))
-                            .attr('x2', xt(time));
-                    });
-
-                    function zoomFunc(transform) {
-                        var selection_begin = xt.invert(waveform_playline.attr("x1"));
-                        if (selection_rect.attr('opacity') != 0) {
-                            var selection_end = xt.invert(parseFloat(selection_rect.attr('width')) + parseFloat(selection_rect.attr('x')))
-                        }
-                        transform.x = Math.min(transform.x, 0);
-                        xt = transform.rescaleX(x);
-                        waveform_vis.select('.xaxis').call(xaxis.scale(xt));
-
-                        waveform_valueline = d3.line()
-                            .x(function (d) {
-                                return xt(d.time);
-                            })
-                            .y(function (d) {
-                                return y(d.amplitude);
-                            });
-                        waveform_playline.attr("x1", xt(selection_begin))
-                            .attr("x2", xt(selection_begin));
-
-                        if (selection_rect.attr('opacity') != 0) {
-                            selection_rect.attr('x', xt(selection_begin)).attr('width', xt(selection_end) - xt(selection_begin));
-                        }
-                        if (selected_annotation_rect.attr('opacity') != 0) {
-                            selected_annotation_rect.attr('x', xt(scope.selectedAnnotation.begin)).attr('width', xt(scope.selectedAnnotation.end) - xt(scope.selectedAnnotation.begin));
-                        }
-                        drawWaveform();
+                scope.$on('SELECTION_UPDATE', function (e, selection_begin, selection_end) {
+                    scope.selection_begin = selection_begin;
+                    scope.selection_end = selection_end;
+                    scope.play_begin = selection_begin;
+                    waveform_playline.attr("x1", xt(selection_begin))
+                        .attr("x2", xt(selection_begin));
+                    if (selection_end == null) {
+                        waveform_viewplot.select("rect.selection")
+                            .attr('opacity', 0);
                     }
-
-                    function zoomed() {
-                        scope.$emit('ZOOM_REQUESTED', d3.event.transform);
-                    }
-
-                    scope.$on('ZOOM', function (e, lastTransform) {
-                        zoomFunc(lastTransform);
-                    });
-
-                    function zoomended() {
-                        var e = d3.event.sourceEvent;
-                        if (e != null && e.button == 0 && e.movementX < 10) {
-                            var coords = d3.mouse(this);
-                            selection_begin = xt.invert(coords[0]);
-                            waveform_playline.attr("x1", xt(selection_begin))
-                                .attr("x2", xt(selection_begin));
-                        }
-                    }
-
-                    function drawWaveform() {
-                        waveform_vis.select('.yaxis').call(yaxis);
-                        waveform_vis.selectAll("path.line")
-                            .attr('d', function (d) {
-                                return waveform_valueline(d);
-                            });
+                    else {
+                        waveform_viewplot.select("rect.selection")
+                            .attr('opacity', 0.3)
+                            .attr('x', xt(selection_begin))
+                            .attr('width', xt(selection_end) - xt(selection_begin));
                     }
                 });
+
+                waveform_vis.call(d3.zoom()
+                    .scaleExtent(zoom_scales)
+                    .translateExtent([[0, 0], [width, height]])
+                    .extent([[0, 0], [width, height]])
+                    .filter(() => d3.event.button == 2 || d3.event.type == 'wheel')
+                    .on("zoom", zoomed)
+                    .on('end', zoomended))
+                    .on('click', function () {
+                        if (d3.event.defaultPrevented) return; // click suppressed
+                        var coords = d3.mouse(this);
+                        var point_time = xt.invert(coords[0]);
+                        scope.$emit('BEGIN_SELECTION', point_time);
+                    })
+                    .call(drag);
+
+                scope.$on('UPDATEPLAY', function (e, time) {
+                    scope.play_begin = time;
+                    waveform_playline.attr('x1', xt(time))
+                        .attr('x2', xt(time));
+                });
+
+                function zoomFunc(transform) {
+                    var selection_begin = xt.invert(waveform_playline.attr("x1"));
+                    if (selection_rect.attr('opacity') != 0) {
+                        var selection_end = xt.invert(parseFloat(selection_rect.attr('width')) + parseFloat(selection_rect.attr('x')))
+                    }
+                    transform.x = Math.min(transform.x, 0);
+                    xt = transform.rescaleX(x);
+
+                    waveform_vis.select('.xaxis').call(xaxis.scale(xt));
+
+                    waveform_valueline = d3.line()
+                        .x(d => xt(d.time))
+                        .y(d => y(d.amplitude));
+
+                    waveform_playline.attr("x1", xt(selection_begin))
+                        .attr("x2", xt(selection_begin));
+
+                    if (selection_rect.attr('opacity') != 0) {
+                        selection_rect.attr('x', xt(selection_begin))
+                            .attr('width', xt(selection_end) - xt(selection_begin));
+                    }
+                    if (selected_annotation_rect.attr('opacity') != 0) {
+                        selected_annotation_rect.attr('x', xt(scope.selectedAnnotation.begin))
+                            .attr('width', xt(scope.selectedAnnotation.end) - xt(scope.selectedAnnotation.begin));
+                    }
+                    drawWaveform();
+                }
+
+                function zoomed() {
+                    scope.$emit('ZOOM_REQUESTED', d3.event.transform);
+                }
+
+                scope.$on('ZOOM', function (e, lastTransform) {
+                    zoomFunc(lastTransform);
+                });
+
+                function zoomended() {
+                    var e = d3.event.sourceEvent;
+                    if (e != null && e.button == 0 && e.movementX < 10) {
+                        var coords = d3.mouse(this);
+                        selection_begin = xt.invert(coords[0]);
+                        waveform_playline.attr("x1", xt(selection_begin))
+                            .attr("x2", xt(selection_begin));
+                    }
+                }
+
+                function drawWaveform() {
+                    waveform_vis.select('.yaxis').call(yaxis);
+                    waveform_vis.selectAll("path.line")
+                        .attr('d', d => waveform_valueline(d));
+                }
             }
         }
     }).directive('spectrogramPlot', function ($window) {
