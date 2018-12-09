@@ -673,35 +673,82 @@ angular.module('pgdb.query').filter('secondsToDateTime', [function () {
             hovered: '&hovered'
         },
         link: function (scope, element, attrs) {
-                scope.selection_begin = 0;
-                scope.selection_end = 0;
-                scope.play_begin = 0;
+            scope.selection_begin = 0;
+            scope.selection_end = 0;
+            scope.play_begin = 0;
             var vis = d3.select(element[0]);
-                var width = parseInt(vis.style('width'), 10)
-                    , width = width - margin.left - margin.right,
-                height = parseInt(vis.style('height'), 10)
-                    , height = height - margin.top - margin.bottom;
-                console.log(width)
+            var width = parseInt(vis.style('width'), 10) - margin.left - margin.right;
+            height = parseInt(vis.style('height'), 10) - margin.top - margin.bottom;
+            console.log(width)
             var specgram_context, xGridSize, yGridSize;
-            vis.on("contextmenu", function (d, i) {
-                d3.event.preventDefault();
-                // react on right-clicking
-            });
 
-                function drawSpectrogram() {
-                    vis.select('.yaxis').call(yaxis);
-                    scope.data.values.forEach(drawRect);
-                }
+            // react on right-clicking
+            vis.on("contextmenu", () => d3.event.preventDefault());
 
-                function drawRect(d) {
-                    var begin = xt.invert(0);
-                    var end = xt.invert(width);
-                    //Draw the rectangle
-                    if (d.time >= begin - 0.01 && d.time <= end + 0.01) {
-                        specgram_context.fillStyle = z(d.power);
-                        specgram_context.fillRect(x(d.time), y(d.frequency), xGridSize + 2, yGridSize);
-                    }
+            var x = d3.scaleLinear().range([0, width]).nice();
+
+            var zoom_scales = [1, 30];
+            var xaxis = d3.axisBottom(x)
+                .ticks(10);
+            var xt = x;
+            var y = d3.scaleLinear().range([height, 0]),
+                z = d3.scaleLinear().range(["white", "black"]);
+
+            var yaxis = d3.axisLeft(y)
+                .ticks(5);
+
+
+            var specgram_svg = vis.append('svg')
+                .attr('class', 'combined')
+                .style('height', (height + margin.top + margin.bottom) + 'px')
+                .style('width', (width + margin.left + margin.right) + 'px')
+                .append("g")
+                .attr("transform", `translate(${margin.left},${margin.top})`);
+
+            var specgram_canvas = vis.append("canvas")
+                .attr('class', 'combined')
+                .style("padding", margin.top + "px " + margin.right + "px " + margin.bottom + "px " + margin.left + "px ")
+                .attr("width", width + "px")
+                .attr("height", height + "px");
+
+
+            specgram_svg.append("g")
+                .attr("class", "xaxis")
+                .attr("transform", "translate(0," + height + ")")
+                .call(xaxis)
+                .append("text")
+                .attr("class", "label")
+                .attr("x", width / 2)
+                .attr("y", margin.bottom - 10)
+                .style("text-anchor", "middle")
+                .text("Time (s)");
+
+            specgram_svg.append("g")
+                .attr("class", "yaxis")
+                .call(yaxis)
+                .append("text")
+                .attr("class", "label")
+                .attr("x", 0 - height / 2)
+                .attr("y", -margin.left + 20)
+                .style("text-anchor", "middle")
+                .attr("transform", "rotate(-90)")
+                .style("font-size", "16px")
+                .text("Frequency (Hz)");
+
+            function drawSpectrogram() {
+                vis.select('.yaxis').call(yaxis);
+                scope.data.values.forEach(drawRect);
+            }
+
+            function drawRect(d) {
+                var begin = xt.invert(0);
+                var end = xt.invert(width);
+                //Draw the rectangle
+                if (d.time >= begin - 0.01 && d.time <= end + 0.01) {
+                    specgram_context.fillStyle = z(d.power);
+                    specgram_context.fillRect(x(d.time), y(d.frequency), xGridSize + 2, yGridSize);
                 }
+            }
 
             function resize() {
                 width = parseInt(vis.style('width'), 10);
@@ -725,97 +772,30 @@ angular.module('pgdb.query').filter('secondsToDateTime', [function () {
                     .attr("height", height + "px")
                     .attr("width", width + "px");
                 vis.select('.xaxis')
-                    .attr("transform", "translate(0," + height + ")").call(xaxis);
+                    .attr("transform", `translate(0,${height})`).call(xaxis);
                 vis.select('.yaxis').call(yaxis);
-
                 drawSpectrogram();
-
             }
+
             angular.element($window).bind('resize', resize);
 
-            var x = d3.scaleLinear().range([0, width]).nice();
-
-                var zoom_scales = [1, 30];
-                var xaxis = d3.axisBottom(x)
-                    .ticks(10);
-                var xt = x;
-                var y = d3.scaleLinear().range([height, 0]),
-                    z = d3.scaleLinear().range(["white", "black"]);
-
-                var yaxis = d3.axisLeft(y)
-                    .ticks(5);
-
             scope.$watch('begin', function (newVal, oldVal) {
-                if (!newVal) {
-                    return;
-                }
+                if (!newVal) return;
                 x.domain([newVal, x.domain()[1]]);
             });
 
             scope.$watch('end', function (newVal, oldVal) {
-                if (!newVal) {
-                    return;
-                }
+                if (!newVal) return;
                 x.domain([x.domain()[0], newVal]);
             });
+
             scope.$watch('data', function (newVal, oldVal) {
-                vis.selectAll("*").remove();
-                //pitch_viewplot.append('g').selectAll("circle.original").remove();
-                if (!newVal) {
-                    return;
-                }
+                if (!newVal) return;
 
                 // Make x axis
-
-
-                y.domain(d3.extent(newVal.values, function (d) {
-                    return d.frequency;
-                }));
+                y.domain(d3.extent(newVal.values, d => d.frequency));
                 y.domain([y.domain()[0], y.domain()[1] + newVal.freq_step]);
-                z.domain(d3.extent(newVal.values, function (d) {
-                    return d.power;
-                }));
-
-
-
-                var specgram_svg = vis.append('svg')
-                    .attr('class', 'combined')
-                    .style('height', (height + margin.top + margin.bottom) + 'px')
-                    .style('width', (width + margin.left + margin.right) + 'px')
-                    .append("g")
-                    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
-
-                var specgram_canvas = vis.append("canvas")
-                    .attr('class', 'combined')
-                    //.attr("x",  margin.left)
-                    //.attr("y", margin.top)
-                    .style("padding", margin.top + "px " + margin.right + "px " + margin.bottom + "px " + margin.left + "px ")
-                    .attr("width", width + "px")
-                    .attr("height", height + "px");
-
-
-                specgram_svg.append("g")
-                    .attr("class", "xaxis")
-                    .attr("transform", "translate(0," + height + ")")
-                    .call(xaxis)
-                    .append("text")
-                    .attr("class", "label")
-                    .attr("x", width / 2)
-                    .attr("y", margin.bottom - 10)
-                    .style("text-anchor", "middle")
-                    .text("Time (s)");
-
-                specgram_svg.append("g")
-                    .attr("class", "yaxis")
-                    .call(yaxis)
-                    .append("text")
-                    .attr("class", "label")
-                    .attr("x", 0 - height / 2)
-                    .attr("y", -margin.left + 20)
-                    .style("text-anchor", "middle")
-                    .attr("transform", "rotate(-90)")
-                    .style("font-size", "16px")
-                    .text("Frequency (Hz)");
+                z.domain(d3.extent(newVal.values, d => d.power));
 
 
                 specgram_context = specgram_canvas.node().getContext("2d");
@@ -823,62 +803,49 @@ angular.module('pgdb.query').filter('secondsToDateTime', [function () {
                 xGridSize = x(newVal.time_step) - x(0) + 2;
                 yGridSize = y(newVal.freq_step) - y(0) - 2;
 
-                function zoomFunc(lastTransform) {
-
-                    lastTransform.x = Math.min(lastTransform.x, 0);
-                    xt = lastTransform.rescaleX(x);
-                    specgram_svg.select('.xaxis').call(xaxis.scale(xt));
-
-                    specgram_context.save();
-                    specgram_context.clearRect(0, 0, width, height);
-                    specgram_context.translate(lastTransform.x, 0);
-                    specgram_context.scale(lastTransform.k, 1);
-                    drawSpectrogram();
-                    specgram_context.restore();
-                }
-
-                var zoomed = function () {
-                    scope.$emit('ZOOM_REQUESTED', d3.event.transform);
-
-
-                };
-                scope.$on('ZOOM', function (e, res) {
-                    zoomFunc(res);
-                });
-
-
-                var drag = d3.drag()
-                    .filter(function () {
-                        return d3.event.button == 0;
-                    })
-                    .on("start", function () {
-                        var coords = d3.mouse(this);
-                        var point_time = xt.invert(coords[0] - margin.left);
-                        scope.$emit('BEGIN_SELECTION', point_time);
-                    })
-                    .on("drag", function () {
-                        var p = d3.mouse(this);
-                        var point_time = xt.invert(p[0] - margin.left);
-                        scope.$emit('UPDATE_SELECTION', point_time);
-
-
-                    });
                 specgram_canvas.call(d3.zoom()
                     .scaleExtent(zoom_scales)
                     .translateExtent([[0, 0], [width, height]])
                     .extent([[0, 0], [width, height]])
-                    .filter(function () {
-                        return d3.event.button == 2 || d3.event.type == 'wheel';
-                    })
+                    .filter(() => d3.event.button == 2 || d3.event.type == 'wheel')
                     .on("zoom", zoomed))
                     .call(drag);
 
-
-
                 drawSpectrogram();
-
             });
 
+            function zoomFunc(lastTransform) {
+                lastTransform.x = Math.min(lastTransform.x, 0);
+                xt = lastTransform.rescaleX(x);
+                specgram_svg.select('.xaxis').call(xaxis.scale(xt));
+                specgram_context.save();
+                specgram_context.clearRect(0, 0, width, height);
+                specgram_context.translate(lastTransform.x, 0);
+                specgram_context.scale(lastTransform.k, 1);
+                drawSpectrogram();
+                specgram_context.restore();
+            }
+
+            function zoomed() {
+                scope.$emit('ZOOM_REQUESTED', d3.event.transform);
+            }
+
+            scope.$on('ZOOM', function (e, res) {
+                zoomFunc(res);
+            });
+
+            var drag = d3.drag()
+                .filter(() => d3.event.button == 0)
+                .on("start", function () {
+                    var coords = d3.mouse(this);
+                    var point_time = xt.invert(coords[0] - margin.left);
+                    scope.$emit('BEGIN_SELECTION', point_time);
+                })
+                .on("drag", function () {
+                    var p = d3.mouse(this);
+                    var point_time = xt.invert(p[0] - margin.left);
+                    scope.$emit('UPDATE_SELECTION', point_time);
+                });
         }
     }
 });
