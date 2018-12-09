@@ -207,7 +207,7 @@ angular.module('pgdb.query').filter('secondsToDateTime', [function () {
                     .attr('opacity', 0);
 
 
-                scope.$watch('data', function (newVal, oldVal) {
+	        function onDataUpdate(newVal, oldVal) {
                     if (!newVal) {
                         return;
                     }
@@ -236,8 +236,11 @@ angular.module('pgdb.query').filter('secondsToDateTime', [function () {
                     if (scope.selectedAnnotation) {
                         selected_annotation_rect.attr('opacity', 0.3).attr('x', xt(scope.selectedAnnotation.begin)).attr('width', xt(scope.selectedAnnotation.end) - xt(scope.selectedAnnotation.begin));
                     }
-		    updateAnnotations(newVal);
-		}, true);
+		    updateAnnotations();
+		}
+
+                scope.$watch('data', onDataUpdate);
+                scope.$watch('data.viewableSubannotations', () => onDataUpdate(scope.data, scope.data), true);
 
 		var drag = d3.drag()
 		    .filter(function () {
@@ -333,10 +336,9 @@ angular.module('pgdb.query').filter('secondsToDateTime', [function () {
 		    }
 		}
 
-
-		function updateAnnotations(data_value) {
+		function updateAnnotations() {
 		    ['phone', 'syllable', 'word'].forEach(tier => {
-			var tier_items = annotation_viewplot.selectAll('g.annotation.'+tier).data(data_value[tier], d => d.id)
+			var tier_items = annotation_viewplot.selectAll('g.annotation.'+tier).data(scope.data[tier], d => d.id)
 			tier_items.exit().remove();
 			tier_items = tier_items.enter().append('g');
 			tier_items.classed("annotation", true)
@@ -350,13 +352,13 @@ angular.module('pgdb.query').filter('secondsToDateTime', [function () {
 			    .style("text-anchor", "middle")
 			    .text(d => d.label);
 		    });
-		    data_value.subannotations.forEach(function (x) {
+		    scope.data.subannotations.forEach(function (x) {
 			    var annotation_type = x[0];
 			    var subannotation = x[1];
 			    subannotation_items = annotation_viewplot
 				.selectAll('g.annotation.'+subannotation)
-				.data(data_value.viewableSubannotations.filter(d => d[0] == x[0] && d[1] == x[1]).length > 0 
-				      ? data_value[annotation_type].map(x => x[subannotation]).flat()
+				.data(scope.data.viewableSubannotations.filter(d => d[0] == x[0] && d[1] == x[1]).length > 0 
+				      ? scope.data[annotation_type].map(x => x[subannotation]).flat()
 				      : [], d => d.id)
 
 			    subannotation_items.exit().remove();
@@ -380,7 +382,6 @@ angular.module('pgdb.query').filter('secondsToDateTime', [function () {
             restrict: 'E',
             replace: true,
             template: '<div class="chart"></div>',
-
             controllerAs: 'ctrl',
             scope: {
                 height: '=height',
@@ -708,6 +709,7 @@ angular.module('pgdb.query').filter('secondsToDateTime', [function () {
         restrict: 'E',
         replace: true,
         template: '<div class="chart"></div>',
+        controllerAs: 'ctrl',
         scope: {
             height: '=height',
             data: '=data',
