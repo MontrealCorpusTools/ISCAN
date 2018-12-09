@@ -197,10 +197,18 @@ angular.module('queryDetail', [
                     }
                     console.log($scope.can_view_annotations, $scope.can_annotate)
                 }
-                Query.oneAnnotation($stateParams.corpus_id, $stateParams.query_id, $scope.detail_index, $scope.paginateParams.ordering, true, true, true).then(function (res) {
+                Query.oneWaveform($stateParams.corpus_id, $stateParams.query_id, $scope.detail_index, $scope.paginateParams.ordering).then(function (res){
+                    $scope.waveform = res.data.waveform;
+                })
+
+                Query.oneSpectrogram($stateParams.corpus_id, $stateParams.query_id, $scope.detail_index, $scope.paginateParams.ordering).then(function (res){
+                    $scope.spectrogram = res.data.spectrogram;
+                })
+
+                Query.oneAnnotation($stateParams.corpus_id, $stateParams.query_id, $scope.detail_index, $scope.paginateParams.ordering, true).then(function (res) {
                     $scope.utterance = res.data.utterance;
-		    $scope.utterance.viewableSubannotations = [];
-		    $scope.utterance.subannotations = $scope.subannotations;
+                    $scope.utterance.viewableSubannotations = [];
+                    $scope.utterance.subannotations = $scope.subannotations;
                     console.log("SANITY", $scope.utterance);
                     $scope.selectedResult = res.data.result;
                     $scope.speaker = $scope.selectedResult.speaker;
