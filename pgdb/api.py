@@ -1207,7 +1207,6 @@ class QueryViewSet(viewsets.ModelViewSet):
                     return Response('The utterance IDs in this query look to be outdated. '
                                     'Please refresh the query.', status=status.HTTP_400_BAD_REQUEST)
                 else:
-
                     serializer = serializers.serializer_factory(c.hierarchy, 'utterance',
                                                                 acoustic_columns=acoustic_columns,
                                                                 with_waveform=False,
@@ -1217,7 +1216,6 @@ class QueryViewSet(viewsets.ModelViewSet):
                                                                 with_subannotations=True)
                     utt = utterances[0]
                     data['utterance'] = serializer(utt).data
-
         except neo4j_exceptions.ServiceUnavailable:
             return Response(None, status=status.HTTP_423_LOCKED)
         return Response(data)
@@ -1255,7 +1253,7 @@ class QueryViewSet(viewsets.ModelViewSet):
                     return Response('The utterance IDs in this query look to be outdated. '
                                     'Please refresh the query.', status=status.HTTP_400_BAD_REQUEST)
                 else:
-                    data['spectrogram'] = utterances[0].spectrogram
+                    data['spectrogram'] = utterances[0].spectrogram_fast
         except neo4j_exceptions.ServiceUnavailable:
             return Response(None, status=status.HTTP_423_LOCKED)
         return Response(data)

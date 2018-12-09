@@ -737,17 +737,20 @@ angular.module('pgdb.query').filter('secondsToDateTime', [function () {
 
             function drawSpectrogram() {
                 vis.select('.yaxis').call(yaxis);
-                scope.data.values.forEach(drawRect);
-            }
-
-            function drawRect(d) {
                 var begin = xt.invert(0);
                 var end = xt.invert(width);
-                //Draw the rectangle
-                if (d.time >= begin - 0.01 && d.time <= end + 0.01) {
-                    specgram_context.fillStyle = z(d.power);
-                    specgram_context.fillRect(x(d.time), y(d.frequency), xGridSize + 2, yGridSize);
-                }
+                scope.data.values.forEach((row, i) => {
+                    row.forEach((power,j) => {
+			//drawRect
+                        time = j * scope.data.time_step + begin;
+                        if (time >= begin - 0.01 && time <= end + 0.01) {
+                            freq = i * scope.data.freq_step;
+                            specgram_context.fillStyle = z(power);
+                            specgram_context.fillRect(x(time), y(freq), xGridSize + 2, yGridSize);
+                        }
+                    });
+                });
+
             }
 
             function resize() {
@@ -792,12 +795,8 @@ angular.module('pgdb.query').filter('secondsToDateTime', [function () {
             scope.$watch('data', function (newVal, oldVal) {
                 if (!newVal) return;
 
-                // Make x axis
-                y.domain(d3.extent(newVal.values, d => d.frequency));
-                y.domain([y.domain()[0], y.domain()[1] + newVal.freq_step]);
-                z.domain(d3.extent(newVal.values, d => d.power));
-
-
+                y.domain([0, (newVal.num_freq_bins+1)*newVal.freq_step]);
+                z.domain(d3.extent(newVal.values.flat()));
                 specgram_context = specgram_canvas.node().getContext("2d");
 
                 xGridSize = x(newVal.time_step) - x(0) + 2;
