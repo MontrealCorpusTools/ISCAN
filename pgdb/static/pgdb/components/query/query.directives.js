@@ -131,6 +131,11 @@ angular.module('pgdb.query').filter('secondsToDateTime', [function () {
 
 // Draw the Plotting region------------------------------
 // X axis lines (bottom and top).
+                var annotation_pane = annotation_vis.append("rect")
+                    .attr("class", "pane")
+                    .attr("width", width)
+                    .attr("height", height)
+
                 annotation_vis.append("g")
                     .attr("class", "xaxis")
                     .attr("transform", `translate(0,${height})`)
@@ -164,11 +169,6 @@ angular.module('pgdb.query').filter('secondsToDateTime', [function () {
 
                 var annotation_viewplot = annotation_vis.append("g").attr("clip-path", "url(#annotation_clip)");
 
-                var annotation_pane = annotation_vis.append("rect")
-                    .attr("class", "pane")
-                    .attr("width", width)
-                    .attr("height", height)
-                    .attr('fill-opacity', 0);
 
                 var annotation_playline = annotation_viewplot.append('line')
                     .attr("class", "playline")
