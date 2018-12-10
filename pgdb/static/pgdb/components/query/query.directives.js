@@ -27,6 +27,7 @@ angular.module('pgdb.query').filter('secondsToDateTime', [function () {
                 scope.selection_begin = 0;
                 scope.selection_end = 0;
                 scope.play_begin = 0;
+                var selected_sub_ann = '';
                 var vis = d3.select(element[0]);
                 var width = parseInt(vis.style('width'), 10) - margin.left - margin.right;
                 var height = parseInt(vis.style('height'), 10) - margin.top - margin.bottom;
@@ -323,21 +324,23 @@ angular.module('pgdb.query').filter('secondsToDateTime', [function () {
                             .attr("x", annotation_x_function)
                             .attr("stroke", 'black')
                             .attr('fill-opacity', 0)
-                            .attr("width", d => xt(d.end) - xt(d.begin));
+                            .attr("width", d => xt(d.end) - xt(d.begin))
+                            .attr("id", d => d.id);
                         tier_items.append("text")
                             .style("text-anchor", "middle")
                             .text(d => d.label);
                     });
 
                     scope.data.subannotations.forEach(x => {
-                        var annotation_type = x[0];
-                        var subannotation = x[1];
+                        const annotation_type = x[0];
+                        const subannotation = x[1];
+                        const is_in_viewable_sub = scope.data.viewableSubannotations.filter(d => d[0] == x[0] && d[1] == x[1]).length > 0;
                         subannotation_items = annotation_viewplot
                             .selectAll('g.annotation.'+subannotation)
-                            .data(scope.data.viewableSubannotations.filter(d => d[0] == x[0] && d[1] == x[1]).length > 0 
-                                  ? scope.data[annotation_type].map(x => x[subannotation]).flat()
+                            .data(is_in_viewable_sub
+                                  ? scope.data[annotation_type].map(x => x[subannotation].map(y=>{y.parent_id=x.id; return y})).flat()
                                   : [], d => d.id)
-                            //apologies
+                            //apologies, this gets all the subannotations of a type, along with their parent's id
 
                         subannotation_items.exit().remove();
                         subannotation_items.enter().append('g')
@@ -347,7 +350,32 @@ angular.module('pgdb.query').filter('secondsToDateTime', [function () {
                             .attr("x", annotation_x_function)
                             .attr('fill-opacity', 0)
                             .attr("stroke", 'black')
-                            .attr("width", d => xt(d.end) - xt(d.begin));
+                            .attr("width", d => xt(d.end) - xt(d.begin))
+                            .on('mouseenter', d => {
+                                if (selected_sub_ann === d.id) return;
+                                annotation_viewplot.select('#'+d.parent_id)
+                                    .style('fill', 'pink')
+                                    .attr('fill-opacity', 0.25);
+                            })
+                            .on('mouseleave', d => {
+                                if (selected_sub_ann === d.id) return;
+                                annotation_viewplot.select('#'+d.parent_id)
+                                    .style('fill', 'transparent')
+                                    .attr('fill-opacity', 0);
+                            })
+                            .on("click", (d, i) => {
+                                if(selected_sub_ann === d.id){
+                                    annotation_viewplot.select('#'+d.parent_id)
+                                        .style('fill', 'transparent')
+                                        .attr('fill-opacity', 0);
+                                    selected_sub_ann = '';
+                                }else{
+                                    annotation_viewplot.select('#'+d.parent_id)
+                                        .style('fill', 'pink')
+                                        .attr('fill-opacity', 1);   
+                                    selected_sub_ann = d.id;
+                                }
+                            });
                     });
                     drawAnnotations();
                 }
@@ -746,7 +774,7 @@ angular.module('pgdb.query').filter('secondsToDateTime', [function () {
                 const visible_end = xt.invert(width);
                 scope.data.values.forEach((row, i) => {
                     row.forEach((power,j) => {
-			//drawRect
+            //drawRect
                         time = j * scope.data.time_step + scope.begin;
                         if (time >= visible_begin - 0.01 && time <= visible_end + 0.01) {
                             freq = i * scope.data.freq_step;
