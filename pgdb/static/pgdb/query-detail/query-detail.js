@@ -32,7 +32,7 @@ angular.module('queryDetail', [
         }
     };
 }])
-    .controller('QueryDetailCtrl', function ($scope, Query, Corpora, $state, $stateParams, $document, Annotations, djangoAuth, Users) {
+    .controller('QueryDetailCtrl', function ($scope, Query, Corpora, $state, $stateParams, $document, Annotations, djangoAuth, Users, $mdDialog) {
             $scope.paginateParams = Query.paginateParams;
             $scope.annotation_types = Query.annotation_types;
             $scope.newAnnotation = {};
@@ -173,7 +173,6 @@ angular.module('queryDetail', [
 
             $scope.runQuery = function () {
                 if ($scope.user.is_superuser) {
-
                     $scope.can_listen = true;
                     $scope.can_edit = true;
                     $scope.can_view_annotations = true;
@@ -375,6 +374,19 @@ angular.module('queryDetail', [
                 if(res === ''){
                     $scope.$broadcast('SUBANNOTATION_UPDATE', 0, 0);
                 }else{
+                    $scope.selected_subannotation = res;
+                    console.log($scope.selected_subannotation);
+                    const text_view = Object.entries($scope.selected_subannotation)
+                        .filter(([k,v]) => k != 'id' && k != 'parent_id')
+                        .map(([k,v]) => `<tr><th>${k}</th><th>${v.toFixed(2)}</th>`)
+                        .join('</tr>');
+                    $mdDialog.show($mdDialog.alert()
+                        .parent(angular.element(document.querySelector('html')))
+                        .title("Subannotation")
+                        .htmlContent(`<table>${text_view}</tr></table>`)
+                        .clickOutsideToClose(true)
+                        .ariaLabel('Subannotation detail')
+                        .ok('Okay'));
                     $scope.$broadcast('SUBANNOTATION_UPDATE', res.begin, res.end);
                 }
             });

@@ -110,7 +110,6 @@
         <div ng-show="can_view_annotations" class="detail-container">
             <h4>Annotate</h4>
             <md-tabs md-border-bottom md-dynamic-height>
-
                 <md-tab ng-repeat="annotation in annotations" label="{{ annotation.label }}">
                     <md-content class="md-padding">
                         <div ng-repeat="cur in currentAnnotations[annotation.label]">
@@ -174,7 +173,6 @@
                         </div>
                     </md-content>
                 </md-tab>
-
             </md-tabs>
         </div>
 
