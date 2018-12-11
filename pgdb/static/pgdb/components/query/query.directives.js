@@ -311,11 +311,11 @@ angular.module('pgdb.query').filter('secondsToDateTime', [function () {
                     }
                 }
 
-                function highlightSubannotation(subAnn, d, fill, opacity){
-                    annotation_viewplot.select('#'+d.parent_id)
+                function highlightSubannotation(d, fill, opacity){
+                    annotation_viewplot.select('#'+CSS.escape(d.parent_id))
                         .style('fill', fill)
                         .attr('fill-opacity', opacity);
-                    d3.select(subAnn).style('fill', fill)
+                    d3.select('#'+CSS.escape(d.id)).style('fill', fill)
                         .attr('fill-opacity', opacity);
                 }
 
@@ -357,24 +357,27 @@ angular.module('pgdb.query').filter('secondsToDateTime', [function () {
                             .append("rect")
                             .attr("x", annotation_x_function)
                             .attr('fill-opacity', 0)
+			    .attr("id", d => d.id)
                             .attr("stroke", 'black')
                             .attr("width", d => xt(d.end) - xt(d.begin))
                             .on('mouseenter', function(d){
-                                if (selected_sub_ann === d.id) return;
-                                highlightSubannotation(this, d, 'RoyalBlue', 0.25);
+                                if (selected_sub_ann.id === d.id) return;
+                                highlightSubannotation(d, 'RoyalBlue', 0.25);
                             })
                             .on('mouseleave', function(d){ 
-                                if (selected_sub_ann === d.id) return;
-                                highlightSubannotation(this, d, 'transparent', 0);
+                                if (selected_sub_ann.id === d.id) return;
+                                highlightSubannotation(d, 'transparent', 0);
                             })
                             .on("click", function(d, i){
-                                if(selected_sub_ann === d.id){
-                                    highlightSubannotation(this, d, 'transparent', 0);
+                                if(selected_sub_ann.id === d.id){
+                                    highlightSubannotation(d, 'transparent', 0);
                                     selected_sub_ann = '';
                                     scope.$emit("UPDATE_SUBANNOTATION", '');
                                 }else{
-                                    highlightSubannotation(this, d, 'RoyalBlue', 0.25);
-                                    selected_sub_ann = d.id;
+                                    highlightSubannotation(d, 'RoyalBlue', 0.25);
+				    if(selected_sub_ann !== '')
+					    highlightSubannotation(selected_sub_ann, 'transparent', 0);
+                                    selected_sub_ann = d;
                                     scope.$emit("UPDATE_SUBANNOTATION", d);
                                 }
                             });
