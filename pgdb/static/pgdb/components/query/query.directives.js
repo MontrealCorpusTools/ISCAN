@@ -311,6 +311,14 @@ angular.module('pgdb.query').filter('secondsToDateTime', [function () {
                     }
                 }
 
+                function highlightSubannotation(subAnn, d, fill, opacity){
+                    annotation_viewplot.select('#'+d.parent_id)
+                        .style('fill', fill)
+                        .attr('fill-opacity', opacity);
+                    d3.select(subAnn).style('fill', fill)
+                        .attr('fill-opacity', opacity);
+                }
+
                 function updateAnnotations() {
                     ['phone', 'syllable', 'word'].forEach(tier => {
                         var tier_items = annotation_viewplot.selectAll('g.annotation.'+tier)
@@ -351,29 +359,23 @@ angular.module('pgdb.query').filter('secondsToDateTime', [function () {
                             .attr('fill-opacity', 0)
                             .attr("stroke", 'black')
                             .attr("width", d => xt(d.end) - xt(d.begin))
-                            .on('mouseenter', d => {
+                            .on('mouseenter', function(d){
                                 if (selected_sub_ann === d.id) return;
-                                annotation_viewplot.select('#'+d.parent_id)
-                                    .style('fill', 'pink')
-                                    .attr('fill-opacity', 0.25);
+                                highlightSubannotation(this, d, 'RoyalBlue', 0.25);
                             })
-                            .on('mouseleave', d => {
+                            .on('mouseleave', function(d){ 
                                 if (selected_sub_ann === d.id) return;
-                                annotation_viewplot.select('#'+d.parent_id)
-                                    .style('fill', 'transparent')
-                                    .attr('fill-opacity', 0);
+                                highlightSubannotation(this, d, 'transparent', 0);
                             })
-                            .on("click", (d, i) => {
+                            .on("click", function(d, i){
                                 if(selected_sub_ann === d.id){
-                                    annotation_viewplot.select('#'+d.parent_id)
-                                        .style('fill', 'transparent')
-                                        .attr('fill-opacity', 0);
+                                    highlightSubannotation(this, d, 'transparent', 0);
                                     selected_sub_ann = '';
+                                    scope.$emit("UPDATE_SUBANNOTATION", '');
                                 }else{
-                                    annotation_viewplot.select('#'+d.parent_id)
-                                        .style('fill', 'pink')
-                                        .attr('fill-opacity', 1);   
+                                    highlightSubannotation(this, d, 'RoyalBlue', 0.25);
                                     selected_sub_ann = d.id;
+                                    scope.$emit("UPDATE_SUBANNOTATION", d);
                                 }
                             });
                     });
@@ -403,6 +405,8 @@ angular.module('pgdb.query').filter('secondsToDateTime', [function () {
             link: function (scope, element, attrs) {
                 scope.selection_begin = 0;
                 scope.selection_end = 0;
+                scope.subannotation_begin = 0;
+                scope.subannotation_end = 0;
                 scope.play_begin = 0;
                 var vis = d3.select(element[0]);
                 var width = parseInt(vis.style('width'), 10) - margin.left - margin.right;
@@ -456,6 +460,8 @@ angular.module('pgdb.query').filter('secondsToDateTime', [function () {
                             .attr('x', xt(scope.selectedAnnotation.begin))
                             .attr('width', xt(scope.selectedAnnotation.end) - xt(scope.selectedAnnotation.begin));
                     }
+                    subannotation_rect.attr('x', xt(scope.subannotation_begin))
+                        .attr('width', xt(scope.subannotation_end) - xt(scope.subannotation_begin));
                     vis.select('.line')
                        .attr('d',d => waveform_valueline(d));
                 }
@@ -547,6 +553,15 @@ angular.module('pgdb.query').filter('secondsToDateTime', [function () {
                     .attr('fill', 'yellow')
                     .attr('opacity', 0);
 
+                var subannotation_rect = waveform_viewplot.append("rect")
+                    .attr('class', "subannotation")
+                    .attr('x', 0)
+                    .attr('y', 0)
+                    .attr('width', 0)
+                    .attr('height', height)
+                    .attr('fill', 'RoyalBlue')
+                    .attr('opacity', 0);
+
                 scope.$watch('begin', function (newVal, oldVal) {
                     if (!newVal) return;
                     x.domain([newVal, x.domain()[1]]);
@@ -612,6 +627,15 @@ angular.module('pgdb.query').filter('secondsToDateTime', [function () {
                     }
                 });
 
+                scope.$on('SUBANNOTATION_UPDATE', function (e, subannotation_begin, subannotation_end) {
+                    scope.subannotation_begin = subannotation_begin;
+                    scope.subannotation_end = subannotation_end;
+                    waveform_viewplot.select("rect.subannotation")
+                        .attr('opacity', 0.3)
+                        .attr('x', xt(subannotation_begin))
+                        .attr('width', xt(subannotation_end) - xt(subannotation_begin));
+                });
+
                 waveform_vis.call(d3.zoom()
                     .scaleExtent(zoom_scales)
                     .translateExtent([[0, 0], [width, height]])
@@ -658,6 +682,8 @@ angular.module('pgdb.query').filter('secondsToDateTime', [function () {
                         selected_annotation_rect.attr('x', xt(scope.selectedAnnotation.begin))
                             .attr('width', xt(scope.selectedAnnotation.end) - xt(scope.selectedAnnotation.begin));
                     }
+                    subannotation_rect.attr('x', xt(scope.subannotation_begin))
+                        .attr('width', xt(scope.subannotation_end) - xt(scope.subannotation_begin));
                     drawWaveform();
                 }
 
@@ -703,6 +729,8 @@ angular.module('pgdb.query').filter('secondsToDateTime', [function () {
         link: function (scope, element, attrs) {
             scope.selection_begin = 0;
             scope.selection_end = 0;
+            scope.subannotation_begin = 0;
+            scope.subannotation_end = 0;
             scope.play_begin = 0;
             var vis = d3.select(element[0]);
             var width = parseInt(vis.style('width'), 10) - margin.left - margin.right;
@@ -725,6 +753,11 @@ angular.module('pgdb.query').filter('secondsToDateTime', [function () {
             var yaxis = d3.axisLeft(y)
                 .ticks(5);
 
+            var specgram_canvas = vis.append("canvas")
+                .attr('class', 'combined')
+                .style("padding", margin.top + "px " + margin.right + "px " + margin.bottom + "px " + margin.left + "px ")
+                .attr("width", width + "px")
+                .attr("height", height + "px");
 
             var specgram_svg = vis.append('svg')
                 .attr('class', 'combined')
@@ -733,11 +766,6 @@ angular.module('pgdb.query').filter('secondsToDateTime', [function () {
                 .append("g")
                 .attr("transform", `translate(${margin.left},${margin.top})`);
 
-            var specgram_canvas = vis.append("canvas")
-                .attr('class', 'combined')
-                .style("padding", margin.top + "px " + margin.right + "px " + margin.bottom + "px " + margin.left + "px ")
-                .attr("width", width + "px")
-                .attr("height", height + "px");
 
 
             specgram_svg.append("g")
@@ -767,6 +795,15 @@ angular.module('pgdb.query').filter('secondsToDateTime', [function () {
                 .attr("transform", "rotate(-90)")
                 .style("font-size", "16px")
                 .text("Frequency (Hz)");
+
+            subannotation_rect = specgram_svg.append("rect")
+                .attr('class', "subannotation")
+                .attr('x', 0)
+                .attr('y', 0)
+                .attr('width', 0)
+                .attr('height', height)
+                .attr('fill', 'RoyalBlue')
+                .attr('opacity', 0);
 
             function drawSpectrogram() {
                 vis.select('.yaxis').call(yaxis);
@@ -810,6 +847,9 @@ angular.module('pgdb.query').filter('secondsToDateTime', [function () {
                 vis.select('.xaxis')
                     .attr("transform", `translate(0,${height})`).call(xaxis);
                 vis.select('.yaxis').call(yaxis);
+                subannotation_rect.attr('x', xt(scope.subannotation_begin))
+                    .attr('height', height)
+                    .attr('width', xt(scope.subannotation_end) - xt(scope.subannotation_begin));
                 drawSpectrogram();
             }
 
@@ -858,6 +898,8 @@ angular.module('pgdb.query').filter('secondsToDateTime', [function () {
                 specgram_context.scale(lastTransform.k, 1);
                 drawSpectrogram();
                 specgram_context.restore();
+                subannotation_rect.attr('x', xt(scope.subannotation_begin))
+                    .attr('width', xt(scope.subannotation_end) - xt(scope.subannotation_begin));
             }
 
             function zoomed() {
@@ -880,6 +922,15 @@ angular.module('pgdb.query').filter('secondsToDateTime', [function () {
                     var point_time = xt.invert(p[0] - margin.left);
                     scope.$emit('UPDATE_SELECTION', point_time);
                 });
+
+            scope.$on('SUBANNOTATION_UPDATE', function (e, subannotation_begin, subannotation_end) {
+                scope.subannotation_begin = subannotation_begin;
+                scope.subannotation_end = subannotation_end;
+                specgram_svg.select("rect.subannotation")
+                    .attr('opacity', 0.3)
+                    .attr('x', xt(subannotation_begin))
+                    .attr('width', xt(subannotation_end) - xt(subannotation_begin));
+            });
         }
     }
 });

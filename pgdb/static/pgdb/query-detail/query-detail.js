@@ -371,6 +371,14 @@ angular.module('queryDetail', [
                 $scope.$broadcast('SELECTION_UPDATE', $scope.selection_begin, $scope.selection_end);
             });
 
+            $scope.$on('UPDATE_SUBANNOTATION', function (e, res) {
+                if(res === ''){
+                    $scope.$broadcast('SUBANNOTATION_UPDATE', 0, 0);
+                }else{
+                    $scope.$broadcast('SUBANNOTATION_UPDATE', res.begin, res.end);
+                }
+            });
+
             $scope.$on('ZOOM_REQUESTED', function (e, res) {
                 $scope.$broadcast('ZOOM', res);
             });
