@@ -645,6 +645,9 @@ class Enrichment(models.Model):
                 annotation_type = config.get('annotation_type')
                 if not (annotation_type in c.hierarchy.annotation_types):
                     return 'Must encode {}'.format(annotation_type)
+                if c.hierarchy.has_token_subset(annotation_type, data.get('subset_label', '')) or \
+                        c.hierarchy.has_type_subset(annotation_type, data.get('subset_label', '')):
+                    return "The {} subset already exists".format(data.get('subset_label', ''))
             elif enrichment_type == 'syllables':
                 if not (c.hierarchy.has_type_subset('phone', config.get('phone_class', 'syllabic'))):
                     return 'Must encode {}'.format(config.get('phone_class', 'syllabic'))
@@ -656,7 +659,7 @@ class Enrichment(models.Model):
                     return 'Must encode pauses'
             elif enrichment_type == 'vot':
                 #Check if utterances
-                if not True:
+                if not "utterance" in c.hierarchy.annotation_types:
                     return 'Must encode utterances'
             elif '_csv' in enrichment_type:
                 if config.get('path') is None:
@@ -1286,6 +1289,33 @@ class Query(models.Model):
                     json.dump(self._results, f)
 
                 self.result_count = len(self._results)
+        except:
+            raise
+        finally:
+            os.remove(self.lockfile_path)
+            self.running = False
+            self.save()
+
+    def generate_subset(self):
+        self.running = True
+        config = self.config
+        config['subset_encoded'] = False
+        self.config = config
+        print(config)
+        self.save()
+        while os.path.exists(self.lockfile_path):
+            pass
+        with open(self.lockfile_path, 'w') as f:
+            pass
+        try:
+            begin = time.time()
+            with CorpusContext(self.corpus.config) as c:
+                q = self.generate_query_for_export(c)
+                q.create_subset(config["subset_name"])
+                c.encode_hierarchy()
+            config = self.config
+            config['subset_encoded'] = True
+            self.config = config
         except:
             raise
         finally:

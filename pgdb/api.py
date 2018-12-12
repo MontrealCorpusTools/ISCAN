@@ -21,7 +21,7 @@ from polyglotdb.query.base.func import Count
 from . import models
 from . import serializers
 from .utils import get_used_ports
-from .tasks import import_corpus_task, run_query_task, run_enrichment_task, reset_enrichment_task, delete_enrichment_task, run_query_export_task
+from .tasks import import_corpus_task, run_query_task, run_enrichment_task, reset_enrichment_task, delete_enrichment_task, run_query_export_task, run_query_generate_subset_task
 
 import logging
 log = logging.getLogger('polyglot_server')
@@ -749,6 +749,12 @@ class EnrichmentViewSet(viewsets.ModelViewSet):
                 return Response(
                     'The subset cannot be empty.',
                     status=status.HTTP_400_BAD_REQUEST)
+            with CorpusContext(corpus.config) as c:
+                if c.hierarchy.has_token_subset(data.get('annotation_type', ''), data.get('subset_label', '')) or \
+                        c.hierarchy.has_type_subset(data.get('annotation_type', ''), data.get('subset_label', '')):
+                    return Response(
+                            "The {} subset already exists".format(data.get('subset_label', '')),
+                            status=status.HTTP_400_BAD_REQUEST)
             name = 'Encode {} subset'.format(label)
 
         #Stress pattern validation
@@ -1222,6 +1228,40 @@ class QueryViewSet(viewsets.ModelViewSet):
         except neo4j_exceptions.ServiceUnavailable:
             return Response(None, status=status.HTTP_423_LOCKED)
         return Response(data)
+
+    @detail_route(methods=['post'])
+    def generate_subset(self, request, pk=None, corpus_pk=None, *args, **kwargs):
+        if isinstance(request.user, django.contrib.auth.models.AnonymousUser):
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
+        corpus = models.Corpus.objects.get(pk=corpus_pk)
+        if not request.user.is_superuser:
+            permissions = corpus.user_permissions.filter(user=request.user).all()
+            if not len(permissions) or not permissions[0].can_view_detail:
+                return Response(status=status.HTTP_401_UNAUTHORIZED)
+        if not request.data.get('subset_name', ''):
+            return Response(
+                'The subset must have a name.',
+                status=status.HTTP_400_BAD_REQUEST)
+        if not corpus.database.is_running:
+            return Response("Database is not running, cannot generate subset",
+                    status=status.HTTP_400_BAD_REQUEST)
+        with CorpusContext(corpus.config) as g:
+            if g.hierarchy.has_token_subset(request.data.get('annotation_type', ''), request.data.get('subset_name', '')) or \
+                    g.hierarchy.has_type_subset(request.data.get('annotation_type', ''), request.data.get('subset_name', '')):
+                return Response("There is already a subset with the name, {}".format(request.data.get('subset_name', '')), 
+                        status=status.HTTP_400_BAD_REQUEST)
+        query = models.Query.objects.filter(pk=pk, corpus=corpus).get()
+        if query is None:
+            return Response(None, status=status.HTTP_400_BAD_REQUEST)
+        if query.running:
+            return Response(None, status=status.HTTP_423_LOCKED)
+        c = query.config
+        c.update(request.data)
+        query.config = c
+        run_query_generate_subset_task.delay(query.pk)
+        time.sleep(1)
+        return Response(serializers.QuerySerializer(query).data)
+
 
     @detail_route(methods=['post'])
     def generate_export(self, request, pk=None, corpus_pk=None):

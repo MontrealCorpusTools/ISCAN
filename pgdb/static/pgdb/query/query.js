@@ -499,6 +499,35 @@ angular.module('query', [
 
         };
 
+        $scope.generate_subset = function(ev) {
+            $scope.exporting = true;
+            console.log($scope.query)
+	    var name_prompt = $mdDialog.prompt()
+	    	                       .parent(angular.element(document.querySelector('html')))
+	    	                       .title("Subset name")
+	    	                       .textContent("Choose a name for the new subset")
+		                       .initialValue($scope.query.subset_name ? $scope.query.subset_name : $scope.query.name)
+		                       .targetEvent(ev)
+		                       .required(true)
+	    	                       .ok("Use this name")
+		                       .cancel("Cancel subset encoding")
+	    $mdDialog.show(name_prompt).then(function(subset_name) {
+		    $scope.query.subset_name = subset_name;
+		    Query.generate_subset($stateParams.corpus_id, $stateParams.query_id, $scope.query).then(function (res) {
+			$scope.query = res.data;
+			getData();
+		        $scope.exporting = false;
+		    }).catch(function (res) {
+			console.log('error!', res);
+			$scope.exporting = false;
+		    });
+	    }, function() {
+		    console.log("Subset encoding canceled");
+		    $scope.exporting = false;
+	    }
+	    );
+        };
+
 
         $scope.save_export = function () {
             $scope.exporting = true;
@@ -712,6 +741,7 @@ angular.module('query', [
                     $scope.getHierarchy();
                     console.log('GOT QUERY getdata');
                     console.log($scope.query);
+		    console.log($scope.hierarchy);
                     if ($scope.exporting){
                         if (!$scope.query.running && $scope.query.export_available) {
                             $scope.exporting = false;
