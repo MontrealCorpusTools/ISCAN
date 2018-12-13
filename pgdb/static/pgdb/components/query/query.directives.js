@@ -426,7 +426,6 @@ angular.module('pgdb.query').filter('secondsToDateTime', [function () {
                 function resize() {
                     width = parseInt(vis.style('width'), 10);
                     width = width - margin.left - margin.right;
-
                     height = parseInt(vis.style('height'), 10);
                     height = height - margin.top - margin.bottom;
                     console.log('RESiZE WIDTH', width)
@@ -456,14 +455,17 @@ angular.module('pgdb.query').filter('secondsToDateTime', [function () {
 
                     if (selection_rect.attr('opacity') != 0) {
                         selection_rect.attr('x', xt(scope.selection_begin))
+                            .attr('height', height)
                             .attr('width', xt(scope.selection_end) - xt(scope.selection_begin));
                     }
                     if (scope.selectedAnnotation) {
                         selected_annotation_rect.attr('opacity', 0.3)
                             .attr('x', xt(scope.selectedAnnotation.begin))
+                            .attr('height', height)
                             .attr('width', xt(scope.selectedAnnotation.end) - xt(scope.selectedAnnotation.begin));
                     }
                     subannotation_rect.attr('x', xt(scope.subannotation_begin))
+                        .attr('height', height)
                         .attr('width', xt(scope.subannotation_end) - xt(scope.subannotation_begin));
                     vis.select('.line')
                        .attr('d',d => waveform_valueline(d));
