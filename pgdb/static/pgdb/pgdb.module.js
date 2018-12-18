@@ -13,6 +13,7 @@ var app = angular.module('pgdb', [
     'ui.bootstrap',
     'ngCookies',
     'ngMaterial',
+    'ngSanitize',
     'angular-mousetrap',
     'checklist-model',
     'md.data.table',

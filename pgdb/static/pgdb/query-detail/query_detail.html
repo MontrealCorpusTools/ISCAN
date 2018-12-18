@@ -5,13 +5,13 @@
         </div>
 
         <div class="detail-plot">
-            <waveform-plot data="utterance.waveform" begin="utterance.begin" end="utterance.end"
+            <waveform-plot data="waveform" begin="utterance.begin" end="utterance.end"
                            selected-annotation="selectedAnnotation"></waveform-plot>
 
         </div>
 
         <div class="detail-plot">
-            <spectrogram-plot data="utterance.spectrogram" begin="utterance.begin"
+            <spectrogram-plot data="spectrogram" begin="utterance.begin"
                               end="utterance.end"></spectrogram-plot>
         </div>
     </div>
@@ -98,10 +98,18 @@
 
             </md-tabs>
         </div>
+        <div class="detail-container">
+		<h4>Viewable subannnotations</h4>
+		<label ng-repeat="subannotation in subannotations">
+		<input
+			type="checkbox"
+			value="{{subannotation[1]}}"
+			ng-model="subannotation[2]"
+		> {{subannotation[1]}} </label>
+        </div>
         <div ng-show="can_view_annotations" class="detail-container">
             <h4>Annotate</h4>
             <md-tabs md-border-bottom md-dynamic-height>
-
                 <md-tab ng-repeat="annotation in annotations" label="{{ annotation.label }}">
                     <md-content class="md-padding">
                         <div ng-repeat="cur in currentAnnotations[annotation.label]">
@@ -165,7 +173,6 @@
                         </div>
                     </md-content>
                 </md-tab>
-
             </md-tabs>
         </div>
 

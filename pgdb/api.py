@@ -3,6 +3,7 @@ import time
 import json
 import zipfile
 import base64
+from distutils.util import strtobool
 
 import django
 from django.conf import settings
@@ -1175,9 +1176,7 @@ class QueryViewSet(viewsets.ModelViewSet):
         limit = 1
         offset = index
 
-        with_waveform = request.query_params.get('with_waveform', False)
-        with_spectrogram = request.query_params.get('with_spectrogram', False)
-        with_subannotations = request.query_params.get('with_subannotations', True)
+        with_subannotations = bool(strtobool(request.query_params.get('with_subannotations', 'True')))
         result = query.get_results(ordering, limit, offset)[0]
         utterance_id = result['utterance']['current']['id']
         data = {'result': result}
@@ -1214,17 +1213,91 @@ class QueryViewSet(viewsets.ModelViewSet):
                     return Response('The utterance IDs in this query look to be outdated. '
                                     'Please refresh the query.', status=status.HTTP_400_BAD_REQUEST)
                 else:
-
                     serializer = serializers.serializer_factory(c.hierarchy, 'utterance',
                                                                 acoustic_columns=acoustic_columns,
-                                                                with_waveform=with_waveform,
-                                                                with_spectrogram=with_spectrogram,
+                                                                with_waveform=False,
+                                                                with_spectrogram=False,
                                                                 top_level=True,
                                                                 with_lower_annotations=True, detail=True,
                                                                 with_subannotations=True)
                     utt = utterances[0]
                     data['utterance'] = serializer(utt).data
+        except neo4j_exceptions.ServiceUnavailable:
+            return Response(None, status=status.HTTP_423_LOCKED)
+        return Response(data)
 
+    @detail_route(methods=['get'])
+    def get_spectrogram(self, request, pk=None, corpus_pk=None, index=None):
+        print(request.query_params)
+        if isinstance(request.user, django.contrib.auth.models.AnonymousUser):
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
+        corpus = models.Corpus.objects.get(pk=corpus_pk)
+        if not request.user.is_superuser:
+            permissions = corpus.user_permissions.filter(user=request.user).all()
+            if not len(permissions) or not permissions[0].can_view_detail:
+                return Response(status=status.HTTP_401_UNAUTHORIZED)
+        query = models.Query.objects.filter(pk=pk, corpus=corpus).get()
+        if query is None:
+            return Response(None, status=status.HTTP_400_BAD_REQUEST)
+        if query.running:
+            return Response(None)
+        ordering = request.query_params.get('ordering', '')
+        index = int(request.query_params.get('index', '0'))
+        limit = 1
+        offset = index
+        result = query.get_results(ordering, limit, offset)[0]
+        utterance_id = result['utterance']['current']['id']
+        data = {'result': result}
+        try:
+            with CorpusContext(corpus.config) as c:
+                q = c.query_graph(c.utterance)
+                q = q.filter(c.utterance.id == utterance_id)
+                utterances = q.all()
+                if utterances is None:
+                    data['spectogram'] = None
+                elif not len(utterances):
+                    return Response('The utterance IDs in this query look to be outdated. '
+                                    'Please refresh the query.', status=status.HTTP_400_BAD_REQUEST)
+                else:
+                    data['spectrogram'] = utterances[0].spectrogram_fast
+        except neo4j_exceptions.ServiceUnavailable:
+            return Response(None, status=status.HTTP_423_LOCKED)
+        return Response(data)
+
+    @detail_route(methods=['get'])
+    def get_waveform(self, request, pk=None, corpus_pk=None, index=None):
+        print(request.query_params)
+        if isinstance(request.user, django.contrib.auth.models.AnonymousUser):
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
+        corpus = models.Corpus.objects.get(pk=corpus_pk)
+        if not request.user.is_superuser:
+            permissions = corpus.user_permissions.filter(user=request.user).all()
+            if not len(permissions) or not permissions[0].can_view_detail:
+                return Response(status=status.HTTP_401_UNAUTHORIZED)
+        query = models.Query.objects.filter(pk=pk, corpus=corpus).get()
+        if query is None:
+            return Response(None, status=status.HTTP_400_BAD_REQUEST)
+        if query.running:
+            return Response(None)
+        ordering = request.query_params.get('ordering', '')
+        index = int(request.query_params.get('index', '0'))
+        limit = 1
+        offset = index
+        result = query.get_results(ordering, limit, offset)[0]
+        utterance_id = result['utterance']['current']['id']
+        data = {'result': result}
+        try:
+            with CorpusContext(corpus.config) as c:
+                q = c.query_graph(c.utterance)
+                q = q.filter(c.utterance.id == utterance_id)
+                utterances = q.all()
+                if utterances is None:
+                    data['waveform'] = None
+                elif not len(utterances):
+                    return Response('The utterance IDs in this query look to be outdated. '
+                                    'Please refresh the query.', status=status.HTTP_400_BAD_REQUEST)
+                else:
+                    data['waveform'] = utterances[0].waveform
         except neo4j_exceptions.ServiceUnavailable:
             return Response(None, status=status.HTTP_423_LOCKED)
         return Response(data)

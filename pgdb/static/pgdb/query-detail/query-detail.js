@@ -32,7 +32,7 @@ angular.module('queryDetail', [
         }
     };
 }])
-    .controller('QueryDetailCtrl', function ($scope, Query, Corpora, $state, $stateParams, $document, Annotations, djangoAuth, Users) {
+    .controller('QueryDetailCtrl', function ($scope, Query, Corpora, $state, $stateParams, $document, Annotations, djangoAuth, Users, $mdDialog) {
             $scope.paginateParams = Query.paginateParams;
             $scope.annotation_types = Query.annotation_types;
             $scope.newAnnotation = {};
@@ -72,7 +72,8 @@ angular.module('queryDetail', [
                         discourse: {},
                         speaker: {}
                     };
-
+		    //List of subannotations where subannotations are a 2-array of type and subannotation_type
+	            $scope.subannotations = Object.keys($scope.hierarchy.subannotations).map(x => $scope.hierarchy.subannotations[x].map(y => [x, y])).flat(1);
                     console.log($scope.query);
                     $scope.runQuery();
                 });
@@ -172,7 +173,6 @@ angular.module('queryDetail', [
 
             $scope.runQuery = function () {
                 if ($scope.user.is_superuser) {
-
                     $scope.can_listen = true;
                     $scope.can_edit = true;
                     $scope.can_view_annotations = true;
@@ -196,8 +196,18 @@ angular.module('queryDetail', [
                     }
                     console.log($scope.can_view_annotations, $scope.can_annotate)
                 }
-                Query.oneAnnotation($stateParams.corpus_id, $stateParams.query_id, $scope.detail_index, $scope.paginateParams.ordering, true, true, true).then(function (res) {
+                Query.oneWaveform($stateParams.corpus_id, $stateParams.query_id, $scope.detail_index, $scope.paginateParams.ordering).then(function (res){
+                    $scope.waveform = res.data.waveform;
+                })
+
+                Query.oneSpectrogram($stateParams.corpus_id, $stateParams.query_id, $scope.detail_index, $scope.paginateParams.ordering).then(function (res){
+                    $scope.spectrogram = res.data.spectrogram;
+                })
+
+                Query.oneAnnotation($stateParams.corpus_id, $stateParams.query_id, $scope.detail_index, $scope.paginateParams.ordering, true).then(function (res) {
                     $scope.utterance = res.data.utterance;
+                    $scope.utterance.viewableSubannotations = [];
+                    $scope.utterance.subannotations = $scope.subannotations;
                     console.log("SANITY", $scope.utterance);
                     $scope.selectedResult = res.data.result;
                     $scope.speaker = $scope.selectedResult.speaker;
@@ -281,6 +291,11 @@ angular.module('queryDetail', [
                 }
             };
 
+	    $scope.$watch('subannotations', function(nv) {
+		    if($scope.utterance && $scope.utterance.viewableSubannotations)
+			    $scope.utterance.viewableSubannotations = nv.filter(x => x[2]).map(x => [x[0], x[1]]);
+	    }, true);
+
             Corpora.one($stateParams.corpus_id).then(function (res) {
                 $scope.corpus = res.data;
             });
@@ -353,6 +368,27 @@ angular.module('queryDetail', [
                     $scope.selection_end = res;
                 }
                 $scope.$broadcast('SELECTION_UPDATE', $scope.selection_begin, $scope.selection_end);
+            });
+
+            $scope.$on('UPDATE_SUBANNOTATION', function (e, res) {
+                if(res === ''){
+                    $scope.$broadcast('SUBANNOTATION_UPDATE', 0, 0);
+                }else{
+                    $scope.selected_subannotation = res;
+                    console.log($scope.selected_subannotation);
+                    const text_view = Object.entries($scope.selected_subannotation)
+                        .filter(([k,v]) => k != 'id' && k != 'parent_id')
+                        .map(([k,v]) => `<tr><th>${k}</th><th>${v.toFixed(2)}</th>`)
+                        .join('</tr>');
+                    $mdDialog.show($mdDialog.alert()
+                        .parent(angular.element(document.querySelector('html')))
+                        .title("Subannotation")
+                        .htmlContent(`<table>${text_view}</tr></table>`)
+                        .clickOutsideToClose(true)
+                        .ariaLabel('Subannotation detail')
+                        .ok('Okay'));
+                    $scope.$broadcast('SUBANNOTATION_UPDATE', res.begin, res.end);
+                }
             });
 
             $scope.$on('ZOOM_REQUESTED', function (e, res) {

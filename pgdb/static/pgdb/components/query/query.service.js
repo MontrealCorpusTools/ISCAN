@@ -71,17 +71,34 @@ angular.module('pgdb.query')
 
         };
 
-        Query.oneAnnotation = function (corpus_id, query_id, index, ordering, with_pitch, with_waveform, with_spectrogram) {
+        Query.oneAnnotation = function (corpus_id, query_id, index, ordering, with_pitch) {
             return $http.get(base_url + corpus_id + '/query/' + query_id + '/result/', {
                 params: {
                     index: index,
                     ordering: ordering,
                     with_pitch: with_pitch,
-                    with_waveform: with_waveform,
-                    with_spectrogram: with_spectrogram
                 }
             });
         };
+
+        Query.oneWaveform = function (corpus_id, query_id, index, ordering) {
+            return $http.get(base_url + corpus_id + '/query/' + query_id + '/get_waveform/', {
+                params: {
+                    index: index,
+                    ordering: ordering,
+                }
+            });
+        };
+
+        Query.oneSpectrogram= function (corpus_id, query_id, index, ordering) {
+            return $http.get(base_url + corpus_id + '/query/' + query_id + '/get_spectrogram/', {
+                params: {
+                    index: index,
+                    ordering: ordering,
+                }
+            });
+        };
+
         Query.generate_pitch_track = function (corpus_id, id, newPitchSetings) {
             newPitchSetings.utterance_id = id;
             return $http.get(base_url + corpus_id + '/utterance_pitch_track/', {
