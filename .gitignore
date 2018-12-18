@@ -117,3 +117,5 @@ ENV/
 # mypy
 .mypy_cache/
 
+
+tests/data/data/
