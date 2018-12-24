@@ -12,7 +12,7 @@ from django.db.models import Q
 from django.contrib.auth.models import User
 from rest_framework import generics, permissions, viewsets, status, pagination
 from rest_framework.response import Response
-from rest_framework.decorators import detail_route, list_route
+from rest_framework.decorators import action
 
 from neo4j import exceptions as neo4j_exceptions
 
@@ -47,7 +47,7 @@ class UserViewSet(viewsets.ModelViewSet):
         users = User.objects.all()
         return Response(self.serializer_class(users, many=True).data)
 
-    @list_route(methods=['get'])
+    @action(detail=False, methods=['get'])
     def current_user(self, request):
         if isinstance(request.user, django.contrib.auth.models.AnonymousUser):
             return Response(status=status.HTTP_401_UNAUTHORIZED)
@@ -421,7 +421,7 @@ class CorpusViewSet(viewsets.ModelViewSet):
         print(subset)
         return Response(json.dumps(subset))
 
-    @detail_route(methods=['get'])
+    @action(detail=True, methods=['get'])
     def phones(self, request, pk=None):
         if isinstance(request.user, django.contrib.auth.models.AnonymousUser):
             return Response(status=status.HTTP_401_UNAUTHORIZED)
@@ -437,7 +437,7 @@ class CorpusViewSet(viewsets.ModelViewSet):
 
         return Response(phones.to_json())
 
-    @detail_route(methods=['get'])
+    @action(detail=True, methods=['get'])
     def phone_set(self, request, pk=None):
         if isinstance(request.user, django.contrib.auth.models.AnonymousUser):
             return Response(status=status.HTTP_401_UNAUTHORIZED)
@@ -456,7 +456,7 @@ class CorpusViewSet(viewsets.ModelViewSet):
 
         return Response(phones)
 
-    @detail_route(methods=['get'])
+    @action(detail=True, methods=['get'])
     def word_set(self, request, pk=None):
         if isinstance(request.user, django.contrib.auth.models.AnonymousUser):
             return Response(status=status.HTTP_401_UNAUTHORIZED)
@@ -475,7 +475,7 @@ class CorpusViewSet(viewsets.ModelViewSet):
             words = sorted(set(x['label'] for x in words))
         return Response(words)
 
-    @detail_route(methods=['get'])
+    @action(detail=True, methods=['get'])
     def hierarchy(self, request, pk=None):
         if isinstance(request.user, django.contrib.auth.models.AnonymousUser):
             return Response(status=status.HTTP_401_UNAUTHORIZED)
@@ -498,7 +498,7 @@ class CorpusViewSet(viewsets.ModelViewSet):
             return Response('Database is not running', status=status.HTTP_400_BAD_REQUEST)
         return Response(data)
 
-    @detail_route(methods=['get'])
+    @action(detail=True, methods=['get'])
     def utterance_pitch_track(self, request, pk=None):
         if isinstance(request.user, django.contrib.auth.models.AnonymousUser):
             return Response(status=status.HTTP_401_UNAUTHORIZED)
@@ -521,7 +521,7 @@ class CorpusViewSet(viewsets.ModelViewSet):
                                                                      many=True).data
         return Response(pitch_data['pitch_track'])
 
-    @detail_route(methods=['post'])
+    @action(detail=True, methods=['post'])
     def save_utterance_pitch_track(self, request, pk=None):
         if isinstance(request.user, django.contrib.auth.models.AnonymousUser):
             return Response(status=status.HTTP_401_UNAUTHORIZED)
@@ -560,7 +560,7 @@ class DiscourseViewSet(viewsets.ViewSet):
 
         return Response(discourses)
 
-    @list_route(methods=['get'])
+    @action(detail=False, methods=['get'])
     def properties(self, request, corpus_pk=None):
         if isinstance(request.user, django.contrib.auth.models.AnonymousUser):
             return Response(status=status.HTTP_401_UNAUTHORIZED)
@@ -594,7 +594,7 @@ class SpeakerViewSet(viewsets.ViewSet):
 
         return Response(speakers)
 
-    @list_route(methods=['get'])
+    @action(detail=False, methods=['get'])
     def properties(self, request, corpus_pk=None):
         if isinstance(request.user, django.contrib.auth.models.AnonymousUser):
             return Response(status=status.HTTP_401_UNAUTHORIZED)
@@ -683,7 +683,7 @@ class SubannotationViewSet(viewsets.ViewSet):
 
 
 class AnnotationViewSet(viewsets.ViewSet):
-    @detail_route(methods=['get'])
+    @action(detail=True, methods=['get'])
     def sound_file(self, request, pk=None, corpus_pk=None):
         if isinstance(request.user, django.contrib.auth.models.AnonymousUser):
             return Response(status=status.HTTP_401_UNAUTHORIZED)
@@ -853,7 +853,7 @@ class EnrichmentViewSet(viewsets.ModelViewSet):
         enrichment.config = data
         return Response(serializers.EnrichmentSerializer(enrichment).data)
 
-    @detail_route(methods=["post"])
+    @action(detail=True, methods=["post"])
     def create_file(self, request, pk=None, corpus_pk=None, *args, **kwargs):
         if isinstance(request.user, django.contrib.auth.models.AnonymousUser):
             return Response(status=status.HTTP_401_UNAUTHORIZED)
@@ -900,7 +900,7 @@ class EnrichmentViewSet(viewsets.ModelViewSet):
                                  **{'path': str(file_path)}}
         return Response(True)
 
-    @detail_route(methods=['post'])
+    @action(detail=True, methods=['post'])
     def run(self, request, pk=None, corpus_pk=None):
         if isinstance(request.user, django.contrib.auth.models.AnonymousUser):
             return Response(status=status.HTTP_401_UNAUTHORIZED)
@@ -922,7 +922,7 @@ class EnrichmentViewSet(viewsets.ModelViewSet):
         time.sleep(1)
         return Response(True)
 
-    @detail_route(methods=['post'])
+    @action(detail=True, methods=['post'])
     def reset(self, request, pk=None, corpus_pk=None):
         if isinstance(request.user, django.contrib.auth.models.AnonymousUser):
             return Response(status=status.HTTP_401_UNAUTHORIZED)
@@ -1042,7 +1042,7 @@ class QueryViewSet(viewsets.ModelViewSet):
             time.sleep(1)
         return Response(serializers.QuerySerializer(query).data)
 
-    @list_route(methods=['GET'])
+    @action(detail=False, methods=['GET'])
     def utterance(self, request, corpus_pk=None):
         if isinstance(request.user, django.contrib.auth.models.AnonymousUser):
             return Response(status=status.HTTP_401_UNAUTHORIZED)
@@ -1056,7 +1056,7 @@ class QueryViewSet(viewsets.ModelViewSet):
             queries = models.Query.objects.filter(annotation_type='U', corpus=corpus).filter(~Q(name='Bestiary query')).all()
         return Response(serializers.QuerySerializer(queries, many=True).data)
 
-    @list_route(methods=['GET'])
+    @action(detail=False, methods=['GET'])
     def word(self, request, corpus_pk=None):
         if isinstance(request.user, django.contrib.auth.models.AnonymousUser):
             return Response(status=status.HTTP_401_UNAUTHORIZED)
@@ -1070,7 +1070,7 @@ class QueryViewSet(viewsets.ModelViewSet):
             queries = models.Query.objects.filter(annotation_type='W', corpus=corpus).all()
         return Response(serializers.QuerySerializer(queries, many=True).data)
 
-    @list_route(methods=['GET'])
+    @action(detail=False, methods=['GET'])
     def syllable(self, request, corpus_pk=None):
         if isinstance(request.user, django.contrib.auth.models.AnonymousUser):
             return Response(status=status.HTTP_401_UNAUTHORIZED)
@@ -1084,7 +1084,7 @@ class QueryViewSet(viewsets.ModelViewSet):
             queries = models.Query.objects.filter(annotation_type='S', corpus=corpus).all()
         return Response(serializers.QuerySerializer(queries, many=True).data)
 
-    @list_route(methods=['GET'])
+    @action(detail=False, methods=['GET'])
     def phone(self, request, corpus_pk=None):
         if isinstance(request.user, django.contrib.auth.models.AnonymousUser):
             return Response(status=status.HTTP_401_UNAUTHORIZED)
@@ -1115,7 +1115,7 @@ class QueryViewSet(viewsets.ModelViewSet):
 
         return Response(serializers.QuerySerializer(query).data)
 
-    @detail_route(methods=['get'])
+    @action(detail=True, methods=['get'])
     def results(self, request, pk=None, corpus_pk=None):
         if isinstance(request.user, django.contrib.auth.models.AnonymousUser):
             return Response(status=status.HTTP_401_UNAUTHORIZED)
@@ -1136,7 +1136,7 @@ class QueryViewSet(viewsets.ModelViewSet):
         resp = {'data': results, 'count': query.result_count}
         return Response(resp)
 
-    @detail_route(methods=['put'])
+    @action(detail=True, methods=['put'])
     def ordering(self, request, pk=None, corpus_pk=None, index=None):
         print(request.query_params)
         if isinstance(request.user, django.contrib.auth.models.AnonymousUser):
@@ -1156,7 +1156,7 @@ class QueryViewSet(viewsets.ModelViewSet):
 
         return Response(serializers.QuerySerializer(query).data)
 
-    @detail_route(methods=['get'])
+    @action(detail=True, methods=['get'])
     def result(self, request, pk=None, corpus_pk=None, index=None):
         print(request.query_params)
         if isinstance(request.user, django.contrib.auth.models.AnonymousUser):
@@ -1226,7 +1226,7 @@ class QueryViewSet(viewsets.ModelViewSet):
             return Response(None, status=status.HTTP_423_LOCKED)
         return Response(data)
 
-    @detail_route(methods=['get'])
+    @action(detail=True, methods=['get'])
     def get_spectrogram(self, request, pk=None, corpus_pk=None, index=None):
         print(request.query_params)
         if isinstance(request.user, django.contrib.auth.models.AnonymousUser):
@@ -1264,7 +1264,7 @@ class QueryViewSet(viewsets.ModelViewSet):
             return Response(None, status=status.HTTP_423_LOCKED)
         return Response(data)
 
-    @detail_route(methods=['get'])
+    @action(detail=True, methods=['get'])
     def get_waveform(self, request, pk=None, corpus_pk=None, index=None):
         print(request.query_params)
         if isinstance(request.user, django.contrib.auth.models.AnonymousUser):
@@ -1302,7 +1302,7 @@ class QueryViewSet(viewsets.ModelViewSet):
             return Response(None, status=status.HTTP_423_LOCKED)
         return Response(data)
 
-    @detail_route(methods=['post'])
+    @action(detail=True, methods=['post'])
     def generate_subset(self, request, pk=None, corpus_pk=None, *args, **kwargs):
         if isinstance(request.user, django.contrib.auth.models.AnonymousUser):
             return Response(status=status.HTTP_401_UNAUTHORIZED)
@@ -1336,7 +1336,7 @@ class QueryViewSet(viewsets.ModelViewSet):
         return Response(serializers.QuerySerializer(query).data)
 
 
-    @detail_route(methods=['post'])
+    @action(detail=True, methods=['post'])
     def generate_export(self, request, pk=None, corpus_pk=None):
         if isinstance(request.user, django.contrib.auth.models.AnonymousUser):
             return Response(status=status.HTTP_401_UNAUTHORIZED)
@@ -1360,7 +1360,7 @@ class QueryViewSet(viewsets.ModelViewSet):
         time.sleep(1)
         return Response(serializers.QuerySerializer(query).data)
 
-    @detail_route(methods=['get'])
+    @action(detail=True, methods=['get'])
     def get_export_csv(self, request, pk=None, corpus_pk=None):
         if isinstance(request.user, django.contrib.auth.models.AnonymousUser):
             return Response(status=status.HTTP_401_UNAUTHORIZED)

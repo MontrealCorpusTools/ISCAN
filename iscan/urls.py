@@ -8,18 +8,17 @@ log = logging.getLogger(__name__)
 
 app_name = 'iscan'
 api_router = routers.SimpleRouter()
-api_router.register(r'databases', api.DatabaseViewSet, base_name='databases')
-api_router.register(r'corpora', api.CorpusViewSet, base_name='corpora')
-api_router.register(r'users', api.UserViewSet, base_name='users')
-api_router.register(r'source_directories', api.SourceChoiceViewSet, base_name='source_directories')
+api_router.register(r'databases', api.DatabaseViewSet, basename='databases')
+api_router.register(r'corpora', api.CorpusViewSet, basename='corpora')
+api_router.register(r'users', api.UserViewSet, basename='users')
+api_router.register(r'source_directories', api.SourceChoiceViewSet, basename='source_directories')
 corpora_router = routers.NestedSimpleRouter(api_router, r'corpora', lookup='corpus')
-corpora_router.register(r'query', api.QueryViewSet, base_name='corpus-query')
-corpora_router.register(r'enrichment', api.EnrichmentViewSet, base_name='corpus-enrichment')
-corpora_router.register(r'annotations', api.AnnotationViewSet, base_name='corpus-annotations')
-corpora_router.register(r'subannotations', api.SubannotationViewSet, base_name='corpus-subannotations')
-corpora_router.register(r'discourses', api.DiscourseViewSet, base_name='corpus-discourses')
-corpora_router.register(r'speakers', api.SpeakerViewSet, base_name='corpus-speakers')
-#api_router.register(r'corpora', api.CorpusViewSet, base_name='corpora')
+corpora_router.register(r'query', api.QueryViewSet, basename='corpus-query')
+corpora_router.register(r'enrichment', api.EnrichmentViewSet, basename='corpus-enrichment')
+corpora_router.register(r'annotations', api.AnnotationViewSet, basename='corpus-annotations')
+corpora_router.register(r'subannotations', api.SubannotationViewSet, basename='corpus-subannotations')
+corpora_router.register(r'discourses', api.DiscourseViewSet, basename='corpus-discourses')
+corpora_router.register(r'speakers', api.SpeakerViewSet, basename='corpus-speakers')
 
 urlpatterns = [
     url(r'^$', views.index, name='index'),

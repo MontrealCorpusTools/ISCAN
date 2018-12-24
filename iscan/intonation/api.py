@@ -8,7 +8,7 @@ from django.conf import settings
 from django.http.response import FileResponse, HttpResponse
 from rest_framework import generics, permissions, viewsets, status, pagination
 from rest_framework.response import Response
-from rest_framework.decorators import detail_route, list_route
+from rest_framework.decorators import action
 
 from iscan import models
 from iscan import serializers
@@ -18,7 +18,7 @@ from iscan import api
 
 
 class BestiaryCorpusViewSet(api.CorpusViewSet):
-    @detail_route(methods=['get'])
+    @action(detail=True, methods=['get'])
     def bestiary_query(self, request, pk=None):
         if isinstance(request.user, django.contrib.auth.models.AnonymousUser):
             return Response(status=status.HTTP_401_UNAUTHORIZED)
