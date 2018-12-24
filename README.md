@@ -5,9 +5,13 @@
 
 ## Introduction
 
-ISCAN (Integrated Speech Corpus ANalysis) is a tool to manage and analyze corpora on a single server with support for multiple clients enriching and querying the corpora as needed.  The ISCAN server contains tools to install/start/stop the databases that PolyglotDB (the Python API) uses.
+ISCAN (Integrated Speech Corpus ANalysis) is a package to manage and analyze corpora from within a Django server with support for 
+multiple clients enriching and querying the corpora as needed.  ISCAN contains functionality for installing/starting/stopping 
+the databases that PolyglotDB (the Python API) uses, as well as running most functionality for enriching and querying
+corpora via a web interface or REST calls.
 
-Additionally, the ISCAN server is used to manage multiple different Polyglot databases, so users can isolate corpora as needed, and start and stop databases as they need access to them.
+This package is intended to be used by developers who wish to extend functionality or contribute to the code.  For installation
+instructions for a fully operational ISCAN server, please see the [ISCAN SPADE server repository](https://github.com/MontrealCorpusTools/iscan-spade-server)
+for an example configuration and more instructions.
 
-**Note**: At the moment, iscan-server is only supported on Ubuntu.
 
