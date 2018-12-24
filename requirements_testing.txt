@@ -1,0 +1,6 @@
+pytest>=3.2.3
+pytest-django
+pytest-pythonpath>=0.7.1
+selenium
+coveralls
+coverage
