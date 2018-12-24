@@ -110,7 +110,7 @@ class DatabaseViewSet(viewsets.ModelViewSet):
 
         return Response(self.serializer_class(databases, many=True).data)
 
-    @detail_route(methods=['post'])
+    @action(detail=True, methods=['post'])
     def start(self, request, pk=None):
         if isinstance(request.user, django.contrib.auth.models.AnonymousUser):
             return Response(status=status.HTTP_401_UNAUTHORIZED)
@@ -123,7 +123,7 @@ class DatabaseViewSet(viewsets.ModelViewSet):
         success = database.start()
         return Response(data=success)
 
-    @detail_route(methods=['post'])
+    @action(detail=True, methods=['post'])
     def stop(self, request, pk=None):
         if isinstance(request.user, django.contrib.auth.models.AnonymousUser):
             return Response(status=status.HTTP_401_UNAUTHORIZED)
@@ -143,7 +143,7 @@ class DatabaseViewSet(viewsets.ModelViewSet):
             return Response(status=status.HTTP_401_UNAUTHORIZED)
         return super(DatabaseViewSet, self).destroy(request, pk)
 
-    @detail_route(methods=['get'])
+    @action(detail=True, methods=['get'])
     def ports(self, request, pk=None):
         if isinstance(request.user, django.contrib.auth.models.AnonymousUser):
             return Response(status=status.HTTP_401_UNAUTHORIZED)
@@ -156,7 +156,7 @@ class DatabaseViewSet(viewsets.ModelViewSet):
         data = database.ports
         return Response(data)
 
-    @detail_route(methods=['get'])
+    @action(detail=True, methods=['get'])
     def data_directory(self, request, pk=None):
         if isinstance(request.user, django.contrib.auth.models.AnonymousUser):
             return Response(status=status.HTTP_401_UNAUTHORIZED)
@@ -169,7 +169,7 @@ class DatabaseViewSet(viewsets.ModelViewSet):
         data = database.directory
         return Response(data)
 
-    @detail_route(methods=['get'])
+    @action(detail=True, methods=['get'])
     def corpora(self, request, pk=None):
         if isinstance(request.user, django.contrib.auth.models.AnonymousUser):
             return Response(status=status.HTTP_401_UNAUTHORIZED)
@@ -223,7 +223,7 @@ class CorpusViewSet(viewsets.ModelViewSet):
         instance = models.Corpus.objects.create(name=data['name'], database=data['database'])
         return Response(self.serializer_class(instance).data)
 
-    @detail_route(methods=['post'])
+    @action(detail=True, methods=['post'])
     def import_corpus(self, request, pk=None):
         if isinstance(request.user, django.contrib.auth.models.AnonymousUser):
             return Response(status=status.HTTP_401_UNAUTHORIZED)
@@ -240,7 +240,7 @@ class CorpusViewSet(viewsets.ModelViewSet):
         time.sleep(1)
         return Response()
 
-    @detail_route(methods=['get'])
+    @action(detail=True, methods=['get'])
     def status(self, request, pk=None):
         if isinstance(request.user, django.contrib.auth.models.AnonymousUser):
             return Response(status=status.HTTP_401_UNAUTHORIZED)
@@ -259,7 +259,7 @@ class CorpusViewSet(viewsets.ModelViewSet):
             return Response('query running')
         return Response('ready')
 
-    @detail_route(methods=['get'])
+    @action(detail=True, methods=['get'])
     def property_values(self, request, pk=None):
         if isinstance(request.user, django.contrib.auth.models.AnonymousUser):
             return Response(status=status.HTTP_401_UNAUTHORIZED)
@@ -272,7 +272,7 @@ class CorpusViewSet(viewsets.ModelViewSet):
             resp = sorted(c.query_metadata(ann).levels(getattr(ann, prop)))
         return Response(resp)
 
-    @detail_route(methods=['get'])
+    @action(detail=True, methods=['get'])
     def autocomplete(self, request, pk=None):
         if isinstance(request.user, django.contrib.auth.models.AnonymousUser):
             return Response(status=status.HTTP_401_UNAUTHORIZED)
@@ -301,7 +301,7 @@ class CorpusViewSet(viewsets.ModelViewSet):
             resp = c.execute_cypher(statement).value()
         return Response(resp)
 
-    @detail_route(methods=['get'])
+    @action(detail=True, methods=['get'])
     def speakers(self, request, pk=None):
         if isinstance(request.user, django.contrib.auth.models.AnonymousUser):
             return Response(status=status.HTTP_401_UNAUTHORIZED)
@@ -316,7 +316,7 @@ class CorpusViewSet(viewsets.ModelViewSet):
 
         return Response(speakers)
 
-    @detail_route(methods=['get'])
+    @action(detail=True, methods=['get'])
     def words(self, request, pk=None):
         if isinstance(request.user, django.contrib.auth.models.AnonymousUser):
             return Response(status=status.HTTP_401_UNAUTHORIZED)
@@ -341,7 +341,7 @@ class CorpusViewSet(viewsets.ModelViewSet):
             results = [x['label'] for x in results]
         return Response(results)
 
-    @detail_route(methods=['get'])
+    @action(detail=True,methods=['get'])
     def default_subsets(self, request, pk=None):
         if isinstance(request.user, django.contrib.auth.models.AnonymousUser):
             return Response(status=status.HTTP_401_UNAUTHORIZED)
