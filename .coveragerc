@@ -1,5 +1,5 @@
 [run]
-source = pgdb
+source = iscan
 
 [report]
 exclude_lines =
