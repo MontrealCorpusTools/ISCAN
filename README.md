@@ -1,7 +1,8 @@
 # ISCAN
 
-[![Build Status](https://travis-ci.org/MontrealCorpusTools/iscan-server.svg?branch=master)](https://travis-ci.org/MontrealCorpusTools/iscan-server)
-[![Coverage Status](https://coveralls.io/repos/github/MontrealCorpusTools/iscan-server/badge.svg?branch=master)](https://coveralls.io/github/MontrealCorpusTools/iscan-server?branch=master)
+[![Build Status](https://travis-ci.org/MontrealCorpusTools/ISCAN.svg?branch=master)](https://travis-ci.org/MontrealCorpusTools/ISCAN)
+[![Coverage Status](https://coveralls.io/repos/github/MontrealCorpusTools/ISCAN/badge.svg?branch=master)](https://coveralls.io/github/MontrealCorpusTools/ISCAN?branch=master)
+[![Documentation Status](https://readthedocs.org/projects/iscan/badge/?version=latest)](https://iscan.readthedocs.io/en/latest/?badge=latest)
 
 ## Introduction
 
