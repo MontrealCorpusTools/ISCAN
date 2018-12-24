@@ -1,0 +1,55 @@
+<div class='row'>
+    <div class='col'>
+        <h1>Corpora</h1>
+        <table class="table table-striped">
+            <thead>
+            <tr>
+                <th>
+                    Name
+                </th>
+                <th>
+                    Status
+                </th>
+                <th>
+                    Number of corpora
+                </th>
+                <th>
+                    Neo4j admin site
+                </th>
+                <th>
+                    InfluxDB admin site
+                </th>
+                <th>
+                    Actions
+                </th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr ng-repeat='db in databases'>
+
+                <td>
+                    {{ db.name }}
+                </td>
+                <td>
+                    {{ db.status }}
+                </td>
+                <td>
+                    {{ db.num_corpora }}
+                <a ui-sref="database-detail({database_id: db.id })">View</a>
+                </td>
+                <td>
+                    <a href="http://{{ host+ ':' + db.neo4j_http_port }}">http://{{ host+ ':' + db.neo4j_http_port }}</a>
+                </td>
+                <td>
+                    <a href="http://{{ host + ':' + db.influxdb_admin_port }}">http://{{ host + ':' + db.influxdb_admin_port }}</a>
+                </td>
+                <td>
+                        <button class='btn btn-success' ng-click="startDatabase(db)" ng-show="db.status=='Stopped'" ng-disabled="db.start_button=='Starting...'">{{ db.start_button }}</button>
+                        <button class='btn btn-warning' ng-click="stopDatabase(db)" ng-show="db.status=='Running'" ng-disabled="db.stop_button=='Stopping...'">{{ db.stop_button }}</button>
+                        <button class='btn btn-danger' ng-click="deleteDatabase(db.id)" ng-disabled="db.delete_button=='Deleting...'">{{ db.delete_button }}</button>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>

@@ -16,7 +16,7 @@ from selenium.common.exceptions import TimeoutException
 from django.test import override_settings, TestCase, LiveServerTestCase
 from django.contrib.staticfiles.testing import StaticLiveServerTestCase
 
-
+@pytest.mark.xfail
 @pytest.mark.usefixtures("chrome_init")
 class TestDatabase(StaticLiveServerTestCase):
     port = 8080
