@@ -22,7 +22,7 @@ def get_version(package):
     return re.search("__version__ = ['\"]([^'\"]+)['\"]", init_py).group(1)
 
 
-version = get_version('iscan')
+version = get_version('pgdb')
 
 class PyTest(TestCommand):
     def finalize_options(self):
