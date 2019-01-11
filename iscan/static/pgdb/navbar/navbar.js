@@ -55,7 +55,7 @@ angular.module('navbar', [
     return {
         restrict: 'E',
         replace: true,
-        templateUrl: static('iscan/navbar/navbar.html'),
+        templateUrl: static('pgdb/navbar/navbar.html'),
         scope: {},
         controller: 'NavCtrl'
     }
