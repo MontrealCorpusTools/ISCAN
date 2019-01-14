@@ -5,7 +5,7 @@ if (window) {
     Object.assign(env, window.__env);
 }
 
-var app = angular.module('pgdb', [
+var app = angular.module('iscan', [
     'ui.router',
     'long2know',
     'ngResource',
