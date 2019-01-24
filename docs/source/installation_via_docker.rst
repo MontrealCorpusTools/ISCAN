@@ -17,6 +17,11 @@ Installation via Docker
    ISCAN servers are known to run using the Bash shell in Windows 10, but the Docker does not work on the Linux subsystem
    for Windows.  If this is the only option for you, please see :ref:`installation_without_docker`.
 
+.. warning::
+
+   Running analyses via script currently do not work with the docker installation.  If you plan on writing/running
+   automated scripts, rather than interacting with the data via the web interface, use the non-Dockerized version.
+
 Prerequisites
 =============
 
@@ -34,11 +39,11 @@ Then, install `Docker Compose`_, the tool for defining and running multi-contain
 Installation
 ============
 
-First, clone the iscan-server repository to your machine:
+First, clone the iscan-spade-server repository to your machine:
 
 .. code-block:: bash
 	
-   git clone https://github.com/MontrealCorpusTools/iscan-server.git
+   git clone https://github.com/MontrealCorpusTools/iscan-spade-server.git
 
 Included are a :code:`Dockerfile` and a `docker-compose.yml`. In order to build a Docker image from these files,
 navigate to the root of the repository and run:
@@ -58,7 +63,7 @@ This will launch the containers.
 Initial migrations
 ------------------
 
-The first time you use iscan-server, you will need to make database migrations. In another terminal,
+The first time you use iscan-spade-server, you will need to make database migrations. In another terminal,
 while the containers are up, run:
 
 .. code-block:: bash
@@ -70,7 +75,7 @@ The needed migrations to perform will be detected and made.
 Superuser creation
 ------------------
 
-The first time you use iscan-server, you will need to set up a username and password to log in with. In another terminal,
+The first time you use iscan-spade-server, you will need to set up a username and password to log in with. In another terminal,
 while the containers are up, run:
 
 .. code-block:: bash

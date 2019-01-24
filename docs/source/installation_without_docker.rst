@@ -105,7 +105,7 @@ Start by cloning the GitHub repository
 
    git clone https://github.com/MontrealCorpusTools/iscan-server.git
 
-Once there, look in the ``iscan-server/polyglot_server/settings`` directory and create a file named ``local_settings.py``.
+Once there, look in the ``iscan-server/iscan_server/settings`` directory and create a file named ``local_settings.py``.
 
 Add the following to it, replacing any paths with relevant paths for your system,
 as well as information for the PostGreSQL database:
@@ -162,7 +162,7 @@ In a separate terminal, start the celery process (from the root of the iscan-ser
 
 .. code-block:: bash
 
-   celery -A polyglot_server worker -l info
+   celery -A iscan_server worker -l info
 
 Finally, run the server:
 

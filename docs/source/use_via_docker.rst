@@ -28,8 +28,8 @@ located in the root of the repository, are:
 
 * :code:`polyglot_source/` - the directory containing corpora to be loaded.
 * :code:`polyglot_data/` - the directory where corpus metadata will be stored
-* :code:`pgdb/` - the directory where the front-end code is stored
-* :code:`polyglot_server/` - the directory containing the Django project for the server
+* :code:`iscan/` - the directory where the front-end code is stored
+* :code:`iscan_server/` - the directory containing the Django project for the server
 
 Changes you make locally in these folders should persist into the container without needing to re-build the Docker image.
 
