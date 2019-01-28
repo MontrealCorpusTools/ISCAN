@@ -108,7 +108,8 @@ Start by cloning the GitHub repository
 Once there, look in the ``iscan-server/iscan_server/settings`` directory and create a file named ``local_settings.py``.
 
 Add the following to it, replacing any paths with relevant paths for your system,
-as well as information for the PostGreSQL database:
+as well as information for the PostGreSQL database (i.e., whatever database name, user name and password you used when
+setting up the PostGreSQL database):
 
 .. code-block:: python
 

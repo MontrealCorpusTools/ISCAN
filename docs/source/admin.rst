@@ -22,6 +22,11 @@ Administration and installation
 
    At the moment, iscan-server is only supported on Ubuntu.
 
+.. warning::
+
+   Running analyses via script currently do not work with the docker installation.  If you plan on writing/running
+   automated scripts, rather than interacting with the data via the web interface, use the non-Dockerized version.
+
 Much of this documentation is meant to be more technical and is geared towards advanced users interested in setting up their own
 ISCAN servers, either on a desktop computer for local use or on a dedicated server for communal use. Please see the :ref:`tutorials_iscan`
 section for more information and a walk-through on how to use ISCAN once it has been set up.
