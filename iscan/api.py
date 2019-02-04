@@ -120,7 +120,10 @@ class DatabaseViewSet(viewsets.ModelViewSet):
             permissions = [x.can_access_database for x in permissions]
             if not len(permissions) or not any(permissions):
                 return Response(status=status.HTTP_401_UNAUTHORIZED)
-        success = database.start()
+        try:
+            success = database.start()
+        except Exception as e:
+            return Response(data=str(e), status=status.HTTP_423_LOCKED)
         return Response(data=success)
 
     @action(detail=True, methods=['post'])
@@ -133,7 +136,10 @@ class DatabaseViewSet(viewsets.ModelViewSet):
             permissions = [x.can_access_database for x in permissions]
             if not len(permissions) or not any(permissions):
                 return Response(status=status.HTTP_401_UNAUTHORIZED)
-        success = database.stop()
+        try:
+            success = database.stop()
+        except Exception as e:
+            return Response(data=str(e), status=status.HTTP_)
         return Response(data=success)
 
     def destroy(self, request, pk=None):
