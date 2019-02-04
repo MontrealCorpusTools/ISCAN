@@ -26,7 +26,7 @@ from polyglotdb \
 from polyglotdb.utils import get_corpora_list
 
 from .utils import download_influxdb, download_neo4j, extract_influxdb, extract_neo4j, make_influxdb_safe, get_pids, \
-    get_used_ports
+    get_used_ports, is_port_in_use
 
 import logging
 
@@ -149,7 +149,7 @@ class Database(models.Model):
     def start(self, timeout=120):
         """
         Function to start the components of a PolyglotDB database.  By the end both the Neo4j database and the InfluxDB
-        database will be connectable.  This function blocks until connnections are made or until a timeout is reached.
+        database will be connectable.  This function blocks until connections are made or until a timeout is reached.
 
         :return:
         """
@@ -157,6 +157,10 @@ class Database(models.Model):
             return False
         if self.influxdb_pid is not None or self.neo4j_pid is not None:
             return False
+        for k, v in self.ports.items():
+            if is_port_in_use(v):
+                raise Exception('The port {} is currently in use on this machine.  Please stop any other process'
+                                ' using it so that the specified database can be run.')
         try:
             with open(self.influxdb_log_path, 'a') as logf:
                 influx_proc = subprocess.Popen([self.influxdb_exe_path, '-config', self.influxdb_conf_path],

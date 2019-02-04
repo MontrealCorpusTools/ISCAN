@@ -10,6 +10,11 @@ import logging
 log = logging.getLogger(__name__)
 
 
+def is_port_in_use(port):
+    import socket
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        return s.connect_ex(('localhost', port)) == 0
+
 def get_used_ports():
     from .models import Database
     databases = Database.objects.all()
