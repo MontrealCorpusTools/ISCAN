@@ -349,8 +349,7 @@ class Database(models.Model):
         with open(neo4j_conf_path, 'w') as f:
             f.write(template.format(http_port=self.neo4j_http_port,
                                     https_port=self.neo4j_https_port,
-                                    bolt_port=self.neo4j_bolt_port,
-                                    auth_enabled='false'
+                                    bolt_port=self.neo4j_bolt_port
                                     ))
             # Make remote connections possible
             f.write('\ndbms.connectors.default_listen_address=0.0.0.0')
