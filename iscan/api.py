@@ -139,7 +139,7 @@ class DatabaseViewSet(viewsets.ModelViewSet):
         try:
             success = database.stop()
         except Exception as e:
-            return Response(data=str(e), status=status.HTTP_)
+            return Response(data=str(e), status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         return Response(data=success)
 
     def destroy(self, request, pk=None):
