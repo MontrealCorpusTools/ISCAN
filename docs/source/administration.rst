@@ -22,6 +22,18 @@ Server administration
 This page is to be used a reference for common tasks in administration of an ISCAN server.  The workflow for many of these
 are not currently as streamlined as they would ideally be.
 
+Updating ISCAN and PolyglotDB
+=============================
+
+As ISCAN and PolyglotDB are both under active development, updating to the latest version is necessary to fix issues that
+crop up.  To perform an update, run the command:
+
+.. code-block:: bash
+
+   docker-compose run app update
+
+Which will then fetch the latest changes from the GitHub repositories of both packages.
+
 Getting a tutorial corpus
 =========================
 
