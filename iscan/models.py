@@ -160,7 +160,7 @@ class Database(models.Model):
         for k, v in self.ports.items():
             if is_port_in_use(v):
                 raise Exception('The port {} is currently in use on this machine.  Please stop any other process'
-                                ' using it so that the specified database can be run.')
+                                ' using it so that the specified database can be run.'.format(v))
         try:
             with open(self.influxdb_log_path, 'a') as logf:
                 influx_proc = subprocess.Popen([self.influxdb_exe_path, '-config', self.influxdb_conf_path],
