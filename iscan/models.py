@@ -740,7 +740,7 @@ class Enrichment(models.Model):
                     q = c.query_graph(c.syllable).set_properties(stress=None)
                 elif enrichment_type == 'praat_script':
                     props = config.get('properties', ['cog', 'slope', 'spread', 'peak'])
-                    q = c.query_graph(c.phone).filter(c.phone.type_subset == config.get('phone_class'))
+                    q = c.query_graph(c.phone).filter(c.phone.subset == config.get('phone_class'))
                     q.set_properties(**{x: None for x in props})
             self.running = False
             self.completed = False
