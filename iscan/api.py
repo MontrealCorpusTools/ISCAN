@@ -412,7 +412,7 @@ class CorpusViewSet(viewsets.ModelViewSet):
                 subset = []
                 sib_check = ['s', 'z']
                 for p in phones:
-                    if p in ['sp', 'sil']:
+                    if p in ['sp', 'sil', 'spn']:
                         continue
                     if any(s in p.lower() for s in sib_check):
                         subset.append(p)
