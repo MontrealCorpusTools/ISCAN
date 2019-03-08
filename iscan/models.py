@@ -1043,6 +1043,8 @@ class Query(models.Model):
         for a_column, props in acoustic_columns.items():
             # track props
             include_track = props.pop('include', False)
+            if not include_track:
+                continue
             relative_time = props.pop('relative_time', False)
             relative_track = props.pop('relative_track', False)
             num_points = props.pop('num_points', '')
