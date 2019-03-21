@@ -428,9 +428,9 @@ class Corpus(models.Model):
     TIMIT = 'T'
     BUCKEYE = 'B'
     FORMAT_CHOICES = (
-        (MFA, 'MFA force aligned TextGrids'),
-        (FAVE, 'FAVE force aligned TextGrids'),
-        (MAUS, 'Web-MAUS force aligned TextGrids'),
+        (MFA, 'MFA forced aligned TextGrids'),
+        (FAVE, 'FAVE forced aligned TextGrids'),
+        (MAUS, 'Web-MAUS forced aligned TextGrids'),
         (LABBCAT, 'LaBB-CAT TextGrid output'),
         (PARTITUR, 'Partitur files'),
         (TIMIT, 'TIMIT'),
