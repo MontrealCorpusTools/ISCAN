@@ -421,21 +421,23 @@ class Corpus(models.Model):
         ordering = ['name']
 
     MFA = 'M'
+    MAUS = 'W'
     FAVE = 'F'
     LABBCAT = 'L'
     PARTITUR = 'P'
     TIMIT = 'T'
     BUCKEYE = 'B'
     FORMAT_CHOICES = (
-        (MFA, 'MFA forced aligned TextGrids'),
-        (FAVE, 'FAVE forced aligned TextGrids'),
+        (MFA, 'MFA force aligned TextGrids'),
+        (FAVE, 'FAVE force aligned TextGrids'),
+        (MAUS, 'Web-MAUS force aligned TextGrids'),
         (LABBCAT, 'LaBB-CAT TextGrid output'),
         (PARTITUR, 'Partitur files'),
         (TIMIT, 'TIMIT'),
         (BUCKEYE, 'Buckeye'),
     )
     name = models.CharField(max_length=100, unique=True)
-    input_format = models.CharField(max_length=1, choices=FORMAT_CHOICES, default='M')
+    input_format = models.CharField(max_length=1, choices=FORMAT_CHOICES, default=MFA)
     database = models.ForeignKey(Database, on_delete=models.CASCADE, related_name='corpora')
 
     imported = models.BooleanField(default=False)
@@ -536,17 +538,19 @@ class Corpus(models.Model):
         self.save()
         with CorpusContext(self.config) as c:
             c.reset()
-            if self.input_format == 'B':
+            if self.input_format == self.BUCKEYE:
                 parser = pgio.inspect_buckeye(self.source_directory)
-            elif self.input_format == 'F':
+            elif self.input_format == self.FAVE:
                 parser = pgio.inspect_fave(self.source_directory)
-            elif self.input_format == 'M':
+            elif self.input_format == self.MFA:
                 parser = pgio.inspect_mfa(self.source_directory)
-            elif self.input_format == 'L':
+            elif self.input_format == self.MAUS:
+                parser = pgio.inspect_maus(self.source_directory)
+            elif self.input_format == self.LABBCAT:
                 parser = pgio.inspect_labbcat(self.source_directory)
-            elif self.input_format == 'T':
+            elif self.input_format == self.TIMIT:
                 parser = pgio.inspect_timit(self.source_directory)
-            elif self.input_format == 'P':
+            elif self.input_format == self.PARTITUR:
                 parser = pgio.inspect_partitur(self.source_directory)
             else:
                 return False
