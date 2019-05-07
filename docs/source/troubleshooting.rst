@@ -1,11 +1,11 @@
 .. _troublehooting:
 
-*************************
+*****************************
 Troubleshooting common issues
-*************************
+*****************************
 
 Connection refused
-================================
+==================
 
 If you run into an error where a SPADE server returns the following connection error:
 
@@ -51,3 +51,19 @@ Where ``CORPUS`` refers to the particular corpus you are trying to use. Which wi
 	python SPADE_SCRIPT CORPUS -r
 
 This will rebuild your database from scratch.
+
+Neo4j PID error on stopping
+===========================
+
+Sometimes there may be issues in how ISCAN tracks the Polyglot databases.  It does this by storing the PID from the system
+for both Neo4j and InfluxDB.  Sometimes however, these can be empty but the database is started and the database processes
+are running.  As a workaround for this issue, you can reset the database fully by doing the following:
+
+#. Stop the Neo4j process (``kill -9 <pid>``, where ``<pid>`` can be gotten from a ``ps -l`` command or ``top -n 5`` command,
+   the neo4j will be listed as ``java``)
+#. Navigate to the ISCAN admin page (locally http://localhost:8080/admin/)
+#. Log in with a superuser's credentials
+#. Click on ``Databases`` under ``ISCAN``
+#. Click on the database name that is having issues
+#. Change the status to ``Stopped``
+#. Retry whatever operation was having issues previously (either start the database again or run the script).

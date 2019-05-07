@@ -12,7 +12,7 @@
 .. _`Celery`: http://www.celeryproject.org/
 .. _`Django`: https://www.djangoproject.com/
 
-.. _administration:
+.. _admin_introduction:
 
 *******************************
 Administration and installation
