@@ -454,6 +454,7 @@ angular.module('pgdb.query').filter('secondsToDateTime', [function () {
                     subannotation_rect.attr('height', height)
                         .attr('x', d => xt(d.begin))
                         .attr('width', d => xt(d.end) - xt(d.begin))
+
                     vis.select('.line')
                        .attr('d',d => waveform_valueline(d));
                 }
@@ -467,9 +468,6 @@ angular.module('pgdb.query').filter('secondsToDateTime', [function () {
                 var waveform_padding = (y.domain()[1] - y.domain()[0]) * 0.05;
                 y.domain([y.domain()[0] - waveform_padding, y.domain()[1] + waveform_padding]);
 
-                var waveform_valueline = d3.line()
-                    .x(d => x(d.time))
-                    .y(d => y(d.amplitude));
 
                 var waveform_x_function = d => x(d.time);
                 var yaxis = d3.axisLeft(y)
@@ -541,6 +539,14 @@ angular.module('pgdb.query').filter('secondsToDateTime', [function () {
                     .attr('fill', 'yellow')
                     .attr('opacity', 0);
 
+                var waveform_valueline = d3.line()
+                    .x(d => x(d.time))
+                    .y(d => y(d.amplitude));
+
+                waveform_viewplot.append("path")
+                    .attr("class", "line")
+                    .style('stroke', 'black');
+
                 var subannotation_rect = waveform_viewplot.append("rect")
                     .attr('class', "subannotation")
                     .datum({begin: 0, end:0})
@@ -550,6 +556,15 @@ angular.module('pgdb.query').filter('secondsToDateTime', [function () {
                     .attr('height', height)
                     .attr('fill', 'RoyalBlue')
                     .attr('opacity', 0);
+
+                dragHandler = d3.drag()
+                    .on("drag", function (d) {
+                        d3.select(this)
+                            .attr("x", d.end = d3.event.x);
+                    });
+
+                dragHandler(subannotation_rect);
+
 
                 scope.$watch('begin', function (newVal, oldVal) {
                     if (!newVal) return;
@@ -573,12 +588,10 @@ angular.module('pgdb.query').filter('secondsToDateTime', [function () {
                             .attr('x', xt(scope.selectedAnnotation.begin))
                             .attr('width', xt(scope.selectedAnnotation.end) - xt(scope.selectedAnnotation.begin));
                     }
+                    vis.select('.line')
+                       .datum(newVal)
+                       .attr('d',d => waveform_valueline(d));
 // Make x axis
-                    waveform_viewplot.append("path")
-                        .data([newVal])
-                        .attr("class", "line")
-                        .attr('d', d => waveform_valueline(d))
-                        .style('stroke', 'black');
                 });
 
                 var drag = d3.drag()
