@@ -701,6 +701,7 @@ angular.module('pgdb.query').filter('secondsToDateTime', [function () {
                     }
                     subannotation_rect.attr('x', d => xt(d.begin))
                         .attr('width', d => xt(d.end) - xt(d.begin))
+                        .call(subannotation_dragging(xt, scope));
                     drawWaveform();
                 }
 
