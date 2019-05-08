@@ -400,8 +400,6 @@ angular.module('pgdb.query').filter('secondsToDateTime', [function () {
             link: function (scope, element, attrs) {
                 scope.selection_begin = 0;
                 scope.selection_end = 0;
-                scope.subannotation_begin = 0;
-                scope.subannotation_end = 0;
                 scope.play_begin = 0;
                 var vis = d3.select(element[0]);
                 var width = parseInt(vis.style('width'), 10) - margin.left - margin.right;
@@ -453,9 +451,9 @@ angular.module('pgdb.query').filter('secondsToDateTime', [function () {
                             .attr('height', height)
                             .attr('width', xt(scope.selectedAnnotation.end) - xt(scope.selectedAnnotation.begin));
                     }
-                    subannotation_rect.attr('x', xt(scope.subannotation_begin))
-                        .attr('height', height)
-                        .attr('width', xt(scope.subannotation_end) - xt(scope.subannotation_begin));
+                    subannotation_rect.attr('height', height)
+                        .attr('x', d => xt(d.begin))
+                        .attr('width', d => xt(d.end) - xt(d.begin))
                     vis.select('.line')
                        .attr('d',d => waveform_valueline(d));
                 }
@@ -545,9 +543,10 @@ angular.module('pgdb.query').filter('secondsToDateTime', [function () {
 
                 var subannotation_rect = waveform_viewplot.append("rect")
                     .attr('class', "subannotation")
-                    .attr('x', 0)
+                    .datum({begin: 0, end:0})
                     .attr('y', 0)
-                    .attr('width', 0)
+                    .attr('x', d => xt(d.begin))
+                    .attr('width', d => xt(d.end) - xt(d.begin))
                     .attr('height', height)
                     .attr('fill', 'RoyalBlue')
                     .attr('opacity', 0);
@@ -614,12 +613,11 @@ angular.module('pgdb.query').filter('secondsToDateTime', [function () {
                 });
 
                 scope.$on('SUBANNOTATION_UPDATE', function (e, subannotation_begin, subannotation_end) {
-                    scope.subannotation_begin = subannotation_begin;
-                    scope.subannotation_end = subannotation_end;
-                    waveform_viewplot.select("rect.subannotation")
+                    subannotation_rect
+                        .datum({begin: subannotation_begin, end: subannotation_end})
                         .attr('opacity', 0.3)
-                        .attr('x', xt(subannotation_begin))
-                        .attr('width', xt(subannotation_end) - xt(subannotation_begin));
+                        .attr('x', d => xt(d.begin))
+                        .attr('width', d => xt(d.end) - xt(d.begin));
                 });
 
                 waveform_vis.call(d3.zoom()
@@ -668,8 +666,8 @@ angular.module('pgdb.query').filter('secondsToDateTime', [function () {
                         selected_annotation_rect.attr('x', xt(scope.selectedAnnotation.begin))
                             .attr('width', xt(scope.selectedAnnotation.end) - xt(scope.selectedAnnotation.begin));
                     }
-                    subannotation_rect.attr('x', xt(scope.subannotation_begin))
-                        .attr('width', xt(scope.subannotation_end) - xt(scope.subannotation_begin));
+                    subannotation_rect.attr('x', d => xt(d.begin))
+                        .attr('width', d => xt(d.end) - xt(d.begin))
                     drawWaveform();
                 }
 
