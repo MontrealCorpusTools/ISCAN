@@ -80,9 +80,6 @@ angular.module('pgdb.query').filter('secondsToDateTime', [function () {
                     vis.select('#annotation_clip').select('rect')
                        .attr("height", height)
                        .attr("width", width);
-                    vis.select('.pane')
-                       .attr("height", height)
-                       .attr("width", width);
                     vis.select('.xaxis')
                        .attr("transform", `translate(0,${height})`)
                        .call(xaxis);
@@ -132,11 +129,6 @@ angular.module('pgdb.query').filter('secondsToDateTime', [function () {
 
 // Draw the Plotting region------------------------------
 // X axis lines (bottom and top).
-                var annotation_pane = annotation_vis.append("rect")
-                    .attr("class", "pane")
-                    .attr("width", width)
-                    .attr("height", height)
-
                 annotation_vis.append("g")
                     .attr("class", "xaxis")
                     .attr("transform", `translate(0,${height})`)
@@ -438,9 +430,6 @@ angular.module('pgdb.query').filter('secondsToDateTime', [function () {
                     vis.select('#waveform_clip').select('rect')
                         .attr("height", height)
                         .attr("width", width);
-                    vis.select('.pane')
-                        .attr("height", height)
-                        .attr("width", width);
                     vis.select('.xaxis')
                         .attr("transform", "translate(0," + height + ")").call(xaxis);
                     vis.select('.yaxis').call(yaxis);
@@ -535,10 +524,6 @@ angular.module('pgdb.query').filter('secondsToDateTime', [function () {
                     .attr("y1", 0)
                     .attr("y2", height);
 
-                var waveform_pane = waveform_vis.append("rect")
-                    .attr("class", "pane")
-                    .attr("width", width)
-                    .attr("height", height);
 
                 var selection_rect = waveform_viewplot.append("rect")
                     .attr('class', "selection")
@@ -589,10 +574,7 @@ angular.module('pgdb.query').filter('secondsToDateTime', [function () {
                             .attr('x', xt(scope.selectedAnnotation.begin))
                             .attr('width', xt(scope.selectedAnnotation.end) - xt(scope.selectedAnnotation.begin));
                     }
-
 // Make x axis
-
-
                     waveform_viewplot.append("path")
                         .data([newVal])
                         .attr("class", "line")
@@ -612,7 +594,6 @@ angular.module('pgdb.query').filter('secondsToDateTime', [function () {
                         var point_time = xt.invert(p[0]);
                         scope.$emit('UPDATE_SELECTION', point_time);
                     });
-
 
                 scope.$on('SELECTION_UPDATE', function (e, selection_begin, selection_end) {
                     scope.selection_begin = selection_begin;
