@@ -27,6 +27,21 @@ subannotation_dragging = function (xt, scope) {
         });
 }
 
+selection_dragging = function (xt, scope) {
+    return d3.drag()
+        .filter(() => d3.event.button == 0)
+        .on("start", function () {
+            var coords = d3.mouse(this);
+            var point_time = xt.invert(coords[0]);
+            scope.$emit('BEGIN_SELECTION', point_time);
+        })
+        .on("drag", function () {
+            var p = d3.mouse(this);
+            var point_time = xt.invert(p[0]);
+            scope.$emit('UPDATE_SELECTION', point_time);
+        });
+}
+
 
 angular.module('pgdb.query').filter('secondsToDateTime', [function () {
     return function (seconds) {
@@ -242,19 +257,6 @@ angular.module('pgdb.query').filter('secondsToDateTime', [function () {
                 scope.$watch('data', onDataUpdate);
                 scope.$watch('data.viewableSubannotations', () => onDataUpdate(scope.data, scope.data), true);
 
-                var drag = d3.drag()
-                    .filter(() => d3.event.button == 0)
-                    .on("start", function () {
-                        var coords = d3.mouse(this);
-                        var point_time = xt.invert(coords[0]);
-                        scope.$emit('BEGIN_SELECTION', point_time);
-                    })
-                    .on("drag", function () {
-                        var p = d3.mouse(this);
-                        var point_time = xt.invert(p[0]);
-                        scope.$emit('UPDATE_SELECTION', point_time);
-                    });
-
 
                 scope.$on('SELECTION_UPDATE', function (e, selection_begin, selection_end) {
                     scope.selection_begin = selection_begin;
@@ -286,7 +288,7 @@ angular.module('pgdb.query').filter('secondsToDateTime', [function () {
                         var point_time = xt.invert(coords[0]);
                         scope.$emit('BEGIN_SELECTION', point_time);
                     })
-                    .call(drag);
+                    .call(selection_dragging(xt, scope));
 
                 scope.$on('UPDATEPLAY', function (e, time) {
                     scope.play_begin = time;
@@ -299,6 +301,7 @@ angular.module('pgdb.query').filter('secondsToDateTime', [function () {
                     xt = transform.rescaleX(x);
                     annotation_x_function = d => xt(d.begin);
                     annotation_vis.select('.xaxis').call(xaxis.scale(xt));
+                    annotation_vis.call(selection_dragging(xt, scope));
                     annotation_playline.attr("x1", xt(scope.selection_begin))
                         .attr("x2", xt(scope.selection_begin));
 
@@ -614,18 +617,6 @@ angular.module('pgdb.query').filter('secondsToDateTime', [function () {
 // Make x axis
                 });
 
-                var drag = d3.drag()
-                    .filter(() => d3.event.button == 0)
-                    .on("start", function () {
-                        var coords = d3.mouse(this);
-                        var point_time = xt.invert(coords[0]);
-                        scope.$emit('BEGIN_SELECTION', point_time);
-                    })
-                    .on("drag", function () {
-                        var p = d3.mouse(this);
-                        var point_time = xt.invert(p[0]);
-                        scope.$emit('UPDATE_SELECTION', point_time);
-                    });
 
                 scope.$on('SELECTION_UPDATE', function (e, selection_begin, selection_end) {
                     scope.selection_begin = selection_begin;
@@ -666,7 +657,7 @@ angular.module('pgdb.query').filter('secondsToDateTime', [function () {
                         var point_time = xt.invert(coords[0]);
                         scope.$emit('BEGIN_SELECTION', point_time);
                     })
-                    .call(drag);
+                    .call(selection_dragging(xt, scope));
 
                 scope.$on('UPDATEPLAY', function (e, time) {
                     scope.play_begin = time;
@@ -683,6 +674,7 @@ angular.module('pgdb.query').filter('secondsToDateTime', [function () {
                     xt = transform.rescaleX(x);
 
                     waveform_vis.select('.xaxis').call(xaxis.scale(xt));
+                    waveform_vis.call(selection_dragging(xt, scope));
 
                     waveform_valueline = d3.line()
                         .x(d => xt(d.time))
@@ -900,7 +892,7 @@ angular.module('pgdb.query').filter('secondsToDateTime', [function () {
                     .extent([[0, 0], [width, height]])
                     .filter(() => d3.event.button == 2 || d3.event.type == 'wheel')
                     .on("zoom", zoomed))
-                    .call(drag);
+                    .call(selection_dragging(xt, scope));
 
                 drawSpectrogram();
             });
@@ -910,6 +902,7 @@ angular.module('pgdb.query').filter('secondsToDateTime', [function () {
                 xt = lastTransform.rescaleX(x);
                 specgram_svg.select('.xaxis').call(xaxis.scale(xt));
                 specgram_context.save();
+                specgram_canvas.call(selection_dragging(xt, scope));
                 specgram_context.clearRect(0, 0, width, height);
                 specgram_context.translate(lastTransform.x, 0);
                 specgram_context.scale(lastTransform.k, 1);
@@ -927,19 +920,6 @@ angular.module('pgdb.query').filter('secondsToDateTime', [function () {
             scope.$on('ZOOM', function (e, res) {
                 zoomFunc(res);
             });
-
-            var drag = d3.drag()
-                .filter(() => d3.event.button == 0)
-                .on("start", function () {
-                    var coords = d3.mouse(this);
-                    var point_time = xt.invert(coords[0] - margin.left);
-                    scope.$emit('BEGIN_SELECTION', point_time);
-                })
-                .on("drag", function () {
-                    var p = d3.mouse(this);
-                    var point_time = xt.invert(p[0] - margin.left);
-                    scope.$emit('UPDATE_SELECTION', point_time);
-                });
 
             scope.$on('SUBANNOTATION_UPDATE', function (e, subannotation_begin, subannotation_end) {
                 subannotation_rect.datum({begin:subannotation_begin, end:subannotation_end})
