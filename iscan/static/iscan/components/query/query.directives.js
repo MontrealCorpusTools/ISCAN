@@ -1,25 +1,27 @@
 var margin = {top: 30, right: 10, bottom: 40, left: 70};
 
-subannotation_dragging = function (xt) {
+subannotation_dragging = function (xt, scope) {
     return d3.drag()
         .on("start", function(start_d) {
             let moved = d3.select(this);
 
             drag_left = function(d){
-                    moved.attr("width", xt(d.end) - d3.event.x)
-                       .attr("x", d3.event.x)
-                       .datum({begin:xt.invert(d3.event.x), end:d.end});
+                const new_datum = {begin:xt.invert(d3.event.x), end:d.end};
+                moved.attr("width", xt(d.end) - d3.event.x)
+                   .attr("x", d3.event.x)
+                   .datum(new_datum);
+                scope.$emit('MOVE_SUBANNOTATION', new_datum);
             }
             drag_right = function(d){
-                    moved.attr("width", d3.event.x - xt(d.begin))
-                        .datum({begin:d.begin, end:xt.invert(d3.event.x)});
+                const new_datum = {begin:d.begin, end:xt.invert(d3.event.x)}
+                moved.attr("width", d3.event.x - xt(d.begin))
+                    .datum(new_datum);
+                scope.$emit('MOVE_SUBANNOTATION', new_datum);
             }
             const w = xt(start_d.end)-xt(start_d.begin);
             if ((xt(start_d.begin) + w/2) < d3.event.x){
-                console.log("right");
                 d3.event.on("drag", drag_right);
             }else{
-                console.log("left");
                 d3.event.on("drag", drag_left);
             }
         });
@@ -582,7 +584,7 @@ angular.module('pgdb.query').filter('secondsToDateTime', [function () {
                     .attr('height', height)
                     .attr('fill', 'RoyalBlue')
                     .attr('opacity', 0)
-                    .call(subannotation_dragging(xt));
+                    .call(subannotation_dragging(xt, scope));
 
                 scope.$watch('begin', function (newVal, oldVal) {
                     if (!newVal) return;
