@@ -815,13 +815,12 @@ angular.module('pgdb.query').filter('secondsToDateTime', [function () {
                 .text("Frequency (Hz)");
 
             subannotation_rect = specgram_svg.append("rect")
+                .datum({begin:0, end:0})
                 .attr('class', "subannotation")
-                .attr('x', 0)
-                .attr('y', 0)
-                .attr('width', 0)
                 .attr('height', height)
                 .attr('fill', 'RoyalBlue')
-                .attr('opacity', 0);
+                .attr('opacity', 0)
+                .call(subannotation_dragging(xt, scope));
 
             function drawSpectrogram() {
                 vis.select('.yaxis').call(yaxis);
@@ -916,8 +915,9 @@ angular.module('pgdb.query').filter('secondsToDateTime', [function () {
                 specgram_context.scale(lastTransform.k, 1);
                 drawSpectrogram();
                 specgram_context.restore();
-                subannotation_rect.attr('x', xt(scope.subannotation_begin))
-                    .attr('width', xt(scope.subannotation_end) - xt(scope.subannotation_begin));
+                subannotation_rect.attr('x', d => xt(d.begin))
+                    .attr('width', d => xt(d.end) - xt(d.begin))
+                    .call(subannotation_dragging(xt, scope));
             }
 
             function zoomed() {
@@ -942,12 +942,10 @@ angular.module('pgdb.query').filter('secondsToDateTime', [function () {
                 });
 
             scope.$on('SUBANNOTATION_UPDATE', function (e, subannotation_begin, subannotation_end) {
-                scope.subannotation_begin = subannotation_begin;
-                scope.subannotation_end = subannotation_end;
-                specgram_svg.select("rect.subannotation")
+                subannotation_rect.datum({begin:subannotation_begin, end:subannotation_end})
                     .attr('opacity', 0.3)
-                    .attr('x', xt(subannotation_begin))
-                    .attr('width', xt(subannotation_end) - xt(subannotation_begin));
+                    .attr('x', d => xt(d.begin))
+                    .attr('width', d => xt(d.end) - xt(d.begin));
             });
         }
     }
