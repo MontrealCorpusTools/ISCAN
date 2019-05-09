@@ -6,15 +6,17 @@ subannotation_dragging = function (xt, scope) {
             let moved = d3.select(this);
 
             drag_left = function(d){
-                const new_datum = {begin:xt.invert(d3.event.x), end:d.end};
-                moved.attr("width", xt(d.end) - d3.event.x)
-                   .attr("x", d3.event.x)
+                let x  =  (d.end - xt.invert(d3.event.x) > 0.025) ? xt.invert(d3.event.x) : d.end-0.05;
+                const new_datum = {begin:x, end:d.end};
+                moved.attr("width", xt(d.end) - xt(x))
+                   .attr("x", xt(x))
                    .datum(new_datum);
                 scope.$emit('MOVE_SUBANNOTATION', new_datum);
             }
             drag_right = function(d){
-                const new_datum = {begin:d.begin, end:xt.invert(d3.event.x)}
-                moved.attr("width", d3.event.x - xt(d.begin))
+                let x  =  (xt.invert(d3.event.x) - d.begin > 0.025) ? xt.invert(d3.event.x) : 0.05 + d.begin;
+                const new_datum = {begin:d.begin, end:x}
+                moved.attr("width", xt(x) - xt(d.begin))
                     .datum(new_datum);
                 scope.$emit('MOVE_SUBANNOTATION', new_datum);
             }
