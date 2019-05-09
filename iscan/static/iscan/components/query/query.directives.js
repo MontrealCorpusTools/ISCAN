@@ -341,6 +341,14 @@ angular.module('pgdb.query').filter('secondsToDateTime', [function () {
                         .attr('fill-opacity', opacity);
                 }
 
+                scope.$on('SUBANNOTATION_UPDATE', function (e, res) {
+                    highlightSubannotation(res, 'RoyalBlue', 0.25);
+                    if(selected_sub_ann !== '')
+                        highlightSubannotation(selected_sub_ann, 'transparent', 0);
+                    selected_sub_ann = res;
+                });
+
+
                 function updateAnnotations() {
                     ['phone', 'syllable', 'word'].forEach(tier => {
                         var tier_items = annotation_viewplot.selectAll('g.annotation.'+tier)
@@ -387,14 +395,8 @@ angular.module('pgdb.query').filter('secondsToDateTime', [function () {
                             })
                             .on("click", function(d, i){
                                 if(selected_sub_ann.id === d.id){
-                                    highlightSubannotation(d, 'transparent', 0);
-                                    selected_sub_ann = '';
                                     scope.$emit("UPDATE_SUBANNOTATION", '');
                                 }else{
-                                    highlightSubannotation(d, 'RoyalBlue', 0.25);
-                                    if(selected_sub_ann !== '')
-                                        highlightSubannotation(selected_sub_ann, 'transparent', 0);
-                                    selected_sub_ann = d;
                                     scope.$emit("UPDATE_SUBANNOTATION", d);
                                 }
                             });
@@ -634,9 +636,12 @@ angular.module('pgdb.query').filter('secondsToDateTime', [function () {
                     }
                 });
 
-                scope.$on('SUBANNOTATION_UPDATE', function (e, subannotation_begin, subannotation_end) {
+                scope.$on('SUBANNOTATION_UPDATE', function (e, res) {
+                    if(res == ""){
+                        res = {begin: 0, end:0}
+                    }
                     subannotation_rect
-                        .datum({begin: subannotation_begin, end: subannotation_end})
+                        .datum({begin: res.begin, end: res.end})
                         .attr('opacity', 0.3)
                         .attr('x', d => xt(d.begin))
                         .attr('width', d => xt(d.end) - xt(d.begin));
@@ -919,8 +924,11 @@ angular.module('pgdb.query').filter('secondsToDateTime', [function () {
                 zoomFunc(res);
             });
 
-            scope.$on('SUBANNOTATION_UPDATE', function (e, subannotation_begin, subannotation_end) {
-                subannotation_rect.datum({begin:subannotation_begin, end:subannotation_end})
+            scope.$on('SUBANNOTATION_UPDATE', function (e, res){
+                if(res == ""){
+                    res = {begin: 0, end:0}
+                }
+                subannotation_rect.datum({begin:res.begin, end:res.end})
                     .attr('opacity', 0.3)
                     .attr('x', d => xt(d.begin))
                     .attr('width', d => xt(d.end) - xt(d.begin));

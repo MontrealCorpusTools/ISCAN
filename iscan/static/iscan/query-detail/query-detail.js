@@ -307,7 +307,7 @@ angular.module('queryDetail', [
                 $scope.utterance.subannotation_list[annotation_type][subannotation] = is_in_viewable_sub
                               ? $scope.utterance[annotation_type]
                                       .map(x => x[subannotation]
-                                          .map(y=>{y.parent_id=x.id;y.annotation_type=x[0]; return y})).flat()
+                                          .map(y=>{y.parent_id=x.id;y.annotation_type=annotation_type;y.subannotation=subannotation; return y})).flat()
                               : [];
             });
         }
@@ -431,11 +431,11 @@ angular.module('queryDetail', [
 
     $scope.selectSubannotation = function(subannotation){
         if(subannotation === ''){
-            $scope.$broadcast('SUBANNOTATION_UPDATE', 0, 0);
+            $scope.$broadcast('SUBANNOTATION_UPDATE', '');
             $scope.selected_subannotation = '';
         }else{
             $scope.selected_subannotation = subannotation;
-            $scope.$broadcast('SUBANNOTATION_UPDATE', subannotation.begin, subannotation.end);
+            $scope.$broadcast('SUBANNOTATION_UPDATE', subannotation);
         }
     }
 
@@ -478,14 +478,19 @@ angular.module('queryDetail', [
         //I had wanted to use arrow keys but for some insane reason,
         //javascript does not allow arrow keys with keypress
         if(typeof $scope.selected_subannotation !== "undefined" && $scope.selected_subannotation !== '' && (e.key == "l"  || e.key == "h")){
-            console.log($scope.selected_subannotation);
+            const subannotations = $scope.utterance.subannotation_list[$scope.selected_subannotation.annotation_type][$scope.selected_subannotation.subannotation];
+
+            let idx = subannotations.findIndex(x => x.id == $scope.selected_subannotation.id);
             if (e.key == "l") {
-                    //List of subannotations where subannotations are a 2-array of type and subannotation_type
-                console.log($scope.utterance);
-                //Go left
+                idx = idx + 1;
             }else if(e.key == "h"){
-                //Go right
+                idx = idx - 1;
             }
+            if(idx >= subannotations.length)
+                idx = 0;
+            if(idx < 0)
+                idx = subannotations.length - 1;
+            $scope.selectSubannotation(subannotations[idx]);
         }
     });
 });
