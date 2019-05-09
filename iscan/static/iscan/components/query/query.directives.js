@@ -99,12 +99,14 @@ angular.module('pgdb.query').filter('secondsToDateTime', [function () {
 
                     ['phone', 'syllable', 'word'].forEach((tier, i) => {
                         vis.selectAll("g.annotation."+tier).select("rect").attr("y", y(i+1))
-                        vis.selectAll("g.annotation."+tier).select("text").attr("y", y(i+0.5))
+                        vis.selectAll("g.annotation."+tier).select("text").attr("y", y(i+0.25))
                     });
 
                     scope.data.viewableSubannotations.forEach((x, i) => {
                         vis.selectAll("g.annotation."+x[1]).select("rect")
                            .attr("y", y(-i));
+                        vis.selectAll("g.annotation."+x[1]).select("text")
+                           .attr("y", y(-i-0.75));
                     });
                 }
 
@@ -257,8 +259,6 @@ angular.module('pgdb.query').filter('secondsToDateTime', [function () {
 
                 scope.$watch('data', onDataUpdate);
                 scope.$watch('data.viewableSubannotations', () => onDataUpdate(scope.data, scope.data), true);
-                scope.$on('VIEW_UPDATES', updateAnnotations);
-
 
                 scope.$on('SELECTION_UPDATE', function (e, selection_begin, selection_end) {
                     scope.selection_begin = selection_begin;
@@ -340,6 +340,8 @@ angular.module('pgdb.query').filter('secondsToDateTime', [function () {
                     annotation_viewplot.select('#'+CSS.escape(d.parent_id))
                         .style('fill', fill)
                         .attr('fill-opacity', opacity);
+                    d3.select('#'+CSS.escape(d.id)+"text")
+                      .text(d.excluded ? "x" : '');
                     d3.select('#'+CSS.escape(d.id)).style('fill', fill)
                         .attr('fill-opacity', opacity)
                         .attr("x", annotation_x_function)
@@ -383,8 +385,8 @@ angular.module('pgdb.query').filter('secondsToDateTime', [function () {
                             .selectAll('g.annotation.'+subannotation)
                             .data(scope.data.subannotation_list[annotation_type][subannotation], d => d.id)
                         subannotation_items.exit().remove();
-                        subannotation_items.enter().append('g')
-                            .classed("annotation", true)
+                        subannotation_items = subannotation_items.enter().append('g');
+                        subannotation_items.classed("annotation", true)
                             .classed(subannotation, true)
                             .append("rect")
                             .attr("x", annotation_x_function)
@@ -406,7 +408,12 @@ angular.module('pgdb.query').filter('secondsToDateTime', [function () {
                                 }else{
                                     scope.$emit("UPDATE_SUBANNOTATION", d);
                                 }
-                            });
+                            })
+                         subannotation_items.append("text")
+                            .style("text-anchor", "middle")
+                            .style("pointer-events", "none")
+                            .text(d => d.excluded ? "x": "")
+                            .attr("id", d => d.id+"text");
                     });
 
                     //If something was previously selected, but this tier is now empty, deselect it.

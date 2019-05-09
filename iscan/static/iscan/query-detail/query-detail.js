@@ -307,7 +307,12 @@ angular.module('queryDetail', [
                 $scope.utterance.subannotation_list[annotation_type][subannotation] = is_in_viewable_sub
                               ? $scope.utterance[annotation_type]
                                       .map(x => x[subannotation]
-                                          .map(y=>{y.parent_id=x.id;y.annotation_type=annotation_type;y.subannotation=subannotation; return y})).flat()
+                                          .map(y=>{
+                                              y.parent_id=x.id;
+                                              y.annotation_type=annotation_type;
+                                              y.subannotation=subannotation; 
+                                              y.excluded=false;
+                                              return y})).flat()
                               : [];
             });
         }
@@ -436,6 +441,7 @@ angular.module('queryDetail', [
         const idx = $scope.utterance.subannotation_list[subannotation.annotation_type][subannotation.subannotation]
             .findIndex(x => x.id == $scope.selected_subannotation.id);
         $scope.utterance.subannotation_list[subannotation.annotation_type][subannotation.subannotation][idx] = subannotation;
+        $scope.$broadcast('VIEW_UPDATES');
     }
 
     $scope.selectSubannotation = function(subannotation){
@@ -467,7 +473,9 @@ angular.module('queryDetail', [
     }
 
     $scope.excludeSubannotation = function(subannotation){
-
+        subannotation.excluded = !subannotation.excluded;
+        $scope.updateSubannotation(subannotation);
+        $scope.selectSubannotation(subannotation);
     }
 
     $document.bind('keypress', function (e) {
@@ -485,7 +493,7 @@ angular.module('queryDetail', [
             }
         }else if(e.key == "x"){
             if(typeof $scope.selected_subannotation !== "undefined" && $scope.selected_subannotation !== ''){
-                excludeSubannotation($scope.selected_subannotation);
+                $scope.excludeSubannotation($scope.selected_subannotation);
             }
         }
         //I had wanted to use arrow keys but for some insane reason,
