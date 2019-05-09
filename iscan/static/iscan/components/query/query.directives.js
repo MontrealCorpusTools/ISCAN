@@ -338,13 +338,17 @@ angular.module('pgdb.query').filter('secondsToDateTime', [function () {
                         .style('fill', fill)
                         .attr('fill-opacity', opacity);
                     d3.select('#'+CSS.escape(d.id)).style('fill', fill)
-                        .attr('fill-opacity', opacity);
+                        .attr('fill-opacity', opacity)
+                        .attr("x", annotation_x_function)
+                        .attr("width", d => xt(d.end) - xt(d.begin));
                 }
 
                 scope.$on('SUBANNOTATION_UPDATE', function (e, res) {
-                    highlightSubannotation(res, 'RoyalBlue', 0.25);
                     if(selected_sub_ann !== '')
                         highlightSubannotation(selected_sub_ann, 'transparent', 0);
+                    if(res !== ''){
+                        highlightSubannotation(res, 'RoyalBlue', 0.25);
+                    }
                     selected_sub_ann = res;
                 });
 

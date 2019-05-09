@@ -426,7 +426,9 @@ angular.module('queryDetail', [
     };
 
     $scope.$on('MOVE_SUBANNOTATION', function (e, res) {
-            $scope.$broadcast('SUBANNOTATION_UPDATE', res.begin, res.end);
+            $scope.selected_subannotation.begin = res.begin;
+            $scope.selected_subannotation.end = res.end;
+            $scope.selectSubannotation($scope.selected_subannotation);
     })
 
     $scope.selectSubannotation = function(subannotation){
