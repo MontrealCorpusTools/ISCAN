@@ -29,7 +29,7 @@ Administration and installation
 
 Much of this documentation is meant to be more technical and is geared towards advanced users interested in setting up their own
 ISCAN servers, either on a desktop computer for local use or on a dedicated server for communal use. Please see the :ref:`tutorials_iscan`
-section for more information and a walk-through on how to use ISCAN once it has been set up. Please see the troubleshooting section below for a continously-updated set of solutions to common installation or maintenence issues.
+section for more information and a walk-through on how to use ISCAN once it has been set up. Please see the troubleshooting section below for a continuously-updated set of solutions to common installation or maintenence issues.
 
 Moving parts
 ============

@@ -53,7 +53,7 @@ configuration (``SOURCE_DATA_DIRECTORY`` in the non-Docker :ref:`nondocker_insta
 
 Once the corpus is in the directory, performing a reload on the home page of the ISCAN server will update ISCAN's records
 of databases and corpora.  If the corpus does not use forced aligned TextGrids as transcripts, then the corpus format will
-have to be changed in the admin page (i.e. go to https://hostname.com/admin/pgdb/corpus/, select the corpus and select
+have to be changed in the admin page (i.e. go to https://hostname.com/admin/iscan/corpus/, select the corpus and select
 the appropriate supported format from the Input format dropdown).
 
 
@@ -88,7 +88,7 @@ Modifying user permissions
 ==========================
 
 More specific per-corpus permissions can be given to uses through the Django admin interface as well (i.e.,
-https://hostname.com/admin/pgdb/corpuspermissions/).  When creating one of these, you can select the user, the corpus,
+https://hostname.com/admin/iscan/corpuspermissions/).  When creating one of these, you can select the user, the corpus,
 and whether to grant the following permissions:
 
 - Can edit: allows the user to edit and correct aspects of the corpus data, such as acoustic measurements like pitch/formants/
@@ -112,7 +112,7 @@ which can cause issues with rare exceptions during their running to cause the co
 can be fixed by changing this property on the admin page for that corpus object.
 
 Additionally, databases can be reset to their original non-imported state by deleting the database on the admin page for
-databases (i.e., https://hostname.com/admin/pgdb/database/).
+databases (i.e., https://hostname.com/admin/iscan/database/).
 
 If any issues are encountered, please post them along with the exception message found either in the runserver window
 or the celery window to the `GitHub issues page`_.
