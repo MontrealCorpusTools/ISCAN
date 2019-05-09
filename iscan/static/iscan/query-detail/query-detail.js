@@ -208,6 +208,16 @@ angular.module('queryDetail', [
             $scope.utterance = res.data.utterance;
             $scope.utterance.viewableSubannotations = [];
             $scope.utterance.subannotations = $scope.subannotations;
+            $scope.utterance.subannotation_list = {}
+            $scope.utterance.subannotations.forEach(x => {
+                const annotation_type = x[0];
+                $scope.utterance.subannotation_list[annotation_type] = {};
+            });
+            $scope.utterance.subannotations.forEach(x => {
+                const annotation_type = x[0];
+                const subannotation = x[1];
+                $scope.utterance.subannotation_list[annotation_type][subannotation] = [];
+            });
             console.log("SANITY", $scope.utterance);
             $scope.selectedResult = res.data.result;
             $scope.speaker = $scope.selectedResult.speaker;
@@ -288,9 +298,18 @@ angular.module('queryDetail', [
         if($scope.utterance && $scope.utterance.viewableSubannotations){
             $scope.utterance.viewableSubannotations = nv.filter(x => x[2]).map(x => [x[0], x[1]]);
             if($scope.utterance.viewableSubannotations.length == 0){
-                $scope.$broadcast('SUBANNOTATION_UPDATE', 0, 0);
-                $scope.selected_subannotation = '';
+                $scope.selectSubannotation('');
             }
+            $scope.utterance.subannotations.forEach(x => {
+                const annotation_type = x[0];
+                const subannotation = x[1];
+                const is_in_viewable_sub = $scope.utterance.viewableSubannotations.filter(d => d[0] == x[0] && d[1] == x[1]).length > 0;
+                $scope.utterance.subannotation_list[annotation_type][subannotation] = is_in_viewable_sub
+                              ? $scope.utterance[annotation_type]
+                                      .map(x => x[subannotation]
+                                          .map(y=>{y.parent_id=x.id;y.annotation_type=x[0]; return y})).flat()
+                              : [];
+            });
         }
     }, true);
 
@@ -369,26 +388,7 @@ angular.module('queryDetail', [
         $scope.$broadcast('SELECTION_UPDATE', $scope.selection_begin, $scope.selection_end);
     });
 
-    $scope.$on('UPDATE_SUBANNOTATION', function (e, res) {
-        if(res === ''){
-            $scope.$broadcast('SUBANNOTATION_UPDATE', 0, 0);
-        }else{
-            $scope.selected_subannotation = res;
-            console.log($scope.selected_subannotation);
-            const text_view = Object.entries($scope.selected_subannotation)
-                .filter(([k,v]) => k != 'id' && k != 'parent_id')
-                .map(([k,v]) => `<tr><th>${k}</th><th>${v.toFixed(2)}</th>`)
-                .join('</tr>');
-            $mdDialog.show($mdDialog.alert()
-                .parent(angular.element(document.querySelector('html')))
-                .title("Subannotation")
-                .htmlContent(`<table>${text_view}</tr></table>`)
-                .clickOutsideToClose(true)
-                .ariaLabel('Subannotation detail')
-                .ok('Okay'));
-            $scope.$broadcast('SUBANNOTATION_UPDATE', res.begin, res.end);
-        }
-    });
+    $scope.$on('UPDATE_SUBANNOTATION', (e, res) => $scope.selectSubannotation(res));
 
     $scope.$on('ZOOM_REQUESTED', function (e, res) {
         $scope.$broadcast('ZOOM', res);
@@ -424,13 +424,42 @@ angular.module('queryDetail', [
         }
         $scope.$broadcast('UPDATEPLAY', actual_time);
     };
+
     $scope.$on('MOVE_SUBANNOTATION', function (e, res) {
             $scope.$broadcast('SUBANNOTATION_UPDATE', res.begin, res.end);
     })
 
-    $document.bind('keypress', function (event) {
-        if (event.charCode == 32) {
-            event.preventDefault();
+    $scope.selectSubannotation = function(subannotation){
+        if(subannotation === ''){
+            $scope.$broadcast('SUBANNOTATION_UPDATE', 0, 0);
+            $scope.selected_subannotation = '';
+        }else{
+            $scope.selected_subannotation = subannotation;
+            $scope.$broadcast('SUBANNOTATION_UPDATE', subannotation.begin, subannotation.end);
+        }
+    }
+
+    $scope.displaySubannotationDetails = function(subannotation){
+        const text_view = Object.entries(subannotation)
+            .filter(([k,v]) => k != 'id' && k != 'parent_id')
+            .map(([k,v]) => `<tr><th>${k}</th><th>${v.toFixed(2)}</th>`)
+            .join('</tr>');
+        $mdDialog.show($mdDialog.alert()
+            .parent(angular.element(document.querySelector('html')))
+            .title("Subannotation")
+            .htmlContent(`<table>${text_view}</tr></table>`)
+            .clickOutsideToClose(true)
+            .ariaLabel('Subannotation detail')
+            .ok('Okay'));
+    }
+
+    $scope.excludeSubannotation = function(subannotation){
+
+    }
+
+    $document.bind('keypress', function (e) {
+        if (e.key == " ") {
+            e.preventDefault();
             console.log($scope.can_listen)
             if ($scope.can_listen) {
                 if (!$scope.player.playing()) {
@@ -440,6 +469,22 @@ angular.module('queryDetail', [
                     $scope.player.pause();
                 }
                 $scope.$broadcast('SELECTION_UPDATE', $scope.selection_begin, $scope.selection_end);
+            }
+        }else if(e.key == "x"){
+            if(typeof $scope.selected_subannotation !== "undefined" && $scope.selected_subannotation !== ''){
+                excludeSubannotation($scope.selected_subannotation);
+            }
+        }
+        //I had wanted to use arrow keys but for some insane reason,
+        //javascript does not allow arrow keys with keypress
+        if(typeof $scope.selected_subannotation !== "undefined" && $scope.selected_subannotation !== '' && (e.key == "l"  || e.key == "h")){
+            console.log($scope.selected_subannotation);
+            if (e.key == "l") {
+                    //List of subannotations where subannotations are a 2-array of type and subannotation_type
+                console.log($scope.utterance);
+                //Go left
+            }else if(e.key == "h"){
+                //Go right
             }
         }
     });

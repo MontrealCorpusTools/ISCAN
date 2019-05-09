@@ -364,15 +364,9 @@ angular.module('pgdb.query').filter('secondsToDateTime', [function () {
                     scope.data.subannotations.forEach(x => {
                         const annotation_type = x[0];
                         const subannotation = x[1];
-                        const is_in_viewable_sub = scope.data.viewableSubannotations.filter(d => d[0] == x[0] && d[1] == x[1]).length > 0;
                         subannotation_items = annotation_viewplot
                             .selectAll('g.annotation.'+subannotation)
-                            .data(is_in_viewable_sub
-                                  ? scope.data[annotation_type].map(x => x[subannotation].map(y=>{y.parent_id=x.id; return y})).flat()
-                                  : [], d => d.id)
-                            //apologies, this gets all the subannotations of a type, along with their parent's id
-
-
+                            .data(scope.data.subannotation_list[annotation_type][subannotation], d => d.id)
                         subannotation_items.exit().remove();
                         subannotation_items.enter().append('g')
                             .classed("annotation", true)
