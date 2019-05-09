@@ -235,7 +235,6 @@ angular.module('pgdb.query').filter('secondsToDateTime', [function () {
 
                 function onDataUpdate(newVal, oldVal) {
                     if (!newVal) return;
-                    console.log('datachanged', newVal)
                     y.domain([-(scope.data.viewableSubannotations.length), 3]);
             
                     //Updates ticks to be from the bottom of subannotations up.
@@ -373,6 +372,7 @@ angular.module('pgdb.query').filter('secondsToDateTime', [function () {
                                   : [], d => d.id)
                             //apologies, this gets all the subannotations of a type, along with their parent's id
 
+
                         subannotation_items.exit().remove();
                         subannotation_items.enter().append('g')
                             .classed("annotation", true)
@@ -380,7 +380,7 @@ angular.module('pgdb.query').filter('secondsToDateTime', [function () {
                             .append("rect")
                             .attr("x", annotation_x_function)
                             .attr('fill-opacity', 0)
-			    .attr("id", d => d.id)
+                            .attr("id", d => d.id)
                             .attr("stroke", 'black')
                             .attr("width", d => xt(d.end) - xt(d.begin))
                             .on('mouseenter', function(d){
@@ -398,13 +398,17 @@ angular.module('pgdb.query').filter('secondsToDateTime', [function () {
                                     scope.$emit("UPDATE_SUBANNOTATION", '');
                                 }else{
                                     highlightSubannotation(d, 'RoyalBlue', 0.25);
-				    if(selected_sub_ann !== '')
-					    highlightSubannotation(selected_sub_ann, 'transparent', 0);
+                                    if(selected_sub_ann !== '')
+                                        highlightSubannotation(selected_sub_ann, 'transparent', 0);
                                     selected_sub_ann = d;
                                     scope.$emit("UPDATE_SUBANNOTATION", d);
                                 }
                             });
                     });
+
+                    //If something was previously selected, but this tier is now empty, deselect it.
+                    if (subannotation_items.data().length === 0 && selected_sub_ann !== '')
+                        highlightSubannotation(selected_sub_ann, 'transparent', 0);
                     drawAnnotations();
                 }
             }

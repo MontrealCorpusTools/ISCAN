@@ -285,8 +285,13 @@ angular.module('queryDetail', [
     };
 
     $scope.$watch('subannotations', function(nv) {
-        if($scope.utterance && $scope.utterance.viewableSubannotations)
+        if($scope.utterance && $scope.utterance.viewableSubannotations){
             $scope.utterance.viewableSubannotations = nv.filter(x => x[2]).map(x => [x[0], x[1]]);
+            if($scope.utterance.viewableSubannotations.length == 0){
+                $scope.$broadcast('SUBANNOTATION_UPDATE', 0, 0);
+                $scope.selected_subannotation = '';
+            }
+        }
     }, true);
 
     Corpora.one($stateParams.corpus_id).then(function (res) {
