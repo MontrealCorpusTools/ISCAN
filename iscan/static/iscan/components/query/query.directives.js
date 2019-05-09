@@ -255,6 +255,7 @@ angular.module('pgdb.query').filter('secondsToDateTime', [function () {
 
                 scope.$watch('data', onDataUpdate);
                 scope.$watch('data.viewableSubannotations', () => onDataUpdate(scope.data, scope.data), true);
+                scope.$on('VIEW_UPDATES', updateAnnotations);
 
 
                 scope.$on('SELECTION_UPDATE', function (e, selection_begin, selection_end) {

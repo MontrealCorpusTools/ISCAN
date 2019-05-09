@@ -426,10 +426,17 @@ angular.module('queryDetail', [
     };
 
     $scope.$on('MOVE_SUBANNOTATION', function (e, res) {
-            $scope.selected_subannotation.begin = res.begin;
-            $scope.selected_subannotation.end = res.end;
-            $scope.selectSubannotation($scope.selected_subannotation);
+        $scope.selected_subannotation.begin = res.begin;
+        $scope.selected_subannotation.end = res.end;
+        $scope.selectSubannotation($scope.selected_subannotation);
+        $scope.updateSubannotation($scope.selected_subannotation);
     })
+
+    $scope.updateSubannotation = function(subannotation){
+        const idx = $scope.utterance.subannotation_list[subannotation.annotation_type][subannotation.subannotation]
+            .findIndex(x => x.id == $scope.selected_subannotation.id);
+        $scope.utterance.subannotation_list[subannotation.annotation_type][subannotation.subannotation][idx] = subannotation;
+    }
 
     $scope.selectSubannotation = function(subannotation){
         if(subannotation === ''){
@@ -439,6 +446,10 @@ angular.module('queryDetail', [
             $scope.selected_subannotation = subannotation;
             $scope.$broadcast('SUBANNOTATION_UPDATE', subannotation);
         }
+    }
+
+    $scope.resetSubannotations = function(){
+
     }
 
     $scope.displaySubannotationDetails = function(subannotation){
@@ -494,5 +505,7 @@ angular.module('queryDetail', [
                 idx = subannotations.length - 1;
             $scope.selectSubannotation(subannotations[idx]);
         }
+        if(e.key == "r")
+            $scope.resetSubannotations();
     });
 });
