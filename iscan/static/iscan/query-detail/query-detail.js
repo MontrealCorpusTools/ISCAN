@@ -166,7 +166,6 @@ angular.module('queryDetail', [
 
         }
         else {
-
             $scope.can_listen = false;
             $scope.can_edit = false;
             $scope.can_view_annotations = false;
@@ -271,6 +270,7 @@ angular.module('queryDetail', [
 
     $scope.$watch('subannotations', function(nv) {
         if($scope.utterance && $scope.utterance.viewableSubannotations){
+            $scope.utterance.subannotations = $scope.subannotations;
             $scope.utterance.viewableSubannotations = nv.filter(x => x[2]).map(x => [x[0], x[1]]);
             if($scope.utterance.viewableSubannotations.length == 0){
                 $scope.selectSubannotation('');
@@ -293,6 +293,7 @@ angular.module('queryDetail', [
             });
         }
     }, true);
+
 
     Corpora.one($stateParams.corpus_id).then(function (res) {
         $scope.corpus = res.data;
@@ -427,8 +428,20 @@ angular.module('queryDetail', [
         }
     }
 
-    $scope.resetSubannotations = function(){
-
+    $scope.resetSubannotations = function(ev){
+        if (!$scope.has_edited_subannotations)
+            return;
+        const confirm_dialog = $mdDialog.confirm()
+            .title("Are you sure you want to reset uncommitted changes?")
+            .textContent("All uncommitted changes will be lost.")
+            .targetEvent(ev)
+            .ok('Yes')
+            .cancel('No');
+       $mdDialog.show(confirm_dialog).then(function() {
+           //This should reset all the subannotation stuff
+           $scope.selectSubannotation('');
+           $scope.runQuery();
+       });
     }
 
     $scope.commitChanges = function (ev) {
@@ -438,7 +451,6 @@ angular.module('queryDetail', [
             .title("Do you want to commit changes to the database?")
             .textContent("This will permanently replace what was there previously.")
             .targetEvent(ev)
-            .ariaLabel('Subannotation detail')
             .ok('Yes')
             .cancel('No');
        $mdDialog.show(confirm_dialog).then(function() {
