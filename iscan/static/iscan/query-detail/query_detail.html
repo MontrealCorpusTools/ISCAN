@@ -52,6 +52,12 @@
                                            type="checkbox"
                                            ng-model="selected_subannotation.excluded"
                                            ng-change="excludeSubannotation(selected_subannotation, true)">
+                                    <input ng-switch-when="note"
+                                           type="text"
+                                           ng-model="selected_subannotation.note"
+                                           ng-focus="isTyping()"
+                                           ng-blur="isNotTyping()"
+                                           >
                                     <span ng-switch-default> {{ selected_subannotation[prop] }} </span>
                                 </td>
                             </tr>

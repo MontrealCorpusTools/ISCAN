@@ -37,6 +37,7 @@ angular.module('queryDetail', [
     $scope.newAnnotation = {};
     $scope.currentAnnotations = {};
     $scope.headline = 'Loading detail...';
+    $scope.typing = false;
     $scope.selected_subannotation = '';
     $scope.selection_begin = 0;
     $scope.selection_end = null;
@@ -313,6 +314,7 @@ angular.module('queryDetail', [
                                               y.annotation_type=annotation_type;
                                               y.subannotation=subannotation; 
                                               y.excluded=false;
+                                              y.note="";
                                               return y})).flat()
                               : [];
             });
@@ -486,8 +488,19 @@ angular.module('queryDetail', [
     $scope.viewableSubannotationDetail = function(p) {
         return !(["annotation_type", "subannotation", "id", "parent_id"].includes(p));
     };
+    
+    $scope.isTyping = function(){
+        $scope.typing = true;
+    }
+
+    $scope.isNotTyping = function(){
+        $scope.typing = false;
+    }
 
     $document.bind('keypress', function (e) {
+        console.log($scope.typing);
+        if ($scope.typing)
+            return;
         if (e.key == " ") {
             e.preventDefault();
             console.log($scope.can_listen)
