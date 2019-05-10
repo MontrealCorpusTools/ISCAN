@@ -37,6 +37,25 @@
         <div class="detail-container">
             <md-tabs md-border-bottom md-dynamic-height>
 
+                <md-tab label="Subannotation Properties" ng-if="selected_subannotation !== ''">
+                    <md-content class="md-padding">
+                        <table class="table table-striped">
+                            <thead>
+                            <td>Property</td>
+                            <td>Value</td>
+                            </thead>
+                            <tbody>
+                            <tr ng-repeat="prop in Utils.keys(selected_subannotation)">
+                                <td>{{ prop }}</td>
+                                <td>
+                                    {{ selected_subannotation[prop] }} 
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </md-content>
+                </md-tab>
+
                 <md-tab ng-repeat="t in annotation_types" label="{{ t|titlecase }} properties"
                         data-ng-if="$index >=annotation_types.indexOf(selectedType)">
                     <md-content class="md-padding">
