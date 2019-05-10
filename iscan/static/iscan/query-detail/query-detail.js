@@ -476,11 +476,16 @@ angular.module('queryDetail', [
             .ok('Okay'));
     }
 
-    $scope.excludeSubannotation = function(subannotation){
-        subannotation.excluded = !subannotation.excluded;
+    $scope.excludeSubannotation = function(subannotation, check=false){
+        if (!check)
+            subannotation.excluded = !subannotation.excluded;
         $scope.updateSubannotation(subannotation);
         $scope.selectSubannotation(subannotation);
     }
+
+    $scope.viewableSubannotationDetail = function(p) {
+        return !(["annotation_type", "subannotation", "id", "parent_id"].includes(p));
+    };
 
     $document.bind('keypress', function (e) {
         if (e.key == " ") {

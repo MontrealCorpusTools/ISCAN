@@ -45,10 +45,14 @@
                             <td>Value</td>
                             </thead>
                             <tbody>
-                            <tr ng-repeat="prop in Utils.keys(selected_subannotation)">
+                            <tr ng-repeat="prop in Utils.keys(selected_subannotation) | filter: viewableSubannotationDetail | orderBy" >
                                 <td>{{ prop }}</td>
-                                <td>
-                                    {{ selected_subannotation[prop] }} 
+                                <td ng-switch="prop">
+                                    <input ng-switch-when="excluded"
+                                           type="checkbox"
+                                           ng-model="selected_subannotation.excluded"
+                                           ng-change="excludeSubannotation(selected_subannotation, true)">
+                                    <span ng-switch-default> {{ selected_subannotation[prop] }} </span>
                                 </td>
                             </tr>
                             </tbody>
