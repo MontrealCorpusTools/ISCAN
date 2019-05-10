@@ -1310,7 +1310,19 @@ class QueryViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=['post'])
     def commit_subannotation_changes(self, request, pk=None, corpus_pk=None, *args, **kwargs):
-        print('we')
+        if isinstance(request.user, django.contrib.auth.models.AnonymousUser):
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
+        corpus = models.Corpus.objects.get(pk=corpus_pk)
+        if not request.user.is_superuser:
+            permissions = corpus.user_permissions.filter(user=request.user).all()
+            if not len(permissions) or not permissions[0].can_view_detail:
+                return Response(status=status.HTTP_401_UNAUTHORIZED)
+        for annotation_type, subannotation_dict in request.data.items():
+            #Check what field are already initialised
+            #MATCH (p:vot) WITH DISTINCT keys(p) AS keys
+            for subannotation, tokens in subannotation_dict.items():
+                for t in tokens:
+                    print(t)
         return Response("AAAAAH")
 
     @action(detail=True, methods=['post'])
