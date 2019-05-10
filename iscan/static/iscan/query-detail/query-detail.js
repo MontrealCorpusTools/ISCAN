@@ -37,6 +37,7 @@ angular.module('queryDetail', [
     $scope.newAnnotation = {};
     $scope.currentAnnotations = {};
     $scope.headline = 'Loading detail...';
+    $scope.selected_subannotation = '';
     $scope.selection_begin = 0;
     $scope.selection_end = null;
     $scope.selection_anchor = null;
@@ -393,7 +394,7 @@ angular.module('queryDetail', [
         $scope.$broadcast('SELECTION_UPDATE', $scope.selection_begin, $scope.selection_end);
     });
 
-    $scope.$on('UPDATE_SUBANNOTATION', (e, res) => $scope.selectSubannotation(res));
+    $scope.$on('UPDATE_SUBANNOTATION', (e, res) => {$scope.selectSubannotation(res);$scope.$apply(); });
 
     $scope.$on('ZOOM_REQUESTED', function (e, res) {
         $scope.$broadcast('ZOOM', res);
@@ -435,7 +436,8 @@ angular.module('queryDetail', [
         $scope.selected_subannotation.end = res.end;
         $scope.selectSubannotation($scope.selected_subannotation);
         $scope.updateSubannotation($scope.selected_subannotation);
-    })
+        $scope.$apply();
+    });
 
     $scope.updateSubannotation = function(subannotation){
         const idx = $scope.utterance.subannotation_list[subannotation.annotation_type][subannotation.subannotation]
@@ -452,6 +454,8 @@ angular.module('queryDetail', [
             $scope.selected_subannotation = subannotation;
             $scope.$broadcast('SUBANNOTATION_UPDATE', subannotation);
         }
+        console.log("selected_subannoatation is ");
+        console.log($scope.selected_subannotation);
     }
 
     $scope.resetSubannotations = function(){
@@ -515,5 +519,6 @@ angular.module('queryDetail', [
         }
         if(e.key == "r")
             $scope.resetSubannotations();
+        $scope.$apply();
     });
 });
