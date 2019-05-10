@@ -217,22 +217,6 @@ angular.module('queryDetail', [
                 $scope.initPlayer();
             }
             $scope.$broadcast('SELECTED_ANNOTATION_UPDATE', $scope.selectedAnnotation.begin, $scope.selectedAnnotation.end);
-            Annotations.all($scope.selectedType).then(function (res) {
-                    $scope.annotations = res.data;
-                    for (i = 0; i < $scope.annotations.length; i++) {
-                        if ($scope.selectedAnnotation[$scope.annotations[i].label] !== undefined) {
-                            if ($scope.annotations[i].save_user){
-                                $scope.currentAnnotations[$scope.annotations[i].label] = $scope.selectedAnnotation[$scope.annotations[i].label].filter(function (annotation) {
-                                    return annotation.user == $scope.user.username
-                                });
-                            }
-                            else {
-                                $scope.currentAnnotations[$scope.annotations[i].label] = $scope.selectedAnnotation[$scope.annotations[i].label]
-                            }
-                        }
-                        $scope.newAnnotation[$scope.annotations[i].label] = {};
-                    }
-                });
         }).catch(function (data) {
             if (data.status === 423) {
                 $scope.utterance = {};
