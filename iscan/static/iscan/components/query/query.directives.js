@@ -341,7 +341,8 @@ angular.module('pgdb.query').filter('secondsToDateTime', [function () {
                         .style('fill', fill)
                         .attr('fill-opacity', opacity);
                     d3.select('#'+CSS.escape(d.id)+"text")
-                      .text(d.excluded ? "x" : '');
+                        .text(d.excluded ? "x" : '')
+                        .attr("x", xt(d.begin) + (xt(d.end) - xt(d.begin))/2);
                     d3.select('#'+CSS.escape(d.id)).style('fill', fill)
                         .attr('fill-opacity', opacity)
                         .attr("x", annotation_x_function)
