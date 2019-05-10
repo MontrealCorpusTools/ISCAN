@@ -136,6 +136,12 @@
 			ng-model="subannotation[2]"
 		> {{subannotation[1]}} </label>
         </div>
+
+        <div ng-if="has_edited_subannotations">
+            <button ng-click="commitChanges()">
+                Commit changes
+            </button>
+        </div>
         <div ng-show="can_view_annotations" class="detail-container">
             <h4>Annotate</h4>
             <md-tabs md-border-bottom md-dynamic-height>

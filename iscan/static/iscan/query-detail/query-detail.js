@@ -38,6 +38,7 @@ angular.module('queryDetail', [
     $scope.currentAnnotations = {};
     $scope.headline = 'Loading detail...';
     $scope.typing = false;
+    $scope.has_edited_subannotations == false;
     $scope.selected_subannotation = '';
     $scope.selection_begin = 0;
     $scope.selection_end = null;
@@ -449,6 +450,7 @@ angular.module('queryDetail', [
     }
 
     $scope.selectSubannotation = function(subannotation){
+        $scope.has_edited_subannotations = true;
         if(subannotation === ''){
             $scope.$broadcast('SUBANNOTATION_UPDATE', '');
             $scope.selected_subannotation = '';
@@ -464,18 +466,22 @@ angular.module('queryDetail', [
 
     }
 
-    $scope.displaySubannotationDetails = function(subannotation){
-        const text_view = Object.entries(subannotation)
-            .filter(([k,v]) => k != 'id' && k != 'parent_id')
-            .map(([k,v]) => `<tr><th>${k}</th><th>${v.toFixed(2)}</th>`)
-            .join('</tr>');
-        $mdDialog.show($mdDialog.alert()
-            .parent(angular.element(document.querySelector('html')))
-            .title("Subannotation")
-            .htmlContent(`<table>${text_view}</tr></table>`)
-            .clickOutsideToClose(true)
+    $scope.commitChanges = function (ev) {
+        if (!$scope.has_edited_subannotations)
+            return;
+        const confirm_dialog = $mdDialog.confirm()
+            .title("Do you want to commit changes to the database?")
+            .textContent("This will permanently replace what was there previously.")
+            .targetEvent(ev)
             .ariaLabel('Subannotation detail')
-            .ok('Okay'));
+            .ok('Yes')
+            .cancel('No');
+       $mdDialog.show(confirm_dialog).then(function() {
+           console.log("Changes committed!(not really though)");
+       }, 
+       function(){
+           console.log("Changes not committed!");
+       });
     }
 
     $scope.excludeSubannotation = function(subannotation, check=false){
@@ -537,6 +543,8 @@ angular.module('queryDetail', [
         }
         if(e.key == "r")
             $scope.resetSubannotations();
+        if(e.key == "c")
+            $scope.commitChanges();
         $scope.$apply();
     });
 });
