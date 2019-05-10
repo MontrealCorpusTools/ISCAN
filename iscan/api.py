@@ -1309,6 +1309,11 @@ class QueryViewSet(viewsets.ModelViewSet):
         return Response(data)
 
     @action(detail=True, methods=['post'])
+    def commit_subannotation_changes(self, request, pk=None, corpus_pk=None, *args, **kwargs):
+        print('we')
+        return Response("AAAAAH")
+
+    @action(detail=True, methods=['post'])
     def generate_subset(self, request, pk=None, corpus_pk=None, *args, **kwargs):
         if isinstance(request.user, django.contrib.auth.models.AnonymousUser):
             return Response(status=status.HTTP_401_UNAUTHORIZED)

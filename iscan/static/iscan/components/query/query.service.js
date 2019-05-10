@@ -131,5 +131,9 @@ angular.module('pgdb.query')
             return $http.get(base_url + corpus_id + '/query/' + id + '/get_export_csv/');
         };
 
+        Query.commit_subannotation_changes = function (corpus_id, id,  subannotations){
+            return $http.post(base_url + corpus_id + '/query/' + id + '/commit_subannotation_changes/', subannotations);
+        };
+
         return Query;
     });

@@ -439,6 +439,9 @@ angular.module('queryDetail', [
             .cancel('No');
        $mdDialog.show(confirm_dialog).then(function() {
            console.log("Changes committed!(not really though)");
+           Query.commit_subannotation_changes($stateParams.corpus_id, $scope.utterance_id, $scope.utterance.subannotation_list).then(function (res) {
+               console.log("Changes committed!");
+           });
        }, 
        function(){
            console.log("Changes not committed!");
@@ -500,8 +503,8 @@ angular.module('queryDetail', [
                 idx = subannotations.length - 1;
             $scope.selectSubannotation(subannotations[idx]);
         }
-        if(e.key == "r")
-            $scope.resetSubannotations();
+        //if(e.key == "r")
+        //    $scope.resetSubannotations();
         if(e.key == "c")
             $scope.commitChanges();
         $scope.$apply();
