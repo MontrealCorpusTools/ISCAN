@@ -270,8 +270,11 @@ angular.module('queryDetail', [
                                               y.parent_id=x.id;
                                               y.annotation_type=annotation_type;
                                               y.subannotation=subannotation; 
-                                              y.excluded=false;
-                                              y.note="";
+                                              if(!y.hasOwnProperty("excluded"))
+                                                  y.excluded=false;
+                                              if(!y.hasOwnProperty("note"))
+                                                  y.note="";
+                                              console.log(y);
                                               return y})).flat()
                               : [];
             });

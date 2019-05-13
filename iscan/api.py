@@ -1317,13 +1317,34 @@ class QueryViewSet(viewsets.ModelViewSet):
             permissions = corpus.user_permissions.filter(user=request.user).all()
             if not len(permissions) or not permissions[0].can_view_detail:
                 return Response(status=status.HTTP_401_UNAUTHORIZED)
-        for annotation_type, subannotation_dict in request.data.items():
-            #Check what field are already initialised
-            #MATCH (p:vot) WITH DISTINCT keys(p) AS keys
-            for subannotation, tokens in subannotation_dict.items():
-                for t in tokens:
-                    print(t)
-        return Response("AAAAAH")
+        with CorpusContext(corpus.config) as c:
+            for annotation_type, subannotation_dict in request.data.items():
+                for subannotation, tokens in subannotation_dict.items():
+
+                    #Get rid of helper properties used by the JS front end.
+                    excluded_properties = ["parent_id", "annotation_type", "subannotation", "id"]
+
+                    data = [{"id": t["id"],
+                            "props": {k:v for k, v in t.items() if k not in excluded_properties}}
+                            for t in tokens]
+
+                    #Find any new properties not yet encoded
+                    props_to_add = []
+                    for prop, val in data[0]["props"].items():
+                        #This assumes all tokens have identical properties
+                        if not c.hierarchy.has_subannotation_property(subannotation, prop):
+                            props_to_add.append((prop, type(val)))
+                    if props_to_add:
+                        c.hierarchy.add_subannotation_properties(c,subannotation, props_to_add)
+                        c.encode_hierarchy()
+
+                    statement = """
+                    UNWIND {{data}} as d
+                    MERGE (n:{subannotation}:{corpus_name} {{id: d.id}})
+                    SET n += d.props
+                    """.format(subannotation=subannotation, corpus_name=c.cypher_safe_name)
+                    resp = c.execute_cypher(statement, data=data).value()
+        return Response(resp)
 
     @action(detail=True, methods=['post'])
     def generate_subset(self, request, pk=None, corpus_pk=None, *args, **kwargs):
