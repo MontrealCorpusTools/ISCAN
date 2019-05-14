@@ -1315,7 +1315,7 @@ class QueryViewSet(viewsets.ModelViewSet):
         corpus = models.Corpus.objects.get(pk=corpus_pk)
         if not request.user.is_superuser:
             permissions = corpus.user_permissions.filter(user=request.user).all()
-            if not len(permissions) or not permissions[0].can_view_detail:
+            if not len(permissions) or not permissions[0].can_edit:
                 return Response(status=status.HTTP_401_UNAUTHORIZED)
         with CorpusContext(corpus.config) as c:
             for annotation_type, subannotation_dict in request.data.items():
@@ -1334,6 +1334,7 @@ class QueryViewSet(viewsets.ModelViewSet):
                         #This assumes all tokens have identical properties
                         if not c.hierarchy.has_subannotation_property(subannotation, prop):
                             props_to_add.append((prop, type(val)))
+
                     if props_to_add:
                         c.hierarchy.add_subannotation_properties(c,subannotation, props_to_add)
                         c.encode_hierarchy()

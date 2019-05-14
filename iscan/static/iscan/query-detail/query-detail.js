@@ -43,17 +43,29 @@ angular.module('queryDetail', [
     $scope.selection_begin = 0;
     $scope.selection_end = null;
     $scope.selection_anchor = null;
+    $scope.can_view = false;
+    $scope.can_listen = false;
+    $scope.can_edit = false;
+    $scope.can_view_annotations = false;
+    $scope.can_annotate = false;
     $scope.detail_index = parseInt($stateParams.detail_index);
 
     $scope.refreshPermissions = function () {
         if ($scope.user.is_superuser) {
             $scope.can_view = true;
+            $scope.can_listen = true;
+            $scope.can_edit = true;
+            $scope.can_view_annotations = true;
+            $scope.can_annotate = true;
+
         }
         else {
-
-            $scope.can_view = false;
             for (i = 0; i < $scope.user.corpus_permissions.length; i++) {
                 if ($scope.user.corpus_permissions[i].corpus == $stateParams.corpus_id) {
+                    $scope.can_listen = $scope.user.corpus_permissions[i].can_listen;
+                    $scope.can_edit = $scope.user.corpus_permissions[i].can_edit;
+                    $scope.can_view_annotations = $scope.user.corpus_permissions[i].can_view_annotations;
+                    $scope.can_annotate = $scope.user.corpus_permissions[i].can_annotate;
                     $scope.can_view = $scope.user.corpus_permissions[i].can_view_detail;
                 }
             }
@@ -158,27 +170,6 @@ angular.module('queryDetail', [
 
 
     $scope.runQuery = function () {
-        if ($scope.user.is_superuser) {
-            $scope.can_listen = true;
-            $scope.can_edit = true;
-            $scope.can_view_annotations = true;
-            $scope.can_annotate = true;
-
-        }
-        else {
-            $scope.can_listen = false;
-            $scope.can_edit = false;
-            $scope.can_view_annotations = false;
-            $scope.can_annotate = false;
-            for (i = 0; i < $scope.user.corpus_permissions.length; i++) {
-                if ($scope.user.corpus_permissions[i].corpus == $stateParams.corpus_id) {
-                    $scope.can_listen = $scope.user.corpus_permissions[i].can_listen;
-                    $scope.can_edit = $scope.user.corpus_permissions[i].can_edit;
-                    $scope.can_view_annotations = $scope.user.corpus_permissions[i].can_view_annotations;
-                    $scope.can_annotate = $scope.user.corpus_permissions[i].can_annotate;
-                }
-            }
-        }
         Query.oneWaveform($stateParams.corpus_id, $stateParams.query_id, $scope.detail_index, $scope.paginateParams.ordering).then(function (res){
             $scope.waveform = res.data.waveform;
         })
@@ -274,7 +265,6 @@ angular.module('queryDetail', [
                                                   y.excluded=false;
                                               if(!y.hasOwnProperty("note"))
                                                   y.note="";
-                                              console.log(y);
                                               return y})).flat()
                               : [];
             });
@@ -441,7 +431,6 @@ angular.module('queryDetail', [
             .ok('Yes')
             .cancel('No');
        $mdDialog.show(confirm_dialog).then(function() {
-           console.log("Changes committed!(not really though)");
            Query.commit_subannotation_changes($stateParams.corpus_id, $scope.utterance_id, $scope.utterance.subannotation_list).then(function (res) {
                console.log("Changes committed!");
            });

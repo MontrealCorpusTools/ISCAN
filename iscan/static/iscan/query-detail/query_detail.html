@@ -1,18 +1,18 @@
 <div class="row" style="height: 93%;">
     <div class="col-md-9" style="height:100%">
         <div class="annotation-plot">
-            <annotation-plot data="utterance" selected-annotation="selectedAnnotation"></annotation-plot>
+            <annotation-plot data="utterance" selected-annotation="selectedAnnotation" can_edit="can_edit"></annotation-plot>
         </div>
 
         <div class="detail-plot">
             <waveform-plot data="waveform" begin="utterance.begin" end="utterance.end"
-                           selected-annotation="selectedAnnotation"></waveform-plot>
+                           selected-annotation="selectedAnnotation" can-edit="can_edit"></waveform-plot>
 
         </div>
 
         <div class="detail-plot">
             <spectrogram-plot data="spectrogram" begin="utterance.begin"
-                              end="utterance.end"></spectrogram-plot>
+                              end="utterance.end" can_edit="can_edit"></spectrogram-plot>
         </div>
     </div>
     <div class="col-md-3">

@@ -60,6 +60,7 @@ angular.module('pgdb.query').filter('secondsToDateTime', [function () {
             controllerAs: 'ctrl',
             scope: {
                 data: '=data',
+                canEdit: '=canEdit',
                 begin: '=',
                 end: "=",
                 selectedAnnotation: "=",
@@ -289,8 +290,7 @@ angular.module('pgdb.query').filter('secondsToDateTime', [function () {
                         var coords = d3.mouse(this);
                         var point_time = xt.invert(coords[0]);
                         scope.$emit('BEGIN_SELECTION', point_time);
-                    })
-                    .call(selection_dragging(xt, scope));
+                    }).call(selection_dragging(xt, scope));
 
                 scope.$on('UPDATEPLAY', function (e, time) {
                     scope.play_begin = time;
@@ -435,6 +435,7 @@ angular.module('pgdb.query').filter('secondsToDateTime', [function () {
             scope: {
                 height: '=height',
                 data: '=data',
+                canEdit: '=canEdit',
                 begin: '=',
                 end: "=",
                 selectedAnnotation: "=",
@@ -602,7 +603,8 @@ angular.module('pgdb.query').filter('secondsToDateTime', [function () {
                     .attr('height', height)
                     .attr('fill', 'RoyalBlue')
                     .attr('opacity', 0)
-                    .call(subannotation_dragging(xt, scope));
+                if(scope.canEdit)
+                    subannotation_rect.call(subannotation_dragging(xt, scope));
 
                 scope.$watch('begin', function (newVal, oldVal) {
                     if (!newVal) return;
@@ -630,6 +632,11 @@ angular.module('pgdb.query').filter('secondsToDateTime', [function () {
                        .datum(newVal)
                        .attr('d',d => waveform_valueline(d));
 // Make x axis
+                });
+
+                scope.$watch('canEdit', (newVal, oldVal) => {
+                    if(scope.canEdit)
+                        subannotation_rect.call(subannotation_dragging(xt, scope));
                 });
 
 
@@ -711,7 +718,8 @@ angular.module('pgdb.query').filter('secondsToDateTime', [function () {
                     }
                     subannotation_rect.attr('x', d => xt(d.begin))
                         .attr('width', d => xt(d.end) - xt(d.begin))
-                        .call(subannotation_dragging(xt, scope));
+                    if(scope.canEdit)
+                        subannotation_rect.call(subannotation_dragging(xt, scope));
                     drawWaveform();
                 }
 
@@ -750,6 +758,7 @@ angular.module('pgdb.query').filter('secondsToDateTime', [function () {
         scope: {
             height: '=height',
             data: '=data',
+            canEdit: '=canEdit',
             begin: '=',
             end: '=',
             hovered: '&hovered'
@@ -830,7 +839,8 @@ angular.module('pgdb.query').filter('secondsToDateTime', [function () {
                 .attr('height', height)
                 .attr('fill', 'RoyalBlue')
                 .attr('opacity', 0)
-                .call(subannotation_dragging(xt, scope));
+            if(scope.canEdit) 
+                subannotation_rect.call(subannotation_dragging(xt, scope));
 
             function drawSpectrogram() {
                 vis.select('.yaxis').call(yaxis);
@@ -892,6 +902,11 @@ angular.module('pgdb.query').filter('secondsToDateTime', [function () {
                 x.domain([x.domain()[0], newVal]);
             });
 
+            scope.$watch('canEdit', (oldVal, newVal) => {
+                if(scope.canEdit)
+                    subannotation_rect.call(subannotation_dragging(xt, scope));
+            });
+
             scope.$watch('data', function (newVal, oldVal) {
                 if (!newVal) return;
 
@@ -928,7 +943,8 @@ angular.module('pgdb.query').filter('secondsToDateTime', [function () {
                 specgram_context.restore();
                 subannotation_rect.attr('x', d => xt(d.begin))
                     .attr('width', d => xt(d.end) - xt(d.begin))
-                    .call(subannotation_dragging(xt, scope));
+                if(scope.canEdit)
+                    subannotation_rect.call(subannotation_dragging(xt, scope));
             }
 
             function zoomed() {
