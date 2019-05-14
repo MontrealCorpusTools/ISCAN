@@ -1338,6 +1338,25 @@ class QueryViewSet(viewsets.ModelViewSet):
                     if props_to_add:
                         c.hierarchy.add_subannotation_properties(c,subannotation, props_to_add)
                         c.encode_hierarchy()
+                        for prop, val in props_to_add:
+                            #Set default value for all subannotations of this type
+                            default = None
+                            if val == bool:
+                                default = False
+                            elif val == str:
+                                default = '""'
+                            elif val == int:
+                                default = 0
+                            elif val == float:
+                                default = 0.0
+
+                            statement = """
+                            MATCH (n:{subannotation}:{corpus_name})
+                            SET n.{prop} = {default}
+                            """.format(subannotation=subannotation, corpus_name=c.cypher_safe_name, 
+                                    prop=prop, default=default)
+                            c.execute_cypher(statement)
+
 
                     statement = """
                     UNWIND {{data}} as d

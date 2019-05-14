@@ -59,6 +59,7 @@
                                            ng-disabled="!can_edit"
                                            ng-focus="isTyping()"
                                            ng-blur="isNotTyping()"
+                                           ng-change="updateSubannotation(selected_subannotation)"
                                            >
                                     <span ng-switch-default> {{ selected_subannotation[prop] }} </span>
                                 </td>

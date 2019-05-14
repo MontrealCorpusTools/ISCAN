@@ -265,6 +265,8 @@ angular.module('queryDetail', [
                                                   y.excluded=false;
                                               if(!y.hasOwnProperty("note"))
                                                   y.note="";
+                                              if(!y.hasOwnProperty("edited"))
+                                                  y.edited=false;
                                               return y})).flat()
                               : [];
             });
@@ -388,6 +390,7 @@ angular.module('queryDetail', [
     });
 
     $scope.updateSubannotation = function(subannotation){
+        subannotation.edited = true;
         const idx = $scope.utterance.subannotation_list[subannotation.annotation_type][subannotation.subannotation]
             .findIndex(x => x.id == $scope.selected_subannotation.id);
         $scope.utterance.subannotation_list[subannotation.annotation_type][subannotation.subannotation][idx] = subannotation;
