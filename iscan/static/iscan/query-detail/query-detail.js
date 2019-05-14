@@ -422,7 +422,7 @@ angular.module('queryDetail', [
     }
 
     $scope.commitChanges = function (ev) {
-        if (!$scope.has_edited_subannotations)
+        if (!$scope.has_edited_subannotations || !$scope.can_edit)
             return;
         const confirm_dialog = $mdDialog.confirm()
             .title("Do you want to commit changes to the database?")
@@ -441,10 +441,12 @@ angular.module('queryDetail', [
     }
 
     $scope.excludeSubannotation = function(subannotation, check=false){
-        if (!check)
-            subannotation.excluded = !subannotation.excluded;
-        $scope.updateSubannotation(subannotation);
-        $scope.selectSubannotation(subannotation);
+        if($scope.can_edit){
+            if (!check)
+                subannotation.excluded = !subannotation.excluded;
+            $scope.updateSubannotation(subannotation);
+            $scope.selectSubannotation(subannotation);
+        }
     }
 
     $scope.viewableSubannotationDetail = function(p) {
@@ -474,7 +476,7 @@ angular.module('queryDetail', [
                 $scope.$broadcast('SELECTION_UPDATE', $scope.selection_begin, $scope.selection_end);
             }
         }else if(e.key == "x"){
-            if(typeof $scope.selected_subannotation !== "undefined" && $scope.selected_subannotation !== ''){
+            if(typeof $scope.selected_subannotation !== "undefined" && $scope.selected_subannotation !== '' && $scope.can_edit){
                 $scope.excludeSubannotation($scope.selected_subannotation);
             }
         }
@@ -497,7 +499,7 @@ angular.module('queryDetail', [
         }
         //if(e.key == "r")
         //    $scope.resetSubannotations();
-        if(e.key == "c")
+        if(e.key == "c" && $scope.can_edit)
             $scope.commitChanges();
         $scope.$apply();
     });
