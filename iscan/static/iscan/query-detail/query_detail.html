@@ -1,18 +1,18 @@
 <div class="row" style="height: 93%;">
     <div class="col-md-9" style="height:100%">
         <div class="annotation-plot">
-            <annotation-plot data="utterance" selected-annotation="selectedAnnotation"></annotation-plot>
+            <annotation-plot data="utterance" selected-annotation="selectedAnnotation" can_edit="can_edit"></annotation-plot>
         </div>
 
         <div class="detail-plot">
             <waveform-plot data="waveform" begin="utterance.begin" end="utterance.end"
-                           selected-annotation="selectedAnnotation"></waveform-plot>
+                           selected-annotation="selectedAnnotation" can-edit="can_edit"></waveform-plot>
 
         </div>
 
         <div class="detail-plot">
             <spectrogram-plot data="spectrogram" begin="utterance.begin"
-                              end="utterance.end"></spectrogram-plot>
+                              end="utterance.end" can_edit="can_edit"></spectrogram-plot>
         </div>
     </div>
     <div class="col-md-3">
@@ -36,6 +36,38 @@
     </div>
         <div class="detail-container">
             <md-tabs md-border-bottom md-dynamic-height>
+
+                <md-tab label="Subannotation Properties" ng-if="selected_subannotation !== ''">
+                    <md-content class="md-padding">
+                        <table class="table table-striped">
+                            <thead>
+                            <td>Property</td>
+                            <td>Value</td>
+                            </thead>
+                            <tbody>
+                            <tr ng-repeat="prop in Utils.keys(selected_subannotation) | filter: viewableSubannotationDetail | orderBy" >
+                                <td>{{ prop }}</td>
+                                <td ng-switch="prop">
+                                    <input ng-switch-when="excluded"
+                                           type="checkbox"
+                                           ng-model="selected_subannotation.excluded"
+                                           ng-disabled="!can_edit"
+                                           ng-change="excludeSubannotation(selected_subannotation, true)">
+                                    <input ng-switch-when="note"
+                                           type="text"
+                                           ng-model="selected_subannotation.note"
+                                           ng-disabled="!can_edit"
+                                           ng-focus="isTyping()"
+                                           ng-blur="isNotTyping()"
+                                           ng-change="updateSubannotation(selected_subannotation)"
+                                           >
+                                    <span ng-switch-default> {{ selected_subannotation[prop] }} </span>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </md-content>
+                </md-tab>
 
                 <md-tab ng-repeat="t in annotation_types" label="{{ t|titlecase }} properties"
                         data-ng-if="$index >=annotation_types.indexOf(selectedType)">
@@ -106,6 +138,15 @@
 			value="{{subannotation[1]}}"
 			ng-model="subannotation[2]"
 		> {{subannotation[1]}} </label>
+        </div>
+
+        <div ng-if="has_edited_subannotations && can_edit">
+            <!-- <button ng-click="resetSubannotations()">
+                Reset changes
+            </button> -->
+            <button ng-click="commitChanges()">
+                Commit changes
+            </button>
         </div>
         <div ng-show="can_view_annotations" class="detail-container">
             <h4>Annotate</h4>

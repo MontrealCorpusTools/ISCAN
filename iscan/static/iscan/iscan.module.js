@@ -48,6 +48,10 @@ var app = angular.module('iscan', [
         // Add the following two lines
         $http.defaults.xsrfCookieName = 'csrftoken';
         $http.defaults.xsrfHeaderName = 'X-CSRFToken';
+    }).run(function ($rootScope) {
+        $rootScope.Utils = {
+            keys: Object.keys
+        }
     });
 
 

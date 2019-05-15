@@ -1,5 +1,50 @@
 var margin = {top: 30, right: 10, bottom: 40, left: 70};
 
+subannotation_dragging = function (xt, scope) {
+    return d3.drag()
+        .on("start", function(start_d) {
+            let moved = d3.select(this);
+
+            drag_left = function(d){
+                let x  =  (d.end - xt.invert(d3.event.x) > 0.025) ? xt.invert(d3.event.x) : d.end-0.05;
+                const new_datum = {begin:x, end:d.end};
+                moved.attr("width", xt(d.end) - xt(x))
+                   .attr("x", xt(x))
+                   .datum(new_datum);
+                scope.$emit('MOVE_SUBANNOTATION', new_datum);
+            }
+            drag_right = function(d){
+                let x  =  (xt.invert(d3.event.x) - d.begin > 0.025) ? xt.invert(d3.event.x) : 0.05 + d.begin;
+                const new_datum = {begin:d.begin, end:x}
+                moved.attr("width", xt(x) - xt(d.begin))
+                    .datum(new_datum);
+                scope.$emit('MOVE_SUBANNOTATION', new_datum);
+            }
+            const w = xt(start_d.end)-xt(start_d.begin);
+            if ((xt(start_d.begin) + w/2) < d3.event.x){
+                d3.event.on("drag", drag_right);
+            }else{
+                d3.event.on("drag", drag_left);
+            }
+        });
+}
+
+selection_dragging = function (xt, scope) {
+    return d3.drag()
+        .filter(() => d3.event.button == 0)
+        .on("start", function () {
+            var coords = d3.mouse(this);
+            var point_time = xt.invert(coords[0]);
+            scope.$emit('BEGIN_SELECTION', point_time);
+        })
+        .on("drag", function () {
+            var p = d3.mouse(this);
+            var point_time = xt.invert(p[0]);
+            scope.$emit('UPDATE_SELECTION', point_time);
+        });
+}
+
+
 angular.module('pgdb.query').filter('secondsToDateTime', [function () {
     return function (seconds) {
         return new Date(1970, 0, 1).setSeconds(seconds);
@@ -15,6 +60,7 @@ angular.module('pgdb.query').filter('secondsToDateTime', [function () {
             controllerAs: 'ctrl',
             scope: {
                 data: '=data',
+                canEdit: '=canEdit',
                 begin: '=',
                 end: "=",
                 selectedAnnotation: "=",
@@ -54,12 +100,14 @@ angular.module('pgdb.query').filter('secondsToDateTime', [function () {
 
                     ['phone', 'syllable', 'word'].forEach((tier, i) => {
                         vis.selectAll("g.annotation."+tier).select("rect").attr("y", y(i+1))
-                        vis.selectAll("g.annotation."+tier).select("text").attr("y", y(i+0.5))
+                        vis.selectAll("g.annotation."+tier).select("text").attr("y", y(i+0.25))
                     });
 
                     scope.data.viewableSubannotations.forEach((x, i) => {
                         vis.selectAll("g.annotation."+x[1]).select("rect")
                            .attr("y", y(-i));
+                        vis.selectAll("g.annotation."+x[1]).select("text")
+                           .attr("y", y(-i-0.75));
                     });
                 }
 
@@ -78,9 +126,6 @@ angular.module('pgdb.query').filter('secondsToDateTime', [function () {
                        .style('height', (height + margin.top + margin.bottom) + 'px')
                        .style('width', (width + margin.left + margin.right) + 'px');
                     vis.select('#annotation_clip').select('rect')
-                       .attr("height", height)
-                       .attr("width", width);
-                    vis.select('.pane')
                        .attr("height", height)
                        .attr("width", width);
                     vis.select('.xaxis')
@@ -132,11 +177,6 @@ angular.module('pgdb.query').filter('secondsToDateTime', [function () {
 
 // Draw the Plotting region------------------------------
 // X axis lines (bottom and top).
-                var annotation_pane = annotation_vis.append("rect")
-                    .attr("class", "pane")
-                    .attr("width", width)
-                    .attr("height", height)
-
                 annotation_vis.append("g")
                     .attr("class", "xaxis")
                     .attr("transform", `translate(0,${height})`)
@@ -200,7 +240,6 @@ angular.module('pgdb.query').filter('secondsToDateTime', [function () {
 
                 function onDataUpdate(newVal, oldVal) {
                     if (!newVal) return;
-                    console.log('datachanged', newVal)
                     y.domain([-(scope.data.viewableSubannotations.length), 3]);
             
                     //Updates ticks to be from the bottom of subannotations up.
@@ -221,20 +260,6 @@ angular.module('pgdb.query').filter('secondsToDateTime', [function () {
 
                 scope.$watch('data', onDataUpdate);
                 scope.$watch('data.viewableSubannotations', () => onDataUpdate(scope.data, scope.data), true);
-
-                var drag = d3.drag()
-                    .filter(() => d3.event.button == 0)
-                    .on("start", function () {
-                        var coords = d3.mouse(this);
-                        var point_time = xt.invert(coords[0]);
-                        scope.$emit('BEGIN_SELECTION', point_time);
-                    })
-                    .on("drag", function () {
-                        var p = d3.mouse(this);
-                        var point_time = xt.invert(p[0]);
-                        scope.$emit('UPDATE_SELECTION', point_time);
-                    });
-
 
                 scope.$on('SELECTION_UPDATE', function (e, selection_begin, selection_end) {
                     scope.selection_begin = selection_begin;
@@ -265,8 +290,7 @@ angular.module('pgdb.query').filter('secondsToDateTime', [function () {
                         var coords = d3.mouse(this);
                         var point_time = xt.invert(coords[0]);
                         scope.$emit('BEGIN_SELECTION', point_time);
-                    })
-                    .call(drag);
+                    }).call(selection_dragging(xt, scope));
 
                 scope.$on('UPDATEPLAY', function (e, time) {
                     scope.play_begin = time;
@@ -279,6 +303,7 @@ angular.module('pgdb.query').filter('secondsToDateTime', [function () {
                     xt = transform.rescaleX(x);
                     annotation_x_function = d => xt(d.begin);
                     annotation_vis.select('.xaxis').call(xaxis.scale(xt));
+                    annotation_vis.call(selection_dragging(xt, scope));
                     annotation_playline.attr("x1", xt(scope.selection_begin))
                         .attr("x2", xt(scope.selection_begin));
 
@@ -315,9 +340,24 @@ angular.module('pgdb.query').filter('secondsToDateTime', [function () {
                     annotation_viewplot.select('#'+CSS.escape(d.parent_id))
                         .style('fill', fill)
                         .attr('fill-opacity', opacity);
+                    d3.select('#'+CSS.escape(d.id)+"text")
+                        .text(d.excluded ? "x" : '')
+                        .attr("x", xt(d.begin) + (xt(d.end) - xt(d.begin))/2);
                     d3.select('#'+CSS.escape(d.id)).style('fill', fill)
-                        .attr('fill-opacity', opacity);
+                        .attr('fill-opacity', opacity)
+                        .attr("x", annotation_x_function)
+                        .attr("width", d => xt(d.end) - xt(d.begin));
                 }
+
+                scope.$on('SUBANNOTATION_UPDATE', function (e, res) {
+                    if(selected_sub_ann !== '')
+                        highlightSubannotation(selected_sub_ann, 'transparent', 0);
+                    if(res !== ''){
+                        highlightSubannotation(res, 'RoyalBlue', 0.25);
+                    }
+                    selected_sub_ann = res;
+                });
+
 
                 function updateAnnotations() {
                     ['phone', 'syllable', 'word'].forEach(tier => {
@@ -342,22 +382,17 @@ angular.module('pgdb.query').filter('secondsToDateTime', [function () {
                     scope.data.subannotations.forEach(x => {
                         const annotation_type = x[0];
                         const subannotation = x[1];
-                        const is_in_viewable_sub = scope.data.viewableSubannotations.filter(d => d[0] == x[0] && d[1] == x[1]).length > 0;
                         subannotation_items = annotation_viewplot
                             .selectAll('g.annotation.'+subannotation)
-                            .data(is_in_viewable_sub
-                                  ? scope.data[annotation_type].map(x => x[subannotation].map(y=>{y.parent_id=x.id; return y})).flat()
-                                  : [], d => d.id)
-                            //apologies, this gets all the subannotations of a type, along with their parent's id
-
+                            .data(scope.data.subannotation_list[annotation_type][subannotation], d => d.id)
                         subannotation_items.exit().remove();
-                        subannotation_items.enter().append('g')
-                            .classed("annotation", true)
+                        subannotation_items = subannotation_items.enter().append('g');
+                        subannotation_items.classed("annotation", true)
                             .classed(subannotation, true)
                             .append("rect")
                             .attr("x", annotation_x_function)
                             .attr('fill-opacity', 0)
-			    .attr("id", d => d.id)
+                            .attr("id", d => d.id)
                             .attr("stroke", 'black')
                             .attr("width", d => xt(d.end) - xt(d.begin))
                             .on('mouseenter', function(d){
@@ -370,18 +405,21 @@ angular.module('pgdb.query').filter('secondsToDateTime', [function () {
                             })
                             .on("click", function(d, i){
                                 if(selected_sub_ann.id === d.id){
-                                    highlightSubannotation(d, 'transparent', 0);
-                                    selected_sub_ann = '';
                                     scope.$emit("UPDATE_SUBANNOTATION", '');
                                 }else{
-                                    highlightSubannotation(d, 'RoyalBlue', 0.25);
-				    if(selected_sub_ann !== '')
-					    highlightSubannotation(selected_sub_ann, 'transparent', 0);
-                                    selected_sub_ann = d;
                                     scope.$emit("UPDATE_SUBANNOTATION", d);
                                 }
-                            });
+                            })
+                         subannotation_items.append("text")
+                            .style("text-anchor", "middle")
+                            .style("pointer-events", "none")
+                            .text(d => d.excluded ? "x": "")
+                            .attr("id", d => d.id+"text");
                     });
+
+                    //If something was previously selected, but this tier is now empty, deselect it.
+                    if (subannotation_items.data().length === 0 && selected_sub_ann !== '')
+                        highlightSubannotation(selected_sub_ann, 'transparent', 0);
                     drawAnnotations();
                 }
             }
@@ -397,6 +435,7 @@ angular.module('pgdb.query').filter('secondsToDateTime', [function () {
             scope: {
                 height: '=height',
                 data: '=data',
+                canEdit: '=canEdit',
                 begin: '=',
                 end: "=",
                 selectedAnnotation: "=",
@@ -408,8 +447,6 @@ angular.module('pgdb.query').filter('secondsToDateTime', [function () {
             link: function (scope, element, attrs) {
                 scope.selection_begin = 0;
                 scope.selection_end = 0;
-                scope.subannotation_begin = 0;
-                scope.subannotation_end = 0;
                 scope.play_begin = 0;
                 var vis = d3.select(element[0]);
                 var width = parseInt(vis.style('width'), 10) - margin.left - margin.right;
@@ -438,9 +475,6 @@ angular.module('pgdb.query').filter('secondsToDateTime', [function () {
                     vis.select('#waveform_clip').select('rect')
                         .attr("height", height)
                         .attr("width", width);
-                    vis.select('.pane')
-                        .attr("height", height)
-                        .attr("width", width);
                     vis.select('.xaxis')
                         .attr("transform", "translate(0," + height + ")").call(xaxis);
                     vis.select('.yaxis').call(yaxis);
@@ -464,9 +498,10 @@ angular.module('pgdb.query').filter('secondsToDateTime', [function () {
                             .attr('height', height)
                             .attr('width', xt(scope.selectedAnnotation.end) - xt(scope.selectedAnnotation.begin));
                     }
-                    subannotation_rect.attr('x', xt(scope.subannotation_begin))
-                        .attr('height', height)
-                        .attr('width', xt(scope.subannotation_end) - xt(scope.subannotation_begin));
+                    subannotation_rect.attr('height', height)
+                        .attr('x', d => xt(d.begin))
+                        .attr('width', d => xt(d.end) - xt(d.begin))
+
                     vis.select('.line')
                        .attr('d',d => waveform_valueline(d));
                 }
@@ -480,9 +515,6 @@ angular.module('pgdb.query').filter('secondsToDateTime', [function () {
                 var waveform_padding = (y.domain()[1] - y.domain()[0]) * 0.05;
                 y.domain([y.domain()[0] - waveform_padding, y.domain()[1] + waveform_padding]);
 
-                var waveform_valueline = d3.line()
-                    .x(d => x(d.time))
-                    .y(d => y(d.amplitude));
 
                 var waveform_x_function = d => x(d.time);
                 var yaxis = d3.axisLeft(y)
@@ -535,10 +567,6 @@ angular.module('pgdb.query').filter('secondsToDateTime', [function () {
                     .attr("y1", 0)
                     .attr("y2", height);
 
-                var waveform_pane = waveform_vis.append("rect")
-                    .attr("class", "pane")
-                    .attr("width", width)
-                    .attr("height", height);
 
                 var selection_rect = waveform_viewplot.append("rect")
                     .attr('class', "selection")
@@ -558,14 +586,25 @@ angular.module('pgdb.query').filter('secondsToDateTime', [function () {
                     .attr('fill', 'yellow')
                     .attr('opacity', 0);
 
+                var waveform_valueline = d3.line()
+                    .x(d => x(d.time))
+                    .y(d => y(d.amplitude));
+
+                waveform_viewplot.append("path")
+                    .attr("class", "line")
+                    .style('stroke', 'black');
+
                 var subannotation_rect = waveform_viewplot.append("rect")
                     .attr('class', "subannotation")
-                    .attr('x', 0)
+                    .datum({begin: 0, end:0})
                     .attr('y', 0)
-                    .attr('width', 0)
+                    .attr('x', d => xt(d.begin))
+                    .attr('width', d => xt(d.end) - xt(d.begin))
                     .attr('height', height)
                     .attr('fill', 'RoyalBlue')
-                    .attr('opacity', 0);
+                    .attr('opacity', 0)
+                if(scope.canEdit)
+                    subannotation_rect.call(subannotation_dragging(xt, scope));
 
                 scope.$watch('begin', function (newVal, oldVal) {
                     if (!newVal) return;
@@ -589,29 +628,16 @@ angular.module('pgdb.query').filter('secondsToDateTime', [function () {
                             .attr('x', xt(scope.selectedAnnotation.begin))
                             .attr('width', xt(scope.selectedAnnotation.end) - xt(scope.selectedAnnotation.begin));
                     }
-
+                    vis.select('.line')
+                       .datum(newVal)
+                       .attr('d',d => waveform_valueline(d));
 // Make x axis
-
-
-                    waveform_viewplot.append("path")
-                        .data([newVal])
-                        .attr("class", "line")
-                        .attr('d', d => waveform_valueline(d))
-                        .style('stroke', 'black');
                 });
 
-                var drag = d3.drag()
-                    .filter(() => d3.event.button == 0)
-                    .on("start", function () {
-                        var coords = d3.mouse(this);
-                        var point_time = xt.invert(coords[0]);
-                        scope.$emit('BEGIN_SELECTION', point_time);
-                    })
-                    .on("drag", function () {
-                        var p = d3.mouse(this);
-                        var point_time = xt.invert(p[0]);
-                        scope.$emit('UPDATE_SELECTION', point_time);
-                    });
+                scope.$watch('canEdit', (newVal, oldVal) => {
+                    if(scope.canEdit)
+                        subannotation_rect.call(subannotation_dragging(xt, scope));
+                });
 
 
                 scope.$on('SELECTION_UPDATE', function (e, selection_begin, selection_end) {
@@ -632,13 +658,15 @@ angular.module('pgdb.query').filter('secondsToDateTime', [function () {
                     }
                 });
 
-                scope.$on('SUBANNOTATION_UPDATE', function (e, subannotation_begin, subannotation_end) {
-                    scope.subannotation_begin = subannotation_begin;
-                    scope.subannotation_end = subannotation_end;
-                    waveform_viewplot.select("rect.subannotation")
+                scope.$on('SUBANNOTATION_UPDATE', function (e, res) {
+                    if(res == ""){
+                        res = {begin: 0, end:0}
+                    }
+                    subannotation_rect
+                        .datum({begin: res.begin, end: res.end})
                         .attr('opacity', 0.3)
-                        .attr('x', xt(subannotation_begin))
-                        .attr('width', xt(subannotation_end) - xt(subannotation_begin));
+                        .attr('x', d => xt(d.begin))
+                        .attr('width', d => xt(d.end) - xt(d.begin));
                 });
 
                 waveform_vis.call(d3.zoom()
@@ -654,7 +682,7 @@ angular.module('pgdb.query').filter('secondsToDateTime', [function () {
                         var point_time = xt.invert(coords[0]);
                         scope.$emit('BEGIN_SELECTION', point_time);
                     })
-                    .call(drag);
+                    .call(selection_dragging(xt, scope));
 
                 scope.$on('UPDATEPLAY', function (e, time) {
                     scope.play_begin = time;
@@ -671,6 +699,7 @@ angular.module('pgdb.query').filter('secondsToDateTime', [function () {
                     xt = transform.rescaleX(x);
 
                     waveform_vis.select('.xaxis').call(xaxis.scale(xt));
+                    waveform_vis.call(selection_dragging(xt, scope));
 
                     waveform_valueline = d3.line()
                         .x(d => xt(d.time))
@@ -687,8 +716,10 @@ angular.module('pgdb.query').filter('secondsToDateTime', [function () {
                         selected_annotation_rect.attr('x', xt(scope.selectedAnnotation.begin))
                             .attr('width', xt(scope.selectedAnnotation.end) - xt(scope.selectedAnnotation.begin));
                     }
-                    subannotation_rect.attr('x', xt(scope.subannotation_begin))
-                        .attr('width', xt(scope.subannotation_end) - xt(scope.subannotation_begin));
+                    subannotation_rect.attr('x', d => xt(d.begin))
+                        .attr('width', d => xt(d.end) - xt(d.begin))
+                    if(scope.canEdit)
+                        subannotation_rect.call(subannotation_dragging(xt, scope));
                     drawWaveform();
                 }
 
@@ -727,6 +758,7 @@ angular.module('pgdb.query').filter('secondsToDateTime', [function () {
         scope: {
             height: '=height',
             data: '=data',
+            canEdit: '=canEdit',
             begin: '=',
             end: '=',
             hovered: '&hovered'
@@ -802,13 +834,13 @@ angular.module('pgdb.query').filter('secondsToDateTime', [function () {
                 .text("Frequency (Hz)");
 
             subannotation_rect = specgram_svg.append("rect")
+                .datum({begin:0, end:0})
                 .attr('class', "subannotation")
-                .attr('x', 0)
-                .attr('y', 0)
-                .attr('width', 0)
                 .attr('height', height)
                 .attr('fill', 'RoyalBlue')
-                .attr('opacity', 0);
+                .attr('opacity', 0)
+            if(scope.canEdit) 
+                subannotation_rect.call(subannotation_dragging(xt, scope));
 
             function drawSpectrogram() {
                 vis.select('.yaxis').call(yaxis);
@@ -870,6 +902,11 @@ angular.module('pgdb.query').filter('secondsToDateTime', [function () {
                 x.domain([x.domain()[0], newVal]);
             });
 
+            scope.$watch('canEdit', (oldVal, newVal) => {
+                if(scope.canEdit)
+                    subannotation_rect.call(subannotation_dragging(xt, scope));
+            });
+
             scope.$watch('data', function (newVal, oldVal) {
                 if (!newVal) return;
 
@@ -888,7 +925,7 @@ angular.module('pgdb.query').filter('secondsToDateTime', [function () {
                     .extent([[0, 0], [width, height]])
                     .filter(() => d3.event.button == 2 || d3.event.type == 'wheel')
                     .on("zoom", zoomed))
-                    .call(drag);
+                    .call(selection_dragging(xt, scope));
 
                 drawSpectrogram();
             });
@@ -898,13 +935,16 @@ angular.module('pgdb.query').filter('secondsToDateTime', [function () {
                 xt = lastTransform.rescaleX(x);
                 specgram_svg.select('.xaxis').call(xaxis.scale(xt));
                 specgram_context.save();
+                specgram_canvas.call(selection_dragging(xt, scope));
                 specgram_context.clearRect(0, 0, width, height);
                 specgram_context.translate(lastTransform.x, 0);
                 specgram_context.scale(lastTransform.k, 1);
                 drawSpectrogram();
                 specgram_context.restore();
-                subannotation_rect.attr('x', xt(scope.subannotation_begin))
-                    .attr('width', xt(scope.subannotation_end) - xt(scope.subannotation_begin));
+                subannotation_rect.attr('x', d => xt(d.begin))
+                    .attr('width', d => xt(d.end) - xt(d.begin))
+                if(scope.canEdit)
+                    subannotation_rect.call(subannotation_dragging(xt, scope));
             }
 
             function zoomed() {
@@ -915,26 +955,14 @@ angular.module('pgdb.query').filter('secondsToDateTime', [function () {
                 zoomFunc(res);
             });
 
-            var drag = d3.drag()
-                .filter(() => d3.event.button == 0)
-                .on("start", function () {
-                    var coords = d3.mouse(this);
-                    var point_time = xt.invert(coords[0] - margin.left);
-                    scope.$emit('BEGIN_SELECTION', point_time);
-                })
-                .on("drag", function () {
-                    var p = d3.mouse(this);
-                    var point_time = xt.invert(p[0] - margin.left);
-                    scope.$emit('UPDATE_SELECTION', point_time);
-                });
-
-            scope.$on('SUBANNOTATION_UPDATE', function (e, subannotation_begin, subannotation_end) {
-                scope.subannotation_begin = subannotation_begin;
-                scope.subannotation_end = subannotation_end;
-                specgram_svg.select("rect.subannotation")
+            scope.$on('SUBANNOTATION_UPDATE', function (e, res){
+                if(res == ""){
+                    res = {begin: 0, end:0}
+                }
+                subannotation_rect.datum({begin:res.begin, end:res.end})
                     .attr('opacity', 0.3)
-                    .attr('x', xt(subannotation_begin))
-                    .attr('width', xt(subannotation_end) - xt(subannotation_begin));
+                    .attr('x', d => xt(d.begin))
+                    .attr('width', d => xt(d.end) - xt(d.begin));
             });
         }
     }

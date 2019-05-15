@@ -1309,6 +1309,64 @@ class QueryViewSet(viewsets.ModelViewSet):
         return Response(data)
 
     @action(detail=True, methods=['post'])
+    def commit_subannotation_changes(self, request, pk=None, corpus_pk=None, *args, **kwargs):
+        if isinstance(request.user, django.contrib.auth.models.AnonymousUser):
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
+        corpus = models.Corpus.objects.get(pk=corpus_pk)
+        if not request.user.is_superuser:
+            permissions = corpus.user_permissions.filter(user=request.user).all()
+            if not len(permissions) or not permissions[0].can_edit:
+                return Response(status=status.HTTP_401_UNAUTHORIZED)
+        with CorpusContext(corpus.config) as c:
+            for annotation_type, subannotation_dict in request.data.items():
+                for subannotation, tokens in subannotation_dict.items():
+
+                    #Get rid of helper properties used by the JS front end.
+                    excluded_properties = ["parent_id", "annotation_type", "subannotation", "id"]
+
+                    data = [{"id": t["id"],
+                            "props": {k:v for k, v in t.items() if k not in excluded_properties}}
+                            for t in tokens]
+
+                    #Find any new properties not yet encoded
+                    props_to_add = []
+                    for prop, val in data[0]["props"].items():
+                        #This assumes all tokens have identical properties
+                        if not c.hierarchy.has_subannotation_property(subannotation, prop):
+                            props_to_add.append((prop, type(val)))
+
+                    if props_to_add:
+                        c.hierarchy.add_subannotation_properties(c,subannotation, props_to_add)
+                        c.encode_hierarchy()
+                        for prop, val in props_to_add:
+                            #Set default value for all subannotations of this type
+                            default = None
+                            if val == bool:
+                                default = False
+                            elif val == str:
+                                default = '""'
+                            elif val == int:
+                                default = 0
+                            elif val == float:
+                                default = 0.0
+
+                            statement = """
+                            MATCH (n:{subannotation}:{corpus_name})
+                            SET n.{prop} = {default}
+                            """.format(subannotation=subannotation, corpus_name=c.cypher_safe_name, 
+                                    prop=prop, default=default)
+                            c.execute_cypher(statement)
+
+
+                    statement = """
+                    UNWIND {{data}} as d
+                    MERGE (n:{subannotation}:{corpus_name} {{id: d.id}})
+                    SET n += d.props
+                    """.format(subannotation=subannotation, corpus_name=c.cypher_safe_name)
+                    resp = c.execute_cypher(statement, data=data).value()
+        return Response(resp)
+
+    @action(detail=True, methods=['post'])
     def generate_subset(self, request, pk=None, corpus_pk=None, *args, **kwargs):
         if isinstance(request.user, django.contrib.auth.models.AnonymousUser):
             return Response(status=status.HTTP_401_UNAUTHORIZED)
