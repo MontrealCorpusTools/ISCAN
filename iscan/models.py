@@ -668,9 +668,15 @@ class Enrichment(models.Model):
                 #Check if utterances
                 if not "utterance" in c.hierarchy.annotation_types:
                     return 'Must encode utterances'
-            elif '_csv' in enrichment_type:
+            elif 'csv' in enrichment_type:
                 if config.get('path') is None:
                     return 'Must attach a file'
+                if enrichment_type == "importcsv":
+                    id_columns = [x["name"] for x in config.get('columns') if x["name"].endswith("_id")]
+                    if not id_columns:
+                        return "One of the columns must have an ID"
+                    elif not id_columns[0].split("_id")[0] in ["phone", "utterance", "syllable", "word"]:
+                        return "{} is not an annotation type".format(id_columns[0].split("_id")[0])
             elif enrichment_type == 'hierarchical_property':
                 higher_annotation = config.get('higher_annotation')
                 lower_annotation = config.get('lower_annotation')
