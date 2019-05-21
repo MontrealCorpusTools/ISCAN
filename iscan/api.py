@@ -110,6 +110,26 @@ class DatabaseViewSet(viewsets.ModelViewSet):
 
         return Response(self.serializer_class(databases, many=True).data)
 
+    @action(detail=False, methods=['post'])
+    def refresh_databases(self, request):
+        if isinstance(request.user, django.contrib.auth.models.AnonymousUser):
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
+        if request.user.is_superuser:
+            corpora = models.Corpus.objects.all()
+            #FIXME TOO MUCH HARDCODING
+            corpus_names = [x.name for x in corpora]
+            requery = False
+            for dataset in os.listdir(settings.SOURCE_DATA_DIRECTORY):
+                if dataset not in corpus_names:
+                    d, _ = models.Database.objects.get_or_create(name=dataset)
+                    c = models.Corpus.objects.create(name=dataset, database=d)
+                    if 'input_format' in c.configuration_data:
+                        c.input_format = c.configuration_data['input_format'][0].upper()
+                        c.save()
+            databases = models.Database.objects.all()
+            return Response(self.serializer_class(databases, many=True).data)
+        return Response(status=status.HTTP_401_UNAUTHORIZED)
+
     @action(detail=True, methods=['post'])
     def start(self, request, pk=None):
         if isinstance(request.user, django.contrib.auth.models.AnonymousUser):
@@ -200,19 +220,6 @@ class CorpusViewSet(viewsets.ModelViewSet):
             return Response(status=status.HTTP_401_UNAUTHORIZED)
         if request.user.is_superuser:
             corpora = models.Corpus.objects.all()
-            #FIXME TOO MUCH HARDCODING
-            corpus_names = [x.name for x in corpora]
-            requery = False
-            for dataset in os.listdir(settings.SOURCE_DATA_DIRECTORY):
-                if dataset not in corpus_names:
-                    d, _ = models.Database.objects.get_or_create(name=dataset)
-                    c = models.Corpus.objects.create(name=dataset, database=d)
-                    if 'input_format' in c.configuration_data:
-                        c.input_format = c.configuration_data['input_format'][0].upper()
-                        c.save()
-                    requery = True
-            if requery:
-                corpora = models.Corpus.objects.all()
         else:
             corpora = models.Corpus.objects.filter(user_permissions__user=request.user).all()
 

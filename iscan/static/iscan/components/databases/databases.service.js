@@ -8,6 +8,10 @@ angular.module('pgdb.databases')
         return $http.get(base_url);
     };
 
+    Databases.refreshDatabaseList = function(){
+        return $http.post(base_url + 'refresh_databases/', {});
+    };
+
     Databases.one = function (id) {
         return $http.get(base_url + id + '/');
     };
