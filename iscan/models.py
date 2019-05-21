@@ -847,6 +847,7 @@ class Enrichment(models.Model):
                             classifier=config.get('classifier', '/site/proj/PolyglotDB/tests/data/classifier/sotc_classifiers/sotc_voiceless.classifier'),
                             vot_min=int(config.get('vot_min')),
                             vot_max=int(config.get('vot_max')),
+                            overwrite_edited=config.get('overwrite_edited'),
                             window_min=int(config.get('window_min')),
                             window_max=int(config.get('window_max')))
             self.running = False

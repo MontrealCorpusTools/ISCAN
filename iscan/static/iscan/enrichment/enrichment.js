@@ -121,6 +121,12 @@ angular.module('enrichment', [
         } else if (['lexical_csv', 'phone_csv', 'speaker_csv', 'discourse_csv'].includes(enrichment.enrichment_type)) {
             $state.go('edit_csv-properties', {corpus_id: $stateParams.corpus_id, enrichment_id: enrichment.id});
         }
+        else if (enrichment.enrichment_type == 'vot') {
+            $state.go('edit_vot', {
+                corpus_id: $stateParams.corpus_id,
+                enrichment_id: enrichment.id
+            });
+        }
     };
     $scope.deleteEnrichment = function (enrichment) {
             if (confirm("Are you sure you want to delete \"" + enrichment.name + "\" ?")) {

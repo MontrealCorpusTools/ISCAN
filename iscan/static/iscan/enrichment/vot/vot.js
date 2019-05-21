@@ -13,38 +13,39 @@ angular.module('vot', [
 
     if ($stateParams.enrichment_id == null) {
         $scope.newVOT = true;
-	$scope.using_custom_classifier = false;
-        $scope.enrichment = {enrichment_type: "vot"};
+        $scope.using_custom_classifier = false;
+        $scope.enrichment = {enrichment_type: "vot", overwrite_edited:false};
     } else {
         $scope.newVOT = false;
-	$scope.using_custom_classifier = false;
+        $scope.using_custom_classifier = false;
         Enrichment.one($stateParams.corpus_id, $stateParams.enrichment_id).then(function (res) {
             $scope.enrichment = res.data.config;
         });
     }
 
     $scope.save = function () {
-	if ($scope.using_custom_classifier && document.getElementById('vot-classifier').files.length == 0) {
-		$scope.error_message = "You must upload a classifier"
-		return;
-	}
+        if ($scope.using_custom_classifier && document.getElementById('vot-classifier').files.length == 0) {
+            $scope.error_message = "You must upload a classifier"
+            return;
+        }
+
         if ($scope.newVOT) {
             Enrichment.create($stateParams.corpus_id, $scope.enrichment).then(function (res) {
-		if($scope.using_custom_classifier){
-                     $scope.uploadVOTClassifier(res.data.id);
-		}else{
-	             $state.go('enrichment', {corpus_id: $stateParams.corpus_id});
-		}
+                if($scope.using_custom_classifier){
+                             $scope.uploadVOTClassifier(res.data.id);
+                }else{
+                         $state.go('enrichment', {corpus_id: $stateParams.corpus_id});
+                }
             }).catch(function (res) {
                 $scope.error_message = res.data;
             });
         } else {
             Enrichment.update($stateParams.corpus_id, $stateParams.enrichment_id, $scope.enrichment).then(function (res) {
-		if($scope.using_custom_classifier){
+                if($scope.using_custom_classifier){
                      $scope.uploadVOTClassifier($stateParams.enrichment_id);
-		}else{
-	             $state.go('enrichment', {corpus_id: $stateParams.corpus_id});
-		}
+                }else{
+                     $state.go('enrichment', {corpus_id: $stateParams.corpus_id});
+                }
             }).catch(function (res) {
                 $scope.error_message = res.data;
             });
@@ -53,9 +54,10 @@ angular.module('vot', [
 
     $scope.help_titles = {
         stop_subset: 'Stops subset',
-	classifier: 'Classifier',
+        classifier: 'Classifier',
         vot_minmax: 'VOT Minimum and Maximum',
         window_minmax: 'Window Minimum and Maximum',
+        edited: 'Overwrite manually edited VOTs'
     };
 
     $scope.help_text = {
@@ -63,16 +65,17 @@ angular.module('vot', [
 	classifier: 'This is the classifier that will be used. If unchecked, it will default to a classifier trained on voiceless word-initial VOTs in SOTC. The file format for classifier is a zip file containing both the pos and neg files from an AutoVOT trained classifier',
         vot_minmax: 'These values represent the minimum and maximum values of the VOT calculated. A minimum value of 15 ms will ensure that the difference between the closure and onset of voicing will be at least 15 ms.',
         window_minmax: 'This value represents the size of the window that will be analyzed for features. A minimum value of -30 ms means that the algorithm will begin looking for the closure 30 ms before the beginning of phone interval. A maximum value of 30 ms means that it will look at most 30 ms past the end of the phone interval',
+        edited: 'If checked, any VOTs that were manually edited in the inspection view will be overwritten'
     };
 
     $scope.setToDefault = function(voiced) {
         if(voiced){
             $scope.enrichment.vot_min = 5;
             $scope.enrichment.vot_max = 100;
-	}else{
+        }else{
             $scope.enrichment.vot_min = 15;
             $scope.enrichment.vot_max = 250;
-	}
+        }
         $scope.enrichment.window_min = -30;
         $scope.enrichment.window_max = 30;
     }
@@ -81,7 +84,7 @@ angular.module('vot', [
         var f = document.getElementById('vot-classifier').files[0],
             r = new FileReader();
         var name = f.name;
-	r.readAsDataURL(f);
+        r.readAsDataURL(f);
         r.onloadend = function (e) {
             var data = e.target.result;
             var resp = {text: data, file_name: name};
