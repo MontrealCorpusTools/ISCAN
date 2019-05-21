@@ -40,6 +40,7 @@ var app = angular.module('iscan', [
     'syllableEnrichment',
     'hierarchical',
     'vot',
+    'importCsv',
     'csvProperties'
 ]).run(
     function ($http, $cookies) {
@@ -201,6 +202,14 @@ app.config(function ($stateProvider, $urlRouterProvider) {
         }).state('edit_vot', {
         url: '/corpora/:corpus_id/enrichment/vot/{enrichment_id:int}',
         templateUrl: static('iscan/enrichment/vot/vot.html'),
+        controller: 'ImportCSVCtrl'
+        }).state('new_import_csv', {
+        url: '/corpora/:corpus_id/enrichment/import-csv',
+        templateUrl: static('iscan/enrichment/import-csv/import-csv.html'),
+        controller: 'ImportCSVCtrl'
+        }).state('edit_import_csv', {
+        url: '/corpora/:corpus_id/enrichment/import-csv/{enrichment_id:int}',
+        templateUrl: static('iscan/enrichment/import-csv/import-csv.html'),
         controller: 'VOTCtrl'
         }).state('new_utterances', {
         url: '/corpora/:corpus_id/enrichment/utterances',

@@ -877,6 +877,12 @@ class EnrichmentViewSet(viewsets.ModelViewSet):
             return Response(
                 'The file must have a name.',
                 status=status.HTTP_400_BAD_REQUEST)
+
+        if enrich_type == "importcsv" and not request.data.get('columns', ''):
+            return Response(
+                'There must be a list of columns to import.',
+                status=status.HTTP_400_BAD_REQUEST)
+
         file_path = os.path.join(enrichment.directory, request.data["file_name"])
         with open(file_path, "wb+") as f:
             f.write(base64.b64decode(request.data["text"].split(',')[1]))
@@ -899,11 +905,16 @@ class EnrichmentViewSet(viewsets.ModelViewSet):
                                      **{'classifier': str(classifier_path)}}
                 enrichment.save()
             os.remove(file_path)
+        elif enrich_type == "importcsv":
+            enrichment.config = {**enrichment.config,
+                                 **{'path': str(file_path),
+                                    'columns': request.data.get('columns','')}}
+            enrichment.save()
         else:
             enrichment.name = 'Enrich {} from {}'.format(enrich_type.split('_')[0], request.data['file_name'])
-            enrichment.save()
             enrichment.config = {**enrichment.config,
                                  **{'path': str(file_path)}}
+            enrichment.save()
         return Response(True)
 
     @action(detail=True, methods=['post'])

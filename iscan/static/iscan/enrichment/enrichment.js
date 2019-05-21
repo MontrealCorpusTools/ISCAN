@@ -127,6 +127,12 @@ angular.module('enrichment', [
                 enrichment_id: enrichment.id
             });
         }
+        else if (enrichment.enrichment_type == 'importcsv') {
+            $state.go('edit_import_csv', {
+                corpus_id: $stateParams.corpus_id,
+                enrichment_id: enrichment.id
+            });
+        }
     };
     $scope.deleteEnrichment = function (enrichment) {
             if (confirm("Are you sure you want to delete \"" + enrichment.name + "\" ?")) {
@@ -205,6 +211,10 @@ angular.module('enrichment', [
 
     $scope.relativizeTrack = function () {
         $state.go('new_relativize_track', {corpus_id: $stateParams.corpus_id});
+    };
+
+    $scope.newImportCSV = function () {
+        $state.go('new_import_csv', {corpus_id: $stateParams.corpus_id});
     };
 
 }).directive('tooltip', function () {
