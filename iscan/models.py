@@ -1170,6 +1170,8 @@ class Query(models.Model):
                         q = q.filter(ann.subset != s)
 
                     subannotation_filters = filter_types.get('subannotation_filters', {})
+                    if not subannotation_filters:
+                        subannotation_filters = {}
                     for s_type, a_filters in subannotation_filters.items():
                         s_ann = getattr(ann, s_type)
                         if not a_filters:
