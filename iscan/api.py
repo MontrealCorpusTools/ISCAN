@@ -4,6 +4,7 @@ import json
 import zipfile
 import base64
 from distutils.util import strtobool
+from uuid import uuid1
 
 import django
 from django.conf import settings
@@ -807,6 +808,8 @@ class EnrichmentViewSet(viewsets.ModelViewSet):
             name = 'Encode {}'.format(label)
         elif enrich_type in ['speaker_csv', 'discourse_csv', 'lexicon_csv', 'phone_csv']:
             name = 'Enrich {}'.format(enrich_type.split('_')[0])
+        elif enrich_type in 'importcsv':
+            name = 'Temp enrichname {}'.format(uuid1())
         elif enrich_type in ['relativize_pitch', 'relativize_intensity', 'relativize_formants']:
             name = 'Relativize {}'.format(enrich_type.split('_')[1])
         elif enrich_type == 'relativize_property':
@@ -869,6 +872,7 @@ class EnrichmentViewSet(viewsets.ModelViewSet):
             if not len(permissions):
                 return Response(status=status.HTTP_401_UNAUTHORIZED)
         enrichment = models.Enrichment.objects.filter(pk=pk, corpus=corpus).get()
+        enrich_type = enrichment.config.get('enrichment_type')
         if not request.data.get('text', ''):
             return Response(
                 'A file must be included.',
@@ -878,15 +882,9 @@ class EnrichmentViewSet(viewsets.ModelViewSet):
                 'The file must have a name.',
                 status=status.HTTP_400_BAD_REQUEST)
 
-        if enrich_type == "importcsv" and not request.data.get('columns', ''):
-            return Response(
-                'There must be a list of columns to import.',
-                status=status.HTTP_400_BAD_REQUEST)
-
         file_path = os.path.join(enrichment.directory, request.data["file_name"])
         with open(file_path, "wb+") as f:
             f.write(base64.b64decode(request.data["text"].split(',')[1]))
-        enrich_type = enrichment.config.get('enrichment_type')
         if enrich_type == "vot":
             if not zipfile.is_zipfile(file_path):
                 return Response(
@@ -906,9 +904,9 @@ class EnrichmentViewSet(viewsets.ModelViewSet):
                 enrichment.save()
             os.remove(file_path)
         elif enrich_type == "importcsv":
+            enrichment.name = 'Enrich from "{}"'.format(os.path.basename(request.data['file_name']))
             enrichment.config = {**enrichment.config,
-                                 **{'path': str(file_path),
-                                    'columns': request.data.get('columns','')}}
+                                 **{'path': str(file_path)}}
             enrichment.save()
         else:
             enrichment.name = 'Enrich {} from {}'.format(enrich_type.split('_')[0], request.data['file_name'])

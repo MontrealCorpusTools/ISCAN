@@ -88,13 +88,6 @@ angular.module('enrichment', [
                 enrichment_id: enrichment.id
             });
         }
-        else if (enrichment.enrichment_type.endsWith('csv')) {
-            $state.go('edit_csv-properties', {
-                corpus_id: $stateParams.corpus_id,
-                enrichment_id: enrichment.id
-            });
-
-        }
         else if (['pitch', 'formants', 'intensity'].includes(enrichment.enrichment_type)) {
             $state.go('edit_' + enrichment.enrichment_type + '_tracks', {
                 corpus_id: $stateParams.corpus_id,
