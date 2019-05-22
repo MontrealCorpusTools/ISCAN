@@ -469,8 +469,6 @@ angular.module('query', [
         $scope.updateQuery = function () {
             $scope.refreshing = true;
             if ($scope.newQuery) {
-                console.log("QQQQQQQQQQQQQQQQQQQQQQQQ");
-                console.log($scope.query);
                 Query.create($stateParams.corpus_id, $scope.query).then(function (res) {
                     $state.go('query', {corpus_id: $stateParams.corpus_id, query_id: res.data.id});
                 });
