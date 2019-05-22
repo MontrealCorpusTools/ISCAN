@@ -1,0 +1,33 @@
+<div layout="row" layout-align="center start">
+    <div layout="column">
+        <h4>Enrich with custom CSVs</h4>
+        <div layout="row" flex layout-align="space-between none">
+            <md-input-container>
+                <label for="csv-file" class="md-raised">CSV File</label>
+                <input ng-disabled="uploading" id="csv-file" type="file"/>
+            </md-input-container>
+            <md-input-container>
+                <md-button class="md-primary md-raised" ng-disabled="uploading" ng-click="uploadCSV()">Upload CSV</md-button>
+            </md-input-container>
+            <md-button class="md-icon-button" aria-label="Help" ng-click="getHelp($event, 'csvfile')">
+                <md-tooltip md-direction="below">Help</md-tooltip>
+                   <i class="material-icons">info</i>
+            </md-button>
+        </div>
+        <div ng-if="uploading" layout="row" flex layout-align="space-between none">
+            Uploading...
+        </div>
+        <div layout="row" flex layout-align="space-between none" ng-if="enrichment.columns !== undefined">
+            <div id="vertical-container">
+                <h5>Columns to change</h5>
+                <md-list>
+                    <md-list-item ng-repeat="col in enrichment.columns | filter: excludeIds">
+                        <md-checkbox ng-model="col.included"></md-checkbox> {{col.name}}
+                    </md-list-item>
+                </md-list>
+            </div>
+        </div>
+        <span ng-bind="error_message" style="color: red"></span>
+        <md-button class="md-primary md-raised" ng-disabled="uploading" ng-click="save()">Save enrichment</md-button>
+    </div>
+</div>
