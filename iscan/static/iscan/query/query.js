@@ -589,7 +589,7 @@ angular.module('query', [
                 $scope.query.filters[a_type][$scope.query.positions[a_type][0]].property_filters = [];
                 $scope.query.filters[a_type][$scope.query.positions[a_type][0]].subset_filters = [];
                 $scope.query.filters[a_type][$scope.query.positions[a_type][0]].inverse_subset_filters = [];
-                $scope.query.filters[a_type][$scope.query.positions[a_type][0]].subannotation_filters = [];
+                $scope.query.filters[a_type][$scope.query.positions[a_type][0]].subannotation_filters = {};
                 $scope.query.filters[a_type][$scope.query.positions[a_type][0]].left_aligned_filter = undefined;
                 $scope.query.filters[a_type][$scope.query.positions[a_type][0]].right_aligned_filter = undefined;
                 $scope.query.positions[a_type].shift();
@@ -619,7 +619,7 @@ angular.module('query', [
                 $scope.query.filters[a_type][$scope.query.positions[a_type][$scope.query.positions[a_type].length - 1]].property_filters = [];
                 $scope.query.filters[a_type][$scope.query.positions[a_type][$scope.query.positions[a_type].length - 1]].subset_filters = [];
                 $scope.query.filters[a_type][$scope.query.positions[a_type][$scope.query.positions[a_type].length - 1]].inverse_subset_filters = [];
-                $scope.query.filters[a_type][$scope.query.positions[a_type][$scope.query.positions[a_type].length - 1]].subannotation_filters = [];
+                $scope.query.filters[a_type][$scope.query.positions[a_type][$scope.query.positions[a_type].length - 1]].subannotation_filters = {};
                 $scope.query.filters[a_type][$scope.query.positions[a_type][$scope.query.positions[a_type].length - 1]].left_aligned_filter = undefined;
                 $scope.query.filters[a_type][$scope.query.positions[a_type][$scope.query.positions[a_type].length - 1]].right_aligned_filter = undefined;
                 $scope.query.positions[a_type].pop();

@@ -65,7 +65,7 @@ angular.module('vot', [
 	classifier: 'This is the classifier that will be used. If unchecked, it will default to a classifier trained on voiceless word-initial VOTs in SOTC. The file format for classifier is a zip file containing both the pos and neg files from an AutoVOT trained classifier',
         vot_minmax: 'These values represent the minimum and maximum values of the VOT calculated. A minimum value of 15 ms will ensure that the difference between the closure and onset of voicing will be at least 15 ms.',
         window_minmax: 'This value represents the size of the window that will be analyzed for features. A minimum value of -30 ms means that the algorithm will begin looking for the closure 30 ms before the beginning of phone interval. A maximum value of 30 ms means that it will look at most 30 ms past the end of the phone interval',
-        edtied: 'If checked, any VOTs that were manually edited in the inspection view will be overwritten'
+        edited: 'If checked, any VOTs that were manually edited in the inspection view will be overwritten'
     };
 
     $scope.setToDefault = function(voiced) {
