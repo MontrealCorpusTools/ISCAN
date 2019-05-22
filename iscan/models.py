@@ -849,10 +849,11 @@ class Enrichment(models.Model):
                 elif enrichment_type == 'patterned_stress':
                     c.encode_stress_from_word_property(config.get('word_property'))
                 elif enrichment_type == 'importcsv':
-                    columns = [x["name"] for x in config.get('columns') if x["included"]]
-                    id_column = next(x for x in columns if x.endswith("_id"))
+                    columns = config.get('columns') 
+                    id_column = next(x["name"] for x in columns if x["name"].endswith("_id"))
                     annotated_type = id_column.split("_id")[0]
-                    c.enrich_tokens_with_csv(config.get('path'), annotated_type, id_column, properties=columns)
+                    c.enrich_tokens_with_csv(config.get('path'), annotated_type, 
+                            id_column, properties=[x["name"] for x in columns if x["included"]])
                 elif enrichment_type == 'vot':
                     c.analyze_vot(stop_label=config.get('stop_label'),
                             classifier=config.get('classifier', '/site/proj/PolyglotDB/tests/data/classifier/sotc_classifiers/sotc_voiceless.classifier'),
