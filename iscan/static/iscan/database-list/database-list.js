@@ -2,9 +2,23 @@ angular.module('databaseList', [
     'pgdb.databases'
 ])
     .controller('DatabaseListCtrl', function ($scope, Databases, Corpora, $state, $location, djangoAuth,Users) {
+        $scope.refresh_button_text = 'Refresh';
         $scope.addDatabase = function () {
             Databases.addOne($scope.newDatabase).then($scope.refreshDatabases);
             $scope.newDatabase = {}
+        };
+        $scope.refreshDatabaseList = function (){
+            $scope.refresh_button_text = 'Refreshing...';
+            Databases.refreshDatabaseList().then(function (res){
+                $scope.databases = res.data;
+
+                angular.forEach($scope.databases, function (db) {
+                    db.start_button = 'Start';
+                    db.stop_button = 'Stop';
+                    db.delete_button = 'Delete';
+                });
+                $scope.refresh_button_text = 'Refresh';
+            });
         };
         $scope.refreshDatabases = function () {
             Databases.all().then(function (res) {
@@ -14,7 +28,6 @@ angular.module('databaseList', [
                     db.stop_button = 'Stop';
                     db.delete_button = 'Delete';
                 });
-                console.log($scope);
             });
 
         };
@@ -46,7 +59,6 @@ angular.module('databaseList', [
         djangoAuth.authenticationStatus(true).then(function () {
             Users.current_user().then(function (res) {
                 $scope.user = res.data;
-                console.log($scope.user)
             });
             $scope.start_button = 'Start';
             $scope.stop_button = 'Stop';

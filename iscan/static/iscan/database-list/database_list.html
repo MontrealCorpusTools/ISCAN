@@ -1,6 +1,8 @@
 <div layout='row' layout-align="center start">
     <div layout="column">
-        <h1>All Databases</h1>
+        <div layout="row">
+        <h1>All Databases</h1>  <md-button ng-if="user.is_superuser" class='md-raised md-primary' ng-click="refreshDatabaseList()" ng-disabled="refresh_button_text=='Refreshing...'">{{refresh_button_text}}</md-button>
+        </div>
         <md-table-container>
         <table md-table>
             <thead md-head>
