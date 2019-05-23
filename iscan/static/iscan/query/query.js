@@ -173,6 +173,17 @@ angular.module('query', [
                     if (!(current_pos in $scope.query.columns[current_annotation_type])) {
                         $scope.query.columns[current_annotation_type][current_pos] = {};
                     }
+
+                    value = {type: current_annotation_type, position: current_pos, property:"id"};
+                    $scope.column_values.push(value)
+                    $scope.query.columns[current_annotation_type][current_pos]["id"] = true;
+                    if (!$scope.query.column_names[current_annotation_type][current_pos]["id"]) {
+                        $scope.query.column_names[current_annotation_type][current_pos]["id"] = current_annotation_type + '_id';
+                        if (current_pos != 'current') {
+                            $scope.query.column_names[current_annotation_type][current_pos]["id"] = current_pos + '_' + $scope.query.column_names[current_annotation_type][current_pos]["id"];
+                        }
+                    }
+
                     for (i = 0; i < $scope.hierarchy.type_properties[current_annotation_type].length; i++) {
                         prop = $scope.hierarchy.type_properties[current_annotation_type][i][0];
                         value = {type: current_annotation_type, position: current_pos, property: prop};
@@ -208,6 +219,8 @@ angular.module('query', [
                             }
                         }
                     }
+
+
                     if (current_annotation_type in $scope.hierarchy.subannotations) {
                         if (!('subannotations' in $scope.query.column_names[current_annotation_type][current_pos])) {
                             $scope.query.column_names[current_annotation_type][current_pos].subannotations = {};
@@ -285,8 +298,8 @@ angular.module('query', [
                             $scope.hierarchy.subset_tokens[current_annotation_type]);
                         Array.prototype.push.apply($scope.subsets[current_annotation_type],
                             $scope.hierarchy.subset_types[current_annotation_type]);
-                        $scope.properties[current_annotation_type] = [];
-                        $scope.propertyTypes[current_annotation_type] = {};
+                        $scope.properties[current_annotation_type] = ["id"];
+                        $scope.propertyTypes[current_annotation_type] = {id:""};
 
                         for (i = 0; i < $scope.hierarchy.type_properties[current_annotation_type].length; i++) {
                             prop = $scope.hierarchy.type_properties[current_annotation_type][i][0];

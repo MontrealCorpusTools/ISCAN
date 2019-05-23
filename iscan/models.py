@@ -668,9 +668,14 @@ class Enrichment(models.Model):
                 #Check if utterances
                 if not "utterance" in c.hierarchy.annotation_types:
                     return 'Must encode utterances'
-            elif '_csv' in enrichment_type:
+            elif 'csv' in enrichment_type:
                 if config.get('path') is None:
                     return 'Must attach a file'
+                if enrichment_type == "importcsv":
+                    if not config.get("id_column", ''):
+                        return "One of the columns must have an ID"
+                    elif not config.get("annotation_type") in ["phone", "utterance", "syllable", "word"]:
+                        return "{} is not an annotation type".format(config.get('annotation_type'))
             elif enrichment_type == 'hierarchical_property':
                 higher_annotation = config.get('higher_annotation')
                 lower_annotation = config.get('lower_annotation')
@@ -709,6 +714,10 @@ class Enrichment(models.Model):
                         c.reset_property(higher_annotation, property_label)
                     elif property_type == 'position':
                         c.reset_property(lower_annotation, property_label)
+                elif enrichment_type == 'importcsv':
+                    columns = [x["name"] for x in config.get('columns') if x["included"]]
+                    for col in columns:
+                        c.reset_property(config.get('annotation_type'), col)
                 elif enrichment_type == 'pitch':
                     c.reset_pitch()
                 elif enrichment_type == 'relativize_pitch':
@@ -842,6 +851,10 @@ class Enrichment(models.Model):
                     self.config = config
                 elif enrichment_type == 'patterned_stress':
                     c.encode_stress_from_word_property(config.get('word_property'))
+                elif enrichment_type == 'importcsv':
+                    columns = config.get('columns') 
+                    c.enrich_tokens_with_csv(config.get('path'), config.get('annotation_type'), 
+                            config.get('id_column'), properties=[x['name'] for x in columns if x['included']])
                 elif enrichment_type == 'vot':
                     c.analyze_vot(stop_label=config.get('stop_label'),
                             classifier=config.get('classifier', '/site/proj/PolyglotDB/tests/data/classifier/sotc_classifiers/sotc_voiceless.classifier'),

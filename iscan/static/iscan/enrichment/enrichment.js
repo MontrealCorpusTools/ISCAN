@@ -88,13 +88,6 @@ angular.module('enrichment', [
                 enrichment_id: enrichment.id
             });
         }
-        else if (enrichment.enrichment_type.endsWith('csv')) {
-            $state.go('edit_csv-properties', {
-                corpus_id: $stateParams.corpus_id,
-                enrichment_id: enrichment.id
-            });
-
-        }
         else if (['pitch', 'formants', 'intensity'].includes(enrichment.enrichment_type)) {
             $state.go('edit_' + enrichment.enrichment_type + '_tracks', {
                 corpus_id: $stateParams.corpus_id,
@@ -123,6 +116,12 @@ angular.module('enrichment', [
         }
         else if (enrichment.enrichment_type == 'vot') {
             $state.go('edit_vot', {
+                corpus_id: $stateParams.corpus_id,
+                enrichment_id: enrichment.id
+            });
+        }
+        else if (enrichment.enrichment_type == 'importcsv') {
+            $state.go('edit_import_csv', {
                 corpus_id: $stateParams.corpus_id,
                 enrichment_id: enrichment.id
             });
@@ -205,6 +204,10 @@ angular.module('enrichment', [
 
     $scope.relativizeTrack = function () {
         $state.go('new_relativize_track', {corpus_id: $stateParams.corpus_id});
+    };
+
+    $scope.newImportCSV = function () {
+        $state.go('new_import_csv', {corpus_id: $stateParams.corpus_id});
     };
 
 }).directive('tooltip', function () {
