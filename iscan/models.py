@@ -716,8 +716,8 @@ class Enrichment(models.Model):
                         c.reset_property(lower_annotation, property_label)
                 elif enrichment_type == 'importcsv':
                     columns = [x["name"] for x in config.get('columns') if x["included"]]
-                    for c in columns:
-                        c.reset_property(config.get('annotation_type'), c)
+                    for col in columns:
+                        c.reset_property(config.get('annotation_type'), col)
                 elif enrichment_type == 'pitch':
                     c.reset_pitch()
                 elif enrichment_type == 'relativize_pitch':

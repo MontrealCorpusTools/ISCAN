@@ -75,7 +75,7 @@ angular.module('importCsv', [
             let cols = data.split('\n').shift().split(',').map(x => x.trim());
             cols = cols.map(x => ({name: x, included:false}));
             $scope.enrichment.columns = cols;
-            $scope.enrichment.id_column = cols.find(x => x.endsWith("_id"));
+            $scope.enrichment.id_column = cols.find(x => x.name.endsWith("_id")).name;
             $scope.enrichment.annotation_type = $scope.enrichment.id_column.split("_id")[0];
             $scope.uploading = false;
         }
