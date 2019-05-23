@@ -903,15 +903,16 @@ class EnrichmentViewSet(viewsets.ModelViewSet):
                                      **{'classifier': str(classifier_path)}}
                 enrichment.save()
             os.remove(file_path)
-        elif enrich_type == "importcsv":
             enrichment.name = 'Enrich from "{}"'.format(os.path.basename(request.data['file_name']))
             enrichment.config = {**enrichment.config,
                                  **{'path': str(file_path)}}
             enrichment.save()
         else:
             enrichment.name = 'Enrich {} from {}'.format(enrich_type.split('_')[0], request.data['file_name'])
+            id_column = next(x["name"] for x in columns if x["name"].endswith("_id"))
             enrichment.config = {**enrichment.config,
-                                 **{'path': str(file_path)}}
+                                 **{'path': str(file_path),
+                                    'id_column': id_column}}
             enrichment.save()
         return Response(True)
 
