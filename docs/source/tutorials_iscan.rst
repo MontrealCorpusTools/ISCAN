@@ -653,3 +653,33 @@ Finally, plot the sibilants for the two speakers:
 
 .. image:: images/sibilants.png
 	:width: 800
+
+Tutorial 3: Custom scripts
+==========================
+
+Often in studies it is necessary to perform highly specialized analyses.
+As ISCAN can't possibly provide every single analysis that anyone could ever want, there is a way to perform analyses outside of ISCAN, and then bring them in.
+This is the purpose of the """""" enrichment. 
+Using it is relatively straightforward, although it requires some prelimanary steps to get the data in the right format before using.
+It also requires access to the original sound files of a corpus if you wish to use these in your analysis.
+
+In this tutorial we will be using an R script, but you can use any script or software that you so choose.
+
+Step 1: Running a phone query
+-----------------------------
+Since we don't need any enrichments to export the IDs of phones, we'll just start by going to the **Query View**.
+Of course, in practice, you will likely need enrichments for your scripts, but they aren't necessary for the basic functionality.
+
+Starting at the 'iscan-tutorial-X' corpus summary view, navigate to the phones section of the left-most column and click "new Phone Query".
+From there, you can choose any subset of phones that you wish to analyse using the filters in the centre menu. 
+For this tutorial, we will just look at all phones of the corpus, so no filters are necessary.
+
+Feel free to also re-name the query to anything you'd like, for example 'phone ID query'.
+From there, click on 'Run query' and wait for the query to finish.
+
+Step 2: Exporting phone IDs
+---------------------------
+Once the query has finished, a new pane will appear to the right of the window.
+This pane will contain a list of different properties of the phones found. 
+These are the columns that will be included in the CSV that you will download from 
+
