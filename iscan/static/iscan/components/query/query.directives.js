@@ -790,6 +790,7 @@ angular.module('pgdb.query').filter('secondsToDateTime', [function () {
             var yaxis = d3.axisLeft(y)
                 .ticks(5);
 
+
             var specgram_canvas = vis.append("canvas")
                 .attr('class', 'combined')
                 .style("padding", margin.top + "px " + margin.right + "px " + margin.bottom + "px " + margin.left + "px ")
@@ -802,7 +803,6 @@ angular.module('pgdb.query').filter('secondsToDateTime', [function () {
                 .style('width', (width + margin.left + margin.right) + 'px')
                 .append("g")
                 .attr("transform", `translate(${margin.left},${margin.top})`);
-
 
 
             specgram_svg.append("g")
@@ -918,7 +918,7 @@ angular.module('pgdb.query').filter('secondsToDateTime', [function () {
 
                 specgram_svg.select('.xaxis').call(xaxis.scale(xt));
 
-                specgram_svg.call(d3.zoom()
+                specgram_canvas.call(d3.zoom()
                     .scaleExtent(zoom_scales)
                     .translateExtent([[0, 0], [width, height]])
                     .extent([[0, 0], [width, height]])
