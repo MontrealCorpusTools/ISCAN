@@ -716,7 +716,7 @@ You also should not have multiple ID columns in your import CSV, although if you
 Step 4: Running the R script
 ----------------------------
 
-The script and associated files with the script can be downloaded `here<link TODO>`.
+The script and associated files can be downloaded `here<r-scripts/spectral-R-demo.zip>`.
 This script estimates spectral features in R (Reidy, 2015).
 
 In order to get this script running on your computer, you will have to make a few minor edits once you have extracted the ZIP file.
