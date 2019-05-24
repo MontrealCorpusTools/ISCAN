@@ -773,7 +773,7 @@ angular.module('pgdb.query').filter('secondsToDateTime', [function () {
             var width = parseInt(vis.style('width'), 10) - margin.left - margin.right;
             height = parseInt(vis.style('height'), 10) - margin.top - margin.bottom;
             console.log(width)
-            var specgram_context, xGridSize, yGridSize;
+            var specgram_context;
 
             // react on right-clicking
             vis.on("contextmenu", () => d3.event.preventDefault());
@@ -846,6 +846,8 @@ angular.module('pgdb.query').filter('secondsToDateTime', [function () {
                 vis.select('.yaxis').call(yaxis);
                 const visible_begin = xt.invert(0);
                 const visible_end = xt.invert(width);
+                const xGridSize = xt(scope.data.time_step) - xt(0) + 2;
+                const yGridSize = y(scope.data.freq_step) - y(0) - 2;
                 scope.data.values.forEach((row, i) => {
                     row.forEach((power,j) => {
                         //drawRect
@@ -853,7 +855,7 @@ angular.module('pgdb.query').filter('secondsToDateTime', [function () {
                         if (time >= visible_begin - 0.01 && time <= visible_end + 0.01) {
                             freq = i * scope.data.freq_step;
                             specgram_context.fillStyle = z(power);
-                            specgram_context.fillRect(x(time), y(freq), xGridSize + 2, yGridSize);
+                            specgram_context.fillRect(xt(time), y(freq), xGridSize + 2, yGridSize);
                         }
                     });
                 });
@@ -914,12 +916,9 @@ angular.module('pgdb.query').filter('secondsToDateTime', [function () {
                 z.domain(d3.extent(newVal.values.flat()));
                 specgram_context = specgram_canvas.node().getContext("2d");
 
-                xGridSize = xt(newVal.time_step) - xt(0) + 2;
-                yGridSize = y(newVal.freq_step) - y(0) - 2;
-
                 specgram_svg.select('.xaxis').call(xaxis.scale(xt));
 
-                specgram_canvas.call(d3.zoom()
+                specgram_svg.call(d3.zoom()
                     .scaleExtent(zoom_scales)
                     .translateExtent([[0, 0], [width, height]])
                     .extent([[0, 0], [width, height]])
@@ -934,13 +933,7 @@ angular.module('pgdb.query').filter('secondsToDateTime', [function () {
                 lastTransform.x = Math.min(lastTransform.x, 0);
                 xt = lastTransform.rescaleX(x);
                 specgram_svg.select('.xaxis').call(xaxis.scale(xt));
-                specgram_context.save();
-                specgram_canvas.call(selection_dragging(xt, scope));
-                specgram_context.clearRect(0, 0, width, height);
-                specgram_context.translate(lastTransform.x, 0);
-                specgram_context.scale(lastTransform.k, 1);
                 drawSpectrogram();
-                specgram_context.restore();
                 subannotation_rect.attr('x', d => xt(d.begin))
                     .attr('width', d => xt(d.end) - xt(d.begin))
                 if(scope.canEdit)
