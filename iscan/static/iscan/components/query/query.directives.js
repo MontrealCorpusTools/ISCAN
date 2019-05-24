@@ -415,11 +415,11 @@ angular.module('pgdb.query').filter('secondsToDateTime', [function () {
                             .style("pointer-events", "none")
                             .text(d => d.excluded ? "x": "")
                             .attr("id", d => d.id+"text");
+                        //If something was previously selected, but this tier is now empty, deselect it.
+                        if (subannotation_items.data().length === 0 && selected_sub_ann !== '')
+                            highlightSubannotation(selected_sub_ann, 'transparent', 0);
                     });
 
-                    //If something was previously selected, but this tier is now empty, deselect it.
-                    if (subannotation_items.data().length === 0 && selected_sub_ann !== '')
-                        highlightSubannotation(selected_sub_ann, 'transparent', 0);
                     drawAnnotations();
                 }
             }
@@ -848,7 +848,7 @@ angular.module('pgdb.query').filter('secondsToDateTime', [function () {
                 const visible_end = xt.invert(width);
                 scope.data.values.forEach((row, i) => {
                     row.forEach((power,j) => {
-            //drawRect
+                        //drawRect
                         time = j * scope.data.time_step + scope.begin;
                         if (time >= visible_begin - 0.01 && time <= visible_end + 0.01) {
                             freq = i * scope.data.freq_step;
