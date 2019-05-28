@@ -72,7 +72,8 @@ angular.module('importCsv', [
             const data = e.target.result;
             $scope.uploaded = true;
             $scope.uploaded_data = {text: "data:application/octet-stream;base64,"+window.btoa(data), file_name: name};
-            let cols = data.split('\n').shift().split(',').map(x => x.trim());
+            let cols = data.split('\n').shift().split(',').map(x => x.trim().replace(/['"]+/g, ''));
+            cols = cols.filter(x => !["", undefined, null].includes(x));
             cols = cols.map(x => ({name: x, included:false}));
             $scope.enrichment.columns = cols;
             $scope.enrichment.id_column = cols.find(x => x.name.endsWith("_id")).name;
