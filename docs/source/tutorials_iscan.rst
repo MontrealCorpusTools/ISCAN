@@ -654,12 +654,12 @@ Finally, plot the sibilants for the two speakers:
 .. image:: images/sibilants.png
 	:width: 800
 
-Tutorial 3: Custom scripts
+Tutorial 4: Custom scripts
 ==========================
 
 Often in studies it is necessary to perform highly specialized analyses.
 As ISCAN can't possibly provide every single analysis that anyone could ever want, there is a way to perform analyses outside of ISCAN, and then bring them in.
-This is the purpose of the """""" enrichment. 
+This is the purpose of the 'Custom Properties from a Query-generated CSV' enrichment. 
 Using it is relatively straightforward, although it requires some prelimanary steps to get the data in the right format before using.
 It also requires access to the original sound files of a corpus if you wish to use these in your analysis.
 
@@ -716,7 +716,7 @@ You also should not have multiple ID columns in your import CSV, although if you
 Step 4: Running the R script
 ----------------------------
 
-The script and associated files can be downloaded `here<r-scripts/spectral-R-demo.zip>`.
+The script and associated files can be downloaded `here<https://github.com/MontrealCorpusTools/ISCAN/blob/master/docs/source/r-scripts/spectral-R-demo.zip?raw=true>`_.
 This script estimates spectral features in R (Reidy, 2015).
 
 In order to get this script running on your computer, you will have to make a few minor edits once you have extracted the ZIP file.
