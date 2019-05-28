@@ -716,7 +716,7 @@ You also should not have multiple ID columns in your import CSV, although if you
 Step 4: Running the R script
 ----------------------------
 
-The script and associated files can be downloaded `here<https://github.com/MontrealCorpusTools/ISCAN/blob/master/docs/source/r-scripts/spectral-R-demo.zip?raw=true>`_.
+The script and associated files can be downloaded `here <https://github.com/MontrealCorpusTools/ISCAN/blob/master/docs/source/r-scripts/spectral-R-demo.zip?raw=true>`_.
 This script estimates spectral features in R (Reidy, 2015).
 
 In order to get this script running on your computer, you will have to make a few minor edits once you have extracted the ZIP file.
