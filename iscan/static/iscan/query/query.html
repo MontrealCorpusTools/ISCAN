@@ -168,7 +168,7 @@
                                         <md-input-container>
                                             <label>Property</label>
                                             <md-select ng-model="filter.property" ng-change="console.log(filter)">
-                                                <md-option ng-value="prop"
+                                                <md-option ng-value="prop[0]"
                                                            ng-repeat="prop in hierarchy.subannotation_properties[s]">{{
                                                     prop[0] }}
                                                 </md-option>
@@ -179,7 +179,8 @@
 
                                         <md-input-container>
                                             <label>Operator</label>
-                                            <md-select ng-model="filter.operator">
+                                            <md-select ng-model="filter.operator"
+                                                ng-change="checkOptions(filter.operator, s, filter.property)">
                                                 <md-option ng-value="o"
                                                            ng-repeat="o in operators[subannotationPropertyTypes[s][filter.property]]">
                                                     {{ o }}
