@@ -17,11 +17,11 @@
 	</div>
         <div layout="row" flex layout-align="space-between none">
 		<md-input-container>
-			<label>Use {{ newVOT ? 'custom' : 'different' }} classifier</label>
-			<input type="checkbox" ng-model="using_custom_classifier"/>
+			<md-checkbox ng-model="using_custom_classifier"/>
+			Use {{ newVOT ? 'custom' : 'different' }} classifier
+            </md-checkbox>
 		</md-input-container>
 		<md-input-container ng-if="using_custom_classifier">
-			<label for="vot-classifier" class="md-raised">Upload classifier</label>
 			<input id="vot-classifier" type="file"/>
 		</md-input-container>
 		<md-button class="md-icon-button" aria-label="Help" ng-click="getHelp($event, 'classifier')">
@@ -59,8 +59,9 @@
         </div>
         <div layout="row" flex layout-align="space-between none">
 		<md-input-container>
-			 <label>Overwrited manually edited VOTs? </label>
-			 <input type="checkbox" ng-model="enrichment.overwrite_edited">
+			 <md-checkbox ng-model="enrichment.overwrite_edited">
+			 Overwrited manually edited VOTs?
+             </md-checkbox>
 		</md-input-container>
 		<md-button class="md-icon-button" aria-label="Help" ng-click="getHelp($event, 'edited')">
 			<md-tooltip md-direction="below">Help</md-tooltip>
