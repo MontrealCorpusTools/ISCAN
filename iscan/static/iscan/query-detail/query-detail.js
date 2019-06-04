@@ -85,10 +85,6 @@ angular.module('queryDetail', [
                     discourse: {},
                     speaker: {}
                 };
-                //List of subannotations where subannotations are a 2-array of type and subannotation_type
-                $scope.subannotations = Object.keys($scope.hierarchy.subannotations)
-                    .map(x => $scope.hierarchy.subannotations[x].map(y => [x, y]))
-                    .flat(1);
                 $scope.runQuery();
             });
         });
@@ -180,6 +176,10 @@ angular.module('queryDetail', [
         })
 
         Query.oneAnnotation($stateParams.corpus_id, $stateParams.query_id, $scope.detail_index, $scope.paginateParams.ordering, true).then(function (res) {
+            //List of subannotations where subannotations are a 3-array of annotation, subannotation and whether it is visible.
+            $scope.subannotations = Object.keys($scope.hierarchy.subannotations)
+                .map(x => $scope.hierarchy.subannotations[x].map(y => [x, y, true]))
+                .flat(1);
             $scope.utterance = res.data.utterance;
             $scope.utterance.viewableSubannotations = [];
             $scope.utterance.subannotations = $scope.subannotations;
@@ -244,7 +244,7 @@ angular.module('queryDetail', [
         }
     };
 
-    $scope.$watch('subannotations', function(nv) {
+    $scope.updateViewableSubannotations = function (nv) {
         if($scope.utterance && $scope.utterance.viewableSubannotations){
             $scope.utterance.subannotations = $scope.subannotations;
             $scope.utterance.viewableSubannotations = nv.filter(x => x[2]).map(x => [x[0], x[1]]);
@@ -272,7 +272,9 @@ angular.module('queryDetail', [
                               : [];
             });
         }
-    }, true);
+    }
+
+    $scope.$watch('subannotations', $scope.updateViewableSubannotations, true);
 
 
     Corpora.one($stateParams.corpus_id).then(function (res) {
