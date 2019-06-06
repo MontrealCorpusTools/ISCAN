@@ -561,7 +561,7 @@ Step 3: Export
 Now that we have made our query and extracted the set of objects of interest, we'll want to export this to a CSV file for later use and further analysis (i.e. in R, MatLab, etc.)
 
 Once you hit 'Run query', your search results will appear below the search window. Since we selected to find all sibilants only, a long list of phone tokens (every time a sibilant occurs in the dataset) should now be visible. This list of sibilants may not be useful to our research without some further information, so let's select what information will be visible in the resulting CSV file using the window next to the search view.
-
+G
 Here we may check all boxes which will be relevant to our later analysis to add these columns to our CSV file. The preview at the bottom of the page will be updated as we select new boxes:
 
 .. image:: images/Screenshot-from-2018-10-04-11-41-32-300x111.png
@@ -653,3 +653,113 @@ Finally, plot the sibilants for the two speakers:
 
 .. image:: images/sibilants.png
 	:width: 800
+
+Tutorial 4: Custom scripts
+==========================
+
+Often in studies it is necessary to perform highly specialized analyses.
+As ISCAN can't possibly provide every single analysis that anyone could ever want, there is a way to perform analyses outside of ISCAN, and then bring them in.
+This is the purpose of the 'Custom Properties from a Query-generated CSV' enrichment. 
+Using it is relatively straightforward, although it requires some prelimanary steps to get the data in the right format before using.
+It also requires access to the original sound files of a corpus if you wish to use these in your analysis.
+
+In this tutorial we will be using an R script, but you can use any script or software that you so choose.
+
+Step 1: Necessary Enrichments
+-----------------------------
+The only necessary enrichment to do in this tutorial is to encode a sibilant subset of phones.
+To do this, start at the 'iscan-tutorial-X' corpus summary view, and click on the 'Create, run and edit enrichments' button in the centre column.
+Then, click on 'Phone Subset'. 
+
+At the enrichment page, click on the select sibilants button, then name the subset 'sibilants' and save the subset.
+
+Finally, at the main enrichment page, run the sibilant enrichment. 
+
+
+Step 2: Running a phone query
+-----------------------------
+Now that we have all the enrichments we need, we can go to the **Query View**.
+
+Starting at the 'iscan-tutorial-X' corpus summary view, navigate to the phones section of the left-most column and click "new Phone Query".
+From there, the you'll have the option to choose various different filters to select a subset of phones.
+For this tutorial we're looking at sibilants, so all you need to do is select the sibilants subset from the first drop-down menu from the centre menu. 
+
+Feel free to also re-name the query to anything you'd like, for example 'sibilant ID query'.
+From there, click on 'Run query' and wait for the query to finish.
+
+Step 3: Exporting phone IDs
+---------------------------
+Once the query has finished, a new pane will appear to the right of the window.
+This pane will contain a list of different properties of the phones found, and properties of the syllables, words, and utterances that a phone is in. 
+These are the columns that will be included in the CSV that you will download from ISCAN.
+
+For the script, we will need a couple different columns.
+
+Under the **Phone** header, select:
+   * label
+   * begin
+   * end
+   * id
+
+Under the **Sound File** header, select:
+   * name
+
+Once all these columns have been selected, click the "Generate CSV Export File" in the row of buttons in the centre of the screen, above the results of the query.
+This may take a second or two to run, then once it's available, click on the "Save CSV export file" and save the file somewhere convenient on your computer.
+
+
+An important thing to note for this section is that while you can rename columns for export, you should not rename the ID column if you intend on importing this CSV later.
+By default, a phone ID column will be labeled "phone_id". 
+When importing, ISCAN looks for a column that ends with "_id" and then uses the first half of the name of that column to know what these IDs represent(in this case, phones).
+You also should not have multiple ID columns in your import CSV, although if you do, ISCAN will use the first ID column only. 
+
+Step 4: Running the R script
+----------------------------
+
+The script and associated files can be downloaded `here <https://github.com/MontrealCorpusTools/ISCAN/blob/master/docs/source/r-scripts/spectral-R-demo.zip?raw=true>`_.
+This script estimates spectral features in R (Reidy, 2015).
+
+In order to get this script running on your computer, you will have to make a few minor edits once you have extracted the ZIP file.
+Open up 'iscan-token-spectral-demo.R' in your text editor.
+
+At the top of the file, there will be two file paths defined.
+Change 'sound_file_directory' to the file path of where you have the sound files of the tutorial corpus.
+Then, change 'corpus_directory' to be the file path of the CSV that you downloaded from ISCAN.
+I have it as a relative path, but you can of course make it an absolute path.
+
+.. code-block:: R
+
+   sound_file_directory <- "/home/michael/Documents/Work/test_corpus"
+   corpus_data <- read.csv("../sibilants_export.csv")
+
+This script also assumes you have not renamed any of the columns that you exported.
+If you did change any columns' name, you will have to look through the script and change the following lines to the names of the corresponding columns.
+
+.. code-block:: R
+
+    sound_file <- paste(corpus_data[row, "sound_file_name"], '.wav', sep="")
+    begin <- corpus_data[row, "phone_begin"]
+    end <- corpus_data[row, "phone_end"]
+
+Finally, you can run the script in R, and it will create a new CSV file, 'spectral_sibilants.csv' that we will import to ISCAN.
+
+Step 4: Importing the CSV
+-------------------------
+Back in ISCAN, go to the enrichments page for your tutorial corpus.
+
+Under 'Annotation properties', click on the 'Custom Properties from a Query-generated CSV' button.
+
+From this page, click on the "browse" button and navigate to the 'spectral_sibilants.csv' generated in the last step. 
+Select it for upload, then click on "Upload CSV".
+This may take a second or two, so be patient.
+
+After this, a new list of properties will appear which come from the columns of the CSV.
+Scroll down, and select all the features that start with 'spectral'. 
+
+Then, click 'save enrichment', and from the main enrichment page, run the enrichment labelled 'Enrich phone from "spectral_sibilants.csv"'.
+
+Now you're done!
+ISCAN will now have all of the values calculated by the R script associated with all the sibilants in the corpus.
+You can test this out by going to the phone query you created earlier. 
+You should see all these new properties in the column selection pane, although you may need to click "Refresh Query" before the values appear.
+

@@ -48,6 +48,7 @@ angular.module('queryDetail', [
     $scope.can_edit = false;
     $scope.can_view_annotations = false;
     $scope.can_annotate = false;
+    $scope.is_committing = false;
     $scope.detail_index = parseInt($stateParams.detail_index);
 
     $scope.refreshPermissions = function () {
@@ -84,10 +85,6 @@ angular.module('queryDetail', [
                     discourse: {},
                     speaker: {}
                 };
-                //List of subannotations where subannotations are a 2-array of type and subannotation_type
-                $scope.subannotations = Object.keys($scope.hierarchy.subannotations)
-                    .map(x => $scope.hierarchy.subannotations[x].map(y => [x, y]))
-                    .flat(1);
                 $scope.runQuery();
             });
         });
@@ -179,6 +176,10 @@ angular.module('queryDetail', [
         })
 
         Query.oneAnnotation($stateParams.corpus_id, $stateParams.query_id, $scope.detail_index, $scope.paginateParams.ordering, true).then(function (res) {
+            //List of subannotations where subannotations are a 3-array of annotation, subannotation and whether it is visible.
+            $scope.subannotations = Object.keys($scope.hierarchy.subannotations)
+                .map(x => $scope.hierarchy.subannotations[x].map(y => [x, y, true]))
+                .flat(1);
             $scope.utterance = res.data.utterance;
             $scope.utterance.viewableSubannotations = [];
             $scope.utterance.subannotations = $scope.subannotations;
@@ -243,7 +244,7 @@ angular.module('queryDetail', [
         }
     };
 
-    $scope.$watch('subannotations', function(nv) {
+    $scope.updateViewableSubannotations = function (nv) {
         if($scope.utterance && $scope.utterance.viewableSubannotations){
             $scope.utterance.subannotations = $scope.subannotations;
             $scope.utterance.viewableSubannotations = nv.filter(x => x[2]).map(x => [x[0], x[1]]);
@@ -271,7 +272,9 @@ angular.module('queryDetail', [
                               : [];
             });
         }
-    }, true);
+    }
+
+    $scope.$watch('subannotations', $scope.updateViewableSubannotations, true);
 
 
     Corpora.one($stateParams.corpus_id).then(function (res) {
@@ -425,8 +428,9 @@ angular.module('queryDetail', [
     }
 
     $scope.commitChanges = function (ev) {
-        if (!$scope.has_edited_subannotations || !$scope.can_edit)
+        if (!$scope.has_edited_subannotations || !$scope.can_edit || $scope.is_committing)
             return;
+        $scope.is_committing = true;
         const confirm_dialog = $mdDialog.confirm()
             .title("Do you want to commit changes to the database?")
             .textContent("This will permanently replace what was there previously.")
@@ -435,11 +439,13 @@ angular.module('queryDetail', [
             .cancel('No');
        $mdDialog.show(confirm_dialog).then(function() {
            Query.commit_subannotation_changes($stateParams.corpus_id, $scope.utterance_id, $scope.utterance.subannotation_list).then(function (res) {
-               console.log("Changes committed!");
+                console.log("Changes committed!");
+                $scope.is_committing = false;
            });
        }, 
        function(){
            console.log("Changes not committed!");
+           $scope.is_committing = false;
        });
     }
 

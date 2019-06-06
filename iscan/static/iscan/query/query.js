@@ -176,7 +176,6 @@ angular.module('query', [
 
                     value = {type: current_annotation_type, position: current_pos, property:"id"};
                     $scope.column_values.push(value)
-                    $scope.query.columns[current_annotation_type][current_pos]["id"] = true;
                     if (!$scope.query.column_names[current_annotation_type][current_pos]["id"]) {
                         $scope.query.column_names[current_annotation_type][current_pos]["id"] = current_annotation_type + '_id';
                         if (current_pos != 'current') {
