@@ -125,7 +125,7 @@ def pytest_configure(config):
         BASE_NEO4J_PORT=7400,
 
         BASE_INFLUXDB_PORT=8400,
-
+        CELERY_ALWAYS_EAGER=True,
     )
 
     django.setup()
