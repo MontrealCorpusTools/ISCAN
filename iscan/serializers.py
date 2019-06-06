@@ -138,17 +138,29 @@ class CorpusPermissionsSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = models.CorpusPermissions
-        fields = ('corpus', 'can_edit', 'can_listen', 'can_view_detail', 'can_view_annotations', 'can_annotate')
+        fields = ('corpus', 'can_query', 'can_edit', 'can_listen', 'can_view_detail',
+                  'can_view_annotations', 'can_annotate', 'is_whitelist_exempt')
 
 
 class UserSerializer(serializers.ModelSerializer):
     corpus_permissions = CorpusPermissionsSerializer(many=True)
+    user_type = serializers.SerializerMethodField()
+    password = serializers.CharField(write_only=True)
 
     class Meta:
         model = User
         depth = 2
         fields = ('id', 'first_name', 'last_name', 'username', 'is_superuser',
-                  'corpus_permissions')
+                  'corpus_permissions', 'user_type', 'password')
+
+    def get_user_type(self, obj):
+        return obj.profile.user_type
+
+    def create(self, validated_data):
+        user = super(UserSerializer, self).create(validated_data)
+        user.set_password(validated_data['password'])
+        user.save()
+        return user
 
 
 class UnauthorizedUserSerializer(serializers.ModelSerializer):

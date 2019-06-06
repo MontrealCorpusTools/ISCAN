@@ -80,6 +80,7 @@ def pytest_configure(config):
             'rest_auth',
             'allauth',
             'allauth.account',
+            'allauth.socialaccount',
             'rest_auth.registration',
         ),
         CORS_ALLOW_CREDENTIALS=True,

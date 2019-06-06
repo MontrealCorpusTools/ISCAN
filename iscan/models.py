@@ -15,6 +15,8 @@ import datetime
 from django.db import models
 from django.conf import settings
 from django.contrib.auth.models import Group, User
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 
 # Comment out once PolyglotDB docker compatibility is merged
 sys.path.insert(0, '/site/proj/PolyglotDB')
@@ -34,6 +36,79 @@ log = logging.getLogger(__name__)
 
 
 # Create your models here.
+
+class Profile(models.Model):
+    GUEST = 'G'
+    ANNOTATOR = 'A'
+    RESEARCHER = 'R'
+    UNLIMITED = 'U'
+    TYPE_CHOICES = (
+        (GUEST, 'Guest'),
+        (ANNOTATOR, 'Annotator'),
+        (RESEARCHER, 'Researcher'),
+        (UNLIMITED, 'Unlimited researcher'),
+    )
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    user_type = models.CharField(max_length=1, choices=TYPE_CHOICES, default=GUEST)
+
+    @property
+    def tutorial_corpus_directory(self):
+        user_tutorial_name = 'tutorial-{}'.format(self.user.username)
+        return os.path.join(settings.SOURCE_DATA_DIRECTORY, user_tutorial_name)
+
+    @property
+    def has_tutorial_corpus(self):
+        return os.path.exists(self.tutorial_corpus_directory)
+
+    def create_tutorial_corpus(self):
+        tutorial_name = 'tutorial'
+        base_dir = os.path.join(settings.SOURCE_DATA_DIRECTORY, tutorial_name)
+        user_tutorial_name = 'tutorial-{}'.format(self.user.username)
+        if self.has_tutorial_corpus:
+            return
+        if not os.path.exists(base_dir): # Hacky tutorial corpus with access to SPADE
+            git_string = 'git+ssh://{}@{}:{}'.format(settings.SPADE_CONFIG['user'],
+                                                      settings.SPADE_CONFIG['host'],
+                                                      os.path.join(settings.SPADE_CONFIG['base_path'], 'spade-tutorial'))
+            subprocess.call(['git', 'clone', git_string], cwd=settings.SOURCE_DATA_DIRECTORY)
+            os.rename(os.path.join(settings.SOURCE_DATA_DIRECTORY, 'spade-tutorial'), base_dir)
+        try:
+            shutil.copytree(base_dir, self.tutorial_corpus_directory, copy_function=shutil.copyfile)
+        except shutil.Error:
+            if not self.has_tutorial_corpus:
+                raise
+        d, _ = Database.objects.get_or_create(name=user_tutorial_name)
+        c, _ = Corpus.objects.get_or_create(name=user_tutorial_name, database=d, corpus_type=Corpus.TUTORIAL)
+        return c
+
+    def get_tutorial_corpus(self):
+        user_tutorial_name = 'tutorial-{}'.format(self.user.username)
+        try:
+            return Corpus.objects.get(name=user_tutorial_name)
+        except Corpus.DoesNotExist:
+            return None
+
+
+@receiver(post_save, sender=User)
+def create_user_profile(sender, instance, created, **kwargs):
+    if created:
+        if instance.is_superuser:
+            user_type = 'U'
+        else:
+            user_type = Profile.GUEST
+        profile = Profile.objects.create(user=instance, user_type=user_type)
+        new_permissions = []
+        for c in Corpus.objects.all():
+            perm = CorpusPermissions(corpus=c, user=instance)
+            perm.set_role_permissions()
+            new_permissions.append(perm)
+        if new_permissions:
+            CorpusPermissions.objects.bulk_create(new_permissions)
+
+
+@receiver(post_save, sender=User)
+def save_user_profile(sender, instance, **kwargs):
+    instance.profile.save()
 
 
 class Database(models.Model):
@@ -436,9 +511,21 @@ class Corpus(models.Model):
         (TIMIT, 'TIMIT'),
         (BUCKEYE, 'Buckeye'),
     )
+
+    RESTRICTED = 'R'
+    TUTORIAL = 'T'
+    PUBLIC = 'P'
+    PRIVATE = 'N'
+    TYPE_CHOICES = (
+        (TUTORIAL, 'Tutorial'),
+        (PUBLIC, 'Public'),
+        (PRIVATE, 'Private (non-restricted)'),
+        (RESTRICTED, 'Restricted'),
+    )
     name = models.CharField(max_length=100, unique=True)
     input_format = models.CharField(max_length=1, choices=FORMAT_CHOICES, default=MFA)
     database = models.ForeignKey(Database, on_delete=models.CASCADE, related_name='corpora')
+    corpus_type = models.CharField(max_length=1, choices=TYPE_CHOICES, default=RESTRICTED)
 
     imported = models.BooleanField(default=False)
     busy = models.BooleanField(default=False)
@@ -599,6 +686,8 @@ class Corpus(models.Model):
 class CorpusPermissions(models.Model):
     corpus = models.ForeignKey(Corpus, on_delete=models.CASCADE, related_name='user_permissions')
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='corpus_permissions')
+
+    can_query = models.BooleanField(default=False)
     can_edit = models.BooleanField(default=False)
     can_annotate = models.BooleanField(default=False)
     can_view_annotations = models.BooleanField(default=False)
@@ -606,6 +695,89 @@ class CorpusPermissions(models.Model):
     can_view_detail = models.BooleanField(default=False)
     can_enrich = models.BooleanField(default=False)
     can_access_database = models.BooleanField(default=False)
+    is_whitelist_exempt = models.BooleanField(default=False)
+
+    def __str__(self):
+        output = "Permissions of user '{}' for the '{}' corpus:\n".format(self.user.username, self.corpus.name)
+        if self.can_query:
+            output += 'Can query\n'
+        if self.can_edit:
+            output += 'Can edit\n'
+        if self.can_annotate:
+            output += 'Can annotate\n'
+        if self.can_view_annotations:
+            output += 'Can view annotations\n'
+        if self.can_listen:
+            output += 'Can listen\n'
+        if self.can_view_detail:
+            output += 'Can view detail\n'
+        if self.can_enrich:
+            output += 'Can enrich\n'
+        if self.can_access_database:
+            output += 'Can access database\n'
+        if self.is_whitelist_exempt:
+            output += 'Is whitelist-exempt\n'
+        return output
+
+    def set_role_permissions(self):
+        # Reset to default state
+        self.can_query = False
+        self.can_edit = False
+        self.can_annotate = False
+        self.can_view_annotations = False
+        self.can_listen = False
+        self.can_view_detail = False
+        self.can_enrich = False
+        self.can_access_database = False
+        self.is_whitelist_exempt = False
+
+        if self.corpus.corpus_type == Corpus.PUBLIC:  # Public corpora
+            # Perms for everyone
+            self.can_query = True
+            self.can_listen = True
+            self.can_view_detail = True
+            if self.user.profile.user_type == Profile.ANNOTATOR: # Annotators
+                self.can_annotate = True
+            if self.user.profile.user_type in [Profile.RESEARCHER, Profile.UNLIMITED]:
+                self.can_view_annotations = True
+                self.can_edit = True
+                self.can_enrich = True
+                self.can_access_database = True
+        elif self.corpus.corpus_type == Corpus.TUTORIAL:  # Tutorial corpora
+            if self.user.profile.user_type == Profile.UNLIMITED or self.corpus.name.split('-')[-1] == self.user.username:
+                self.can_query = True
+                self.can_listen = True
+                self.can_view_detail = True
+                self.can_annotate = True
+                self.can_view_annotations = True
+                self.can_edit = True
+                self.can_enrich = True
+                self.can_access_database = True
+        elif self.corpus.corpus_type in [Corpus.RESTRICTED, Corpus.PRIVATE]:  # Private/restricted corpora
+            if self.corpus.corpus_type == Corpus.PRIVATE:  # Private (non-restricted) corpora
+                self.is_whitelist_exempt = True
+            if self.user.profile.user_type in [Profile.RESEARCHER, Profile.UNLIMITED]:
+                self.can_query = True
+                self.can_enrich = True
+                self.can_access_database = True
+                if self.user.profile.user_type == Profile.UNLIMITED:
+                    self.can_edit = True
+                    self.can_listen = True
+                    self.can_view_detail = True
+                    self.can_annotate = True
+                    self.can_view_annotations = True
+
+
+@receiver(post_save, sender=Corpus)
+def update_user_permissions(sender, instance, created, **kwargs):
+    new_permissions = []
+    for u in User.objects.select_related('profile').all():
+        if created:
+            perm = CorpusPermissions(corpus=instance, user=u)
+            perm.set_role_permissions()
+            new_permissions.append(perm)
+    if new_permissions:
+        CorpusPermissions.objects.bulk_create(new_permissions)
 
 
 class Enrichment(models.Model):

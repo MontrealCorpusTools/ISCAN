@@ -6,7 +6,7 @@ from . import api
 
 app_name = 'intonation'
 api_router = routers.SimpleRouter()
-api_router.register(r'corpora', api.BestiaryCorpusViewSet, base_name='corpora')
+api_router.register(r'corpora', api.BestiaryCorpusViewSet, basename='corpora')
 urlpatterns = [
     url('^api/', include(api_router.urls)),
 ]

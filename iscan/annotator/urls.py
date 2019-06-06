@@ -5,7 +5,7 @@ from . import api
 
 app_name = 'annotator'
 api_router = routers.SimpleRouter()
-api_router.register(r'annotations', api.AnnotationViewSet, base_name='annotations')
+api_router.register(r'annotations', api.AnnotationViewSet, basename='annotations')
 
 
 urlpatterns = [

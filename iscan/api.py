@@ -39,20 +39,85 @@ class UserViewSet(viewsets.ModelViewSet):
             return Response(status=status.HTTP_401_UNAUTHORIZED)
         if not request.user.is_superuser:
             return Response(status=status.HTTP_401_UNAUTHORIZED)
+        user = User.objects.create(username=request.data['username'], password=request.data['password'])
+        user.profile.user_type = request.data['user_type']
+        user.save()
+        serialized = serializers.UserSerializer(user)
+        return Response(serialized.data, status=status.HTTP_201_CREATED)
 
     def list(self, request, *args, **kwargs):
         if isinstance(request.user, django.contrib.auth.models.AnonymousUser):
             return Response(status=status.HTTP_401_UNAUTHORIZED)
         if not request.user.is_superuser:
             return Response(status=status.HTTP_401_UNAUTHORIZED)
-        users = User.objects.all()
+        users = User.objects.select_related('profile').all()
         return Response(self.serializer_class(users, many=True).data)
+
+    def destroy(self, request, *args, **kwargs):
+        if isinstance(request.user, django.contrib.auth.models.AnonymousUser):
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
+        if not request.user.is_superuser:
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
+        user = self.get_object()
+        tutorial_corpus = user.profile.get_tutorial_corpus()
+        if tutorial_corpus is not None:
+            tutorial_corpus.database.delete()
+        return super(UserViewSet, self).destroy(request, *args, **kwargs)
+
+    def retrieve(self, request, *args, **kwargs):
+        if isinstance(request.user, django.contrib.auth.models.AnonymousUser):
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
+        if not request.user.is_superuser:
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
+        return super(UserViewSet, self).retrieve(request, *args, **kwargs)
+
+    def update(self, request, *args, **kwargs):
+        if isinstance(request.user, django.contrib.auth.models.AnonymousUser):
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
+        if not request.user.is_superuser:
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
+        print(request.data)
+        user = self.get_object()
+        user.username = request.data['username']
+        ignore_perms = request.data['user_type'] != user.profile.user_type
+        if ignore_perms:
+            user.profile.user_type = request.data['user_type']
+        user.save()
+        for perm_data in request.data['corpus_permissions']:
+            perm = models.CorpusPermissions.objects.get(user=user, corpus_id=perm_data['corpus'])
+            if ignore_perms:
+                perm.set_role_permissions()
+            else:
+                for k, v in perm_data.items():
+                    if k == 'corpus':
+                        continue
+                    setattr(perm, k, v)
+            perm.save()
+        user = self.get_object()
+        serialized = serializers.UserSerializer(user)
+        return Response(serialized.data, status=status.HTTP_200_OK)
 
     @action(detail=False, methods=['get'])
     def current_user(self, request):
         if isinstance(request.user, django.contrib.auth.models.AnonymousUser):
             return Response(status=status.HTTP_401_UNAUTHORIZED)
         return Response(self.serializer_class(request.user).data)
+
+    @action(detail=True, methods=['post'])
+    def create_tutorial_corpus(self, request, pk=None):
+        if isinstance(request.user, django.contrib.auth.models.AnonymousUser):
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
+        if not request.user.is_superuser:
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
+        user = self.get_object()
+        c = user.profile.get_tutorial_corpus()
+        if c:
+            return Response(serializers.CorpusSerializer(c).data,
+                            status=status.HTTP_304_NOT_MODIFIED)
+        c = user.profile.create_tutorial_corpus()
+        print(serializers.CorpusSerializer(c).data)
+        return Response(serializers.CorpusSerializer(c).data,
+                            status=status.HTTP_201_CREATED)
 
 
 class DatabaseViewSet(viewsets.ModelViewSet):
@@ -96,7 +161,7 @@ class DatabaseViewSet(viewsets.ModelViewSet):
         if serializer.is_valid():
             database = serializer.save()
             database.install()
-            return Response(serializer.data)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 

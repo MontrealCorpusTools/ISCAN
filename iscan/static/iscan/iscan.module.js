@@ -17,6 +17,7 @@ var app = angular.module('iscan', [
     'angular-mousetrap',
     'checklist-model',
     'md.data.table',
+    'userList',
     'databaseList',
     'databaseDetail',
     'corpusDetail',
@@ -68,6 +69,11 @@ app.config(function ($stateProvider, $urlRouterProvider) {
             url: '/databases',
             templateUrl: static('iscan/database-list/database_list.html'),
             controller: 'DatabaseListCtrl'
+        })
+        .state('user-list', {
+            url: '/users',
+            templateUrl: static('iscan/user-list/user_list.html'),
+            controller: 'UserListCtrl'
         }).state('database-detail', {
         url: '/databases/{database_id:int}',
         templateUrl: static('iscan/database-detail/database_detail.html'),
