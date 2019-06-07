@@ -84,6 +84,14 @@ place of Praat's.
 Follow the instructions on Reaper's GitHub repository (https://github.com/google/REAPER) to install it and put the resulting
 executable somewhere on the system path so that Polyglot can find it easily.
 
+AutoVOT
+------
+
+AutoVOT is a program for automatically calculating Voice Onset Times(VOT). It's necessary in order to run any enrichment related to VOTs
+
+Follow the instructions on AutoVOT's GitHub repository (https://github.com/mlml/AutoVOT) to install it and put the resulting
+executable somewhere on the system path so that Polyglot can find it easily.
+
 
 NodeJS
 ------
