@@ -48,4 +48,27 @@ angular.module('pausesEnrichment', [
             $scope.error_message = res.data;
         });
     };
+
+    $scope.help_titles = {
+        custom_words: 'Custom Words',
+    };
+    $scope.help_text = {
+        custom_words: "This is the specific words that will be labeled as silence for this corpus. Typically, this will be a word like '<SIL>' but you may choose to also include other non-verbal but vocalised sounds like a cough"
+    };
+
+    $scope.getHelp = function (ev, helpType) {
+        // Appending dialog to document.body to cover sidenav in docs app
+        // Modal dialogs should fully cover application
+        // to prevent interaction outside of dialog
+        $mdDialog.show(
+            $mdDialog.alert()
+                .parent(angular.element(document.querySelector('html')))
+                .clickOutsideToClose(true)
+                .title($scope.help_titles[helpType])
+                .textContent($scope.help_text[helpType])
+                .ariaLabel('Help')
+                .ok('Got it!')
+                .targetEvent(ev)
+        );
+    };
 });
