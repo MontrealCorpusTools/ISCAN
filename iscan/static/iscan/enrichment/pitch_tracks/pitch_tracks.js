@@ -1,6 +1,6 @@
 angular.module('pitch_tracks', [
-    'pgdb.corpora',
-    'pgdb.enrichment'
+    'iscan.corpora',
+    'iscan.enrichment'
 ]).controller('PitchTrackCtrl', function ($scope, $rootScope, Enrichment, Corpora, $state, $stateParams, djangoAuth, $mdDialog) {
 
 

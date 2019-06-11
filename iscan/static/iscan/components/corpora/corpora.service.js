@@ -1,5 +1,5 @@
 
-angular.module('pgdb.corpora')
+angular.module('iscan.corpora')
     .service('Corpora', function ($http, __env) {
     var base_url = __env.apiUrl + 'corpora/';
     var Corpora = {};

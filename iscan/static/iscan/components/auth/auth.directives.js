@@ -1,4 +1,4 @@
-angular.module("pgdb.auth").directive('hasPermission', [
+angular.module("iscan.auth").directive('hasPermission', [
     '$rootScope', function($rootScope) {
       return {
         scope: {

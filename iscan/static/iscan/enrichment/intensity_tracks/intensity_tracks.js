@@ -1,6 +1,6 @@
 angular.module('intensity_tracks', [
-    'pgdb.corpora',
-    'pgdb.enrichment'
+    'iscan.corpora',
+    'iscan.enrichment'
 ]).controller('IntensityTrackCtrl', function ($scope, $rootScope, Enrichment, Corpora, $state, $stateParams, djangoAuth, $mdDialog) {
 
         djangoAuth.authenticationStatus(true).then(function () {

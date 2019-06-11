@@ -45,7 +45,7 @@ selection_dragging = function (xt, scope) {
 }
 
 
-angular.module('pgdb.query').filter('secondsToDateTime', [function () {
+angular.module('iscan.query').filter('secondsToDateTime', [function () {
     return function (seconds) {
         return new Date(1970, 0, 1).setSeconds(seconds);
     };

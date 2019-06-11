@@ -1,9 +1,9 @@
 angular.module('corpusDetail', [
-    'pgdb.corpora',
-    'pgdb.enrichment',
-    'pgdb.query'
+    'iscan.corpora',
+    'iscan.enrichment',
+    'iscan.query'
 ])
-    .controller('CorpusDetailCtrl', function ($scope, Corpora, $state, $stateParams, Query, $timeout, $rootScope, djangoAuth) {
+    .controller('CorpusDetailCtrl', function ($scope, Corpora, $state, $stateParams, Query, $timeout, $rootScope, djangoAuth, Users) {
 
         var loadTime = 10000, //Load the data every second
             errorCount = 0, //Counter for the server errors
@@ -96,8 +96,16 @@ angular.module('corpusDetail', [
         djangoAuth.authenticationStatus(true).then(function () {
 
         //Start polling the data from the server
+            Users.current_user().then(function (res) {
+                $scope.user = res.data;
+                $scope.can_query = $scope.user.corpus_permissions[$stateParams.corpus_id].can_query;
+                if (!$scope.can_query){
+                    $state.go('home');
+                }
+                $scope.can_enrich = $scope.user.corpus_permissions[$stateParams.corpus_id].can_enrich;
             getData();
-        }).catch(function(){
+            });
+        }).catch(function(res){
                 $state.go('home');
         });
 

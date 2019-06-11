@@ -9,12 +9,11 @@
                         data-ng-if="$index >= annotation_types.indexOf(query.annotation_type.toLowerCase())">
                     <md-content class="md-padding annotation-content">
                         <div style="display:inline-block;">
-                            <md-button class='md-raised' style="display: block;" ng-click="addPrevious(t)">Add
-                                previous
+                            <md-button class='md-raised' style="display: block;" ng-click="addPrevious(t)">
+                                Add previous
                             </md-button>
                             <md-button class='md-raised md-warn' style="display: block;" ng-click="removePrevious(t)">
-                                Remove
-                                previous
+                                Remove previous
                             </md-button>
 
                         </div>
@@ -437,7 +436,7 @@
                         <table md-table md-progress="promise">
                             <thead md-head md-order="paginateParams.ordering" md-on-reorder="paginatorCallback">
                             <tr md-row>
-                                <th md-column>Actions</th>
+                                <th md-column ng-if="can_view || can_listen">Actions</th>
                                 <th md-column ng-repeat="value in column_values"
                                     ng-click="refreshOrdering(value)"
                                     data-ng-if="query.columns[value.type][value.position][value.property] &&
@@ -487,10 +486,10 @@
                             </thead>
                             <tbody md-body>
                             <tr md-row ng-repeat="result in results.data">
-                                <td md-cell>
+                                <td md-cell ng-if="can_view || can_listen">
 
                                     <md-button class="md-icon-button" aria-label="View" ng-click="getDetail($index)"
-                                               ng-disabled="detailDisabled">
+                                               ng-disabled="detailDisabled" ng-if="can_view">
                                         <md-tooltip md-direction="right" ng-if="detailDisabled">Detail view only
                                             available when utterances and syllables are encoded
                                         </md-tooltip>
@@ -586,7 +585,7 @@
                                         <tr md-row ng-repeat="prop in properties[t]">
                                             <td md-cell></td>
                                             <td md-cell ng-repeat="position in query.positions[t]">
-                                                <md-checkbox ng-model="query.columns[t][position][prop]">
+                                                <md-checkbox ng-model="query.columns[t][position][prop]" aria-label="property">
                                             </td>
                                             <td md-cell>{{ prop }}</td>
                                         </tr>
@@ -616,7 +615,7 @@
                                     <tr md-row ng-repeat="prop in hierarchy.subannotation_properties[s]">
                                         <td md-cell ng-repeat="position in query.positions[t]">
                                             <md-checkbox
-                                                    ng-model="query.columns[t][position].subannotations[s][prop[0]]">
+                                                    ng-model="query.columns[t][position].subannotations[s][prop[0]]" aria-label="property">
                                         </td>
                                         <td md-cell>{{ prop[0] }}</td>
                                     </tr>
@@ -637,7 +636,7 @@
 
                         <md-card-content>
                             <div ng-repeat="prop in properties.speaker">
-                                <md-checkbox ng-model="query.columns.speaker[prop]">{{prop}}</md-checkbox>
+                                <md-checkbox ng-model="query.columns.speaker[prop]" aria-label="property">{{prop}}</md-checkbox>
 
                             </div>
                         </md-card-content>
@@ -650,7 +649,7 @@
                     <md-card>
                         <md-card-content>
                             <div ng-repeat="prop in properties.discourse">
-                                <md-checkbox ng-model="query.columns.discourse[prop]">{{prop}}</md-checkbox>
+                                <md-checkbox ng-model="query.columns.discourse[prop]" aria-label="property">{{prop}}</md-checkbox>
                             </div>
 
                         </md-card-content>
@@ -675,11 +674,11 @@
                             <md-card-content>
 
                                 <div ng-repeat="agg in acoustic_aggregates">
-                                    <md-checkbox ng-model="query.acoustic_columns[acoustic][agg.function]">{{agg.name}}
+                                    <md-checkbox ng-model="query.acoustic_columns[acoustic][agg.function]" aria-label="">{{agg.name}}
                                     </md-checkbox>
                                 </div>
                                 <div>
-                                    <md-checkbox ng-model="query.acoustic_columns[acoustic].relative_aggregate">Include
+                                    <md-checkbox ng-model="query.acoustic_columns[acoustic].relative_aggregate" aria-label="">Include
                                         relativized
                                     </md-checkbox>
                                 </div>
@@ -697,16 +696,17 @@
                             <md-card-content>
 
                                 <div>
-                                    <md-checkbox ng-model="query.acoustic_columns[acoustic].include">Include track
+                                    <md-checkbox ng-model="query.acoustic_columns[acoustic].include" aria-label="Include track">Include track
                                     </md-checkbox>
                                 </div>
                                 <div>
-                                    <md-checkbox ng-model="query.acoustic_columns[acoustic].relative_track">Include
-                                        relativized
+                                    <md-checkbox ng-model="query.acoustic_columns[acoustic].relative_track" aria-label="Include relativized">
+                                        Include relativized
                                     </md-checkbox>
                                 </div>
                                 <div>
-                                    <md-checkbox ng-model="query.acoustic_columns[acoustic].relative_time">Relative time
+                                    <md-checkbox ng-model="query.acoustic_columns[acoustic].relative_time" aria-label="Relative time">
+                                        Relative time
                                     </md-checkbox>
                                 </div>
                                 <div>

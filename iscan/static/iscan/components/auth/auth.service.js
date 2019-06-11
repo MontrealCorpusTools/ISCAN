@@ -1,6 +1,6 @@
 'use strict';
 
-angular.module('pgdb.auth')
+angular.module('iscan.auth')
   .service('djangoAuth', function djangoAuth($q, $http, $cookies, $rootScope, __env) {
     // AngularJS will instantiate a singleton by calling "new" on this function
     var service = {

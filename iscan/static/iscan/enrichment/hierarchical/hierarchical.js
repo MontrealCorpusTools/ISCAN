@@ -1,7 +1,7 @@
 angular.module('hierarchical', [
-    'pgdb.corpora',
-    'pgdb.query',
-    'pgdb.enrichment'
+    'iscan.corpora',
+    'iscan.query',
+    'iscan.enrichment'
 ])
     .filter('secondsToDateTime', [function () {
         return function (seconds) {

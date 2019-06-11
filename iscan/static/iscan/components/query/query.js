@@ -1,3 +1,3 @@
 
-angular.module('pgdb.query', [
+angular.module('iscan.query', [
 ]);

@@ -1,5 +1,5 @@
 angular.module('databaseList', [
-    'pgdb.databases'
+    'iscan.databases'
 ])
     .controller('DatabaseListCtrl', function ($scope, Databases, Corpora, $state, $location, djangoAuth,Users) {
         $scope.refresh_button_text = 'Refresh';

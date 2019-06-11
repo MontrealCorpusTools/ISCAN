@@ -1,0 +1,53 @@
+<div layout='row' layout-align="center start">
+    <div layout="column">
+
+        <md-card>
+            <md-card-title>
+                <md-card-title-text>
+                    <span class="md-headline">User details</span>
+                </md-card-title-text>
+
+
+            </md-card-title>
+            <md-card-content>
+                <div>
+        <md-input-container>
+
+            <label>Username</label>
+
+            <input ng-model="newUser.username">
+        </md-input-container>
+
+        <md-input-container>
+
+            <label>Password</label>
+            <input ng-model="newUser.password" type="password">
+        </md-input-container>
+        <md-input-container>
+
+            <label>Confirm password</label>
+            <input ng-model="password_validation" type="password">
+            <small class="errorMessage" data-ng-show="newUser.password != password_validation">Passwords do not match.</small>
+
+        </md-input-container>
+                </div>
+                <div>
+        <md-input-container>
+
+            <label>Role</label>
+
+            <md-select ng-model="newUser.user_type">
+                <md-option ng-value="role.id" ng-repeat="role in roles">
+                    {{role.name}}
+                </md-option>
+
+            </md-select>
+        </md-input-container>
+
+                </div>
+        <md-button class='md-raised md-primary' ng-click="createUser()">Create new user</md-button>
+                </md-card-content>
+            </md-card>
+
+    </div>
+</div>

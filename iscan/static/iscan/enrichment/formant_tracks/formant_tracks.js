@@ -1,6 +1,6 @@
 angular.module('formant_tracks', [
-    'pgdb.corpora',
-    'pgdb.enrichment'
+    'iscan.corpora',
+    'iscan.enrichment'
 ]).controller('FormantTrackCtrl', function ($scope, $rootScope, Enrichment, Corpora, $state, $stateParams, djangoAuth, $mdDialog) {
 
         djangoAuth.authenticationStatus(true).then(function () {

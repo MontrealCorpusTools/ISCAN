@@ -201,12 +201,11 @@ class UpdateUserTest(APILiveServerTestCase):
         assert response.status_code == status.HTTP_200_OK
         data = dict(response.data)
         assert data['username'] == 'regular'
-        assert data['corpus_permissions'][0]['corpus'] == self.corpus.id
-        assert not data['corpus_permissions'][0]['can_query']
-        assert not data['corpus_permissions'][0]['can_view_detail']
+        assert not data['corpus_permissions'][self.corpus.id]['can_query']
+        assert not data['corpus_permissions'][self.corpus.id]['can_view_detail']
 
-        data['corpus_permissions'][0]['can_query'] = True
-        data['corpus_permissions'][0]['can_view_detail'] = True
+        data['corpus_permissions'][self.corpus.id]['can_query'] = True
+        data['corpus_permissions'][self.corpus.id]['can_view_detail'] = True
 
         response = self.csrf_client.put(reverse('iscan:users-detail',
                                                  args=[self.normal_user.id]),
@@ -214,9 +213,8 @@ class UpdateUserTest(APILiveServerTestCase):
                                          format='json')
         print(response.data)
         assert data['username'] == 'regular'
-        assert data['corpus_permissions'][0]['corpus'] == self.corpus.id
-        assert data['corpus_permissions'][0]['can_query']
-        assert data['corpus_permissions'][0]['can_view_detail']
+        assert data['corpus_permissions'][self.corpus.id]['can_query']
+        assert data['corpus_permissions'][self.corpus.id]['can_view_detail']
 
     def testChangeUserType(self):
         response = self.csrf_client.get(reverse('iscan:users-detail',
@@ -226,9 +224,8 @@ class UpdateUserTest(APILiveServerTestCase):
         assert response.status_code == status.HTTP_200_OK
         data = dict(response.data)
         assert data['username'] == 'regular'
-        assert data['corpus_permissions'][0]['corpus'] == self.corpus.id
-        assert not data['corpus_permissions'][0]['can_query']
-        assert not data['corpus_permissions'][0]['can_view_detail']
+        assert not data['corpus_permissions'][self.corpus.id]['can_query']
+        assert not data['corpus_permissions'][self.corpus.id]['can_view_detail']
         assert data['user_type'] == 'G'
 
         data['user_type'] = 'U'
@@ -239,6 +236,5 @@ class UpdateUserTest(APILiveServerTestCase):
                                          format='json')
         print(response.data)
         assert response.data['username'] == 'regular'
-        assert response.data['corpus_permissions'][0]['corpus'] == self.corpus.id
-        assert response.data['corpus_permissions'][0]['can_query']
-        assert response.data['corpus_permissions'][0]['can_view_detail']
+        assert response.data['corpus_permissions'][self.corpus.id]['can_query']
+        assert response.data['corpus_permissions'][self.corpus.id]['can_view_detail']

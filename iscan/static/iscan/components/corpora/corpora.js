@@ -1,3 +1,3 @@
 
-angular.module('pgdb.corpora', [
+angular.module('iscan.corpora', [
 ]);

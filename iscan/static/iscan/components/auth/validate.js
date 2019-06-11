@@ -1,6 +1,6 @@
 'use strict';
 
-angular.module('pgdb.auth')
+angular.module('iscan.auth')
   .service('Validate', function Validate() {
     return {
         'message': {

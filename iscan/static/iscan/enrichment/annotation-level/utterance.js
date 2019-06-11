@@ -1,6 +1,6 @@
 angular.module('utterancesEnrichment', [
-    'pgdb.corpora',
-    'pgdb.enrichment'
+    'iscan.corpora',
+    'iscan.enrichment'
 ]).controller('UtterancesEnrichmentCtrl', function ($scope, $rootScope, Enrichment, Corpora, $state, $stateParams, djangoAuth, $mdDialog) {
     $scope.enrichment = {enrichment_type: "utterances",
                             pause_length: 150};

@@ -88,6 +88,11 @@ class Profile(models.Model):
         except Corpus.DoesNotExist:
             return None
 
+    def update_role_permissions(self):
+        for perm in self.user.corpus_permissions.all():
+            perm.set_role_permissions()
+            perm.save()
+
 
 @receiver(post_save, sender=User)
 def create_user_profile(sender, instance, created, **kwargs):
@@ -100,7 +105,6 @@ def create_user_profile(sender, instance, created, **kwargs):
         new_permissions = []
         for c in Corpus.objects.all():
             perm = CorpusPermissions(corpus=c, user=instance)
-            perm.set_role_permissions()
             new_permissions.append(perm)
         if new_permissions:
             CorpusPermissions.objects.bulk_create(new_permissions)
@@ -770,14 +774,14 @@ class CorpusPermissions(models.Model):
 
 @receiver(post_save, sender=Corpus)
 def update_user_permissions(sender, instance, created, **kwargs):
-    new_permissions = []
-    for u in User.objects.select_related('profile').all():
-        if created:
-            perm = CorpusPermissions(corpus=instance, user=u)
-            perm.set_role_permissions()
-            new_permissions.append(perm)
-    if new_permissions:
-        CorpusPermissions.objects.bulk_create(new_permissions)
+    if created:
+        new_permissions = []
+        for u in User.objects.select_related('profile').all():
+                perm = CorpusPermissions(corpus=instance, user=u)
+                perm.set_role_permissions()
+                new_permissions.append(perm)
+        if new_permissions:
+            CorpusPermissions.objects.bulk_create(new_permissions)
 
 
 class Enrichment(models.Model):
@@ -946,7 +950,6 @@ class Enrichment(models.Model):
         self.corpus.save()
         config = self.config
         enrichment_type = config.get('enrichment_type')
-        print(config)
         try:
             with CorpusContext(self.corpus.config) as c:
                 if enrichment_type == 'subset':
@@ -1257,13 +1260,12 @@ class Query(models.Model):
                 except ValueError:
                     acoustic = acoustic.track
                 q = q.columns(acoustic)
-        print(q.cypher(), q.cypher_params())
         return q
 
     def generate_base_query(self, corpus_context):
         a_type = self.get_annotation_type_display().lower()
         config = self.config
-        print(config)
+
         a = getattr(corpus_context, a_type)
         q = corpus_context.query_graph(a)
         for f_a_type, positions in config['filters'].items():
@@ -1393,7 +1395,6 @@ class Query(models.Model):
                             getattr(ann, 'begin') == getattr(getattr(current_ann, left_aligned_filter), 'begin'))
                     if right_aligned_filter and left_aligned_filter != f_a_type:
                         q = q.filter(getattr(ann, 'end') == getattr(getattr(current_ann, right_aligned_filter), 'end'))
-        print(q.cypher(), q.cypher_params())
         return q
 
     def run_query(self):
@@ -1498,7 +1499,6 @@ class Query(models.Model):
         config = self.config
         config['subset_encoded'] = False
         self.config = config
-        print(config)
         self.save()
         while os.path.exists(self.lockfile_path):
             pass
@@ -1531,13 +1531,10 @@ class Query(models.Model):
         with open(self.lockfile_path, 'w') as f:
             pass
         try:
-            begin = time.time()
             with CorpusContext(self.corpus.config) as c, open(self.export_path, 'w', newline='', encoding='utf8') as f:
                 q = self.generate_query_for_export(c)
-                print('GENERATED QUERY')
                 writer = csv.writer(f)
                 q.to_csv(writer)
-            print('DONE WRITING', time.time() - begin)
             config = self.config
             config['export_available'] = True
             self.config = config

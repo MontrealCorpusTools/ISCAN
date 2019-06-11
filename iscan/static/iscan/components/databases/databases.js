@@ -1,3 +1,3 @@
 
-angular.module('pgdb.databases', [
+angular.module('iscan.databases', [
 ]);

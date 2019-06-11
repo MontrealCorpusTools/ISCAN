@@ -1,6 +1,6 @@
 angular.module('vot', [
-    'pgdb.corpora',
-    'pgdb.enrichment'
+    'iscan.corpora',
+    'iscan.enrichment'
 ]).controller('VOTCtrl', function ($scope, $rootScope, Enrichment, Corpora, $state, $stateParams, djangoAuth, $mdDialog) {
 
 

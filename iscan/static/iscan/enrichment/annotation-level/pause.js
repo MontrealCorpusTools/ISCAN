@@ -1,6 +1,6 @@
 angular.module('pausesEnrichment', [
-    'pgdb.corpora',
-    'pgdb.enrichment'
+    'iscan.corpora',
+    'iscan.enrichment'
 ]).controller('PausesEnrichmentCtrl', function ($scope, $rootScope, Enrichment, Corpora, $state, $stateParams, djangoAuth, $mdDialog) {
     $scope.enrichment = {enrichment_type: "pauses"};
     $scope.count = 25;

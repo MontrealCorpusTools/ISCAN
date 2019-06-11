@@ -27,7 +27,7 @@
 <div id="vertical-container">
     <md-list>
 			<md-list-item ng-repeat="annotation in annotations">
-				<md-checkbox checklist-model="enrichment.annotation_labels" checklist-value="annotation"></md-checkbox> {{annotation}}
+				<md-checkbox checklist-model="enrichment.annotation_labels" checklist-value="annotation" aria-label="annotation"></md-checkbox> {{annotation}}
 			</md-list-item>
     </md-list>
 

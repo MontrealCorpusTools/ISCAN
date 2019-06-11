@@ -1,0 +1,120 @@
+<div layout='row' layout-align="center start">
+    <div layout="column">
+
+        <md-card>
+            <md-card-title>
+                <md-card-title-text>
+                    <span class="md-headline">User details</span>
+                </md-card-title-text>
+
+
+            </md-card-title>
+            <md-card-content>
+                <div>
+        <md-input-container>
+
+            <label>Username</label>
+
+            <input ng-model="user_edit.username" ng-disabled="true">
+        </md-input-container>
+
+                </div>
+                <div>
+        <md-input-container>
+
+            <label>Role</label>
+
+            <md-select ng-model="user_edit.user_type">
+                <md-option ng-value="role.id" ng-repeat="role in roles">
+                    {{role.name}}
+                </md-option>
+
+            </md-select>
+        </md-input-container>
+
+                </div>
+        <md-button class='md-raised md-primary' ng-click="updateUser(user_edit)">Update</md-button>
+
+                <div layout="row">
+        <h1>Corpora</h1>
+
+        </div>
+        <md-table-container>
+        <table md-table>
+            <thead md-head>
+            <tr md-row>
+                <th md-column>
+                    Username
+                </th>
+                <th md-column>
+                    Corpus type
+                </th>
+                <th md-column>
+                    Query
+                </th>
+                <th md-column>
+                    Database access
+                </th>
+                <th md-column>
+                    Enrich
+                </th>
+                <th md-column>
+                    View detail
+                </th>
+                <th md-column>
+                    Edit
+                </th>
+                <th md-column>
+                    Listen
+                </th>
+                <th md-column>
+                    Add annotations
+                </th>
+                <th md-column>
+                    View annotations
+                </th>
+            </tr>
+            </thead>
+            <tbody md-body>
+            <tr md-row ng-repeat='corpus in corpora'>
+
+                <td md-cell>
+                    {{ corpus.name }}
+                </td>
+                <td md-cell>
+                    {{ corpus.corpus_type }}
+                </td>
+                <td md-cell>
+                    <md-checkbox ng-model="user_edit.corpus_permissions[corpus.id].can_query" aria-label="Query"></md-checkbox>
+                </td>
+                <td md-cell>
+                    <md-checkbox ng-model="user_edit.corpus_permissions[corpus.id].can_access_database" aria-label="Database access"></md-checkbox>
+                </td>
+                <td md-cell>
+                    <md-checkbox ng-model="user_edit.corpus_permissions[corpus.id].can_enrich" aria-label="Enrich"></md-checkbox>
+                </td>
+                <td md-cell>
+                    <md-checkbox ng-model="user_edit.corpus_permissions[corpus.id].can_view_detail" aria-label="View detail"></md-checkbox>
+                </td>
+                <td md-cell>
+                    <md-checkbox ng-model="user_edit.corpus_permissions[corpus.id].can_edit" aria-label="Edit"></md-checkbox>
+                </td>
+                <td md-cell>
+                    <md-checkbox ng-model="user_edit.corpus_permissions[corpus.id].can_listen" aria-label="Listen"></md-checkbox>
+                </td>
+                <td md-cell>
+                    <md-checkbox ng-model="user_edit.corpus_permissions[corpus.id].can_annotate" aria-label="Add annotations"></md-checkbox>
+                </td>
+                <td md-cell>
+                    <md-checkbox ng-model="user_edit.corpus_permissions[corpus.id].can_view_annotations" aria-label="View annotations"></md-checkbox>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+        </md-table-container>
+        <md-button class='md-raised md-primary' ng-click="updateUser(user_edit)">Save changes</md-button>
+                </md-card-content>
+            </md-card>
+
+    </div>
+</div>

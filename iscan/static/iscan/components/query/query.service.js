@@ -1,4 +1,4 @@
-angular.module('pgdb.query')
+angular.module('iscan.query')
     .factory('$query',  ['$resource', function ($resource) {
   'use strict';
         var base_url = __env.apiUrl + 'corpora/';

@@ -1,6 +1,6 @@
 angular.module('enrichment', [
-    'pgdb.corpora',
-    'pgdb.enrichment'
+    'iscan.corpora',
+    'iscan.enrichment'
 ]).controller('EnrichmentCtrl', function ($scope, $rootScope, Enrichment, Corpora, $state, $stateParams, $timeout, djangoAuth) {
 
     var loadTime = 10000, //Load the data every second

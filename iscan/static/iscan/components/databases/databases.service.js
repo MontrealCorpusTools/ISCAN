@@ -1,5 +1,5 @@
 
-angular.module('pgdb.databases')
+angular.module('iscan.databases')
     .service('Databases', function ($http, __env) {
     var base_url = __env.apiUrl + 'databases/';
     var Databases = {};

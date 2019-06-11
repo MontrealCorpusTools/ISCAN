@@ -1,3 +1,3 @@
 
-angular.module('pgdb.enrichment', [
+angular.module('iscan.enrichment', [
 ]);

@@ -1,6 +1,6 @@
 angular.module('syllableEnrichment', [
-    'pgdb.corpora',
-    'pgdb.enrichment'
+    'iscan.corpora',
+    'iscan.enrichment'
 ]).controller('SyllableEnrichmentCtrl', function ($scope, $rootScope, Enrichment, Corpora, $state, $stateParams, djangoAuth, $mdDialog) {
 
     djangoAuth.authenticationStatus(true).then(function () {

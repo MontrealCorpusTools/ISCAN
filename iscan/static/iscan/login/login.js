@@ -1,4 +1,4 @@
-angular.module("login", ['pgdb.auth'])
+angular.module("login", ['iscan.auth'])
   .controller('LoginCtrl', function ($scope, $state, djangoAuth, Validate) {
     $scope.model = {'username':'','password':''};
   	$scope.complete = false;

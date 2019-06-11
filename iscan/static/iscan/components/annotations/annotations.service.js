@@ -1,5 +1,5 @@
 
-angular.module('pgdb.annotations')
+angular.module('iscan.annotations')
     .service('Annotations', function ($http, __env) {
     var base_url = __env.annotatorUrl + 'annotations/';
     var subannotation_url = __env.apiUrl + 'corpora/';

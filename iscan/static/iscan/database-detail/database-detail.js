@@ -1,5 +1,5 @@
 angular.module('databaseDetail', [
-    'pgdb.databases'
+    'iscan.databases'
 ])
     .controller('DatabaseDetailCtrl', function ($scope, Databases, $state, $stateParams, $location) {
         $scope.host = $location.host();

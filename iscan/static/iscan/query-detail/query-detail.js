@@ -1,7 +1,7 @@
 angular.module('queryDetail', [
-    'pgdb.corpora',
-    'pgdb.query',
-    'pgdb.annotations'
+    'iscan.corpora',
+    'iscan.query',
+    'iscan.annotations'
 ]).filter('titlecase', function () {
     return function (input) {
         var smallWords = /^(a|an|and|as|at|but|by|en|for|if|in|nor|of|on|or|per|the|to|vs?\.?|via)$/i;
@@ -52,25 +52,17 @@ angular.module('queryDetail', [
     $scope.detail_index = parseInt($stateParams.detail_index);
 
     $scope.refreshPermissions = function () {
-        if ($scope.user.is_superuser) {
-            $scope.can_view = true;
-            $scope.can_listen = true;
-            $scope.can_edit = true;
-            $scope.can_view_annotations = true;
-            $scope.can_annotate = true;
+        $scope.can_listen = $scope.user.corpus_permissions[$stateParams.corpus_id].can_listen;
+        $scope.can_view = $scope.user.corpus_permissions[$stateParams.corpus_id].can_view_detail;
+        console.log('CANVIEW', $scope.can_view)
+        if (!$scope.can_view){
+            $state.go('query', {corpus_id:$stateParams.corpus_id, query_id:$stateParams.query_id});
+        }
+        $scope.can_edit = $scope.user.corpus_permissions[$stateParams.corpus_id].can_edit;
+        $scope.can_view_annotations = $scope.user.corpus_permissions[$stateParams.corpus_id].can_view_annotations;
+        $scope.can_annotate = $scope.user.corpus_permissions[$stateParams.corpus_id].can_annotate;
 
-        }
-        else {
-            for (i = 0; i < $scope.user.corpus_permissions.length; i++) {
-                if ($scope.user.corpus_permissions[i].corpus == $stateParams.corpus_id) {
-                    $scope.can_listen = $scope.user.corpus_permissions[i].can_listen;
-                    $scope.can_edit = $scope.user.corpus_permissions[i].can_edit;
-                    $scope.can_view_annotations = $scope.user.corpus_permissions[i].can_view_annotations;
-                    $scope.can_annotate = $scope.user.corpus_permissions[i].can_annotate;
-                    $scope.can_view = $scope.user.corpus_permissions[i].can_view_detail;
-                }
-            }
-        }
+
         Query.one($stateParams.corpus_id, $stateParams.query_id).then(function (res) {
             $scope.query = res.data;
             $scope.selectedType = $scope.query.annotation_type.toLowerCase();

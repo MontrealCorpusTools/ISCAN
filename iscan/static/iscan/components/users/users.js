@@ -1,3 +1,3 @@
 
-angular.module('pgdb.users', [
+angular.module('iscan.users', [
 ]);

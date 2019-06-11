@@ -1,4 +1,4 @@
-angular.module('pgdb.enrichment')
+angular.module('iscan.enrichment')
     .service('Enrichment', function ($http, $location, __env) {
         var base_url = __env.apiUrl + 'corpora/';
         var Enrichment = {};

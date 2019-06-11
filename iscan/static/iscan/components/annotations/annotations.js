@@ -1,3 +1,3 @@
 
-angular.module('pgdb.annotations', [
+angular.module('iscan.annotations', [
 ]);

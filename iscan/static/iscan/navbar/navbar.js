@@ -1,7 +1,7 @@
 angular.module('navbar', [
-    'pgdb.corpora',
-    'pgdb.auth',
-    'pgdb.users'
+    'iscan.corpora',
+    'iscan.auth',
+    'iscan.users'
 ])
     .controller('NavCtrl', function ($scope, $rootScope, Corpora, $http, djangoAuth, __env, Users) {
         $rootScope.authenticated = undefined;

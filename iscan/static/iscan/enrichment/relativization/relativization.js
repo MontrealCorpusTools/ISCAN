@@ -1,7 +1,7 @@
 angular.module('relativization', [
-    'pgdb.corpora',
-    'pgdb.query',
-    'pgdb.enrichment'
+    'iscan.corpora',
+    'iscan.query',
+    'iscan.enrichment'
 ]).filter('onlyNumeric', function () {
     return function (input) {
         if (input == undefined) {

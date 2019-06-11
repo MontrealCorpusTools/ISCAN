@@ -25,7 +25,7 @@ class CorpusSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = models.Corpus
-        fields = ('id', 'name', 'input_format', 'imported', 'busy', 'database_running', 'database')
+        fields = ('id', 'name', 'corpus_type', 'input_format', 'imported', 'busy', 'database_running', 'database')
 
     def get_database_running(self, obj):
         return obj.database.status == 'R' # database.is_running is too slow
@@ -38,6 +38,7 @@ class QueryResultsSerializer(object):
     @property
     def data(self):
         return list(self.query.all().to_json())
+
 
 class HierarchySerializer(serializers.Serializer):
     annotation_types = serializers.SerializerMethodField()
@@ -103,12 +104,14 @@ class HierarchySerializer(serializers.Serializer):
         except GraphQueryError:
             return False
 
+
 class SpeakerSerializer(serializers.Serializer):
     pass
 
 
 class DiscourseSerializer(serializers.Serializer):
     pass
+
 
 class SubannotationSerializer(serializers.Serializer):
     pass
@@ -119,11 +122,13 @@ class PitchPointSerializer(serializers.Serializer):
     F0 = serializers.FloatField()
     F0_relativized = serializers.FloatField()
 
+
 class FormantPointSerializer(serializers.Serializer):
     time = serializers.FloatField()
     F1 = serializers.FloatField()
     F2 = serializers.FloatField()
     F3 = serializers.FloatField()
+
 
 class AnnotationSerializer(serializers.Serializer):
     pass
@@ -131,19 +136,21 @@ class AnnotationSerializer(serializers.Serializer):
 
 class PositionalSerializer(serializers.Serializer):
     pass
+
 # AUTH
+
 
 class CorpusPermissionsSerializer(serializers.ModelSerializer):
     #corpus = CorpusSerializer()
 
     class Meta:
         model = models.CorpusPermissions
-        fields = ('corpus', 'can_query', 'can_edit', 'can_listen', 'can_view_detail',
+        fields = ('id','corpus', 'can_query', 'can_access_database', 'can_enrich', 'can_edit', 'can_listen', 'can_view_detail',
                   'can_view_annotations', 'can_annotate', 'is_whitelist_exempt')
 
 
 class UserSerializer(serializers.ModelSerializer):
-    corpus_permissions = CorpusPermissionsSerializer(many=True)
+    corpus_permissions = serializers.SerializerMethodField()
     user_type = serializers.SerializerMethodField()
     password = serializers.CharField(write_only=True)
 
@@ -155,6 +162,12 @@ class UserSerializer(serializers.ModelSerializer):
 
     def get_user_type(self, obj):
         return obj.profile.user_type
+
+    def get_corpus_permissions(self, obj):
+        perms = {}
+        for p in obj.corpus_permissions.select_related('corpus').all():
+            perms[p.corpus.id] = CorpusPermissionsSerializer(p).data
+        return perms
 
     def create(self, validated_data):
         user = super(UserSerializer, self).create(validated_data)
@@ -168,6 +181,7 @@ class UnauthorizedUserSerializer(serializers.ModelSerializer):
         model = User
         depth = 2
         fields = ('id', 'first_name', 'last_name', 'username', 'is_superuser')
+
 
 def serializer_factory(hierarchy, a_type, positions=None, exclude=None, acoustic_columns=None,
                        with_waveform=False, with_spectrogram=False, with_higher_annotations=False,

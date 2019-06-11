@@ -4,7 +4,7 @@
     </div>
     <div class="row" ng-show="!corpus.imported && !corpus.busy&& corpus.database_running">
         <h1>The {{ corpus.name }} corpus has not been imported yet</h1>
-        <button ng-click="importCorpus()">Begin import</button>
+        <md-button class="md-raised md-primary" ng-click="importCorpus()">Begin import</md-button>
     </div>
     <div class="row" ng-show="!corpus.imported && corpus.busy && corpus.database_running">
         <h1>The {{ corpus.name }} corpus is currently importing, please be patient.</h1>
@@ -70,7 +70,7 @@
         <div layout="column">
             <h2>Enrichments</h2>
             <div>
-                <md-button class="md-raised md-primary" ng-click="enrichment()">Create, run and edit enrichments
+                <md-button class="md-raised md-primary" ng-click="enrichment()" ng-disabled="!can_enrich">Create, run and edit enrichments
                 </md-button>
             </div>
         </div>

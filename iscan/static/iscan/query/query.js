@@ -1,6 +1,6 @@
 angular.module('query', [
-    'pgdb.corpora',
-    'pgdb.query',
+    'iscan.corpora',
+    'iscan.query',
     'ngFileSaver'
 ]).filter('titlecase', function () {
     return function (input) {
@@ -365,20 +365,11 @@ angular.module('query', [
             $scope.exporting = false;
             $scope.refreshing = true;
 
-            if ($scope.user.is_superuser) {
-                $scope.can_view = true;
-                $scope.can_listen = true;
-            }
-            else {
-                $scope.can_view = false;
-                $scope.can_listen = false;
-                for (i = 0; i < $scope.user.corpus_permissions.length; i++) {
-                    if ($scope.user.corpus_permissions[i].corpus == $stateParams.corpus_id) {
-                        $scope.can_view = $scope.user.corpus_permissions[i].can_view_detail;
-                        $scope.can_listen = $scope.user.corpus_permissions[i].can_listen;
-                    }
-                }
-            }
+            $scope.can_view = false;
+            $scope.can_listen = false;
+            console.log($scope.user)
+            $scope.can_listen = $scope.user.corpus_permissions[$stateParams.corpus_id].can_listen;
+            $scope.can_view = $scope.user.corpus_permissions[$stateParams.corpus_id].can_view_detail;
 
 
             if ($stateParams.query_id == undefined) {

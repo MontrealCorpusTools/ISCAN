@@ -54,7 +54,17 @@
                             </li>
                         </ul>
                         <ul class="nav navbar-nav navbar-right">
-                            <li ng-show="authenticated"> <a><span ng-bind="user.username"></span></a></li>
+
+                            <li class="dropdown" ng-show="authenticated">
+                                <a class="dropdown-toggle" data-toggle="dropdown" role="button"
+                                   aria-haspopup="true"
+                                   aria-expanded="false">{{user.username}}<span class="caret"></span></a>
+
+                                <ul class="dropdown-menu">
+                                    <li  ui-sref-active="active"><a
+                                            ui-sref="change-password">Change password</a></li>
+                                </ul>
+                            </li>
                             <li ng-show="authenticated"> <a ui-sref="logout()">Log out</a></li>
                             <li ng-show="!authenticated"> <a ui-sref="login()">Log in</a></li>
 

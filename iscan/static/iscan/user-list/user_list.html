@@ -1,0 +1,43 @@
+<div layout='row' layout-align="center start">
+    <div layout="column">
+        <div layout="row">
+        <h1>All users</h1>
+        </div>
+        <div layout="row">
+        <md-button class='md-raised md-primary' ng-click="createUser()" ng-disabled="busy">Add new user</md-button>
+        </div>
+        <md-table-container>
+        <table md-table>
+            <thead md-head>
+            <tr md-row>
+                <th md-column>
+                    Username
+                </th>
+                <th md-column>
+                    User type
+                </th>
+                <th md-column>
+                    Actions
+                </th>
+            </tr>
+            </thead>
+            <tbody md-body>
+            <tr md-row ng-repeat='u in users'>
+
+                <td md-cell>
+                    {{ u.username }}
+                </td>
+                <td md-cell>
+                    {{ u.user_type }}
+                </td>
+                <td md-cell>
+                        <md-button class='md-raised md-primary' ng-click="editUser(u.id)" ng-disabled="busy">Edit</md-button>
+                        <md-button class='md-raised md-primary' ng-click="addTutorialCorpus(u)" ng-disabled="busy">Create tutorial corpus</md-button>
+                        <md-button class='md-raised md-warn' ng-click="deleteUser(u, $event)"  ng-disabled="busy">Delete</md-button>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+        </md-table-container>
+    </div>
+</div>

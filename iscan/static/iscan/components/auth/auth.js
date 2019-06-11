@@ -1,3 +1,3 @@
 
-angular.module('pgdb.auth', [
+angular.module('iscan.auth', [
 ]);

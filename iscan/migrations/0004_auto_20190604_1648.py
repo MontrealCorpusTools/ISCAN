@@ -2,6 +2,20 @@
 
 from django.db import migrations, models
 
+def create_default_perms(apps, schema_editor):
+    Corpus = apps.get_model("iscan", "Corpus")
+    CorpusPermissions = apps.get_model("iscan", "CorpusPermissions")
+    User = apps.get_model('auth', 'User')
+    for user in User.objects.all():
+        for corpus in Corpus.objects.all():
+            if 'tutorial' in corpus.name.lower() and corpus.name.split('-')[-1] == user.username and \
+                    corpus.corpus_type != 'T':
+                corpus.corpus_type = 'T'
+                corpus.save()
+            perm, created = CorpusPermissions.objects.get_or_create(user=user, corpus=corpus)
+            if not created:
+                perm.can_query = True
+                perm.save()
 
 class Migration(migrations.Migration):
 
@@ -30,4 +44,5 @@ class Migration(migrations.Migration):
             name='user_type',
             field=models.CharField(choices=[('G', 'Guest'), ('A', 'Annotator'), ('R', 'Researcher'), ('U', 'Unlimited researcher')], default='G', max_length=1),
         ),
+        migrations.RunPython(create_default_perms),
     ]

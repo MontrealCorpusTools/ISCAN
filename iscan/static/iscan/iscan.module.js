@@ -17,7 +17,10 @@ var app = angular.module('iscan', [
     'angular-mousetrap',
     'checklist-model',
     'md.data.table',
+    'changePassword',
     'userList',
+    'userDetail',
+    'userCreate',
     'databaseList',
     'databaseDetail',
     'corpusDetail',
@@ -64,16 +67,26 @@ app.config(function ($stateProvider, $urlRouterProvider) {
         .state('home', {
             url: '/',
             template: '<div></div>'
-        })
-        .state('database-list', {
+        }).state('database-list', {
             url: '/databases',
             templateUrl: static('iscan/database-list/database_list.html'),
             controller: 'DatabaseListCtrl'
-        })
-        .state('user-list', {
+        }).state('change-password', {
+            url: '/change_password',
+            templateUrl: static('iscan/change-password/change_password.html'),
+            controller: 'ChangePasswordCtrl'
+        }).state('user-list', {
             url: '/users',
             templateUrl: static('iscan/user-list/user_list.html'),
             controller: 'UserListCtrl'
+        }).state('user-create', {
+            url: '/users/create/',
+            templateUrl: static('iscan/user-create/user_create.html'),
+            controller: 'UserCreateCtrl'
+        }).state('user-detail', {
+            url: '/users/:user_id',
+            templateUrl: static('iscan/user-detail/user_detail.html'),
+            controller: 'UserDetailCtrl'
         }).state('database-detail', {
         url: '/databases/{database_id:int}',
         templateUrl: static('iscan/database-detail/database_detail.html'),
