@@ -92,6 +92,8 @@ angular.module('formant_points', [
         'that must be done, further iterations may improve convergence and more accurate measurements, but ' +
         'each iteration can take a significant amount of time.',
         duration_threshold: 'Optionally specify the minimum duration of a phone to be analyzed (in milliseconds).',
+        tracks: 'This is whether you would prefer tracks over the whole vowel, rather than just a single point at' +
+        '33% saved. Note, the refinement algorithm still only works on the 33% point to choose parameters',
         vowel_prototypes: 'Optionally specify a CSV file that contains formant measure prototypes for use ' +
         'in seeding the algorithm before the first refinement iteration.  If not specified, these prototypes ' +
         'are generated from the data.'
