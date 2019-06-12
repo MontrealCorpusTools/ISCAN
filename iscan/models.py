@@ -909,7 +909,10 @@ class Enrichment(models.Model):
                 elif enrichment_type == 'formants':
                     c.reset_formants()
                 elif enrichment_type == 'refined_formant_points':
-                    c.reset_formant_points()
+                    if config.get("output_tracks", False):
+                        c.reset_formants()
+                    else:
+                        c.reset_formant_points()
                 elif enrichment_type == 'intensity':
                     c.reset_intensity()
                 elif enrichment_type == 'vot':
@@ -999,11 +1002,13 @@ class Enrichment(models.Model):
                     duration_threshold = float(config.get('duration_threshold', 0.0)) / 1000
                     nIterations = int(config.get('number_of_iterations'))
                     vowel_prototypes_path = config.get('path', None)
+                    output_tracks = config.get('output_tracks', False)
                     vowel_label = config.get('phone_class', 'vowel')
                     metadata = analyze_formant_points_refinement(c, duration_threshold=duration_threshold,
                                                                  num_iterations=nIterations,
                                                                  vowel_label=vowel_label,
                                                                  vowel_prototypes_path=vowel_prototypes_path,
+                                                                 output_tracks=output_tracks,
                                                                  multiprocessing=False
                                                                  )
                 elif enrichment_type == 'intensity':

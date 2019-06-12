@@ -25,7 +25,6 @@
             </label>
             <input ng-model="enrichment.number_of_iterations" type="number"
                    name="number_of_iterations" min="1" value="1" step="1" required/>
-
         </md-input-container>
       <md-button class="md-icon-button" aria-label="Help" ng-click="getHelp($event, 'num_iterations')">
        <i class="material-icons">info</i>
@@ -57,6 +56,16 @@
       <md-button class="md-icon-button" aria-label="Help" ng-click="getHelp($event, 'vowel_prototypes')">
        <i class="material-icons">info</i>
       </md-button>
+        </div>
+        <div layout="row" flex layout-align="space-between none">
+            <md-input-container>
+                <md-checkbox ng-model="enrichment.output_tracks"/>
+                    Save tracks instead of points in the database.
+                </md-checkbox>
+            </md-input-container>
+            <md-button class="md-icon-button" aria-label="Help" ng-click="getHelp($event, 'tracks')">
+                <i class="material-icons">info</i>
+            </md-button>
         </div>
 
         <div ng-if="hasFiles">
