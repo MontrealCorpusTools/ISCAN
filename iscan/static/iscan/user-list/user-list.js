@@ -57,7 +57,7 @@ angular.module('userList', [
                         .textContent('User successfully deleted!')
                         .position("bottom right")
                             .action('Dismiss')
-                            .hideDelay(0)
+                            .hideDelay(3000)
                             .highlightAction(true));
                         Users.all().then(function (res) {
                             $scope.users = res.data;
@@ -73,7 +73,7 @@ angular.module('userList', [
                       $mdToast.show(
                         $mdToast.simple()
                         .textContent('Creating tutorial corpus for ' + user.username + '...')
-                            .hideDelay(0)
+                            .hideDelay(3000)
                         .position("bottom right"));
                 Users.create_tutorial_corpus(user.id).then(function (res) {
                     $scope.busy = false;
@@ -81,7 +81,7 @@ angular.module('userList', [
                         $mdToast.simple()
                         .textContent('Successfully tutorial corpus for ' + user.username + '!')
                             .action('Dismiss')
-                            .hideDelay(0)
+                            .hideDelay(3000)
                         .position("bottom right"));
                 });
             }

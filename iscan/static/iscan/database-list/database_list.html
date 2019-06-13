@@ -47,9 +47,9 @@
                     <a href="http://{{ host + ':' + db.influxdb_admin_port }}">http://{{ host + ':' + db.influxdb_admin_port }}</a>
                 </td>
                 <td md-cell>
-                        <md-button class='md-raised md-primary' ng-click="startDatabase(db)" ng-show="db.status=='Stopped'" ng-disabled="db.start_button=='Starting...'">{{ db.start_button }}</md-button>
-                        <md-button class='md-raised md-warn' ng-click="stopDatabase(db)" ng-show="db.status=='Running'" ng-disabled="db.stop_button=='Stopping...'">{{ db.stop_button }}</md-button>
-                        <md-button class='md-raised md-warn' ng-click="deleteDatabase(db.id)" ng-if="user.is_superuser" ng-disabled="db.delete_button=='Deleting...'">{{ db.delete_button }}</md-button>
+                        <md-button class='md-raised md-primary' ng-click="startDatabase(db, $event)" ng-show="db.status=='Stopped'" ng-disabled="db.busy">Start</md-button>
+                        <md-button class='md-raised md-warn' ng-click="stopDatabase(db, $event)" ng-show="db.status=='Running'" ng-disabled="db.busy">Stop</md-button>
+                        <md-button class='md-raised md-warn' ng-click="deleteDatabase(db, $event)" ng-if="user.is_superuser" ng-disabled="db.busy">Delete</md-button>
                 </td>
             </tr>
             </tbody>

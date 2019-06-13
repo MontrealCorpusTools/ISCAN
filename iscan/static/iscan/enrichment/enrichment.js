@@ -163,11 +163,11 @@ angular.module('enrichment', [
 
 
         var confirm = $mdDialog.confirm()
-            .title('Reset enrichment')
+            .title('Delete enrichment')
             .textContent('Are you sure you want to delete "' + enrichment.name + '"?')
-            .ariaLabel('Reset enrichment')
+            .ariaLabel('Delete enrichment')
             .targetEvent(ev)
-            .ok('Reset')
+            .ok('Delete')
             .cancel('Cancel');
 
         $mdDialog.show(confirm).then(function () {
