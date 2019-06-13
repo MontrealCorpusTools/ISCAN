@@ -15,6 +15,10 @@ angular.module('userList', [
             Users.all().then(function (res) {
                 $scope.users = res.data;
             });
+            Users.roles().then(function(res) {
+
+                    $scope.roles = res.data;
+            });
 
             $scope.editUser = function (user_id) {
 
@@ -25,11 +29,20 @@ angular.module('userList', [
                 $state.go('user-create');
             };
 
+            $scope.display_user_type = function(user){
+                for (i=0; i<$scope.roles.length;i++){
+                    if ($scope.roles[i].id === user.user_type){
+                        return $scope.roles[i].name
+                    }
+                }
+                return 'Unknown'
+            };
+
             $scope.deleteUser = function (user, ev) {
 
                 var confirm = $mdDialog.confirm()
-                    .title('Would you like to delete ' + user.username + '?')
-                    .textContent('Delete user')
+                    .title('Delete user')
+                    .textContent('Are you sure you want to delete "' + user.username + '"?')
                     .ariaLabel('Delete user')
                     .targetEvent(ev)
                     .ok('Delete')

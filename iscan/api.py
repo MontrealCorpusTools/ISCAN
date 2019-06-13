@@ -234,9 +234,9 @@ class DatabaseViewSet(viewsets.ModelViewSet):
             return Response(status=status.HTTP_401_UNAUTHORIZED)
         database = self.get_object()
         if not request.user.is_superuser:
-            permissions = models.CorpusPermissions.objects.filter(user=request.user, corpus__database=database).all()
-            permissions = [x.can_access_database for x in permissions]
-            if not len(permissions) or not any(permissions):
+            permissions = models.CorpusPermissions.objects.filter(user=request.user, corpus__database=database,
+                                                                  can_access_database=True).all()
+            if not len(permissions):
                 return Response(status=status.HTTP_401_UNAUTHORIZED)
         try:
             success = database.start()
@@ -250,9 +250,9 @@ class DatabaseViewSet(viewsets.ModelViewSet):
             return Response(status=status.HTTP_401_UNAUTHORIZED)
         database = self.get_object()
         if not request.user.is_superuser:
-            permissions = models.CorpusPermissions.objects.filter(user=request.user, corpus__database=database).all()
-            permissions = [x.can_access_database for x in permissions]
-            if not len(permissions) or not any(permissions):
+            permissions = models.CorpusPermissions.objects.filter(user=request.user, corpus__database=database,
+                                                                  can_access_database=True).all()
+            if not len(permissions):
                 return Response(status=status.HTTP_401_UNAUTHORIZED)
         try:
             success = database.stop()

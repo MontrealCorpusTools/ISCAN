@@ -1,7 +1,7 @@
 angular.module('enrichment', [
     'iscan.corpora',
     'iscan.enrichment'
-]).controller('EnrichmentCtrl', function ($scope, $rootScope, Enrichment, Corpora, $state, $stateParams, $timeout, djangoAuth) {
+]).controller('EnrichmentCtrl', function ($scope, $rootScope, Enrichment, Corpora, $mdDialog, $state, $stateParams, $timeout, djangoAuth) {
 
     var loadTime = 10000, //Load the data every second
         errorCount = 0, //Counter for the server errors
@@ -65,14 +65,46 @@ angular.module('enrichment', [
         cancelNextLoad();
     });
 
-    $scope.runEnrichment = function (enrichment_id) {
-        Enrichment.run($stateParams.corpus_id, enrichment_id).then(function (res) {
+    $scope.runEnrichment = function (enrichment, ev) {
+        if (enrichment.completed){
+
+
+            var confirm = $mdDialog.confirm()
+                .title('Rerun enrichment')
+                .textContent('Are you sure you want to rerun "' + enrichment.name + '"?')
+                .ariaLabel('Rerun enrichment')
+                .targetEvent(ev)
+                .ok('Rerun')
+                .cancel('Cancel');
+
+            $mdDialog.show(confirm).then(function () {
+        Enrichment.run($stateParams.corpus_id, enrichment.id).then(function (res) {
             getData();
         });
-    };
-    $scope.resetEnrichment = function (enrichment_id) {
-        Enrichment.reset($stateParams.corpus_id, enrichment_id).then(function (res) {
+
+            });
+        }
+        else{
+        Enrichment.run($stateParams.corpus_id, enrichment.id).then(function (res) {
             getData();
+        });
+        }
+    };
+    $scope.resetEnrichment = function (enrichment, ev) {
+
+        var confirm = $mdDialog.confirm()
+            .title('Reset enrichment')
+            .textContent('Are you sure you want to reset "' + enrichment.name + '"?')
+            .ariaLabel('Reset enrichment')
+            .targetEvent(ev)
+            .ok('Reset')
+            .cancel('Cancel');
+
+        $mdDialog.show(confirm).then(function () {
+            Enrichment.reset($stateParams.corpus_id, enrichment.id).then(function (res) {
+                getData();
+            });
+
         });
     };
 
@@ -127,9 +159,18 @@ angular.module('enrichment', [
             });
         }
     };
-    $scope.deleteEnrichment = function (enrichment) {
-            if (confirm("Are you sure you want to delete \"" + enrichment.name + "\" ?")) {
-                console.log("Deleting " + enrichment.name + "...");
+    $scope.deleteEnrichment = function (enrichment, ev) {
+
+
+        var confirm = $mdDialog.confirm()
+            .title('Reset enrichment')
+            .textContent('Are you sure you want to delete "' + enrichment.name + '"?')
+            .ariaLabel('Reset enrichment')
+            .targetEvent(ev)
+            .ok('Reset')
+            .cancel('Cancel');
+
+        $mdDialog.show(confirm).then(function () {
                 Enrichment.destroy($stateParams.corpus_id, enrichment.id).then(function (res) {
 
                     $scope.enrichments = $scope.enrichments.filter(function (e) {
@@ -138,7 +179,9 @@ angular.module('enrichment', [
                 }).catch(function (res) {
                     console.log(res);
                 })
-            }
+
+        });
+
     };
 
     $scope.createUtterances = function () {

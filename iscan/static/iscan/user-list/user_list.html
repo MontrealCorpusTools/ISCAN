@@ -28,11 +28,11 @@
                     {{ u.username }}
                 </td>
                 <td md-cell>
-                    {{ u.user_type }}
+                    {{ display_user_type(u) }}
                 </td>
                 <td md-cell>
-                        <md-button class='md-raised md-primary' ng-click="editUser(u.id)" ng-disabled="busy">Edit</md-button>
-                        <md-button class='md-raised md-primary' ng-click="addTutorialCorpus(u)" ng-disabled="busy">Create tutorial corpus</md-button>
+                        <md-button class='md-raised md-primary' ng-click="editUser(u.id, $event)" ng-disabled="busy">Edit</md-button>
+                        <md-button class='md-raised md-primary' ng-click="addTutorialCorpus(u, $event)" ng-disabled="busy">Create tutorial corpus</md-button>
                         <md-button class='md-raised md-warn' ng-click="deleteUser(u, $event)"  ng-disabled="busy">Delete</md-button>
                 </td>
             </tr>

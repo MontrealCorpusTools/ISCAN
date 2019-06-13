@@ -81,18 +81,18 @@
                     </td>
                     <td md-cell>
                         <md-button class='md-raised md-primary' ng-if="!corpus.busy"
-                                ng-disabled="enrichment.runnable != 'runnable'" ng-click="runEnrichment(enrichment.id)">
+                                ng-disabled="enrichment.runnable != 'runnable'" ng-click="runEnrichment(enrichment, $event)">
                             <span> Run </span>
                         </md-button>
                         <md-button class='md-raised md-warn' ng-if="!corpus.busy"
-                                ng-disabled="!enrichment.completed" ng-click="resetEnrichment(enrichment.id)">
+                                ng-disabled="!enrichment.completed" ng-click="resetEnrichment(enrichment, $event)">
                             <span> Reset </span>
                         </md-button>
                         <md-button class='md-raised' ng-if="!corpus.busy" ng-click="editEnrichment(enrichment)">
                             <span> Edit </span>
                         </md-button>
                         <md-button class='md-raised md-warn' ng-if="!corpus.busy"
-                                ng-click="deleteEnrichment(enrichment)">
+                                ng-click="deleteEnrichment(enrichment, $event)">
                             <span> Delete </span>
                         </md-button>
                     </td>
