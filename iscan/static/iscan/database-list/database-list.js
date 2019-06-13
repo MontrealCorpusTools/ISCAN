@@ -129,7 +129,7 @@ angular.module('databaseList', [
                             .hideDelay(3000)
                             .highlightAction(true));
                     $scope.refreshDatabases();
-                    
+
                 }).catch(function (res) {
                     db.busy = false;
                     $mdToast.show(

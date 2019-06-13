@@ -73,10 +73,11 @@ angular.module('userList', [
                       $mdToast.show(
                         $mdToast.simple()
                         .textContent('Creating tutorial corpus for ' + user.username + '...')
-                            .hideDelay(3000)
+                            .hideDelay(0)
                         .position("bottom right"));
                 Users.create_tutorial_corpus(user.id).then(function (res) {
                     $scope.busy = false;
+                    user.has_tutorial_corpus = true;
                       $mdToast.show(
                         $mdToast.simple()
                         .textContent('Successfully tutorial corpus for ' + user.username + '!')

@@ -152,16 +152,20 @@ class CorpusPermissionsSerializer(serializers.ModelSerializer):
 class UserSerializer(serializers.ModelSerializer):
     corpus_permissions = serializers.SerializerMethodField()
     user_type = serializers.SerializerMethodField()
+    has_tutorial_corpus = serializers.SerializerMethodField()
     password = serializers.CharField(write_only=True)
 
     class Meta:
         model = User
         depth = 2
         fields = ('id', 'first_name', 'last_name', 'username', 'is_superuser',
-                  'corpus_permissions', 'user_type', 'password')
+                  'corpus_permissions', 'user_type', 'password', 'has_tutorial_corpus')
 
     def get_user_type(self, obj):
         return obj.profile.user_type
+
+    def get_has_tutorial_corpus(self, obj):
+        return obj.profile.has_tutorial_corpus
 
     def get_corpus_permissions(self, obj):
         perms = {}

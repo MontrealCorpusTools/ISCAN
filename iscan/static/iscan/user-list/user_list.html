@@ -31,9 +31,13 @@
                     {{ display_user_type(u) }}
                 </td>
                 <td md-cell>
+                    <div layout="row">
                         <md-button class='md-raised md-primary' ng-click="editUser(u.id, $event)" ng-disabled="busy">Edit</md-button>
-                        <md-button class='md-raised md-primary' ng-click="addTutorialCorpus(u, $event)" ng-disabled="busy">Create tutorial corpus</md-button>
-                        <md-button class='md-raised md-warn' ng-click="deleteUser(u, $event)"  ng-disabled="busy">Delete</md-button>
+                    <md-button class='md-raised md-warn' ng-click="deleteUser(u, $event)"  ng-disabled="busy">Delete</md-button>
+
+                    </div>
+                        <md-button class='md-raised md-primary' ng-click="addTutorialCorpus(u, $event)" ng-disabled="busy || u.has_tutorial_corpus">Create tutorial corpus</md-button>
+
                 </td>
             </tr>
             </tbody>
