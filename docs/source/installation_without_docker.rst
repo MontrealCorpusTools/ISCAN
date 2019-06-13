@@ -85,7 +85,7 @@ Follow the instructions on Reaper's GitHub repository (https://github.com/google
 executable somewhere on the system path so that Polyglot can find it easily.
 
 AutoVOT
-------
+-------
 
 AutoVOT is a program for automatically calculating Voice Onset Times(VOT). It's necessary in order to run any enrichment related to VOTs
 

@@ -31,6 +31,17 @@ Much of this documentation is meant to be more technical and is geared towards a
 ISCAN servers, either on a desktop computer for local use or on a dedicated server for communal use. Please see the :ref:`tutorials_iscan`
 section for more information and a walk-through on how to use ISCAN once it has been set up. Please see the troubleshooting section below for a continuously-updated set of solutions to common installation or maintenence issues.
 
+.. toctree::
+   :maxdepth: 2
+   :caption: Contents:
+
+   installation_via_docker.rst
+   use_via_docker.rst
+   installation_without_docker.rst
+   administration.rst
+   apache_setup.rst
+   troubleshooting.rst
+
 Moving parts
 ============
 
@@ -40,13 +51,3 @@ The ISCAN server uses several components, which are all managed by `Docker`_ (se
 * A Python API, `PolyglotDB`_, which communicates between the web interface and the back-end web framework, using `Django`_
 * A relational database, which manages metadata about Polyglot databases, using `PostgreSQL`_
 * Message and job queues for working with asynchronous tasks, using `RabbitMQ`_ and `Celery`_
-
-.. toctree::
-   :maxdepth: 2
-   :caption: Contents:
-
-   installation_via_docker.rst
-   use_via_docker.rst
-   installation_without_docker.rst
-   administration.rst
-   troubleshooting.rst

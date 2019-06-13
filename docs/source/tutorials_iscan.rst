@@ -1,5 +1,5 @@
 .. _`Montreal Forced Aligner`: https://github.com/MontrealCorpusTools/Montreal-Forced-Aligner
-.. _`here`: http://spade.glasgow.ac.uk/wp-content/uploads/2018/07/speaker_info.csv
+.. _`CSV for speaker information`: http://spade.glasgow.ac.uk/wp-content/uploads/2018/07/speaker_info.csv
 .. _`Lexicon CSV`: http://spade.glasgow.ac.uk/wp-content/uploads/2018/10/iscan_lexicon.csv
 .. _`Enriching`: https://polyglot-server.readthedocs.io/en/latest/enrichment_iscan.html
 .. _`Enrichment`: https://polyglot-server.readthedocs.io/en/latest/enrichment_iscan.html
@@ -151,7 +151,7 @@ Upon return to the Enrichment view, hit ‘Run’ on the new addition to the tab
 To enrich the database with speaker information:
 
 1. Select the 'Properties from a CSV' option
-2. Select 'Speaker CSV' from the 'Analysis' dropdown menu. The CSV for speakers in the tutorial corpus is `here`_. 
+2. Select 'Speaker CSV' from the 'Analysis' dropdown menu. The `CSV for speaker information`_ is available for download.
 3. Upload the tutorial corpus 'speaker_info.csv' file from your local machine.
 4. Select 'Save Enrichment' and then 'Run' from the Enrichment view.
 
