@@ -1274,7 +1274,7 @@ class Query(models.Model):
         a = getattr(corpus_context, a_type)
         q = corpus_context.query_graph(a)
         for f_a_type, positions in config['filters'].items():
-            if f_a_type not in {'speaker', 'discourse'} | corpus_context.hierarchy.annotation_types:
+            if f_a_type not in {'speaker', 'discourse'} | set(corpus_context.hierarchy.annotation_types):
                 continue
             if f_a_type == a_type:
                 ann = a
