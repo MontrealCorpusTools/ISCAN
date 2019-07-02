@@ -4,7 +4,7 @@
         window.__env.hostUrl = window.location.protocol + '//' + window.location.hostname + ':' + window.location.port + window.location.pathname;
     }
     else {
-        window.__env.hostUrl = window.location.protocol + '//' + window.location.hostname + '/';
+        window.__env.hostUrl = window.location.protocol + '//' + window.location.hostname + window.location.pathname;
     }
     window.__env.apiUrl = window.__env.hostUrl + 'api/';
     window.__env.intontationUrl = window.__env.hostUrl + 'intonation/';
