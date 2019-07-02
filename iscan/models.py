@@ -17,6 +17,7 @@ from django.conf import settings
 from django.contrib.auth.models import Group, User
 from django.db.models.signals import post_save
 from django.dispatch import receiver
+from django.contrib.postgres.fields import ArrayField
 
 # Comment out once PolyglotDB docker compatibility is merged
 sys.path.insert(0, '/site/proj/PolyglotDB')
@@ -537,6 +538,10 @@ class Corpus(models.Model):
 
     users = models.ManyToManyField(User, through='CorpusPermissions')
 
+    sibilants = ArrayField(models.CharField(max_length=6, blank=True), blank=True, default=list)
+    vowel_inventory = ArrayField(models.CharField(max_length=6, blank=True), blank=True, default=list)
+    stressed_vowels = ArrayField(models.CharField(max_length=6, blank=True), blank=True, default=list)
+
     def __str__(self):
         return self.name
 
@@ -646,9 +651,21 @@ class Corpus(models.Model):
             else:
                 return False
             c.load(parser, self.source_directory)
+        spade_conf = self.configuration_data
+
+        if "sibilant_segments" in spade_conf:
+            self.sibilants = spade_conf["sibilant_segments"]
+
+        if "stressed_vowels" in spade_conf:
+            self.stressed_vowels = spade_conf["stressed_vowels"]
+
+        if "vowel_inventory" in spade_conf:
+            self.vowel_inventory = spade_conf["vowel_inventory"]
+
         self.imported = True
         self.busy = False
         self.save()
+
 
     @property
     def has_pauses(self):
