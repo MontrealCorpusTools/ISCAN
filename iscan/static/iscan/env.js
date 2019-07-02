@@ -1,7 +1,7 @@
 (function (window) {
     window.__env = window.__env || {};
     if (window.location.port) {
-        window.__env.hostUrl = window.location.protocol + '//' + window.location.hostname + ':' + window.location.port + '/';
+        window.__env.hostUrl = window.location.protocol + '//' + window.location.hostname + ':' + window.location.port + window.location.pathname;
     }
     else {
         window.__env.hostUrl = window.location.protocol + '//' + window.location.hostname + '/';
