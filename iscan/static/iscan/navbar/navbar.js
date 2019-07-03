@@ -1,16 +1,20 @@
 angular.module('navbar', [
     'iscan.corpora',
     'iscan.auth',
-    'iscan.users'
+    'iscan.users',
+    'iscan.apps'
 ])
-    .controller('NavCtrl', function ($scope, $rootScope, Corpora, $http, djangoAuth, __env, Users) {
+    .controller('NavCtrl', function ($scope, $rootScope, Corpora, $http, djangoAuth, __env, Users, Apps) {
         $rootScope.authenticated = undefined;
         $scope.authenticated = false;
         $scope.siteName = __env.siteName;
 
         djangoAuth.authenticationStatus(true).then(function () {
             $scope.authenticated = true;
-
+            Apps.all().then(function(res){
+                $scope.apps = res.data;
+                console.log($scope.apps)
+            })
             $scope.refreshCorpusList();
             Users.current_user().then(function (res) {
                 $scope.user = res.data;

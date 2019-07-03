@@ -67,7 +67,7 @@ angular.module('query', [
     }])
 
     .controller('QueryCtrl', function ($scope, $rootScope, Query, Corpora, $state, $stateParams, FileSaver, Blob, $timeout,
-                                       $q, $query, djangoAuth, Users, $mdDialog) {
+                                       $q, $query, djangoAuth, Users, $mdDialog, $mdToast) {
 
         $scope.help_titles = {
         subset: 'Subset',

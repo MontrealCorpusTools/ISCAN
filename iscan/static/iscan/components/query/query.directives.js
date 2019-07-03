@@ -618,8 +618,9 @@ angular.module('iscan.query').filter('secondsToDateTime', [function () {
 
 
                 scope.$watch('data', function (newVal, oldVal) {
+                    console.log('DATA CHANGED')
                     if (!newVal) return;
-
+                    console.log('ACTUALLY UPDATING');
                     y.domain(d3.extent(newVal, d => d.amplitude));
                     waveform_vis.select('.xaxis').call(xaxis.scale(xt));
                     waveform_vis.select('.yaxis').call(yaxis.scale(y));
@@ -631,6 +632,7 @@ angular.module('iscan.query').filter('secondsToDateTime', [function () {
                     vis.select('.line')
                        .datum(newVal)
                        .attr('d',d => waveform_valueline(d));
+                    resize();
 // Make x axis
                 });
 

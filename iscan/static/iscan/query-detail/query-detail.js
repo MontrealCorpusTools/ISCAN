@@ -1,7 +1,8 @@
 angular.module('queryDetail', [
     'iscan.corpora',
     'iscan.query',
-    'iscan.annotations'
+    'iscan.annotations',
+    'iscan.apps'
 ]).filter('titlecase', function () {
     return function (input) {
         var smallWords = /^(a|an|and|as|at|but|by|en|for|if|in|nor|of|on|or|per|the|to|vs?\.?|via)$/i;
@@ -31,7 +32,7 @@ angular.module('queryDetail', [
             });
         }
     };
-}]).controller('QueryDetailCtrl', function ($scope, Query, Corpora, $state, $stateParams, $document, Annotations, djangoAuth, Users, $mdDialog) {
+}]).controller('QueryDetailCtrl', function ($scope, Query, Corpora, $state, $stateParams, $document, Annotations, djangoAuth, Users, $mdDialog, Apps) {
     $scope.paginateParams = Query.paginateParams;
     $scope.annotation_types = Query.annotation_types;
     $scope.newAnnotation = {};
@@ -68,6 +69,7 @@ angular.module('queryDetail', [
             $scope.selectedType = $scope.query.annotation_type.toLowerCase();
             Corpora.hierarchy($stateParams.corpus_id).then(function (res) {
                 $scope.hierarchy = res.data;
+                console.log($scope.hierarchy)
                 var prop;
                 $scope.properties = {
                     discourse: [],
@@ -212,6 +214,9 @@ angular.module('queryDetail', [
 
 
     djangoAuth.authenticationStatus(true).then(function () {
+        Apps.all().then(function(res){
+            $scope.apps = res.data;
+        });
         Users.current_user().then(function (res) {
             $scope.user = res.data;
             $scope.refreshPermissions();

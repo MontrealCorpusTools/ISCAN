@@ -83,7 +83,7 @@ angular.module('iscan.query').filter('secondsToDateTime', [function () {
                     .attr("width", width);
                 vis.select('.xaxis')
                     .attr("transform", "translate(0," + height + ")").call(xaxis);
-                vis.select('.yaxis').call(yaxis);
+                vis.select('.yaxis').call(pitch_yaxis);
                 vis.select('.playline')
                     .attr("x1", xt(scope.play_begin))
                     .attr("x2", xt(scope.play_begin));

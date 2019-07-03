@@ -132,6 +132,17 @@ class UserViewSet(viewsets.ModelViewSet):
                             status=status.HTTP_201_CREATED)
 
 
+class AppViewSet(viewsets.ViewSet):
+    def list(self, request):
+        if isinstance(request.user, django.contrib.auth.models.AnonymousUser):
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
+        apps = ['base']
+        for a in settings.INSTALLED_APPS:
+            if a.startswith('iscan.'):
+                apps.append(a.replace('iscan.', ''))
+        return Response(apps)
+
+
 class RoleChoiceViewSet(viewsets.ViewSet):
     def list(self, request):
         if isinstance(request.user, django.contrib.auth.models.AnonymousUser):

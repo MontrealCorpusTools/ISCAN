@@ -246,6 +246,6 @@
 
     </div>
 </div>
-<div class="row" style="padding-top: 10px; min-height:300px;" ng-if="hierarchy.has_pitch_tracks" flex>
+<div class="row" style="padding-top: 10px; min-height:300px;" ng-if="hierarchy.has_pitch_tracks && apps.includes('intonation')" flex>
     <pitch-plot utterance="utterance" editable="can_edit" selected-annotation="selectedAnnotation"></pitch-plot>
 </div>
