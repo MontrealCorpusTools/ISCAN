@@ -1,4 +1,5 @@
 from django.conf.urls import url, include
+from django.conf import settings
 from rest_framework_nested import routers
 from . import api
 from . import views
@@ -32,3 +33,6 @@ urlpatterns = [
     url('^api/', include(corpora_router.urls)),
 
 ]
+
+if 'iscan.intonation' in settings.INSTALLED_APPS:
+    urlpatterns += [url('^intonation/', include('iscan.intonation.urls'))]

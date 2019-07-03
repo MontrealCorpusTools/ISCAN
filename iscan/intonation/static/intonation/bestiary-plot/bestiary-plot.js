@@ -117,14 +117,16 @@ angular.module('bestiaryPlot', [
         $scope.createFacets = function () {
         $scope.faceted = true;
             $scope.facets = [];
-            if ($scope.facet_attribute) {
+            if ($scope.facet_attribute && $scope.facet_attribute !== 'None') {
                 var property = $scope.facet_attribute.split(' ', 2);
                 var values,value, filtered;
                 for (var v in $scope.filter_options[property[0]]) {
                     console.log($scope.filter_options[property[0]][v])
                     if ($scope.filter_options[property[0]][v].name == property[1])
+
                     values = $scope.filter_options[property[0]][v].options;
                 }
+                if (values){
 
                 console.log(values)
                 for (i = 0; i < values.length; i++) {
@@ -132,6 +134,10 @@ angular.module('bestiaryPlot', [
                     filtered = $scope.utterances.filter(x => x[property[0]][property[1]] == value);
                     $scope.facets.push({name: value, utterances: filtered})
                 }
+                }
+            else {
+                $scope.facets.push({name: 'All data', utterances: $scope.utterances})
+            }
 
             }
             else {

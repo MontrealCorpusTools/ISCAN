@@ -670,7 +670,7 @@ angular.module('iscan.query').filter('secondsToDateTime', [function () {
                         return valueline(data);
                     })
                     .style("stroke", function (d) { // Add the colours dynamically
-                        if (scope.color) {
+                        if (scope.color && scope.color !== 'None') {
                             return d.color = color(d[color_property[0]][color_property[1]]);
                         }
                         else {
@@ -691,7 +691,7 @@ angular.module('iscan.query').filter('secondsToDateTime', [function () {
                 }
                 vis.selectAll("path.line")
                     .style("stroke", function (d) { // Add the colours dynamically
-                        if (scope.color) {
+                        if (scope.color && scope.color !== 'None') {
                             return d.color = color(d[color_property[0]][color_property[1]]);
                         }
                         else {
