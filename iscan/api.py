@@ -222,7 +222,22 @@ class DatabaseViewSet(viewsets.ModelViewSet):
                     d, _ = models.Database.objects.get_or_create(name=dataset)
                     c = models.Corpus.objects.create(name=dataset, database=d)
                     if 'input_format' in c.configuration_data:
-                        c.input_format = c.configuration_data['input_format'][0].upper()
+                        input_format = c.configuration_data['input_format'][0].upper()
+                        if input_format == "MFA":
+                            input_format = Corpus.MFA
+                        if input_format == "MAUS":
+                            input_format = Corpus.MAUS
+                        if input_format == "FAVE":
+                            input_format = Corpus.FAVE
+                        if input_format == "LABCAT":
+                            input_format = Corpus.LABCAT
+                        if input_format == "PARTITUR":
+                            input_format = Corpus.PARTITUR
+                        if input_format == "TIMIT":
+                            input_format = Corpus.TIMIT
+                        if input_format == "BUCKEYE":
+                            input_format = Corpus.BUCKEYE
+                        c.input_format = input_format
                         c.save()
             databases = models.Database.objects.all()
             return Response(self.serializer_class(databases, many=True).data)
