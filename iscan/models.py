@@ -996,7 +996,7 @@ class Enrichment(models.Model):
                 elif enrichment_type == 'pitch':
                     c.analyze_pitch(source=config.get('source', 'praat'), multiprocessing=False)
                 elif enrichment_type == 'formants':
-                    c.analyze_vowel_formant_tracks(source=config.get('source', 'praat'), multiprocessing=False)
+                    c.analyze_formant_tracks(source=config.get('source', 'praat'), multiprocessing=False)
                 elif enrichment_type == 'refined_formant_points':
                     from polyglotdb.acoustics.formants.refined import analyze_formant_points_refinement
                     duration_threshold = float(config.get('duration_threshold', 0.0)) / 1000
