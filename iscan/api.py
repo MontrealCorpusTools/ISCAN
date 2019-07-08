@@ -233,7 +233,22 @@ class DatabaseViewSet(viewsets.ModelViewSet):
                     d, _ = models.Database.objects.get_or_create(name=dataset)
                     c = models.Corpus.objects.create(name=dataset, database=d)
                     if 'input_format' in c.configuration_data:
-                        c.input_format = c.configuration_data['input_format'][0].upper()
+                        input_format = c.configuration_data['input_format'][0].upper()
+                        if input_format == "MFA":
+                            input_format = Corpus.MFA
+                        if input_format == "MAUS":
+                            input_format = Corpus.MAUS
+                        if input_format == "FAVE":
+                            input_format = Corpus.FAVE
+                        if input_format == "LABCAT":
+                            input_format = Corpus.LABCAT
+                        if input_format == "PARTITUR":
+                            input_format = Corpus.PARTITUR
+                        if input_format == "TIMIT":
+                            input_format = Corpus.TIMIT
+                        if input_format == "BUCKEYE":
+                            input_format = Corpus.BUCKEYE
+                        c.input_format = input_format
                         c.save()
             databases = models.Database.objects.all()
             return Response(self.serializer_class(databases, many=True).data)
@@ -470,67 +485,12 @@ class CorpusViewSet(viewsets.ModelViewSet):
                 'Invalid subset class',
                 status=status.HTTP_400_BAD_REQUEST)
 
-        if corpus.name.startswith("spade-"):
-            corpus_name = corpus.name.split("spade-")[1]
-        else:
-            corpus_name = corpus.name
-        if 'tutorial' in corpus_name:
-            corpus_name = 'tutorial'
-
-        if corpus_name not in ['SCOTS', 'Buckeye', 'SOTC', 'ICE-Can', "Raleigh", "SantaBarbara", "tutorial"]:
-            with CorpusContext(corpus.config) as c:
-                q = c.query_lexicon(c.lexicon_phone).columns(c.lexicon_phone.label.column_name('label'))
-                phones = q.all()
-                phones = [r['label'] for r in phones if not r['label'].startswith('<')]
-
         if subset_class == 'syllabics':
-            if corpus_name == 'SCOTS':
-                subset = ["@", "@`", "e", "e`", "O`", "3`", "E", "E@", "E`", "I", "O", "O@`", "OI", "O`", "e", "e@",
-                  "e@`", "e`", "{`", "}", "}:", "}@", "}@`", "}`", "o:", "o@", "o@`", "o`", "V", "VU", "VU`", "Vi",
-                  "i", "i:", "i@", "i@`", "i`", "a", "a`", "ae", "l=", "m=", "n="]
-            elif corpus_name == 'Buckeye':
-                subset = ["aa", "ae", "ay", "aw", "ao", "oy", "ow", "eh", "ey", "er", "ah", "uw", "ih", "iy", "uh",
-                    "aan", "aen", "ayn", "awn", "aon", "oyn", "own", "ehn", "eyn", "ern", "ahn", "uwn", "ihn", "iyn", "uhn",
-                             "en", "em", "eng", "el"]
-            elif corpus_name == 'SOTC':
-                subset = ["I", "E", "{", "V", "Q", "U", "@", "i","#", "$", "u", "3", "1", "2","4", "5", "6", "7", "8",
-                             "9", "c","q", "O", "~", "B","F","H","L", "P", "C"]
-            elif corpus_name in ["ICE-Can", "Raleigh", "SantaBarbara", "tutorial"]:
-                subset = ["ER0", "IH2", "EH1", "AE0", "UH1", "AY2", "AW2", "UW1", "OY2", "OY1", "AO0", "AH2", "ER1", "AW1",
-                   "OW0", "IY1", "IY2", "UW0", "AA1", "EY0", "AE1", "AA0", "OW1", "AW0", "AO1", "AO2", "IH0", "ER2",
-                   "UW2", "IY0", "AE2", "AH0", "AH1", "UH2", "EH2", "UH0", "EY1", "AY0", "AY1", "EH0", "EY2", "AA2",
-                   "OW2", "IH1"]
-            else:
-                subset = []
-                vow_check = ['a', 'i','e','u','o']
-                for p in phones:
-                    if p in ['sp', 'sil']:
-                        continue
-                    if any(s in p.lower() for s in vow_check):
-                        subset.append(p)
+            subset = corpus.syllabics
         elif subset_class == "sibilants":
-            if corpus_name in ['SOTC', 'SCOTS']:
-                subset = ["s", "z", "S", "Z"]
-            elif corpus_name == 'Buckeye':
-                subset = ["s", "z", "sh", "zh"]
-            elif corpus_name in ["ICE-Can", "Raleigh", "SantaBarbara", "tutorial"]:
-                subset = ["S", "Z", "SH", "ZH"]
-            else:
-                subset = []
-                sib_check = ['s', 'z']
-                for p in phones:
-                    if p in ['sp', 'sil', 'spn']:
-                        continue
-                    if any(s in p.lower() for s in sib_check):
-                        subset.append(p)
+            subset = corpus.sibilants
         elif subset_class == "stressed_vowels":
-            if corpus_name in ["ICE-Can", "Raleigh", "SantaBarbara", "tutorial"]:
-                subset = ["EH1", "UH1", "UW1", "OY1", "ER1", "AW1", "IY1", "AA1", "AE1", "OW1",  "AO1", "AH1", "EY1", "AY1", "IH1"]
-            else:
-                subset = []
-                for p in phones:
-                    if "1" in p:
-                        subset.append(p)
+            subset = corpus.stressed_vowels
         return Response(json.dumps(subset))
 
     @action(detail=True, methods=['get'])

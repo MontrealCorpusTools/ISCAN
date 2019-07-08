@@ -559,6 +559,27 @@ class Corpus(models.Model):
         return conf
 
     @property
+    def syllabics(self):
+        conf_data = self.configuration_data
+        if "syllabics" in conf_data:
+            return conf_data["syllabics"]
+        return []
+
+    @property
+    def stressed_vowels(self):
+        conf_data = self.configuration_data
+        if "stressed_vowels" in conf_data:
+            return conf_data["stressed_vowels"]
+        return []
+
+    @property
+    def sibilants(self):
+        conf_data = self.configuration_data
+        if "sibilants" in conf_data:
+            return conf_data["sibilants"]
+        return []
+
+    @property
     def import_directory(self):
         tgwav = os.path.join(self.source_directory, 'textgrid-wav')
         if os.path.exists(tgwav):
@@ -649,6 +670,7 @@ class Corpus(models.Model):
         self.imported = True
         self.busy = False
         self.save()
+
 
     @property
     def has_pauses(self):
