@@ -45,7 +45,8 @@ would be saved to a file named ``roquefort.linguistics.mcgill.ca.conf`` in ``/et
 
    <VirtualHost *:80>
 
-       ServerName roquefort.linguistics.mcgill.ca  # Update for other hostname
+       # Update for other hostname
+       ServerName roquefort.linguistics.mcgill.ca
        ServerAdmin webmaster@localhost
        DocumentRoot /var/www/html
 
@@ -54,7 +55,8 @@ would be saved to a file named ``roquefort.linguistics.mcgill.ca.conf`` in ``/et
        CustomLog ${APACHE_LOG_DIR}/access.log combined
 
        RewriteEngine on
-       RewriteCond %{SERVER_NAME} =roquefort.linguistics.mcgill.ca  # Update for other hostname
+       # Update for other hostname
+       RewriteCond %{SERVER_NAME} =roquefort.linguistics.mcgill.ca
        RewriteRule ^ https://%{SERVER_NAME}%{REQUEST_URI} [END,NE,R=permanent]
    </VirtualHost>
 
@@ -76,7 +78,8 @@ would be saved to a file named ``roquefort.linguistics.mcgill.ca-ssl.conf`` in `
    <IfModule mod_ssl.c>
    <VirtualHost *:443>
 
-       ServerName roquefort.linguistics.mcgill.ca  # Update for other hostname
+       # Update for other hostname
+       ServerName roquefort.linguistics.mcgill.ca
 
        ServerAdmin webmaster@localhost
        DocumentRoot /var/www/html
@@ -84,8 +87,9 @@ would be saved to a file named ``roquefort.linguistics.mcgill.ca-ssl.conf`` in `
        ErrorLog ${APACHE_LOG_DIR}/error.log
        CustomLog ${APACHE_LOG_DIR}/access.log combined
 
-       SSLCertificateFile /etc/letsencrypt/live/roquefort.linguistics.mcgill.ca/fullchain.pem  # Update for actual location
-       SSLCertificateKeyFile /etc/letsencrypt/live/roquefort.linguistics.mcgill.ca/privkey.pem  # Update for actual location
+       # Update for actual location
+       SSLCertificateFile /etc/letsencrypt/live/roquefort.linguistics.mcgill.ca/fullchain.pem
+       SSLCertificateKeyFile /etc/letsencrypt/live/roquefort.linguistics.mcgill.ca/privkey.pem
        Include /etc/letsencrypt/options-ssl-apache.conf
 
        <Location "/">

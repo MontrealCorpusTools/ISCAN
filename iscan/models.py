@@ -1188,6 +1188,7 @@ class Query(models.Model):
         config = self.config
         a = getattr(corpus_context, a_type)
         acoustic_columns = config.get('acoustic_columns', {})
+        acoustic_tracks = config.get('acoustic_tracks', {})
         columns = config.get('columns', {})
         column_names = config.get('column_names', {})
         q = self.generate_base_query(corpus_context)
@@ -1238,7 +1239,22 @@ class Query(models.Model):
                                         pass
                                     q = q.columns(att)
 
+        print(acoustic_columns)
         for a_column, props in acoustic_columns.items():
+            if a_column not in corpus_context.hierarchy.acoustics:
+                continue
+            relative_aggregate = props.pop('relative', False)
+            acoustic = getattr(a, a_column)
+            acoustic.relative = relative_aggregate
+            for c, v in props.items():
+                if not v:
+                    continue
+                if c not in ['mean', 'stdev', 'median', 'max', 'min']:
+                    continue
+                q = q.columns(getattr(acoustic, c))
+
+        print(acoustic_tracks)
+        for a_column, props in acoustic_tracks.items():
             # track props
             include_track = props.pop('include', False)
             if not include_track:
@@ -1247,13 +1263,6 @@ class Query(models.Model):
             relative_track = props.pop('relative_track', False)
             num_points = props.pop('num_points', '')
 
-            relative_aggregate = props.pop('relative_aggregate', False)
-            acoustic = getattr(a, a_column)
-            acoustic.relative = relative_aggregate
-            for c, v in props.items():
-                if not v:
-                    continue
-                q = q.columns(getattr(acoustic, c))
             if include_track:
                 acoustic = getattr(a, a_column)
                 acoustic.relative_time = relative_time

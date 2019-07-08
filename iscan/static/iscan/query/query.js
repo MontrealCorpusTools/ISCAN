@@ -441,6 +441,10 @@ angular.module('query', [
                         speaker: {}
                     },
                     acoustic_columns: {
+                        pitch: {},
+                        formants: {}
+                    },
+                    acoustic_tracks: {
                         pitch: {include: false},
                         formants: {include: false}
                     }

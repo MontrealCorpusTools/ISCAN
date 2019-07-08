@@ -696,21 +696,21 @@
                             <md-card-content>
 
                                 <div>
-                                    <md-checkbox ng-model="query.acoustic_columns[acoustic].include" aria-label="Include track">Include track
+                                    <md-checkbox ng-model="query.acoustic_tracks[acoustic].include" aria-label="Include track">Include track
                                     </md-checkbox>
                                 </div>
                                 <div>
-                                    <md-checkbox ng-model="query.acoustic_columns[acoustic].relative_track" aria-label="Include relativized">
+                                    <md-checkbox ng-model="query.acoustic_tracks[acoustic].relative_track" aria-label="Include relativized">
                                         Include relativized
                                     </md-checkbox>
                                 </div>
                                 <div>
-                                    <md-checkbox ng-model="query.acoustic_columns[acoustic].relative_time" aria-label="Relative time">
+                                    <md-checkbox ng-model="query.acoustic_tracks[acoustic].relative_time" aria-label="Relative time">
                                         Relative time
                                     </md-checkbox>
                                 </div>
                                 <div>
-                                    <input type="number" ng-model="query.acoustic_columns[acoustic].num_points"
+                                    <input type="number" ng-model="query.acoustic_tracks[acoustic].num_points"
                                            style="max-width:35px;">
                                     <span>Interpolation points</span>
                                 </div>
