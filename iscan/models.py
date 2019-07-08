@@ -667,17 +667,6 @@ class Corpus(models.Model):
             else:
                 return False
             c.load(parser, self.source_directory)
-        spade_conf = self.configuration_data
-
-        if "sibilant_segments" in spade_conf:
-            self.sibilants = spade_conf["sibilant_segments"]
-
-        if "stressed_vowels" in spade_conf:
-            self.stressed_vowels = spade_conf["stressed_vowels"]
-
-        if "vowel_inventory" in spade_conf:
-            self.vowel_inventory = spade_conf["vowel_inventory"]
-
         self.imported = True
         self.busy = False
         self.save()
