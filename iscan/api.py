@@ -475,11 +475,11 @@ class CorpusViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST)
 
         if subset_class == 'syllabics':
-            subset = corpus.configuration_data["syllabics"]
+            subset = corpus.syllabics
         elif subset_class == "sibilants":
-            subset = corpus.configuration_data["sibilant_segments"]
+            subset = corpus.sibilants
         elif subset_class == "stressed_vowels":
-            subset = corpus.configuration_data["stressed_vowels"]
+            subset = corpus.stressed_vowels
         return Response(json.dumps(subset))
 
     @action(detail=True, methods=['get'])
