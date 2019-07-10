@@ -109,3 +109,9 @@ def get_pids():
             pass
     return pids
 
+
+def run_spade_script(script, target, reset=False):
+    cmd = [sys.executable, script, target]
+    if reset:
+        cmd.append("-r")
+    subprocess.run(cmd, cwd=settings.SPADE_SCRIPT_DIRECTORY)

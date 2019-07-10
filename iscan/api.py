@@ -22,7 +22,7 @@ from polyglotdb.query.base.func import Count
 
 from . import models
 from . import serializers
-from .utils import get_used_ports
+from .utils import get_used_ports, run_spade_script
 from .tasks import import_corpus_task, run_query_task, run_enrichment_task, reset_enrichment_task, delete_enrichment_task, run_query_export_task, run_query_generate_subset_task
 
 import logging
@@ -1465,3 +1465,27 @@ class QueryViewSet(viewsets.ModelViewSet):
                     os.path.basename(query.export_path))
                 return response
         return Response(None, status=status.HTTP_400_BAD_REQUEST)
+
+class SpadeScriptViewSet(viewsets.ViewSet):
+    def list(self, request):
+        if isinstance(request.user, django.contrib.auth.models.AnonymousUser):
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
+        scripts = list(filter(lambda x: x.endswith(".py"), \
+                os.listdir(settings.SPADE_SCRIPT_DIRECTORY)))
+        return Response(scripts)
+
+    @action(detail=False, methods=['post'])
+    def run_script(self, request):
+        if isinstance(request.user, django.contrib.auth.models.AnonymousUser):
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
+        script = request.data["script"]
+        target = request.data["target_corpus"]
+        reset = True if request.data["target_corpus"].lower() == "true" else False
+        if script not in list(filter(lambda x: x.endswith(".py"), \
+                os.listdir(settings.SPADE_SCRIPT_DIRECTORY))):
+            return Response("{} is not a valid script".format(script), status=status.HTTP_400_BAD_REQUEST)
+        if target not in list(filter(lambda x: os.path.isdir(os.path.join(settings.SPADE_SCRIPT_DIRECTORY, x)) and not x in ["Common", ".git"], \
+                os.listdir(settings.SPADE_SCRIPT_DIRECTORY))):
+            return Response("{} is not a valid corpus".format(target), status=status.HTTP_400_BAD_REQUEST)
+        run_spade_script(script, target, reset)
+        return Response(True)
