@@ -1474,10 +1474,32 @@ class SpadeScriptViewSet(viewsets.ViewSet):
                 os.listdir(settings.SPADE_SCRIPT_DIRECTORY)))
         return Response(scripts)
 
+    @action(detail=False, methods=['get'])
+    def list_csvs(self, request):
+        if isinstance(request.user, django.contrib.auth.models.AnonymousUser):
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
+        target = request.data["target_corpus"]
+        return Response(list(filter(lambda x: x.endswith(".csv"), \
+                os.listdir(os.path.join(settings.SPADE_SCRIPT_DIRECTORY, target)))))
+
+    @action(detail=False, methods=['get'])
+    def download_csv(self, request):
+        if isinstance(request.user, django.contrib.auth.models.AnonymousUser):
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
+        target = request.data["target_corpus"]
+        csv_file = request.data["csv_file"]
+        csvs = list(filter(lambda x: x.endswith(".csv"), \
+                os.listdir(os.path.join(settings.SPADE_SCRIPT_DIRECTORY, target))))
+        if csv_file not in csv:
+            return Response("{} is not a valid file".format(csv_file), 
+                    status=status.HTTP_400_BAD_REQUEST)
+        path = os.path.join(settings.SPADE_SCRIPT_DIRECTORY, target, csv_file)
+        return FileResponse(open(path, "r"), content_type='text/csv')
+
     @action(detail=False, methods=['post'])
     def run_script(self, request):
-        #if isinstance(request.user, django.contrib.auth.models.AnonymousUser):
-        #    return Response(status=status.HTTP_401_UNAUTHORIZED)
+        if isinstance(request.user, django.contrib.auth.models.AnonymousUser):
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
         script = request.data["script"]
         target = request.data["target_corpus"]
         reset = True if request.data["target_corpus"].lower() == "true" else False
