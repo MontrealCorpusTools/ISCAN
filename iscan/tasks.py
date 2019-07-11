@@ -1,6 +1,7 @@
 from celery import shared_task
 from celery.app.task import Task
 from .models import Corpus, Query, Enrichment
+from .utils import run_spade_script
 
 import logging
 
@@ -64,3 +65,7 @@ def delete_enrichment_task(enrichment_id):
     # Then properly delete
     print("Deleting enrichment...")
     enrichment.delete()
+
+@shared_task
+def run_spade_script_task(script, target, reset):
+    run_spade_script(script, target, reset)
