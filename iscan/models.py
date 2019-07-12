@@ -561,8 +561,8 @@ class Corpus(models.Model):
     @property
     def syllabics(self):
         conf_data = self.configuration_data
-        if "syllabics" in conf_data:
-            return conf_data["syllabics"]
+        if "vowel_inventory" in conf_data:
+            return conf_data["vowel_inventory"]
         return []
 
     @property
@@ -575,8 +575,8 @@ class Corpus(models.Model):
     @property
     def sibilants(self):
         conf_data = self.configuration_data
-        if "sibilants" in conf_data:
-            return conf_data["sibilants"]
+        if "sibilant_segments" in conf_data:
+            return conf_data["sibilant_segments"]
         return []
 
     @property
@@ -954,7 +954,9 @@ class Enrichment(models.Model):
                     q = c.query_graph(c.syllable).set_properties(stress=None)
                 elif enrichment_type == 'praat_script':
                     props = config.get('properties', ['cog', 'slope', 'spread', 'peak'])
-                    q = c.query_graph(c.phone).filter(c.phone.subset == config.get('phone_class'))
+                    annotation_type = config.get('annotation_type', 'phone')
+                    q = c.query_graph(getattr(c, annotation_type)) \
+                            .filter(getattr(c, annotation_type).config.get.subset == config.get('subset'))
                     q.set_properties(**{x: None for x in props})
             self.running = False
             self.completed = False
@@ -1047,8 +1049,10 @@ class Enrichment(models.Model):
                 elif enrichment_type == 'relativize_formants':
                     c.relativize_formants(by_speaker=config.get('by_speaker', True), by_phone=config.get('by_phone', True))
                 elif enrichment_type == 'praat_script':
-                    properties = c.analyze_script(phone_class=config.get('phone_class'), script_path=config.get('path'),
-                                                  multiprocessing=False)
+                    properties = c.analyze_script(annotation_type=config.get('annotation_type', 'phone'),
+                                                      subset=config.get('subset'), 
+                                                      script_path=config.get('path'),
+                                                      multiprocessing=False)
                     config['properties'] = properties
                     self.config = config
                 elif enrichment_type == 'patterned_stress':
