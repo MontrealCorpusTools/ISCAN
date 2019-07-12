@@ -954,7 +954,9 @@ class Enrichment(models.Model):
                     q = c.query_graph(c.syllable).set_properties(stress=None)
                 elif enrichment_type == 'praat_script':
                     props = config.get('properties', ['cog', 'slope', 'spread', 'peak'])
-                    q = c.query_graph(c.phone).filter(c.phone.subset == config.get('phone_class'))
+                    annotation_type = config.get('annotation_type', 'phone')
+                    q = c.query_graph(getattr(c, annotation_type))
+                            .filter(getattr(c, annotation_type).config.get.subset == config.get('subset'))
                     q.set_properties(**{x: None for x in props})
             self.running = False
             self.completed = False
@@ -1047,7 +1049,8 @@ class Enrichment(models.Model):
                 elif enrichment_type == 'relativize_formants':
                     c.relativize_formants(by_speaker=config.get('by_speaker', True), by_phone=config.get('by_phone', True))
                 elif enrichment_type == 'praat_script':
-                    properties = c.analyze_script(annotation_type="phone", subset=config.get('phone_class'), \
+                    properties = c.analyze_script(annotation_type=config.get('annotation_type', 'phone'),
+                                                      subset=config.get('subset'), 
                                                       script_path=config.get('path'),
                                                       multiprocessing=False)
                     config['properties'] = properties

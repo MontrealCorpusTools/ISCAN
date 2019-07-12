@@ -17,21 +17,31 @@
         </div>
 
         <div layout="row" flex layout-align="space-between none">
+        <md-input-container>
+            <label>
+                Annotation type 
+            </label>
+            <md-select ng-model="enrichment.annotation_type">
+                <md-option ng-repeat="choice in annotation_types" ng-value="choice">{{choice}}</md-option>
+            </md-select>
+        </md-input-container>
+        <md-button class="md-icon-button" aria-label="Help" ng-click="getHelp($event, 'annotation_type')">
+            <i class="material-icons">info</i>
+        </md-button>
+        </div>
 
         <md-input-container>
             <label>
-                Phone class
+                Subset 
             </label>
-            <md-select ng-model="enrichment.phone_class">
-                <md-option ng-repeat="choice in phone_class_options" ng-value="choice">{{choice}}</md-option>
+            <md-select ng-model="enrichment.subset">
+                <md-option ng-repeat="choice in subset_options[enrichment.annotation_type]" ng-value="choice">{{choice}}</md-option>
             </md-select>
-
         </md-input-container>
-      <md-button class="md-icon-button" aria-label="Help" ng-click="getHelp($event, 'phone_class')">
-       <i class="material-icons">info</i>
-      </md-button>
+        <md-button class="md-icon-button" aria-label="Help" ng-click="getHelp($event, 'subset')">
+            <i class="material-icons">info</i>
+        </md-button>
         </div>
-
 
         <span ng-bind="error_message" style="color: red"></span>
         <md-button class="md-primary md-raised" ng-disabled="!hasFiles" ng-click="save()">Save enrichment</md-button>
