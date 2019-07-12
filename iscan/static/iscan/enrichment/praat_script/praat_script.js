@@ -8,14 +8,14 @@ angular.module('praat_script', [
 
         Corpora.hierarchy($stateParams.corpus_id).then(function (res) {
             $scope.hierarchy = res.data;
-            $scope.annotations = $scope.hierarchy.annotation_types;
+            $scope.annotation_types = $scope.hierarchy.annotation_types;
 
             //Combine subsets of type and token into one array
             $scope.subsets = {};
-            $scope.annotations.forEach(x => {
+            $scope.annotation_types.forEach(x => {
                 //Return an empty list if there's no subset of that type
-                let a = $scope.hierachy.subset_types[x] ? $scope.hierachy.subset_types[x] : [];
-                let b = $scope.hierachy.subset_tokens[x] ? $scope.hierachy.subset_tokens[x] : [];
+                let a = $scope.hierarchy.subset_types[x] ? $scope.hierarchy.subset_types[x] : [];
+                let b = $scope.hierarchy.subset_tokens[x] ? $scope.hierarchy.subset_tokens[x] : [];
                 $scope.subsets[x] = a.concat(b);
             });
         });

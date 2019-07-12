@@ -30,12 +30,13 @@
         </md-button>
         </div>
 
+        <div layout="row" flex layout-align="space-between none">
         <md-input-container>
             <label>
                 Subset 
             </label>
             <md-select ng-model="enrichment.subset">
-                <md-option ng-repeat="choice in subset_options[enrichment.annotation_type]" ng-value="choice">{{choice}}</md-option>
+                <md-option ng-repeat="choice in subsets[enrichment.annotation_type]" ng-value="choice">{{choice}}</md-option>
             </md-select>
         </md-input-container>
         <md-button class="md-icon-button" aria-label="Help" ng-click="getHelp($event, 'subset')">
