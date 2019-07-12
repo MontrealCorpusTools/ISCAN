@@ -561,8 +561,8 @@ class Corpus(models.Model):
     @property
     def syllabics(self):
         conf_data = self.configuration_data
-        if "syllabics" in conf_data:
-            return conf_data["syllabics"]
+        if "vowel_inventory" in conf_data:
+            return conf_data["vowel_inventory"]
         return []
 
     @property
@@ -575,8 +575,8 @@ class Corpus(models.Model):
     @property
     def sibilants(self):
         conf_data = self.configuration_data
-        if "sibilants" in conf_data:
-            return conf_data["sibilants"]
+        if "sibilant_segments" in conf_data:
+            return conf_data["sibilant_segments"]
         return []
 
     @property
