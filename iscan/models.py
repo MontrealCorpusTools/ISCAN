@@ -955,7 +955,7 @@ class Enrichment(models.Model):
                 elif enrichment_type == 'praat_script':
                     props = config.get('properties', ['cog', 'slope', 'spread', 'peak'])
                     annotation_type = config.get('annotation_type', 'phone')
-                    q = c.query_graph(getattr(c, annotation_type))
+                    q = c.query_graph(getattr(c, annotation_type)) \
                             .filter(getattr(c, annotation_type).config.get.subset == config.get('subset'))
                     q.set_properties(**{x: None for x in props})
             self.running = False
