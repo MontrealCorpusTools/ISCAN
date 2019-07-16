@@ -917,9 +917,9 @@ class Enrichment(models.Model):
                     for col in columns:
                         c.reset_property(config.get('annotation_type'), col)
                 elif enrichment_type == 'pitch':
-                    c.reset_pitch()
+                    c.reset_acoustic_measure('pitch')
                 elif enrichment_type == 'relativize_pitch':
-                    c.reset_relativized_pitch()
+                    c.reset_relativized_acoustic_measure('pitch')
                 elif enrichment_type == 'discourse_csv':
                     c.reset_discourse_csv(config.get('path'))
                 elif enrichment_type == 'phone_csv':
@@ -929,14 +929,14 @@ class Enrichment(models.Model):
                 elif enrichment_type == 'lexicon_csv':
                     c.reset_lexicon_csv(config.get('path'))
                 elif enrichment_type == 'formants':
-                    c.reset_formants()
+                    c.reset_acoustic_measure('formants')
                 elif enrichment_type == 'refined_formant_points':
                     if config.get("output_tracks", False):
-                        c.reset_formants()
+                        c.reset_acoustic_measure('formants')
                     else:
                         c.reset_formant_points()
                 elif enrichment_type == 'intensity':
-                    c.reset_intensity()
+                    c.reset_acoustic_measure('intensity')
                 elif enrichment_type == 'vot':
                     c.reset_vot()
                 elif enrichment_type == 'relativize_property':
@@ -947,9 +947,9 @@ class Enrichment(models.Model):
                         property_name += '_by_speaker'
                     c.reset_property(annotation_type, property_name)
                 elif enrichment_type == 'relativize_intensity':
-                    c.reset_relativized_intensity()
+                    c.reset_relativized_acoustic_measure('intensity')
                 elif enrichment_type == 'relativize_formants':
-                    c.reset_relativized_formants()
+                    c.reset_relativized_acoustic_measure('formants')
                 elif enrichment_type == 'patterned_stress':
                     q = c.query_graph(c.syllable).set_properties(stress=None)
                 elif enrichment_type == 'praat_script':
