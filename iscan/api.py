@@ -17,6 +17,8 @@ from rest_framework.decorators import action
 
 from neo4j import exceptions as neo4j_exceptions
 
+from celery.result import AsyncResult
+
 from polyglotdb import CorpusContext
 from polyglotdb.query.base.func import Count
 
@@ -369,9 +371,11 @@ class CorpusViewSet(viewsets.ModelViewSet):
             return Response("Database is not running, cannot import",
                     status=status.HTTP_400_BAD_REQUEST)
 
-        import_corpus_task.delay(corpus.pk)
+        response = Response('Import started', status=status.HTTP_202_ACCEPTED)
+        task_id = import_corpus_task.delay(corpus.pk)
+        response["task"] = task_id.task_id
         time.sleep(1)
-        return Response('Import started', status=status.HTTP_202_ACCEPTED)
+        return response
 
     @action(detail=True, methods=['get'])
     def status(self, request, pk=None):
@@ -976,9 +980,11 @@ class EnrichmentViewSet(viewsets.ModelViewSet):
         if not enrichment.corpus.database.is_running:
             return Response("Database is not running, cannot run enrichment",
                     status=status.HTTP_400_BAD_REQUEST)
-        run_enrichment_task.delay(enrichment.pk)
+        response = Response(True)
+        task_id = run_enrichment_task.delay(enrichment.pk)
+        response["task"] = task_id.task_id
         time.sleep(1)
-        return Response(True)
+        return response
 
     @action(detail=True, methods=['post'])
     def reset(self, request, pk=None, corpus_pk=None):
@@ -992,9 +998,11 @@ class EnrichmentViewSet(viewsets.ModelViewSet):
         if not enrichment.corpus.database.is_running:
             return Response("Database is not running, cannot reset enrichment",
                     status=status.HTTP_400_BAD_REQUEST)
-        reset_enrichment_task.delay(enrichment.pk)
+        response = Response(True)
+        task_id = reset_enrichment_task.delay(enrichment.pk)
+        response["task"] = task_id.task_id
         time.sleep(1)
-        return Response(True)
+        return response
 
     def update(self, request, pk=None, corpus_pk=None):
         if isinstance(request.user, django.contrib.auth.models.AnonymousUser):
@@ -1025,9 +1033,11 @@ class EnrichmentViewSet(viewsets.ModelViewSet):
         if not enrichment.corpus.database.is_running:
             return Response("Database is not running, cannot delete enrichment",
                     status=status.HTTP_400_BAD_REQUEST)
-        delete_enrichment_task.delay(enrichment.pk)
+        response = Response(True)
+        task_id = delete_enrichment_task.delay(enrichment.pk)
+        response["task"] = task_id.task_id
         time.sleep(1)
-        return Response(True)
+        return response
 
 
 class QueryViewSet(viewsets.ModelViewSet):
@@ -1062,9 +1072,11 @@ class QueryViewSet(viewsets.ModelViewSet):
         query = models.Query.objects.create(name=request.data['name'], user=request.user,
                                             annotation_type=request.data['annotation_type'][0].upper(), corpus=corpus)
         query.config = request.data
-        run_query_task.delay(query.pk)
+        response = Response(serializers.QuerySerializer(query).data)
+        task_id = run_query_task.delay(query.pk)
+        response["task"] = task_id.task_id
         time.sleep(1)
-        return Response(serializers.QuerySerializer(query).data)
+        return response
 
     def update(self, request, pk=None, corpus_pk=None):
         if isinstance(request.user, django.contrib.auth.models.AnonymousUser):
@@ -1086,10 +1098,12 @@ class QueryViewSet(viewsets.ModelViewSet):
         c = query.config
         c.update(request.data)
         query.config = c
+        response = Response(serializers.QuerySerializer(query).data)
         if do_run:
-            run_query_task.delay(query.pk)
+            task_id = run_query_task.delay(query.pk)
+            response["task"] = task_id.task_id
             time.sleep(1)
-        return Response(serializers.QuerySerializer(query).data)
+        return response
 
     @action(detail=False, methods=['GET'])
     def utterance(self, request, corpus_pk=None):
@@ -1145,11 +1159,13 @@ class QueryViewSet(viewsets.ModelViewSet):
         query = models.Query.objects.filter(pk=pk, corpus=corpus).get()
         if query is None:
             return Response(None, status=status.HTTP_400_BAD_REQUEST)
+        response = Response(serializers.QuerySerializer(query).data)
         if not query.running and query.result_count is None:
-            run_query_task.delay(query.pk)
+            task_id = run_query_task.delay(query.pk)
+            response["task"] = task_id.task_id
             time.sleep(1)
 
-        return Response(serializers.QuerySerializer(query).data)
+        return response
 
     @action(detail=True, methods=['get'])
     def results(self, request, pk=None, corpus_pk=None):
@@ -1414,9 +1430,11 @@ class QueryViewSet(viewsets.ModelViewSet):
         c = query.config
         c.update(request.data)
         query.config = c
-        run_query_generate_subset_task.delay(query.pk)
+        response = Response(serializers.QuerySerializer(query).data)
+        task_id = run_query_generate_subset_task.delay(query.pk)
+        response["task"] = task_id.task_id
         time.sleep(1)
-        return Response(serializers.QuerySerializer(query).data)
+        return response
 
 
     @action(detail=True, methods=['post'])
@@ -1438,9 +1456,11 @@ class QueryViewSet(viewsets.ModelViewSet):
         c = query.config
         c.update(request.data)
         query.config = c
-        run_query_export_task.delay(query.pk)
+        response = Response(serializers.QuerySerializer(query).data)
+        task_id = run_query_export_task.delay(query.pk)
+        response["task"] = task_id.task_id
         time.sleep(1)
-        return Response(serializers.QuerySerializer(query).data)
+        return response
 
     @action(detail=True, methods=['get'])
     def get_export_csv(self, request, pk=None, corpus_pk=None):
@@ -1465,3 +1485,21 @@ class QueryViewSet(viewsets.ModelViewSet):
                     os.path.basename(query.export_path))
                 return response
         return Response(None, status=status.HTTP_400_BAD_REQUEST)
+
+class TaskViewSet(viewsets.ViewSet):
+
+    @action(detail=True, methods=['get'])
+    def status(self, request, pk=None):
+        if isinstance(request.user, django.contrib.auth.models.AnonymousUser):
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
+        task_result = AsyncResult(pk)
+        return Response(task_result.status)
+
+    @action(detail=True, methods=['get'])
+    def exceptions(self, request, pk=None):
+        if isinstance(request.user, django.contrib.auth.models.AnonymousUser):
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
+        task_result = AsyncResult(pk)
+        if task_result.failed():
+            return Response(task_result.result)
+        return Response("This task did not fail")

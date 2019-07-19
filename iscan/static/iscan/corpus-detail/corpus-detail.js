@@ -139,8 +139,11 @@ angular.module('corpusDetail', [
 
 
         $scope.importCorpus = function () {
+            console.log("AAAAAAAAAAAH")
             Corpora.importCorpus($stateParams.corpus_id).then(function (res) {
-            getData();
+                console.log("IMPORTING");
+                console.log(res.headers("task"));
+                getData();
             }).catch(function (res) {
 		    console.error(res);
 	    });
