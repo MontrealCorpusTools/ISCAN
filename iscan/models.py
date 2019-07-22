@@ -1092,7 +1092,7 @@ class BackgroundTask(models.Model):
     failed = models.BooleanField(default=False)
 
     class Meta:
-        verbose_name_plural = 'Queries'
+        verbose_name_plural = 'Background Tasks'
 
     def get_exceptions(self):
         result = AsyncResult(self.task_id)
