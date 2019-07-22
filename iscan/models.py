@@ -18,6 +18,8 @@ from django.contrib.auth.models import Group, User
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
+from celery.result import AsyncResult
+
 # Comment out once PolyglotDB docker compatibility is merged
 sys.path.insert(0, '/site/proj/PolyglotDB')
 
@@ -1081,6 +1083,25 @@ class Enrichment(models.Model):
             self.running = False
             self.completed = False
             print(traceback.format_exc())
+
+class BackgroundTask(models.Model):
+    task_id = models.UUIDField(primary_key=True)
+    name = models.CharField(max_length=100)
+    corpus = models.ForeignKey(Corpus, on_delete=models.CASCADE)
+    running = models.BooleanField(default=True)
+    failed = models.BooleanField(default=False)
+
+    class Meta:
+        verbose_name_plural = 'Background Tasks'
+
+    def get_exceptions(self):
+        result = AsyncResult(self.task_id)
+        return result.result
+
+    def status(self):
+        return AsyncResult(self.task_id).status()
+
+
 
 
 class Query(models.Model):

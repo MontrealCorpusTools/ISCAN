@@ -1,7 +1,9 @@
 angular.module('databaseList', [
-    'iscan.databases'
+    'iscan.databases',
+    'iscan.corpora',
+    'iscan.errors'
 ])
-    .controller('DatabaseListCtrl', function ($scope, Databases, Corpora, $state, $location, djangoAuth, Users, $mdDialog, $mdToast) {
+    .controller('DatabaseListCtrl', function ($scope, Databases, Corpora, Errors, $state, $location, djangoAuth, Users, $mdDialog, $mdToast) {
         $scope.refresh_button_text = 'Refresh';
 
         $scope.refreshDatabaseList = function () {
@@ -37,27 +39,7 @@ angular.module('databaseList', [
                 $scope.refreshDatabases();
             }).catch(function (res) {
                 db.busy = false;
-                $mdToast.show(
-                    $mdToast.simple()
-                        .textContent('There was an error starting the database.')
-                        .position("bottom right")
-                        .action('More info')
-                        .actionKey('x')
-                        .hideDelay(10000)
-                        .highlightAction(true)).then(function (response, e) {
-                    if (response == 'ok') {
-
-                        $mdDialog
-                            .show($mdDialog
-                                .alert()
-                                .title('Error ' + res.status + ': ' + res.statusText)
-                                .textContent(res.data)
-                                .ariaLabel('Error ' + res.status + ': ' + res.statusText)
-                                .ok('Dismiss')
-                                .targetEvent(e)
-                            )
-                    }
-                });
+                Errors.popUp("There was an error starting the database.", res);
                 console.log(res);
             });
         };
@@ -81,27 +63,7 @@ angular.module('databaseList', [
                 $scope.refreshDatabases();
             }).catch(function (res) {
                 db.busy = false;
-                $mdToast.show(
-                    $mdToast.simple()
-                        .textContent('There was an error stopping the database.')
-                        .position("bottom right")
-                        .action('More info')
-                        .actionKey('x')
-                        .hideDelay(10000)
-                        .highlightAction(true)).then(function (response, e) {
-                    if (response == 'ok') {
-
-                        $mdDialog
-                            .show($mdDialog
-                                .alert()
-                                .title('Error ' + res.status + ': ' + res.statusText)
-                                .textContent(res.data)
-                                .ariaLabel('Error ' + res.status + ': ' + res.statusText)
-                                .ok('Dismiss')
-                                .targetEvent(e)
-                            )
-                    }
-                });
+                Errors.popUp("There was an error stopping the database.", res);
                 console.log(res);
             });
         };
@@ -132,27 +94,7 @@ angular.module('databaseList', [
 
                 }).catch(function (res) {
                     db.busy = false;
-                    $mdToast.show(
-                        $mdToast.simple()
-                            .textContent('There was an error deleting the database.')
-                            .position("bottom right")
-                            .action('More info')
-                            .actionKey('x')
-                            .hideDelay(3000)
-                            .highlightAction(true)).then(function (response, e) {
-                        if (response == 'ok') {
-
-                            $mdDialog
-                                .show($mdDialog
-                                    .alert()
-                                    .title('Error ' + res.status + ': ' + res.statusText)
-                                    .textContent(res.data)
-                                    .ariaLabel('Error ' + res.status + ': ' + res.statusText)
-                                    .ok('Dismiss')
-                                    .targetEvent(e)
-                                )
-                        }
-                    });
+                    Errors.popUp("There was an error starting the database.", res);
                     console.log(res);
                 })
 

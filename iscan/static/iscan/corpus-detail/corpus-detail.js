@@ -1,9 +1,10 @@
 angular.module('corpusDetail', [
     'iscan.corpora',
     'iscan.enrichment',
-    'iscan.query'
+    'iscan.query',
+    'iscan.errors'
 ])
-    .controller('CorpusDetailCtrl', function ($scope, Corpora, $state, $stateParams, Query, $timeout, $rootScope, djangoAuth, Users) {
+    .controller('CorpusDetailCtrl', function ($scope, Corpora, $state, $stateParams, Query, $timeout, $rootScope, djangoAuth, Users, Errors) {
 
         var loadTime = 10000, //Load the data every second
             errorCount = 0, //Counter for the server errors
@@ -140,7 +141,8 @@ angular.module('corpusDetail', [
 
         $scope.importCorpus = function () {
             Corpora.importCorpus($stateParams.corpus_id).then(function (res) {
-            getData();
+                Errors.checkForErrors(res.headers("task"));
+                getData();
             }).catch(function (res) {
 		    console.error(res);
 	    });

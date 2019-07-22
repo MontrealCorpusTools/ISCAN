@@ -1,6 +1,7 @@
 angular.module('query', [
     'iscan.corpora',
     'iscan.query',
+    'iscan.errors',
     'ngFileSaver'
 ]).filter('titlecase', function () {
     return function (input) {
@@ -66,7 +67,7 @@ angular.module('query', [
         };
     }])
 
-    .controller('QueryCtrl', function ($scope, $rootScope, Query, Corpora, $state, $stateParams, FileSaver, Blob, $timeout,
+    .controller('QueryCtrl', function ($scope, $rootScope, Query, Errors, Corpora, $state, $stateParams, FileSaver, Blob, $timeout,
                                        $q, $query, djangoAuth, Users, $mdDialog, $mdToast) {
 
         $scope.help_titles = {
@@ -465,15 +466,20 @@ angular.module('query', [
             if ($scope.newQuery) {
                 Query.create($stateParams.corpus_id, $scope.query).then(function (res) {
                     $state.go('query', {corpus_id: $stateParams.corpus_id, query_id: res.data.id});
+                    Errors.checkForErrors(res.headers("task"));
+                }).catch(function(res) {
+                    Errors.popUp("There was an error creating the query", res);
+                    console.log("There was an error creating the query", res);
                 });
-
-            }
-            else {
+            }else {
                 Query.update($stateParams.corpus_id, $stateParams.query_id, $scope.query, false).then(function (res) {
                     $scope.query = res.data;
+                    Errors.checkForErrors(res.headers("task"));
                     getData();
-                })
-
+                }).catch(function(res) {
+                    Errors.popUp("There was an error running the query", res);
+                    console.log("There was an error running the query", res);
+                });
             }
 
         };
@@ -481,14 +487,17 @@ angular.module('query', [
             $scope.refreshing = true;
             Query.update($stateParams.corpus_id, $stateParams.query_id, $scope.query, true).then(function (res) {
                 $scope.query = res.data;
+                Errors.checkForErrors(res.headers("task"));
                 getData();
-            })
+            }).catch(function(res) {
+                Errors.popUp("There was an error refreshing the query", res);
+                console.log("There was an error refreshing the query", res);
+            });
 
         };
 
         $scope.updateOrdering = function () {
             Query.saveOrdering($stateParams.corpus_id, $stateParams.query_id, $scope.paginateParams.ordering).then(function (res) {
-
             });
         };
 
@@ -497,10 +506,12 @@ angular.module('query', [
             console.log($scope.query)
             Query.generate_export($stateParams.corpus_id, $stateParams.query_id, $scope.query).then(function (res) {
                 $scope.query = res.data;
+                Errors.checkForErrors(res.headers("task"));
                 getData();
 
             }).catch(function (res) {
-                console.log('error!', res);
+                Errors.popUp("There was an error generating the export", res);
+                console.log("There was an error generating the export", res);
             });
 
 
@@ -509,30 +520,31 @@ angular.module('query', [
         $scope.generate_subset = function(ev) {
             $scope.exporting = true;
             console.log($scope.query)
-	    var name_prompt = $mdDialog.prompt()
-	    	                       .parent(angular.element(document.querySelector('html')))
-	    	                       .title("Subset name")
-	    	                       .textContent("Choose a name for the new subset")
-		                       .initialValue($scope.query.subset_name ? $scope.query.subset_name : $scope.query.name)
-		                       .targetEvent(ev)
-		                       .required(true)
-	    	                       .ok("Use this name")
-		                       .cancel("Cancel subset encoding")
-	    $mdDialog.show(name_prompt).then(function(subset_name) {
-		    $scope.query.subset_name = subset_name;
-		    Query.generate_subset($stateParams.corpus_id, $stateParams.query_id, $scope.query).then(function (res) {
-			$scope.query = res.data;
-			getData();
-		        $scope.exporting = false;
-		    }).catch(function (res) {
-			console.log('error!', res);
-			$scope.exporting = false;
-		    });
-	    }, function() {
-		    console.log("Subset encoding canceled");
-		    $scope.exporting = false;
-	    }
-	    );
+            var name_prompt = $mdDialog.prompt()
+                                       .parent(angular.element(document.querySelector('html')))
+                                       .title("Subset name")
+                                       .textContent("Choose a name for the new subset")
+                                   .initialValue($scope.query.subset_name ? $scope.query.subset_name : $scope.query.name)
+                                   .targetEvent(ev)
+                                   .required(true)
+                                       .ok("Use this name")
+                                   .cancel("Cancel subset encoding")
+            $mdDialog.show(name_prompt).then(function(subset_name) {
+                $scope.query.subset_name = subset_name;
+                Query.generate_subset($stateParams.corpus_id, $stateParams.query_id, $scope.query).then(function (res) {
+                    Errors.checkForErrors(res.headers("task"));
+                    $scope.query = res.data;
+                    getData();
+                    $scope.exporting = false;
+                }).catch(function (res) {
+                    Errors.popUp("There was an error creating the subset", res);
+                    console.log("There was an error creating the subset", res);
+                    $scope.exporting = false;
+                });
+            }, function() {
+                console.log("Subset encoding canceled");
+                $scope.exporting = false;
+            });
         };
 
 
@@ -544,7 +556,8 @@ angular.module('query', [
                 FileSaver.saveAs(data, $scope.query.name + ' export.csv');
                 $scope.exporting = false;
             }).catch(function (res) {
-                console.log('error!', res);
+                Errors.popUp("There was an error saving the export", res);
+                console.log("There was an error saving the export", res);
                 $scope.exporting = false;
             });
 
