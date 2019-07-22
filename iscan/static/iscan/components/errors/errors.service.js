@@ -1,7 +1,9 @@
 
 angular.module('iscan.errors')
-    .service('Errors', function ($mdToast, $mdDialog) {
+    .service('Errors', function ($mdToast, $mdDialog, $http, __env) {
     let Errors = {};
+
+    let base_url = __env.apiUrl + 'errors/';
 
     Errors.popUp = function (error_cause_text, error) {
                 $mdToast.show(
@@ -25,5 +27,18 @@ angular.module('iscan.errors')
                     }
                 });
     };
+
+    Errors.getTaskExceptions = function(task_id){
+        return $http.get(base_url + id + '/exceptions/');
+    }
+
+    Errors.status = function(task_id) {
+        return $http.get(base_url + id + '/status/');
+    }
+
+    Errors.isTaskDone = function(task_id) {
+        return $http.get(base_url + id + '/finished/');
+    }
+
     return Errors;
 });

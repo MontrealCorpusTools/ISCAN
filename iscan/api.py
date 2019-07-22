@@ -1493,7 +1493,14 @@ class TaskViewSet(viewsets.ViewSet):
         if isinstance(request.user, django.contrib.auth.models.AnonymousUser):
             return Response(status=status.HTTP_401_UNAUTHORIZED)
         task_result = AsyncResult(pk)
-        return Response(task_result.status)
+        return Response(task_result.status())
+
+    @action(detail=True, methods=['get'])
+    def finished(self, request, pk=None):
+        if isinstance(request.user, django.contrib.auth.models.AnonymousUser):
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
+        task_result = AsyncResult(pk)
+        return Response(task_result.ready())
 
     @action(detail=True, methods=['get'])
     def exceptions(self, request, pk=None):

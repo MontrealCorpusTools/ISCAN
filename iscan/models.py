@@ -1082,6 +1082,21 @@ class Enrichment(models.Model):
             self.completed = False
             print(traceback.format_exc())
 
+class BackgroundTask(models.Model):
+    task_id = models.UUIDField(primary_key=True)
+    name = models.CharField(max_length=100)
+    corpus = models.ForeignKey(Corpus, on_delete=models.CASCADE)
+    running = models.BooleanField(default=True)
+    failed = models.BooleanField(default=False)
+
+    class Meta:
+        verbose_name_plural = 'Queries'
+
+    def get_exceptions(self):
+        result = AsyncResult(self.task_id)
+        return result.result
+
+
 
 class Query(models.Model):
     ANNOTATION_TYPE_CHOICES = (('U', 'Utterance'),
