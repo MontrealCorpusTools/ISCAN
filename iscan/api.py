@@ -17,7 +17,6 @@ from rest_framework.decorators import action
 
 from neo4j import exceptions as neo4j_exceptions
 
-from celery.result import AsyncResult
 
 from polyglotdb import CorpusContext
 from polyglotdb.query.base.func import Count
@@ -1492,21 +1491,33 @@ class TaskViewSet(viewsets.ViewSet):
     def status(self, request, pk=None):
         if isinstance(request.user, django.contrib.auth.models.AnonymousUser):
             return Response(status=status.HTTP_401_UNAUTHORIZED)
-        task_result = AsyncResult(pk)
-        return Response(task_result.status())
+        task = models.BackgroundTask.objects.get(pk=pk)
+        return Response(task.status())
+
+    @action(detail=True, methods=['get'])
+    def failed(self, request, pk=None):
+        if isinstance(request.user, django.contrib.auth.models.AnonymousUser):
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
+        task = models.BackgroundTask.objects.get(pk=pk)
+        return Response(task.failed)
 
     @action(detail=True, methods=['get'])
     def finished(self, request, pk=None):
         if isinstance(request.user, django.contrib.auth.models.AnonymousUser):
             return Response(status=status.HTTP_401_UNAUTHORIZED)
-        task_result = AsyncResult(pk)
-        return Response(task_result.ready())
+        task = models.BackgroundTask.objects.get(pk=pk)
+        return Response(not task.running)
 
     @action(detail=True, methods=['get'])
     def exceptions(self, request, pk=None):
         if isinstance(request.user, django.contrib.auth.models.AnonymousUser):
             return Response(status=status.HTTP_401_UNAUTHORIZED)
-        task_result = AsyncResult(pk)
-        if task_result.failed():
-            return Response(task_result.result)
+        task = models.BackgroundTask.objects.get(pk=pk)
+        if task.failed:
+            e = task.get_exceptions()
+            return Response({"name":task.name,
+                "message":{"status":500,
+                    "statusText":type(e).__name__,
+                    "data":getattr(e, "message", str(e))}
+                })
         return Response("This task did not fail")

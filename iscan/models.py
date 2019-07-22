@@ -18,6 +18,8 @@ from django.contrib.auth.models import Group, User
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
+from celery.result import AsyncResult
+
 # Comment out once PolyglotDB docker compatibility is merged
 sys.path.insert(0, '/site/proj/PolyglotDB')
 
@@ -1095,6 +1097,10 @@ class BackgroundTask(models.Model):
     def get_exceptions(self):
         result = AsyncResult(self.task_id)
         return result.result
+
+    def status(self):
+        return AsyncResult(self.task_id).status()
+
 
 
 
