@@ -7,7 +7,7 @@ from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.models import User
 from django.conf import settings
 
-from .models import Database, Corpus, CorpusPermissions, Query, Enrichment
+from .models import Database, Corpus, CorpusPermissions, Query, Enrichment, BackgroundTask
 
 import logging
 log = logging.getLogger(__name__)
@@ -33,6 +33,10 @@ class DatabaseAdmin(admin.ModelAdmin):
 @admin.register(CorpusPermissions)
 class CorpusPermissionsAdmin(admin.ModelAdmin):
     pass
+
+@admin.register(BackgroundTask)
+class BackgroundTaskAdmin(admin.ModelAdmin):
+    actions = [delete_selected]
 
 
 @admin.register(Query)
