@@ -466,6 +466,7 @@ angular.module('query', [
             if ($scope.newQuery) {
                 Query.create($stateParams.corpus_id, $scope.query).then(function (res) {
                     $state.go('query', {corpus_id: $stateParams.corpus_id, query_id: res.data.id});
+                    Errors.checkForErrors(res.headers("task"));
                 }).catch(function(res) {
                     Errors.popUp("There was an error creating the query", res);
                     console.log("There was an error creating the query", res);
@@ -473,6 +474,7 @@ angular.module('query', [
             }else {
                 Query.update($stateParams.corpus_id, $stateParams.query_id, $scope.query, false).then(function (res) {
                     $scope.query = res.data;
+                    Errors.checkForErrors(res.headers("task"));
                     getData();
                 }).catch(function(res) {
                     Errors.popUp("There was an error running the query", res);
@@ -485,6 +487,7 @@ angular.module('query', [
             $scope.refreshing = true;
             Query.update($stateParams.corpus_id, $stateParams.query_id, $scope.query, true).then(function (res) {
                 $scope.query = res.data;
+                Errors.checkForErrors(res.headers("task"));
                 getData();
             }).catch(function(res) {
                 Errors.popUp("There was an error refreshing the query", res);
@@ -503,6 +506,7 @@ angular.module('query', [
             console.log($scope.query)
             Query.generate_export($stateParams.corpus_id, $stateParams.query_id, $scope.query).then(function (res) {
                 $scope.query = res.data;
+                Errors.checkForErrors(res.headers("task"));
                 getData();
 
             }).catch(function (res) {
@@ -528,6 +532,7 @@ angular.module('query', [
             $mdDialog.show(name_prompt).then(function(subset_name) {
                 $scope.query.subset_name = subset_name;
                 Query.generate_subset($stateParams.corpus_id, $stateParams.query_id, $scope.query).then(function (res) {
+                    Errors.checkForErrors(res.headers("task"));
                     $scope.query = res.data;
                     getData();
                     $scope.exporting = false;
