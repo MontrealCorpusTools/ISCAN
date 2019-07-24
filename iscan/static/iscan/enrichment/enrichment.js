@@ -1,7 +1,8 @@
 angular.module('enrichment', [
     'iscan.corpora',
-    'iscan.enrichment'
-]).controller('EnrichmentCtrl', function ($scope, $rootScope, Enrichment, Corpora, $mdDialog, $state, $stateParams, $timeout, djangoAuth) {
+    'iscan.enrichment',
+    'iscan.errors'
+]).controller('EnrichmentCtrl', function ($scope, $rootScope, Enrichment, Corpora, Errors, $mdDialog, $state, $stateParams, $timeout, djangoAuth) {
 
     var loadTime = 10000, //Load the data every second
         errorCount = 0, //Counter for the server errors
@@ -67,8 +68,6 @@ angular.module('enrichment', [
 
     $scope.runEnrichment = function (enrichment, ev) {
         if (enrichment.completed){
-
-
             var confirm = $mdDialog.confirm()
                 .title('Rerun enrichment')
                 .textContent('Are you sure you want to rerun "' + enrichment.name + '"?')
@@ -79,6 +78,7 @@ angular.module('enrichment', [
 
             $mdDialog.show(confirm).then(function () {
         Enrichment.run($stateParams.corpus_id, enrichment.id).then(function (res) {
+            Errors.checkForErrors(res.headers("task"));
             getData();
         });
 
@@ -102,6 +102,7 @@ angular.module('enrichment', [
 
         $mdDialog.show(confirm).then(function () {
             Enrichment.reset($stateParams.corpus_id, enrichment.id).then(function (res) {
+                Errors.checkForErrors(res.headers("task"));
                 getData();
             });
 
@@ -172,11 +173,12 @@ angular.module('enrichment', [
 
         $mdDialog.show(confirm).then(function () {
                 Enrichment.destroy($stateParams.corpus_id, enrichment.id).then(function (res) {
-
+                    Errors.checkForErrors(res.headers("task"));
                     $scope.enrichments = $scope.enrichments.filter(function (e) {
                         return e.id !== enrichment.id;
                     })
                 }).catch(function (res) {
+                    Errors.popUp("There was an error deleting the enrichment", res);
                     console.log(res);
                 })
 

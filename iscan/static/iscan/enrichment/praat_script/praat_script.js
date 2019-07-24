@@ -8,7 +8,16 @@ angular.module('praat_script', [
 
         Corpora.hierarchy($stateParams.corpus_id).then(function (res) {
             $scope.hierarchy = res.data;
-            $scope.phone_class_options = $scope.hierarchy.subset_types.phone;
+            $scope.annotation_types = $scope.hierarchy.annotation_types;
+
+            //Combine subsets of type and token into one array
+            $scope.subsets = {};
+            $scope.annotation_types.forEach(x => {
+                //Return an empty list if there's no subset of that type
+                let a = $scope.hierarchy.subset_types[x] ? $scope.hierarchy.subset_types[x] : [];
+                let b = $scope.hierarchy.subset_tokens[x] ? $scope.hierarchy.subset_tokens[x] : [];
+                $scope.subsets[x] = a.concat(b);
+            });
         });
     }).catch(function () {
         $state.go('home');
@@ -68,12 +77,14 @@ angular.module('praat_script', [
 
     $scope.help_titles = {
         praat_script: 'Choose Praat script',
-        phone_class: 'Phone class'
+        annotation_type: 'Annotation Type', 
+        subset: 'Subset'
     };
     $scope.help_text = {
         praat_script: 'Specify a Praat script to run.  This Praat script must be in a certain format, ' +
         'see the tutorial for more details.',
-        phone_class: 'Optionally specify a subset of phones to run this script on.'
+        annotation_type: 'The specific kind of annotation over which the praat script will be run',
+        subset: 'Optionally specify a subset of an annotation type to run this script on.'
     };
 
     $scope.newFiles = function (e) {

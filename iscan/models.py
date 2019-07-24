@@ -18,6 +18,8 @@ from django.contrib.auth.models import Group, User
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
+from celery.result import AsyncResult
+
 # Comment out once PolyglotDB docker compatibility is merged
 sys.path.insert(0, '/site/proj/PolyglotDB')
 
@@ -561,8 +563,8 @@ class Corpus(models.Model):
     @property
     def syllabics(self):
         conf_data = self.configuration_data
-        if "syllabics" in conf_data:
-            return conf_data["syllabics"]
+        if "vowel_inventory" in conf_data:
+            return conf_data["vowel_inventory"]
         return []
 
     @property
@@ -575,8 +577,8 @@ class Corpus(models.Model):
     @property
     def sibilants(self):
         conf_data = self.configuration_data
-        if "sibilants" in conf_data:
-            return conf_data["sibilants"]
+        if "sibilant_segments" in conf_data:
+            return conf_data["sibilant_segments"]
         return []
 
     @property
@@ -917,9 +919,9 @@ class Enrichment(models.Model):
                     for col in columns:
                         c.reset_property(config.get('annotation_type'), col)
                 elif enrichment_type == 'pitch':
-                    c.reset_pitch()
+                    c.reset_acoustic_measure('pitch')
                 elif enrichment_type == 'relativize_pitch':
-                    c.reset_relativized_pitch()
+                    c.reset_relativized_acoustic_measure('pitch')
                 elif enrichment_type == 'discourse_csv':
                     c.reset_discourse_csv(config.get('path'))
                 elif enrichment_type == 'phone_csv':
@@ -929,14 +931,14 @@ class Enrichment(models.Model):
                 elif enrichment_type == 'lexicon_csv':
                     c.reset_lexicon_csv(config.get('path'))
                 elif enrichment_type == 'formants':
-                    c.reset_formants()
+                    c.reset_acoustic_measure('formants')
                 elif enrichment_type == 'refined_formant_points':
                     if config.get("output_tracks", False):
-                        c.reset_formants()
+                        c.reset_acoustic_measure('formants')
                     else:
                         c.reset_formant_points()
                 elif enrichment_type == 'intensity':
-                    c.reset_intensity()
+                    c.reset_acoustic_measure('intensity')
                 elif enrichment_type == 'vot':
                     c.reset_vot()
                 elif enrichment_type == 'relativize_property':
@@ -947,14 +949,16 @@ class Enrichment(models.Model):
                         property_name += '_by_speaker'
                     c.reset_property(annotation_type, property_name)
                 elif enrichment_type == 'relativize_intensity':
-                    c.reset_relativized_intensity()
+                    c.reset_relativized_acoustic_measure('intensity')
                 elif enrichment_type == 'relativize_formants':
-                    c.reset_relativized_formants()
+                    c.reset_relativized_acoustic_measure('formants')
                 elif enrichment_type == 'patterned_stress':
                     q = c.query_graph(c.syllable).set_properties(stress=None)
                 elif enrichment_type == 'praat_script':
                     props = config.get('properties', ['cog', 'slope', 'spread', 'peak'])
-                    q = c.query_graph(c.phone).filter(c.phone.subset == config.get('phone_class'))
+                    annotation_type = config.get('annotation_type', 'phone')
+                    q = c.query_graph(getattr(c, annotation_type)) \
+                            .filter(getattr(c, annotation_type).config.get.subset == config.get('subset'))
                     q.set_properties(**{x: None for x in props})
             self.running = False
             self.completed = False
@@ -1047,8 +1051,10 @@ class Enrichment(models.Model):
                 elif enrichment_type == 'relativize_formants':
                     c.relativize_formants(by_speaker=config.get('by_speaker', True), by_phone=config.get('by_phone', True))
                 elif enrichment_type == 'praat_script':
-                    properties = c.analyze_script(phone_class=config.get('phone_class'), script_path=config.get('path'),
-                                                  multiprocessing=False)
+                    properties = c.analyze_script(annotation_type=config.get('annotation_type', 'phone'),
+                                                      subset=config.get('subset'), 
+                                                      script_path=config.get('path'),
+                                                      multiprocessing=False)
                     config['properties'] = properties
                     self.config = config
                 elif enrichment_type == 'patterned_stress':
@@ -1077,6 +1083,25 @@ class Enrichment(models.Model):
             self.running = False
             self.completed = False
             print(traceback.format_exc())
+
+class BackgroundTask(models.Model):
+    task_id = models.UUIDField(primary_key=True)
+    name = models.CharField(max_length=100)
+    corpus = models.ForeignKey(Corpus, on_delete=models.CASCADE)
+    running = models.BooleanField(default=True)
+    failed = models.BooleanField(default=False)
+
+    class Meta:
+        verbose_name_plural = 'Background Tasks'
+
+    def get_exceptions(self):
+        result = AsyncResult(self.task_id)
+        return result.result
+
+    def status(self):
+        return AsyncResult(self.task_id).status()
+
+
 
 
 class Query(models.Model):
