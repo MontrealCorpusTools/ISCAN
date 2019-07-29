@@ -77,17 +77,16 @@ angular.module('enrichment', [
                 .cancel('Cancel');
 
             $mdDialog.show(confirm).then(function () {
-        Enrichment.run($stateParams.corpus_id, enrichment.id).then(function (res) {
-            Errors.checkForErrors(res.headers("task"));
-            getData();
-        });
-
+                Enrichment.run($stateParams.corpus_id, enrichment.id).then(function (res) {
+                    Errors.checkForErrors(res.headers("task"));
+                    getData();
+                });
             });
-        }
-        else{
-        Enrichment.run($stateParams.corpus_id, enrichment.id).then(function (res) {
-            getData();
-        });
+        }else{
+            Enrichment.run($stateParams.corpus_id, enrichment.id).then(function (res) {
+                Errors.checkForErrors(res.headers("task"));
+                getData();
+            });
         }
     };
     $scope.resetEnrichment = function (enrichment, ev) {

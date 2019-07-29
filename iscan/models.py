@@ -966,11 +966,11 @@ class Enrichment(models.Model):
             self.save()
             self.corpus.busy = False
             self.corpus.save()
-        except Exception:
+        except Exception as e:
             self.corpus.busy = False  # If it fails, don't stay busy and block everything
             self.corpus.save()
             self.running = False
-            print(traceback.format_exc())
+            raise e
 
     def run_enrichment(self):
         self.running = True
@@ -1077,12 +1077,13 @@ class Enrichment(models.Model):
             self.save()
             self.corpus.busy = False
             self.corpus.save()
-        except Exception:
+        except Exception as e:
             self.corpus.busy = False  # If it fails, don't stay busy and block everything
             self.corpus.save()
             self.running = False
             self.completed = False
-            print(traceback.format_exc())
+            self.save()
+            raise e
 
 class BackgroundTask(models.Model):
     task_id = models.UUIDField(primary_key=True)
