@@ -1521,7 +1521,7 @@ class SpadeScriptViewSet(viewsets.ViewSet):
             return Response(status=status.HTTP_401_UNAUTHORIZED)
         script = request.data["script"]
         target = request.data["target_corpus"]
-        reset = True if request.data["target_corpus"].lower() == "true" else False
+        reset = True if request.data["reset"].lower() == "true" else False
         if script not in list(filter(lambda x: x.endswith(".py"), \
                 os.listdir(settings.SPADE_SCRIPT_DIRECTORY))):
             return Response("{} is not a valid script".format(script), status=status.HTTP_400_BAD_REQUEST)
