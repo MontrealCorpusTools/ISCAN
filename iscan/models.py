@@ -1624,14 +1624,12 @@ class Query(models.Model):
             pass
         try:
             if self.export_includes_tracks():
-                print("it includes tracks")
                 #Since the JSON saved query doesn't include tracks we need to use this method to install it.
                 with CorpusContext(self.corpus.config) as c, open(self.export_path, 'w', newline='', encoding='utf8') as f:
                     q = self.generate_query_for_export(c)
                     writer = csv.writer(f)
                     q.to_csv(writer)
             else:
-                print("it DOES NOT includes tracks")
                 self.write_results_to_csv()
             config = self.config
             config['export_available'] = True
