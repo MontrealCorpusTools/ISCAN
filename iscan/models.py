@@ -1138,15 +1138,7 @@ class Query(models.Model):
             json.dump(new_config, f)
 
     def resort(self, ordering):
-        if not hasattr(self, '_results'):
-            self._results = None
-            self._count = 0
-            if os.path.exists(self.results_path):
-                with open(self.results_path, 'r') as f:
-                    self._results = json.load(f)
-                self._count = len(self._results)
-            else:
-                self.run_query()
+        self.check_for_results()
         self._ordering = self.config.get('ordering', None)
         if ordering != self._ordering and ordering:
             ordering = ordering.replace(self.annotation_type.lower() + '.', '')
@@ -1166,15 +1158,7 @@ class Query(models.Model):
     def get_results(self, ordering, limit, offset):
         if self.running:
             return None
-        if not hasattr(self, '_results'):
-            self._results = None
-            self._count = 0
-            if os.path.exists(self.results_path):
-                with open(self.results_path, 'r') as f:
-                    self._results = json.load(f)
-                self._count = len(self._results)
-            else:
-                self.run_query()
+        self.check_for_results()
         if self._results is None:
             return None
         self._ordering = self.config.get('ordering', None)
@@ -1585,21 +1569,70 @@ class Query(models.Model):
             self.running = False
             self.save()
 
+    def export_includes_tracks(self):
+        config = self.config
+        acoustic_tracks = config.get('acoustic_tracks', {})
+        for _, track_dict in acoustic_tracks.items():
+            if track_dict["include"] == True:
+                return True
+        return False
+
+    def check_for_results(self):
+        if not hasattr(self, '_results'):
+            self._results = None
+            self._count = 0
+            if os.path.exists(self.results_path):
+                with open(self.results_path, 'r') as f:
+                    self._results = json.load(f)
+                self._count = len(self._results)
+            else:
+                self.run_query()
+            self.save()
+
+    def write_results_to_csv(self):
+        config = self.config
+        columns = config.get('columns', {})
+        column_names = config.get('column_names', {})
+        with open(self.export_path, 'w', newline='', encoding='utf8') as f:
+            column_labels = []
+            for ann_type in columns:
+                #Iterate over phones, words etc.
+                for position in columns[ann_type]:
+                    #Iterate over positions (current, next prev)
+                    for column in filter(lambda x: columns[ann_type][position][x], columns[ann_type][position]):
+                        #Only iterate over those columns that are included (and thus true)
+                        column_labels.append(((ann_type, position, column), column_names[ann_type][position][column]))
+
+            writer = csv.DictWriter(f, fieldnames=[x[1] for x in column_labels])
+            writer.writeheader()
+            for annotation in self._results:
+                #Reorganise the nested structure into just a dictionary
+                annotation_dict = {label:annotation[ann_type][position][column]
+                        for (ann_type, position, column), label in column_labels}
+                writer.writerow(annotation_dict)
+
     def export_query(self):
         self.running = True
         config = self.config
         config['export_available'] = False
         self.config = config
         self.save()
+        self.check_for_results()
         while os.path.exists(self.lockfile_path):
             pass
         with open(self.lockfile_path, 'w') as f:
             pass
         try:
-            with CorpusContext(self.corpus.config) as c, open(self.export_path, 'w', newline='', encoding='utf8') as f:
-                q = self.generate_query_for_export(c)
-                writer = csv.writer(f)
-                q.to_csv(writer)
+            if self.export_includes_tracks():
+                print("it includes tracks")
+                #Since the JSON saved query doesn't include tracks we need to use this method to install it.
+                with CorpusContext(self.corpus.config) as c, open(self.export_path, 'w', newline='', encoding='utf8') as f:
+                    q = self.generate_query_for_export(c)
+                    writer = csv.writer(f)
+                    q.to_csv(writer)
+            else:
+                print("it DOES NOT includes tracks")
+                self.write_results_to_csv()
             config = self.config
             config['export_available'] = True
             self.config = config
