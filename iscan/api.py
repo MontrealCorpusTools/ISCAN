@@ -1502,6 +1502,15 @@ class SpadeScriptViewSet(viewsets.ViewSet):
                 os.listdir(os.path.join(settings.SPADE_SCRIPT_DIRECTORY, target)))))
 
     @action(detail=False, methods=['get'])
+    def list_corpora(self, request):
+        if isinstance(request.user, django.contrib.auth.models.AnonymousUser):
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
+        return Response(list(filter( \
+            lambda x: os.path.isdir(os.path.join(settings.SPADE_SCRIPT_DIRECTORY, x))
+                and not x in ["Common", ".git"], \
+                os.listdir(settings.SPADE_SCRIPT_DIRECTORY))))
+
+    @action(detail=False, methods=['get'])
     def download_csv(self, request):
         if isinstance(request.user, django.contrib.auth.models.AnonymousUser):
             return Response(status=status.HTTP_401_UNAUTHORIZED)

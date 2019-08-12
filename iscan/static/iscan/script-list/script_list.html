@@ -1,0 +1,32 @@
+<div class="row">
+    <div class="col-md-9 text-center">
+        <div>
+            <h4> Scripts </h4>
+            <div class="row">
+                This page is dedicated to the running of SPADE scripts.
+                These are Python scripts which are written to directly interface with PolyglotDB and the ISCAN server without using the front-end user interface.
+                For security reasons, it is not safe to allow people to upload their own scripts, however, if you write one, you can contact the server administrator. 
+                They will then be able to put the script on the server directly.
+            </div>
+            <div class="row">
+                <md-input-container>
+                    <label>Script</label>
+                     <md-select ng-model="script_args.script">
+                        <md-option ng-value="choice"
+                               ng-repeat="choice in phone_subsets">{{choice }}
+                        </md-option>
+                     </md-select>
+                    <label>Corpus</label>
+                     <md-select ng-model="script_args.target_corpus">
+                        <md-option ng-value="choice"
+                               ng-repeat="choice in phone_subsets">{{choice }}
+                        </md-option>
+                     </md-select>
+                    <label>Reset the corpus?</label>
+                     <md-checkbox ng-model="script_args.reset">
+                </md-input-container>
+            </div>
+
+        </div>
+    </div>
+</div>
