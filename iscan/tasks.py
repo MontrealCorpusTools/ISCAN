@@ -1,5 +1,6 @@
 from celery import shared_task, current_task
 from celery.app.task import Task
+from django.utils import timezone
 from .models import Corpus, Query, Enrichment, BackgroundTask, SpadeScript
 from .utils import run_spade_script
 
@@ -14,11 +15,20 @@ class LoggingTask(Task):
         task = BackgroundTask.objects.get(pk=task_id)
         task.running = False
         task.failed = True
+        task.finished_at(timezone.now())
         task.save()
         if log.isEnabledFor(logging.INFO):
             kwargs['exc_info'] = exc
         log.error('Task % failed to execute', task_id, **kwargs)
         super().on_failure(exc, task_id, args, kwargs, einfo)
+
+    def on_success(self, retval, task_id, args, kwargs):
+        task = BackgroundTask.objects.get(pk=task_id)
+        task.running = False
+        task.failed = False 
+        task.finished_at(timezone.now())
+        task.save()
+        super().on_success(retval, task_id, args, kwargs)
 
 @shared_task
 def import_corpus_task(corpus_pk):
@@ -28,8 +38,6 @@ def import_corpus_task(corpus_pk):
         name = "Import corpus {}".format(corpus.name)
         )
     corpus.import_corpus()
-    task.running = False
-    task.save()
 
 
 @shared_task
@@ -40,8 +48,6 @@ def run_query_task(query_id):
         name = "Run query {}".format(query.name)
         )
     query.run_query()
-    task.running = False
-    task.save()
 
 
 @shared_task
@@ -52,8 +58,6 @@ def run_query_export_task(query_id):
         name = "Export query {}".format(query.name)
         )
     query.export_query()
-    task.running = False
-    task.save()
 
 @shared_task
 def run_query_generate_subset_task(query_id):
@@ -63,8 +67,6 @@ def run_query_generate_subset_task(query_id):
         name = "Generate query {} subset".format(query.name)
         )
     query.generate_subset()
-    task.running = False
-    task.save()
 
 @shared_task
 def run_enrichment_task(enrichment_id):
@@ -74,8 +76,6 @@ def run_enrichment_task(enrichment_id):
         name = "Run enrichment {}".format(enrichment.name)
         )
     enrichment.run_enrichment()
-    task.running = False
-    task.save()
 
 
 @shared_task
@@ -86,8 +86,6 @@ def reset_enrichment_task(enrichment_id):
         name = "Reset enrichment {}".format(enrichment.name)
         )
     enrichment.reset_enrichment()
-    task.running = False
-    task.save()
 
 
 @shared_task
@@ -108,8 +106,6 @@ def delete_enrichment_task(enrichment_id):
     # Then properly delete
     print("Deleting enrichment...")
     enrichment.delete()
-    task.running = False
-    task.save()
 
 @shared_task
 def run_spade_script_task(script_name, target, reset):
@@ -121,5 +117,3 @@ def run_spade_script_task(script_name, target, reset):
             corpus_name = target,
             script_name = script_name)
     run_spade_script(script_name, target, reset)
-    task.running = False
-    task.save()

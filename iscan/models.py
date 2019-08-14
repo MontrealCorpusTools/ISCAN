@@ -1092,6 +1092,8 @@ class BackgroundTask(models.Model):
     corpus = models.ForeignKey(Corpus, null=True, blank=True, on_delete=models.CASCADE)
     running = models.BooleanField(default=True)
     failed = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    finished_at = models.DateTimeField()
 
     class Meta:
         verbose_name_plural = 'Background Tasks'
