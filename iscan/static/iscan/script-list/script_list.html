@@ -36,5 +36,45 @@
 
             <md-button type="submit" ng-click="submit_script()" class="md-raised md-primary">Run</md-button>
         </div>
+
+        <div layout="row">
+            <md-table-container>
+                <table md-table>
+                    <thead md-head>
+                    <tr md-row>
+                        <th md-column>
+                            Script
+                        </th>
+                        <th md-column>
+                            Corpus
+                        </th>
+                        <th md-column>
+                            Status
+                        </th>
+                    </tr>
+                    </thead>
+                    <tbody md-body>
+                    <tr md-row ng-repeat="script in script_runs">
+                        <td>
+                            {{ script.script_name }}
+                        </td>
+                        <td>
+                            {{ script.corpus_name }}
+                        </td>
+                        <td md-cell ng-switch on="get_status(script)">
+                            <span ng-switch-when="running"
+                                class="glyphicon glyphicon-hourglass" style="color:grey"></span>
+                            <span ng-switch-when="failed"
+                                class="glyphicon glyphicon-remove" style="color:red"></span>
+                            <span ng-switch-when="suceeded"
+                                class="glyphicon glyphicon-ok" style="color:green"></span>
+                            <span ng-switch-default
+                                class="glyphicon glyphicon-question-sign" style="color:grey"></span>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </md-table-container>
+        </div>
     </div>
 </div>

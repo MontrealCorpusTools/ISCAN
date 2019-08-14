@@ -1087,7 +1087,9 @@ class Enrichment(models.Model):
 class BackgroundTask(models.Model):
     task_id = models.UUIDField(primary_key=True)
     name = models.CharField(max_length=100)
-    corpus = models.ForeignKey(Corpus, on_delete=models.CASCADE)
+
+    #Allow optional corpus for script tasks
+    corpus = models.ForeignKey(Corpus, null=True, blank=True, on_delete=models.CASCADE)
     running = models.BooleanField(default=True)
     failed = models.BooleanField(default=False)
 
@@ -1108,6 +1110,11 @@ class SpadeScript(models.Model):
 
     class Meta:
         verbose_name_plural = 'Spade Scripts'
+
+    #@property
+    #def csv_path():
+
+
 
 
 class Query(models.Model):

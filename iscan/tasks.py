@@ -1,6 +1,6 @@
 from celery import shared_task, current_task
 from celery.app.task import Task
-from .models import Corpus, Query, Enrichment, BackgroundTask
+from .models import Corpus, Query, Enrichment, BackgroundTask, SpadeScript
 from .utils import run_spade_script
 
 import logging
@@ -112,5 +112,14 @@ def delete_enrichment_task(enrichment_id):
     task.save()
 
 @shared_task
-def run_spade_script_task(script, target, reset):
-    run_spade_script(script, target, reset)
+def run_spade_script_task(script_name, target, reset):
+    task = BackgroundTask.objects.create(task_id=current_task.request.id,
+        name = "Run script {} over {}".format(script_name, target)
+        )
+    task.save()
+    script = SpadeScript.objects.create(task=task,
+            corpus_name = target,
+            script_name = script_name)
+    run_spade_script(script_name, target, reset)
+    task.running = False
+    task.save()

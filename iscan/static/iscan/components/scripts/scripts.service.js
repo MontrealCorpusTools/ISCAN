@@ -6,11 +6,15 @@ angular.module('iscan.scripts')
     let base_url = __env.apiUrl + 'spade_scripts/';
 
     Scripts.run_script = function(data) {
-        return $http.post(base_url+'run_script/', {});
+        return $http.post(base_url+'run_script/', data);
     };
 
     Scripts.list = function () {
         return $http.get(base_url);
+    };
+
+    Scripts.list_scripts = function () {
+        return $http.get(base_url + 'list_scripts/');
     };
 
     Scripts.list_corpora = function () {

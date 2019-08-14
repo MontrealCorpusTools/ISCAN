@@ -1489,6 +1489,14 @@ class SpadeScriptViewSet(viewsets.ViewSet):
     def list(self, request):
         if isinstance(request.user, django.contrib.auth.models.AnonymousUser):
             return Response(status=status.HTTP_401_UNAUTHORIZED)
+        #TODO: Add permissions check, probably should just check if admin
+        scripts = models.SpadeScript.objects.all()
+        return Response(serializers.SpadeScriptSerializer(scripts, many=True).data)
+
+    @action(detail=False, methods=['get'])
+    def list_scripts(self, request):
+        if isinstance(request.user, django.contrib.auth.models.AnonymousUser):
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
         scripts = list(filter(lambda x: x.endswith(".py"), \
                 os.listdir(settings.SPADE_SCRIPT_DIRECTORY)))
         return Response(scripts)
@@ -1531,15 +1539,20 @@ class SpadeScriptViewSet(viewsets.ViewSet):
         print(request.data)
         script = request.data["script"]
         target = request.data["target_corpus"]
-        reset = True if request.data["reset"].lower() == "true" else False
+        reset = request.data["reset"]
+        if type(reset) == str:
+            reset = strtobool(reset)
+
         if script not in list(filter(lambda x: x.endswith(".py"), \
                 os.listdir(settings.SPADE_SCRIPT_DIRECTORY))):
             return Response("{} is not a valid script".format(script), status=status.HTTP_400_BAD_REQUEST)
         if target not in list(filter(lambda x: os.path.isdir(os.path.join(settings.SPADE_SCRIPT_DIRECTORY, x)) and not x in ["Common", ".git"], \
                 os.listdir(settings.SPADE_SCRIPT_DIRECTORY))):
             return Response("{} is not a valid corpus".format(target), status=status.HTTP_400_BAD_REQUEST)
-        run_spade_script_task.delay(script, target, reset)
-        return Response(True)
+        task_id = run_spade_script_task.delay(script, target, reset)
+        response = Response(True)
+        response["task"] = task_id.task_id
+        return response
 
 class TaskViewSet(viewsets.ViewSet):
 
