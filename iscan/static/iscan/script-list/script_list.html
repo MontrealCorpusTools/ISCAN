@@ -51,6 +51,12 @@
                         <th md-column>
                             Status
                         </th>
+                        <th md-column>
+                            Started at
+                        </th>
+                        <th md-column>
+                            Finished at
+                        </th>
                     </tr>
                     </thead>
                     <tbody md-body>
@@ -70,6 +76,12 @@
                                 class="glyphicon glyphicon-ok" style="color:green"></span>
                             <span ng-switch-default
                                 class="glyphicon glyphicon-question-sign" style="color:grey"></span>
+                        </td>
+                        <td>
+                            {{ script.created_at }}
+                        </td>
+                        <td>
+                            {{ script.finished_at }}
                         </td>
                     </tr>
                     </tbody>
