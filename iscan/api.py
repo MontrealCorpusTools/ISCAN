@@ -1528,6 +1528,7 @@ class SpadeScriptViewSet(viewsets.ViewSet):
     def run_script(self, request):
         if isinstance(request.user, django.contrib.auth.models.AnonymousUser):
             return Response(status=status.HTTP_401_UNAUTHORIZED)
+        print(request.data)
         script = request.data["script"]
         target = request.data["target_corpus"]
         reset = True if request.data["reset"].lower() == "true" else False

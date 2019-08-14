@@ -12,31 +12,29 @@
             </p>
         </div>
         <div layout="row" class='md-inline-form'>
-            <form role="form" novalidate>
-                <md-input-container>
-                <label>Script</label>
-                 <md-select ng-model="script_args.script">
-                    <md-option ng-value="choice"
-                           ng-repeat="choice in phone_subsets">{{choice }}
-                    </md-option>
-                 </md-select>
-                </md-input-container>
+            <md-input-container>
+            <label>Script</label>
+             <md-select ng-model="script_args.script">
+                <md-option ng-value="choice"
+                       ng-repeat="choice in scripts">{{choice }}
+                </md-option>
+             </md-select>
+            </md-input-container>
 
-                <md-input-container>
-                <label>Corpus</label>
-                 <md-select ng-model="script_args.target_corpus">
-                    <md-option ng-value="choice"
-                           ng-repeat="choice in phone_subsets">{{choice }}
-                    </md-option>
-                 </md-select>
-                </md-input-container>
+            <md-input-container>
+            <label>Corpus</label>
+             <md-select ng-model="script_args.target_corpus">
+                <md-option ng-value="choice"
+                       ng-repeat="choice in corpora">{{ choice }}
+                </md-option>
+             </md-select>
+            </md-input-container>
 
-                <md-checkbox ng-model="script_args.reset">
-                Reset the corpus?
-                </md-checkbox> 
+            <md-checkbox ng-model="script_args.reset">
+            Reset the corpus?
+            </md-checkbox> 
 
-                <md-button type="submit" class="md-raised md-primary">Run</md-button>
-            </form>
+            <md-button type="submit" ng-click="submit_script()" class="md-raised md-primary">Run</md-button>
         </div>
     </div>
 </div>

@@ -1101,7 +1101,13 @@ class BackgroundTask(models.Model):
     def status(self):
         return AsyncResult(self.task_id).status()
 
+class SpadeScript(models.Model):
+    task = models.ForeignKey(BackgroundTask, on_delete=models.CASCADE)
+    corpus_name = models.CharField(max_length=100)
+    script_name = models.CharField(max_length=100)
 
+    class Meta:
+        verbose_name_plural = 'Spade Scripts'
 
 
 class Query(models.Model):
