@@ -15,7 +15,7 @@ class LoggingTask(Task):
         task = BackgroundTask.objects.get(pk=task_id)
         task.running = False
         task.failed = True
-        task.finished_at(timezone.now())
+        task.finished_at = timezone.now()
         task.save()
         if log.isEnabledFor(logging.INFO):
             kwargs['exc_info'] = exc
@@ -26,7 +26,7 @@ class LoggingTask(Task):
         task = BackgroundTask.objects.get(pk=task_id)
         task.running = False
         task.failed = False 
-        task.finished_at(timezone.now())
+        task.finished_at = timezone.now()
         task.save()
         super().on_success(retval, task_id, args, kwargs)
 

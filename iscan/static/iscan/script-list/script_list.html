@@ -34,7 +34,7 @@
             Reset the corpus?
             </md-checkbox> 
 
-            <md-button type="submit" ng-click="submit_script()" class="md-raised md-primary">Run</md-button>
+            <md-button type="submit" ng-disabled="disabled_running_scripts" ng-click="submit_script()" class="md-raised md-primary">Run</md-button>
         </div>
 
         <div layout="row">
@@ -49,23 +49,29 @@
                             Corpus
                         </th>
                         <th md-column>
-                            Status
-                        </th>
-                        <th md-column>
                             Started at
                         </th>
                         <th md-column>
                             Finished at
                         </th>
+                        <th md-column>
+                            Status
+                        </th>
                     </tr>
                     </thead>
                     <tbody md-body>
                     <tr md-row ng-repeat="script in script_runs">
-                        <td>
+                        <td md-cell>
                             {{ script.script_name }}
                         </td>
-                        <td>
+                        <td md-cell>
                             {{ script.corpus_name }}
+                        </td>
+                        <td md-cell>
+                            {{ script.created_at }}
+                        </td>
+                        <td md-cell>
+                            {{ script.finished_at }}
                         </td>
                         <td md-cell ng-switch on="get_status(script)">
                             <span ng-switch-when="running"
@@ -76,12 +82,6 @@
                                 class="glyphicon glyphicon-ok" style="color:green"></span>
                             <span ng-switch-default
                                 class="glyphicon glyphicon-question-sign" style="color:grey"></span>
-                        </td>
-                        <td>
-                            {{ script.created_at }}
-                        </td>
-                        <td>
-                            {{ script.finished_at }}
                         </td>
                     </tr>
                     </tbody>

@@ -1093,7 +1093,7 @@ class BackgroundTask(models.Model):
     running = models.BooleanField(default=True)
     failed = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
-    finished_at = models.DateTimeField()
+    finished_at = models.DateTimeField(null=True, blank=True)
 
     class Meta:
         verbose_name_plural = 'Background Tasks'
