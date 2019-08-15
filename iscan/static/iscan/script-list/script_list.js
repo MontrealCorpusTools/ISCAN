@@ -40,6 +40,10 @@ angular.module('scriptList', [
         }
         return "impossible";
     }
+    
+    $scope.view_script_log = function(script) {
+        Scripts.get_script_log(script_run.id)
+    }
 
 }).directive('tooltip', function () {
     return {

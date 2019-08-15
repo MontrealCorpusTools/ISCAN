@@ -1,7 +1,7 @@
 <div layout="row" layout-align="center start">
     <div layout="column" class='col-md-6'>
         <div layout="row">
-            <h4> Scripts </h4>
+            <h3> Scripts </h3>
         </div>
         <div layout="row">
             <p>
@@ -10,6 +10,10 @@
                 For security reasons, it is not safe to allow people to upload their own scripts, however, if you write one, you can contact the server administrator. 
                 They will then be able to put the script on the server directly.
             </p>
+        </div>
+
+        <div layout="row">
+            <h4> Run a new script </h4>
         </div>
         <div layout="row" class='md-inline-form'>
             <md-input-container>
@@ -38,6 +42,9 @@
         </div>
 
         <div layout="row">
+            <h4> Script running </h4>
+        </div>
+        <div layout="row">
             <md-table-container>
                 <table md-table>
                     <thead md-head>
@@ -57,10 +64,13 @@
                         <th md-column>
                             Status
                         </th>
+                        <th md-column>
+                            Status
+                        </th>
                     </tr>
                     </thead>
                     <tbody md-body>
-                    <tr md-row ng-repeat="script in script_runs">
+                    <tr md-row ng-repeat="script in script_runs | orderBy:'-finished_at'">
                         <td md-cell>
                             {{ script.script_name }}
                         </td>
@@ -74,14 +84,18 @@
                             {{ script.finished_at }}
                         </td>
                         <td md-cell ng-switch on="get_status(script)">
-                            <span ng-switch-when="running"
+                            <span ng-switch-when="running" title="Running"
                                 class="glyphicon glyphicon-hourglass" style="color:grey"></span>
-                            <span ng-switch-when="failed"
+                            <span ng-switch-when="failed" title="Failed"
                                 class="glyphicon glyphicon-remove" style="color:red"></span>
-                            <span ng-switch-when="suceeded"
+                            <span ng-switch-when="succeeded" title="Succeeded"
                                 class="glyphicon glyphicon-ok" style="color:green"></span>
-                            <span ng-switch-default
+                            <span ng-switch-default title="Ambigious"
                                 class="glyphicon glyphicon-question-sign" style="color:grey"></span>
+                        </td>
+                        <td md-cell>
+                            <md-button type="submit" ng-disabled="get_status(script) != 'running'" 
+                                ng-click="view_script_log(script)" class="md-raised md-primary">Log</md-button>
                         </td>
                     </tr>
                     </tbody>

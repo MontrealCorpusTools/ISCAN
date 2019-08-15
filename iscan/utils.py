@@ -110,8 +110,19 @@ def get_pids():
     return pids
 
 
-def run_spade_script(script, target, reset=False):
+def run_spade_script(script, target, reset=False, log=None):
+    ''' Runs a SPADE script using whatever version of Python
+    that is running the server as a subprocess. If log is not None,
+    it will write the script output to that file'''
     cmd = [sys.executable, script, target]
     if reset:
         cmd.append("-r")
-    subprocess.run(cmd, cwd=settings.SPADE_SCRIPT_DIRECTORY)
+    if log is not None:
+        results = subprocess.run(cmd, cwd=settings.SPADE_SCRIPT_DIRECTORY)
+    else:
+        with open(log, 'w') as f:
+            results = subprocess.run(cmd, cwd=settings.SPADE_SCRIPT_DIRECTORY, \
+                    stdout=log, stderr=subprocess.STDOUT)
+
+    if result.returncode != 0:
+        raise Exception("The script did not finish successfully")
