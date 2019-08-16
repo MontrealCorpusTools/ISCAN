@@ -28,7 +28,7 @@ class SpadeScriptSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = models.SpadeScript
-        fields = ('task', 'corpus_name', 'script_name', 'failed', 'running', 'created_at', 'finished_at')
+        fields = ('id', 'task', 'corpus_name', 'script_name', 'failed', 'running', 'created_at', 'finished_at')
 
     def get_failed(self, obj):
         return obj.task.failed

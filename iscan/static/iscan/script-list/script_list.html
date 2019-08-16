@@ -67,6 +67,9 @@
                         <th md-column>
                             Status
                         </th>
+                        <th md-column>
+                            Output log
+                        </th>
                     </tr>
                     </thead>
                     <tbody md-body>
@@ -94,7 +97,7 @@
                                 class="glyphicon glyphicon-question-sign" style="color:grey"></span>
                         </td>
                         <td md-cell>
-                            <md-button type="submit" ng-disabled="get_status(script) != 'running'" 
+                            <md-button ng-disabled="get_status(script) == 'running'" 
                                 ng-click="view_script_log(script)" class="md-raised md-primary">Log</md-button>
                         </td>
                     </tr>

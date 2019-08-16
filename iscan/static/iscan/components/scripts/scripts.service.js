@@ -21,5 +21,9 @@ angular.module('iscan.scripts')
         return $http.get(base_url + 'list_corpora/');
     };
 
+    Scripts.get_script_log = function (id) {
+        return $http.get(base_url + id + '/get_log/');
+    }
+
     return Scripts;
 });

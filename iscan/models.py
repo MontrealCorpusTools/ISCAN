@@ -1110,7 +1110,6 @@ class SpadeScript(models.Model):
     corpus_name = models.CharField(max_length=100)
     script_name = models.CharField(max_length=100)
     reset = models.BooleanField(default=False)
-    log = models.CharField(max_length=100)
 
     class Meta:
         verbose_name_plural = 'Spade Scripts'

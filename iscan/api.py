@@ -1532,6 +1532,15 @@ class SpadeScriptViewSet(viewsets.ViewSet):
         path = os.path.join(settings.SPADE_SCRIPT_DIRECTORY, target, csv_file)
         return FileResponse(open(path, "r"), content_type='text/csv')
 
+    @action(detail=True, methods=['get'])
+    def get_log(self, request, pk=None):
+        if isinstance(request.user, django.contrib.auth.models.AnonymousUser):
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
+        script = models.SpadeScript.objects.get(pk=pk)
+        with open(script.log_path, 'r') as f:
+            output = f.read()
+        return Response(output)
+
     @action(detail=False, methods=['post'])
     def run_script(self, request):
         if isinstance(request.user, django.contrib.auth.models.AnonymousUser):

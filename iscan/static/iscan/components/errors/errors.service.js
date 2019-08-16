@@ -6,26 +6,26 @@ angular.module('iscan.errors')
     let base_url = __env.apiUrl + 'tasks/';
 
     Errors.popUp = function (error_cause_text, error) {
-                $mdToast.show(
-                    $mdToast.simple()
-                        .textContent(error_cause_text)
-                        .position("bottom right")
-                        .action('More info')
-                        .actionKey('x')
-                        .hideDelay(10000)
-                        .highlightAction(true)).then(function (response, e) {
-                    if (response == 'ok') {
-                        $mdDialog
-                            .show($mdDialog
-                                .alert()
-                                .title('Error ' + error.status + ': ' + error.statusText)
-                                .textContent(error.data)
-                                .ariaLabel('Error ' + error.status + ': ' + error.statusText)
-                                .ok('Dismiss')
-                                .targetEvent(e)
-                            )
-                    }
-                });
+        $mdToast.show(
+            $mdToast.simple()
+                .textContent(error_cause_text)
+                .position("bottom right")
+                .action('More info')
+                .actionKey('x')
+                .hideDelay(10000)
+                .highlightAction(true)).then(function (response, e) {
+            if (response == 'ok') {
+                $mdDialog
+                    .show($mdDialog
+                        .alert()
+                        .title('Error ' + error.status + ': ' + error.statusText)
+                        .textContent(error.data)
+                        .ariaLabel('Error ' + error.status + ': ' + error.statusText)
+                        .ok('Dismiss')
+                        .targetEvent(e)
+                    )
+            }
+        });
     };
 
     Errors.getTaskExceptions = function(task_id){

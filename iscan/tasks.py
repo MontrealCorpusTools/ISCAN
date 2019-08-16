@@ -116,4 +116,4 @@ def run_spade_script_task(script_name, target, reset):
     script = SpadeScript.objects.create(task=task,
             corpus_name = target,
             script_name = script_name)
-    run_spade_script(script_name, target, reset)
+    script.run_script()

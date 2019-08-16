@@ -117,12 +117,12 @@ def run_spade_script(script, target, reset=False, log=None):
     cmd = [sys.executable, script, target]
     if reset:
         cmd.append("-r")
-    if log is not None:
+    if log is None:
         results = subprocess.run(cmd, cwd=settings.SPADE_SCRIPT_DIRECTORY)
     else:
         with open(log, 'w') as f:
             results = subprocess.run(cmd, cwd=settings.SPADE_SCRIPT_DIRECTORY, \
-                    stdout=log, stderr=subprocess.STDOUT)
+                    stdout=f, stderr=subprocess.STDOUT)
 
-    if result.returncode != 0:
+    if results.returncode != 0:
         raise Exception("The script did not finish successfully")

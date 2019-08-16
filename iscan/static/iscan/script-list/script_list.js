@@ -42,7 +42,16 @@ angular.module('scriptList', [
     }
     
     $scope.view_script_log = function(script) {
-        Scripts.get_script_log(script_run.id)
+        Scripts.get_script_log(script.id).then(res => {
+            let script_log = res.data;
+            $mdDialog.show($mdDialog
+                    .alert()
+                    .title('Script ' + script.script_name + ' on ' + script.corpus_name)
+                    .textContent(script_log)
+                    .ariaLabel('Script ' + script.script_name + ' on ' + script.corpus_name)
+                    .ok('Dismiss')
+                );
+        });
     }
 
 }).directive('tooltip', function () {
