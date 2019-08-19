@@ -1501,7 +1501,7 @@ class SpadeScriptViewSet(viewsets.ViewSet):
                 os.listdir(settings.SPADE_SCRIPT_DIRECTORY)))
         return Response(scripts)
 
-    @action(detail=False, methods=['get'])
+    @action(detail=False, methods=['post'])
     def list_csvs(self, request):
         if isinstance(request.user, django.contrib.auth.models.AnonymousUser):
             return Response(status=status.HTTP_401_UNAUTHORIZED)
@@ -1518,7 +1518,7 @@ class SpadeScriptViewSet(viewsets.ViewSet):
                 and not x in ["Common", ".git"], \
                 os.listdir(settings.SPADE_SCRIPT_DIRECTORY))))
 
-    @action(detail=False, methods=['get'])
+    @action(detail=False, methods=['post'])
     def download_csv(self, request):
         if isinstance(request.user, django.contrib.auth.models.AnonymousUser):
             return Response(status=status.HTTP_401_UNAUTHORIZED)
@@ -1526,11 +1526,16 @@ class SpadeScriptViewSet(viewsets.ViewSet):
         csv_file = request.data["csv_file"]
         csvs = list(filter(lambda x: x.endswith(".csv"), \
                 os.listdir(os.path.join(settings.SPADE_SCRIPT_DIRECTORY, target))))
-        if csv_file not in csv:
+        if csv_file not in csvs:
             return Response("{} is not a valid file".format(csv_file), 
                     status=status.HTTP_400_BAD_REQUEST)
         path = os.path.join(settings.SPADE_SCRIPT_DIRECTORY, target, csv_file)
-        return FileResponse(open(path, "r"), content_type='text/csv')
+        with open(path, 'rb') as fh:
+            response = HttpResponse(fh.read(), content_type='text/csv')
+            response['Content-Disposition'] = 'attachment; filename="{}"'.format(
+                csv_file)
+            return response
+        return Response("That CSV file does not exist", status=status.HTTP_400_BAD_REQUEST)
 
     @action(detail=True, methods=['get'])
     def get_log(self, request, pk=None):

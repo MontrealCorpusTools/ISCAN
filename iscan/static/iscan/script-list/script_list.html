@@ -105,5 +105,20 @@
                 </table>
             </md-table-container>
         </div>
+        <div layout="row">
+            <h4> Output CSVs </h4>
+        </div>
+        <div layout="row">
+            <ul>
+            <li ng-repeat="(corpus, csv) in csvs">
+                <h6> {{ corpus }} </h6>
+                <ul>
+                    <li ng-repeat="c in csv">
+                        <a ng-click="download_csv(corpus, c)">{{ c }} </a>
+                    </li>
+                </ul>
+            </li>
+            </ul>
+        </div>
     </div>
 </div>

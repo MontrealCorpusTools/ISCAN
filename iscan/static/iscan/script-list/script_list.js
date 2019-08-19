@@ -3,14 +3,20 @@ angular.module('scriptList', [
     'iscan.enrichment',
     'iscan.errors',
     'iscan.scripts'
-]).controller('ScriptListCtrl', function ($scope, $rootScope, $interval, Errors, Scripts, $mdDialog, $state, $stateParams, $timeout, djangoAuth) {
+]).controller('ScriptListCtrl', function ($scope, $rootScope, $interval, Errors, Scripts, $mdToast, $state, $stateParams, $timeout, FileSaver, Blob, djangoAuth) {
     $scope.script_args = {script: "", target_corpus: "", reset: false}; 
     $scope.disabled_running_scripts = false;
     $scope.corpora = [];
     $scope.scripts = [];
+    $scope.csvs = {};
     $scope.script_runs = [];
 
-    Scripts.list_corpora().then(res => $scope.corpora = res.data);
+    Scripts.list_corpora().then(res => {
+        $scope.corpora = res.data;
+        $scope.corpora.forEach((corpus, idx) => {
+            Scripts.list_csvs(corpus).then(res => $scope.csvs[corpus] = res.data);
+        });
+    });
     Scripts.list_scripts().then(res => $scope.scripts = res.data);
     
     $scope.update_runs = function () {
@@ -51,6 +57,17 @@ angular.module('scriptList', [
                     .ariaLabel('Script ' + script.script_name + ' on ' + script.corpus_name)
                     .ok('Dismiss')
                 );
+        });
+    }
+
+    $scope.download_csv = function(corpus, csv) {
+        let toast = $mdToast.simple()
+                            .textContent("Preparing download");
+        $mdToast.show(toast);
+        Scripts.download_csv(corpus, csv).then(res => {
+            $mdToast.hide(toast);
+            let data = new Blob([res.data], {type: 'text/plain;charset=utf-8'});
+            FileSaver.saveAs(data, csv);
         });
     }
 
