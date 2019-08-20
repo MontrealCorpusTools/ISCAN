@@ -11,20 +11,26 @@ angular.module('scriptList', [
     $scope.csvs = {};
     $scope.script_runs = [];
 
-    Scripts.list_corpora().then(res => {
-        $scope.corpora = res.data;
-        $scope.corpora.forEach((corpus, idx) => {
-            Scripts.list_csvs(corpus).then(res => $scope.csvs[corpus] = res.data);
+    $scope.update_corpora = function () {
+        Scripts.list_corpora().then(res => {
+            $scope.corpora = res.data;
+            $scope.corpora.forEach((corpus, idx) => {
+                Scripts.list_csvs(corpus).then(res => $scope.csvs[corpus] = res.data);
+            });
         });
-    });
+    }
+    $scope.update_corpora();
+
     Scripts.list_scripts().then(res => $scope.scripts = res.data);
     
     $scope.update_runs = function () {
         Scripts.list().then(res => $scope.script_runs = res.data);
     }
+
     $scope.update_runs();
 
-    $interval($scope.update_runs, 2000);
+    $interval($scope.update_runs, 2500);
+    $interval($scope.update_corpora, 2500);
 
     $scope.submit_script = function() {
         Scripts.run_script($scope.script_args).then(res => {

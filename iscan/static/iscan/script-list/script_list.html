@@ -65,9 +65,6 @@
                             Status
                         </th>
                         <th md-column>
-                            Status
-                        </th>
-                        <th md-column>
                             Output log
                         </th>
                     </tr>
@@ -109,6 +106,7 @@
             <h4> Output CSVs </h4>
         </div>
         <div layout="row">
+            <div id="vertical-container">
             <ul>
             <li ng-repeat="(corpus, csv) in csvs">
                 <h6> {{ corpus }} </h6>
@@ -119,6 +117,7 @@
                 </ul>
             </li>
             </ul>
+            </div>
         </div>
     </div>
 </div>
