@@ -138,6 +138,7 @@ Installing corpora for SPADE scripts
 Once a corpus has been put in ``polyglot_source``, you must update the paths in the ``config.yml`` file for that corpus in the SPADE scripts repo.
 
 If you are using the docker installation with default settings, this can easily be done by switching to the ``docker-paths`` branch of the SPADE scripts repo.
+This will also set the IP in ``common.py`` for Docker.
 
 Feel free to delete any directories for corpora that you do not have access to.
 This will prevent users from running scripts over corpora that do not exist(which will naturally cause errors).
