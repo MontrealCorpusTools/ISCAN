@@ -3,7 +3,7 @@ angular.module('scriptList', [
     'iscan.enrichment',
     'iscan.errors',
     'iscan.scripts'
-]).controller('ScriptListCtrl', function ($scope, $rootScope, $interval, Errors, Scripts, $mdToast, $state, $stateParams, $timeout, FileSaver, Blob, djangoAuth) {
+]).controller('ScriptListCtrl', function ($scope, $rootScope, $interval, Errors, Scripts, $mdToast, $mdDialog, $state, $stateParams, $timeout, FileSaver, Blob, djangoAuth) {
     $scope.script_args = {script: "", target_corpus: "", reset: false}; 
     $scope.disabled_running_scripts = false;
     $scope.corpora = [];

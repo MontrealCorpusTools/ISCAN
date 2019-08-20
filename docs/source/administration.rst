@@ -13,6 +13,10 @@
 
 .. _GitHub issues page: https://github.com/MontrealCorpusTools/iscan-server/issues
 
+.. _ISCAN Docker repository: https://github.com/MontrealCorpusTools/iscan-server/issues
+
+.. _SPADE script repository: https://github.com/MontrealCorpusTools/SPADE
+
 .. _administration :
 
 *********************
@@ -33,6 +37,7 @@ crop up.  To perform an update, run the command:
    docker-compose run app update
 
 Which will then fetch the latest changes from the GitHub repositories of both packages.
+/manage
 
 Getting a tutorial corpus
 =========================
@@ -103,6 +108,46 @@ and whether to grant the following permissions:
 - Can enrich: allows the user to create/run/reset/delete enrichments
 - Can access database: allows the user to start/stop the database for this corpus
 
+Enable running of SPADE scripts
+===============================
+
+Running SPADE scripts is an optional functionality in ISCAN. 
+This allows users to run scripts which automatically do all necessary enrichments and output a specific CSV for a given corpus.
+
+In order to set up SPADE scripts, you must first clone the `SPADE script repository`_.
+The path to this repository must then be set in ``settings.py`` as ``SPADE_SCRIPT_DIRECTORY``.
+
+For the `ISCAN Docker repository`_, the SPADE repo should be cloned in the directory directly above ``iscan-spade-server``.
+
+If you also have access to the UNISYN SPADE respository, you should put it in the same directory that you put the SPADE script repository as well. 
+
+Necessary SPADE repo changes
+----------------------------
+
+auth_token
+~~~~~~~~~~
+
+Since the SPADE scripts are ran as a subprocess of the SPADE server, it is necessary to provide a token for permissions.
+
+Using the `ISCAN Docker repository`_, this can be done by runing ``./generate_token.sh USER`` where ``USER`` is the username of an admin account.
+This will create a file called ``auth_token`` which must be put in the SPADE script repository.
+
+Installing corpora for SPADE scripts
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Once a corpus has been put in ``polyglot_source``, you must update the paths in the ``config.yml`` file for that corpus in the SPADE scripts repo.
+
+If you are using the docker installation with default settings, this can easily be done by switching to the ``docker-paths`` branch of the SPADE scripts repo.
+
+Feel free to delete any directories for corpora that you do not have access to.
+This will prevent users from running scripts over corpora that do not exist(which will naturally cause errors).
+
+Installing new scripts
+~~~~~~~~~~~~~~~~~~~~~~
+
+To install a new script, simply put it in the SPADE repository.
+This must be done by an administrator by hand for security reasons.
+The script should output a CSV in the corpus that it runs over.
 
 Reporting errors and issues
 ===========================
