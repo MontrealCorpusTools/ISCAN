@@ -52,7 +52,7 @@
 			 <label>Window Max(ms):</label>
 			 <input type="number" ng-model="enrichment.window_max">
 		</md-input-container>
-		<md-button class="md-icon-button" aria-label="Help" ng-click="getHelp($event, 'vot_minmax')">
+		<md-button class="md-icon-button" aria-label="Help" ng-click="getHelp($event, 'window_minmax')">
 			<md-tooltip md-direction="below">Help</md-tooltip>
 		       <i class="material-icons">info</i>
 		</md-button>
@@ -60,7 +60,7 @@
         <div layout="row" flex layout-align="space-between none">
 		<md-input-container>
 			 <md-checkbox ng-model="enrichment.overwrite_edited">
-			 Overwrited manually edited VOTs?
+			 Overwrite manually edited VOTs?
              </md-checkbox>
 		</md-input-container>
 		<md-button class="md-icon-button" aria-label="Help" ng-click="getHelp($event, 'edited')">
