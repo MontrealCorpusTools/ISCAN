@@ -11,10 +11,10 @@ Actions
 
 Once an enrichment has been saved, a number of possible actions will become available for it. The actions buttons are available as a column in the table visible at the top of the Enrichment View
 
-   #. *Run* If the enrichment is runnable, the user may run it to apply this enrichment to the corpus
-   #. *Reset* The user may reset an enrichment to remove changes added to the corpus by running that enrichment. The state of the database will be as it was before running this enrichment
-   #. *Edit* The user may make changes to the saved enrichment. For the changes to be applied to the corpus, hit *Run* again after editing
-   #. *Delete* This has the same effect as *Reset* but also removes this enrichment from the Enrichment View. To re-run a deleted enrichment, the user must start over and create a new enrichment
+      #. *Run* If the enrichment is runnable, the user may run it to apply this enrichment to the corpus
+      #. *Reset* The user may reset an enrichment to remove changes added to the corpus by running that enrichment. The state of the database will be as it was before running this enrichment
+      #. *Edit* The user may make changes to the saved enrichment. For the changes to be applied to the corpus, hit *Run* again after editing
+      #. *Delete* This has the same effect as *Reset* but also removes this enrichment from the Enrichment View. To re-run a deleted enrichment, the user must start over and create a new enrichment
 
 Create New Enrichments
 ======================
@@ -92,7 +92,7 @@ For convenience, default settings for voiced and voiceless stops are available
    #. The subset of phones representing segments over which the formant analysis will be run.
    #. The number of refinement iterations. Increasing the amount of iterations will significantly increase the amount of time it takes to run the analysis, but it may improve convergence and accuracy of measurements.
 
-And the user may optionally specify:
+   And the user may optionally specify:
 
    #. The minimum duration of a phone for it to be analyzed.
    #. A CSV file containing formant measure prototypes to seed the algorithm before the first refinement iteration. If no CSV file is selected, the prototypes are generated from the data.
