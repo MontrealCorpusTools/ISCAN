@@ -1499,7 +1499,8 @@ class SpadeScriptViewSet(viewsets.ViewSet):
     def list(self, request):
         if isinstance(request.user, django.contrib.auth.models.AnonymousUser):
             return Response(status=status.HTTP_401_UNAUTHORIZED)
-        #TODO: Add permissions check, probably should just check if admin
+        if not request.user.is_superuser and not request.user.profile.user_type == "U":
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
         scripts = models.SpadeScript.objects.all()
         return Response(serializers.SpadeScriptSerializer(scripts, many=True).data)
 
@@ -1514,6 +1515,8 @@ class SpadeScriptViewSet(viewsets.ViewSet):
     def list_scripts(self, request):
         if isinstance(request.user, django.contrib.auth.models.AnonymousUser):
             return Response(status=status.HTTP_401_UNAUTHORIZED)
+        if not request.user.is_superuser and not request.user.profile.user_type == "U":
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
         scripts = list(filter(lambda x: x.endswith(".py"), \
                 os.listdir(settings.SPADE_SCRIPT_DIRECTORY)))
         return Response(scripts)
@@ -1521,6 +1524,8 @@ class SpadeScriptViewSet(viewsets.ViewSet):
     @action(detail=False, methods=['post'])
     def list_csvs(self, request):
         if isinstance(request.user, django.contrib.auth.models.AnonymousUser):
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
+        if not request.user.is_superuser and not request.user.profile.user_type == "U":
             return Response(status=status.HTTP_401_UNAUTHORIZED)
         target = request.data["target_corpus"]
         return Response(list(filter(lambda x: x.endswith(".csv"), \
@@ -1530,6 +1535,8 @@ class SpadeScriptViewSet(viewsets.ViewSet):
     def list_corpora(self, request):
         if isinstance(request.user, django.contrib.auth.models.AnonymousUser):
             return Response(status=status.HTTP_401_UNAUTHORIZED)
+        if not request.user.is_superuser and not request.user.profile.user_type == "U":
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
         return Response(list(filter( \
             lambda x: os.path.isdir(os.path.join(settings.SPADE_SCRIPT_DIRECTORY, x))
                 and not x in ["Common", ".git"], \
@@ -1538,6 +1545,8 @@ class SpadeScriptViewSet(viewsets.ViewSet):
     @action(detail=False, methods=['post'])
     def download_csv(self, request):
         if isinstance(request.user, django.contrib.auth.models.AnonymousUser):
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
+        if not request.user.is_superuser and not request.user.profile.user_type == "U":
             return Response(status=status.HTTP_401_UNAUTHORIZED)
         target = request.data["target_corpus"]
         csv_file = request.data["csv_file"]
@@ -1558,6 +1567,8 @@ class SpadeScriptViewSet(viewsets.ViewSet):
     def get_log(self, request, pk=None):
         if isinstance(request.user, django.contrib.auth.models.AnonymousUser):
             return Response(status=status.HTTP_401_UNAUTHORIZED)
+        if not request.user.is_superuser and not request.user.profile.user_type == "U":
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
         script = models.SpadeScript.objects.get(pk=pk)
         with open(script.log_path, 'r') as f:
             output = f.read()
@@ -1567,7 +1578,8 @@ class SpadeScriptViewSet(viewsets.ViewSet):
     def run_script(self, request):
         if isinstance(request.user, django.contrib.auth.models.AnonymousUser):
             return Response(status=status.HTTP_401_UNAUTHORIZED)
-        print(request.data)
+        if not request.user.is_superuser and not request.user.profile.user_type == "U":
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
         script = request.data["script"]
         target = request.data["target_corpus"]
         reset = request.data["reset"]

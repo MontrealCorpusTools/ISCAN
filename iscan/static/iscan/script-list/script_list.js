@@ -2,12 +2,19 @@ angular.module('scriptList', [
     'iscan.corpora',
     'iscan.enrichment',
     'iscan.errors',
+    'iscan.users',
     'iscan.scripts'
-]).controller('ScriptListCtrl', function ($scope, $rootScope, __env, $interval, Errors, Scripts, $mdToast, $mdDialog, $state, $stateParams, $timeout, FileSaver, Blob, djangoAuth) {
+]).controller('ScriptListCtrl', function ($scope, $rootScope, __env, $interval, Errors, Scripts, $mdToast, $mdDialog, $state, $stateParams, $timeout, FileSaver, Blob, Users, djangoAuth) {
     Scripts.is_enabled().then(res => {
         if(res.data === false){
             $state.go('home');
         }
+        Users.current_user().then(r => {
+            $scope.user = r.data;
+            if (!$scope.user.is_superuser && $scope.user.user_type != 'U') {
+                $state.go('home');
+            }
+        });
     });
 
     $scope.script_args = {script: "", target_corpus: "", reset: false}; 
