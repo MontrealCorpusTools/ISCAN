@@ -7,10 +7,12 @@ from distutils.util import strtobool
 from uuid import uuid1
 
 import django
+from django.core.exceptions import ValidationError
 from django.conf import settings
 from django.http.response import FileResponse, HttpResponse
 from django.db.models import Q
 from django.contrib.auth.models import User
+from django.contrib.auth import password_validation
 from rest_framework import generics, permissions, viewsets, status, pagination
 from rest_framework.response import Response
 from rest_framework.decorators import action
@@ -45,7 +47,11 @@ class UserViewSet(viewsets.ModelViewSet):
             return Response('Username is taken.', status=status.HTTP_409_CONFLICT)
         except User.DoesNotExist:
             pass
-        user = User.objects.create(username=request.data['username'], password=request.data['password'])
+        try:
+            password_validation.validate_password(request.data['password'])
+        except ValidationError as e:
+            return Response(" ".join(e.messages), status=status.HTTP_400_BAD_REQUEST)
+        user = User.objects.create_user(username=request.data['username'], password=request.data['password'])
         user.profile.user_type = request.data['user_type']
         user.save()
         user.profile.update_role_permissions()
@@ -113,6 +119,10 @@ class UserViewSet(viewsets.ModelViewSet):
     def change_password(self, request):
         if isinstance(request.user, django.contrib.auth.models.AnonymousUser):
             return Response(status=status.HTTP_401_UNAUTHORIZED)
+        try:
+            password_validation.validate_password(request.data['password'])
+        except ValidationError as e:
+            return Response(" ".join(e.messages), status=status.HTTP_400_BAD_REQUEST)
         request.user.set_password(request.data['password'])
         request.user.save()
         return Response(self.serializer_class(request.user).data)

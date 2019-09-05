@@ -13,23 +13,22 @@ angular.module('changePassword', [
 
             $scope.submit = function(){
                 Users.change_password($scope.data).then(function(res){
-                $mdToast.show(
-                        $mdToast.simple()
-                        .textContent('Password successfully changed!')
-                        .position("bottom right")
-                            .action('Dismiss')
-                            .hideDelay(3000)
-                            .highlightAction(true));
-                $state.go('home');
+                    $mdToast.show(
+                            $mdToast.simple()
+                            .textContent('Password successfully changed!')
+                            .position("bottom right")
+                                .action('Dismiss')
+                                .hideDelay(3000)
+                                .highlightAction(true));
+                    $state.go('home');
                 }).catch(function(res){
-                $mdToast.show(
-                        $mdToast.simple()
-                        .textContent('There was an error updating your password')
-                        .position("bottom right")
-                            .action('Dismiss')
-                            .hideDelay(0)
-                            .highlightAction(true));
-                    console.log(res)
+                    $mdToast.show(
+                            $mdToast.simple()
+                            .textContent('Error: ' + res.data)
+                            .position("bottom right")
+                                .action('Dismiss')
+                                .hideDelay(0)
+                                .highlightAction(true));
                 });
             };
 
