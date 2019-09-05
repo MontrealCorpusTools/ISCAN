@@ -51,7 +51,7 @@
                             </li>
                             <li ui-sref-active="active" ng-show="authenticated && current_corpus != undefined"><a ui-sref="corpus-detail({corpus_id:current_corpus.id})">{{current_corpus.name}}</a>
                             <li ui-sref-active="active" ng-show="authenticated && user.is_superuser"><a ui-sref="user-list">Users</a>
-                            <li ui-sref-active="active" ng-show="authenticated && __env.enableSPADEScripts"><a ui-sref="script-list">Scripts</a>
+                            <li ui-sref-active="active" ng-show="authenticated && scripts_enabled"><a ui-sref="script-list">Scripts</a>
                             </li>
                         </ul>
                         <ul class="nav navbar-nav navbar-right">

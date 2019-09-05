@@ -111,10 +111,16 @@ and whether to grant the following permissions:
 Enable running of SPADE scripts
 ===============================
 
+
+.. warning::
+   This feature is experimental and may not work reliably
+
+
 Running SPADE scripts is an optional functionality in ISCAN. 
 This allows users to run scripts which automatically do all necessary enrichments and output a specific CSV for a given corpus.
 
-In order to set up SPADE scripts, you must first clone the `SPADE script repository`_.
+In order to set up SPADE scripts, you must first enable SPADE scripts running, by changing ``SPADE_SCRIPTS_ENABLED`` to ``True`` in ``setings.py``.
+Then you should clone the `SPADE script repository`_.
 The path to this repository must then be set in ``settings.py`` as ``SPADE_SCRIPT_DIRECTORY``.
 
 For the `ISCAN Docker repository`_, the SPADE repo should be cloned in the directory directly above ``iscan-spade-server``.

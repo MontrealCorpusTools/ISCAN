@@ -12,5 +12,4 @@
     window.__env.baseUrl = '/';
     window.__env.siteName = 'ISCAN';
     window.__env.enableDebug = true;
-    window.__env.enableSPADEScripts = false;
 }(this));

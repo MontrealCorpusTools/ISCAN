@@ -1494,6 +1494,13 @@ class SpadeScriptViewSet(viewsets.ViewSet):
         return Response(serializers.SpadeScriptSerializer(scripts, many=True).data)
 
     @action(detail=False, methods=['get'])
+    def is_enabled(self, request):
+        if isinstance(request.user, django.contrib.auth.models.AnonymousUser):
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
+        return Response(settings.SPADE_SCRIPTS_ENABLED)
+
+
+    @action(detail=False, methods=['get'])
     def list_scripts(self, request):
         if isinstance(request.user, django.contrib.auth.models.AnonymousUser):
             return Response(status=status.HTTP_401_UNAUTHORIZED)

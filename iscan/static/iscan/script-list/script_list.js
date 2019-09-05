@@ -4,9 +4,11 @@ angular.module('scriptList', [
     'iscan.errors',
     'iscan.scripts'
 ]).controller('ScriptListCtrl', function ($scope, $rootScope, __env, $interval, Errors, Scripts, $mdToast, $mdDialog, $state, $stateParams, $timeout, FileSaver, Blob, djangoAuth) {
-    if (!__env.enableSpadeScripts){
-        $state.go('home');
-    }
+    Scripts.is_enabled().then(res => {
+        if(res.data === false){
+            $state.go('home');
+        }
+    });
 
     $scope.script_args = {script: "", target_corpus: "", reset: false}; 
     $scope.disabled_running_scripts = false;

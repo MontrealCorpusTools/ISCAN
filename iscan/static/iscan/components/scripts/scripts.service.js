@@ -9,6 +9,10 @@ angular.module('iscan.scripts')
         return $http.post(base_url+'run_script/', data);
     };
 
+    Scripts.is_enabled = function () {
+        return $http.get(base_url+'is_enabled/');
+    };
+
     Scripts.list = function () {
         return $http.get(base_url);
     };
