@@ -1,0 +1,125 @@
+<div layout="row" layout-align="center start">
+    <div layout="column" class='col-md-6'>
+        <div layout="row">
+            <h3> Scripts </h3>
+        </div>
+        <div layout="row">
+            <p>
+                This page is dedicated to the running of SPADE scripts.
+                These are Python scripts which are written to directly interface with PolyglotDB and the ISCAN server without using the front-end user interface.
+                For security reasons, it is not safe to allow people to upload their own scripts, however, if you write one, you can contact the server administrator. 
+                They will then be able to put the script on the server directly.
+
+                When a script runs successfully(i.e. has a green checkmark under status), the output CSV of that script should be available under its corpus in the list below. 
+            </p>
+        </div>
+
+        <div layout="row">
+            <h4> Run a new script </h4>
+        </div>
+        <div layout="row" class='md-inline-form'>
+            <md-input-container>
+            <label>Script</label>
+             <md-select ng-model="script_args.script">
+                <md-option ng-value="choice"
+                       ng-repeat="choice in scripts">{{choice }}
+                </md-option>
+             </md-select>
+            </md-input-container>
+
+            <md-input-container>
+            <label>Corpus</label>
+             <md-select ng-model="script_args.target_corpus">
+                <md-option ng-value="choice"
+                       ng-repeat="choice in corpora">{{ choice }}
+                </md-option>
+             </md-select>
+            </md-input-container>
+
+            <md-checkbox ng-model="script_args.reset">
+            Reset the corpus?
+            </md-checkbox> 
+
+            <md-button type="submit" ng-disabled="disabled_running_scripts" ng-click="submit_script()" class="md-raised md-primary">Run</md-button>
+        </div>
+
+        <div layout="row">
+            <h4> Script running </h4>
+        </div>
+        <div layout="row">
+            <md-table-container>
+                <table md-table>
+                    <thead md-head>
+                    <tr md-row>
+                        <th md-column>
+                            Script
+                        </th>
+                        <th md-column>
+                            Corpus
+                        </th>
+                        <th md-column>
+                            Started at
+                        </th>
+                        <th md-column>
+                            Finished at
+                        </th>
+                        <th md-column>
+                            Status
+                        </th>
+                        <th md-column>
+                            Output log
+                        </th>
+                    </tr>
+                    </thead>
+                    <tbody md-body>
+                    <tr md-row ng-repeat="script in script_runs | orderBy:'-finished_at'">
+                        <td md-cell>
+                            {{ script.script_name }}
+                        </td>
+                        <td md-cell>
+                            {{ script.corpus_name }}
+                        </td>
+                        <td md-cell>
+                            {{ script.created_at }}
+                        </td>
+                        <td md-cell>
+                            {{ script.finished_at }}
+                        </td>
+                        <td md-cell ng-switch on="get_status(script)">
+                            <span ng-switch-when="running" title="Running"
+                                class="glyphicon glyphicon-hourglass" style="color:grey"></span>
+                            <span ng-switch-when="failed" title="Failed"
+                                class="glyphicon glyphicon-remove" style="color:red"></span>
+                            <span ng-switch-when="succeeded" title="Succeeded"
+                                class="glyphicon glyphicon-ok" style="color:green"></span>
+                            <span ng-switch-default title="Ambigious"
+                                class="glyphicon glyphicon-question-sign" style="color:grey"></span>
+                        </td>
+                        <td md-cell>
+                            <md-button ng-disabled="get_status(script) == 'running'" 
+                                ng-click="view_script_log(script)" class="md-raised md-primary">Log</md-button>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </md-table-container>
+        </div>
+        <div layout="row">
+            <h4> Output CSVs </h4>
+        </div>
+        <div layout="row">
+            <div id="vertical-container">
+            <ul>
+            <li ng-repeat="(corpus, csv) in csvs">
+                <h6> {{ corpus }} </h6>
+                <ul>
+                    <li ng-repeat="c in csv">
+                        <a ng-click="download_csv(corpus, c)">{{ c }} </a>
+                    </li>
+                </ul>
+            </li>
+            </ul>
+            </div>
+        </div>
+    </div>
+</div>

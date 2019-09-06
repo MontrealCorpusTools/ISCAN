@@ -16,7 +16,6 @@ angular.module('userList', [
                 $scope.users = res.data;
             });
             Users.roles().then(function(res) {
-
                     $scope.roles = res.data;
             });
 

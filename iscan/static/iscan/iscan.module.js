@@ -35,6 +35,7 @@ var app = angular.module('iscan', [
     'formant_points',
     'praat_script',
     'navbar',
+    'scriptList',
     'login',
     'logout',
     'subset',
@@ -79,6 +80,10 @@ app.config(function ($stateProvider, $urlRouterProvider) {
             url: '/users',
             templateUrl: static('iscan/user-list/user_list.html'),
             controller: 'UserListCtrl'
+        }).state('script-list', {
+            url: '/scripts',
+            templateUrl: static('iscan/script-list/script_list.html'),
+            controller: 'ScriptListCtrl'
         }).state('user-create', {
             url: '/users/create/',
             templateUrl: static('iscan/user-create/user_create.html'),

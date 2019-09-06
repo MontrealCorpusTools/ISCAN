@@ -7,10 +7,12 @@ from distutils.util import strtobool
 from uuid import uuid1
 
 import django
+from django.core.exceptions import ValidationError
 from django.conf import settings
 from django.http.response import FileResponse, HttpResponse
 from django.db.models import Q
 from django.contrib.auth.models import User
+from django.contrib.auth import password_validation
 from rest_framework import generics, permissions, viewsets, status, pagination
 from rest_framework.response import Response
 from rest_framework.decorators import action
@@ -24,7 +26,7 @@ from polyglotdb.query.base.func import Count
 from . import models
 from . import serializers
 from .utils import get_used_ports
-from .tasks import import_corpus_task, run_query_task, run_enrichment_task, reset_enrichment_task, delete_enrichment_task, run_query_export_task, run_query_generate_subset_task
+from .tasks import import_corpus_task, run_query_task, run_enrichment_task, reset_enrichment_task, delete_enrichment_task, run_query_export_task, run_query_generate_subset_task, run_spade_script_task
 
 import logging
 log = logging.getLogger('polyglot_server')
@@ -45,7 +47,11 @@ class UserViewSet(viewsets.ModelViewSet):
             return Response('Username is taken.', status=status.HTTP_409_CONFLICT)
         except User.DoesNotExist:
             pass
-        user = User.objects.create(username=request.data['username'], password=request.data['password'])
+        try:
+            password_validation.validate_password(request.data['password'])
+        except ValidationError as e:
+            return Response(" ".join(e.messages), status=status.HTTP_400_BAD_REQUEST)
+        user = User.objects.create_user(username=request.data['username'], password=request.data['password'])
         user.profile.user_type = request.data['user_type']
         user.save()
         user.profile.update_role_permissions()
@@ -113,6 +119,10 @@ class UserViewSet(viewsets.ModelViewSet):
     def change_password(self, request):
         if isinstance(request.user, django.contrib.auth.models.AnonymousUser):
             return Response(status=status.HTTP_401_UNAUTHORIZED)
+        try:
+            password_validation.validate_password(request.data['password'])
+        except ValidationError as e:
+            return Response(" ".join(e.messages), status=status.HTTP_400_BAD_REQUEST)
         request.user.set_password(request.data['password'])
         request.user.save()
         return Response(self.serializer_class(request.user).data)
@@ -1484,6 +1494,108 @@ class QueryViewSet(viewsets.ModelViewSet):
                     os.path.basename(query.export_path))
                 return response
         return Response(None, status=status.HTTP_400_BAD_REQUEST)
+
+class SpadeScriptViewSet(viewsets.ViewSet):
+    def list(self, request):
+        if isinstance(request.user, django.contrib.auth.models.AnonymousUser):
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
+        if not request.user.is_superuser and not request.user.profile.user_type == "U":
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
+        scripts = models.SpadeScript.objects.all()
+        return Response(serializers.SpadeScriptSerializer(scripts, many=True).data)
+
+    @action(detail=False, methods=['get'])
+    def is_enabled(self, request):
+        if isinstance(request.user, django.contrib.auth.models.AnonymousUser):
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
+        return Response(settings.SPADE_SCRIPTS_ENABLED)
+
+
+    @action(detail=False, methods=['get'])
+    def list_scripts(self, request):
+        if isinstance(request.user, django.contrib.auth.models.AnonymousUser):
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
+        if not request.user.is_superuser and not request.user.profile.user_type == "U":
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
+        scripts = list(filter(lambda x: x.endswith(".py"), \
+                os.listdir(settings.SPADE_SCRIPT_DIRECTORY)))
+        return Response(scripts)
+
+    @action(detail=False, methods=['post'])
+    def list_csvs(self, request):
+        if isinstance(request.user, django.contrib.auth.models.AnonymousUser):
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
+        if not request.user.is_superuser and not request.user.profile.user_type == "U":
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
+        target = request.data["target_corpus"]
+        return Response(list(filter(lambda x: x.endswith(".csv"), \
+                os.listdir(os.path.join(settings.SPADE_SCRIPT_DIRECTORY, target)))))
+
+    @action(detail=False, methods=['get'])
+    def list_corpora(self, request):
+        if isinstance(request.user, django.contrib.auth.models.AnonymousUser):
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
+        if not request.user.is_superuser and not request.user.profile.user_type == "U":
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
+        return Response(list(filter( \
+            lambda x: os.path.isdir(os.path.join(settings.SPADE_SCRIPT_DIRECTORY, x))
+                and not x in ["Common", ".git"], \
+                os.listdir(settings.SPADE_SCRIPT_DIRECTORY))))
+
+    @action(detail=False, methods=['post'])
+    def download_csv(self, request):
+        if isinstance(request.user, django.contrib.auth.models.AnonymousUser):
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
+        if not request.user.is_superuser and not request.user.profile.user_type == "U":
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
+        target = request.data["target_corpus"]
+        csv_file = request.data["csv_file"]
+        csvs = list(filter(lambda x: x.endswith(".csv"), \
+                os.listdir(os.path.join(settings.SPADE_SCRIPT_DIRECTORY, target))))
+        if csv_file not in csvs:
+            return Response("{} is not a valid file".format(csv_file), 
+                    status=status.HTTP_400_BAD_REQUEST)
+        path = os.path.join(settings.SPADE_SCRIPT_DIRECTORY, target, csv_file)
+        with open(path, 'rb') as fh:
+            response = HttpResponse(fh.read(), content_type='text/csv')
+            response['Content-Disposition'] = 'attachment; filename="{}"'.format(
+                csv_file)
+            return response
+        return Response("That CSV file does not exist", status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=True, methods=['get'])
+    def get_log(self, request, pk=None):
+        if isinstance(request.user, django.contrib.auth.models.AnonymousUser):
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
+        if not request.user.is_superuser and not request.user.profile.user_type == "U":
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
+        script = models.SpadeScript.objects.get(pk=pk)
+        with open(script.log_path, 'r') as f:
+            output = f.read()
+        return Response(output)
+
+    @action(detail=False, methods=['post'])
+    def run_script(self, request):
+        if isinstance(request.user, django.contrib.auth.models.AnonymousUser):
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
+        if not request.user.is_superuser and not request.user.profile.user_type == "U":
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
+        script = request.data["script"]
+        target = request.data["target_corpus"]
+        reset = request.data["reset"]
+        if type(reset) == str:
+            reset = strtobool(reset)
+
+        if script not in list(filter(lambda x: x.endswith(".py"), \
+                os.listdir(settings.SPADE_SCRIPT_DIRECTORY))):
+            return Response("{} is not a valid script".format(script), status=status.HTTP_400_BAD_REQUEST)
+        if target not in list(filter(lambda x: os.path.isdir(os.path.join(settings.SPADE_SCRIPT_DIRECTORY, x)) and not x in ["Common", ".git"], \
+                os.listdir(settings.SPADE_SCRIPT_DIRECTORY))):
+            return Response("{} is not a valid corpus".format(target), status=status.HTTP_400_BAD_REQUEST)
+        task_id = run_spade_script_task.delay(script, target, reset)
+        response = Response(True)
+        response["task"] = task_id.task_id
+        return response
 
 class TaskViewSet(viewsets.ViewSet):
 

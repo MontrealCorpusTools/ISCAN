@@ -30,7 +30,7 @@ from polyglotdb \
 from polyglotdb.utils import get_corpora_list
 
 from .utils import download_influxdb, download_neo4j, extract_influxdb, extract_neo4j, make_influxdb_safe, get_pids, \
-    get_used_ports, is_port_in_use
+    get_used_ports, is_port_in_use, run_spade_script
 
 import logging
 
@@ -1087,9 +1087,13 @@ class Enrichment(models.Model):
 class BackgroundTask(models.Model):
     task_id = models.UUIDField(primary_key=True)
     name = models.CharField(max_length=100)
-    corpus = models.ForeignKey(Corpus, on_delete=models.CASCADE)
+
+    #Allow optional corpus for script tasks
+    corpus = models.ForeignKey(Corpus, null=True, blank=True, on_delete=models.CASCADE)
     running = models.BooleanField(default=True)
     failed = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    finished_at = models.DateTimeField(null=True, blank=True)
 
     class Meta:
         verbose_name_plural = 'Background Tasks'
@@ -1100,6 +1104,25 @@ class BackgroundTask(models.Model):
 
     def status(self):
         return AsyncResult(self.task_id).status()
+
+class SpadeScript(models.Model):
+    task = models.ForeignKey(BackgroundTask, on_delete=models.CASCADE)
+    corpus_name = models.CharField(max_length=100)
+    script_name = models.CharField(max_length=100)
+    reset = models.BooleanField(default=False)
+
+    class Meta:
+        verbose_name_plural = 'Spade Scripts'
+
+    @property
+    def log_path(self):
+        if not os.path.isdir(settings.POLYGLOT_SCRIPT_DIRECTORY):
+            os.makedirs(settings.POLYGLOT_SCRIPT_DIRECTORY, exist_ok=True)
+        return os.path.join(settings.POLYGLOT_SCRIPT_DIRECTORY, str(self.pk))
+
+    def run_script(self):
+        run_spade_script(self.script_name, self.corpus_name, self.reset, self.log_path)
+
 
 
 

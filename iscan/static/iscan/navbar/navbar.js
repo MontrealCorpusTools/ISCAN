@@ -4,10 +4,14 @@ angular.module('navbar', [
     'iscan.users',
     'iscan.apps'
 ])
-    .controller('NavCtrl', function ($scope, $rootScope, Corpora, $http, djangoAuth, __env, Users, Apps) {
+    .controller('NavCtrl', function ($scope, $rootScope, Corpora, $http, djangoAuth, __env, Users, Apps, Scripts) {
         $rootScope.authenticated = undefined;
         $scope.authenticated = false;
         $scope.siteName = __env.siteName;
+
+        Scripts.is_enabled().then(res => {
+            $scope.scripts_enabled = res.data;
+        });
 
         djangoAuth.authenticationStatus(true).then(function () {
             $scope.authenticated = true;

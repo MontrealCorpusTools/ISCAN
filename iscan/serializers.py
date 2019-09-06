@@ -19,6 +19,29 @@ class DatabaseSerializer(serializers.ModelSerializer):
     def get_status(self, obj):
         return obj.get_status_display()
 
+class SpadeScriptSerializer(serializers.ModelSerializer):
+
+    failed = serializers.SerializerMethodField()
+    running = serializers.SerializerMethodField()
+    created_at = serializers.SerializerMethodField()
+    finished_at = serializers.SerializerMethodField()
+
+    class Meta:
+        model = models.SpadeScript
+        fields = ('id', 'task', 'corpus_name', 'script_name', 'failed', 'running', 'created_at', 'finished_at')
+
+    def get_failed(self, obj):
+        return obj.task.failed
+
+    def get_running(self, obj):
+        return obj.task.running
+
+    def get_created_at(self, obj):
+        return obj.task.created_at
+
+    def get_finished_at(self, obj):
+        return obj.task.finished_at
+
 
 class CorpusSerializer(serializers.ModelSerializer):
     database_running = serializers.SerializerMethodField()
