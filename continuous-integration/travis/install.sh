@@ -10,7 +10,7 @@ if [ ! -d "$HOME/miniconda/miniconda/envs/test-environment" ]; then
   conda config --set always_yes yes --set changeps1 no
   conda update -q conda
   conda info -a
-  conda create -q -n test-environment python=3.6 setuptools atlas numpy scipy
+  conda create -q -n test-environment python=3.6 setuptools numpy scipy
   source activate test-environment
   which python
   pip install -q -r requirements.txt
