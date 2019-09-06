@@ -19,7 +19,8 @@ def pytest_configure(config):
         DATABASES={
             'default': {
                 'ENGINE': 'django.db.backends.sqlite3',
-                'NAME': ':memory:'
+                'NAME': os.path.join(os.path.dirname(__file__), 'test.db'),
+                'TEST_NAME': os.path.join(os.path.dirname(__file__), 'test.db')
             }
         },
         SITE_ID=1,
@@ -129,21 +130,28 @@ def pytest_configure(config):
     )
 
     django.setup()
+    management.call_command('makemigrations')
+    management.call_command('migrate')
 
 
 @pytest.fixture(scope="session")
 def chrome_init(request):
     from selenium import webdriver
+    from selenium.webdriver.chrome.options import Options
     from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 
     d_chrome = DesiredCapabilities.CHROME
     d_chrome['loggingPrefs'] = {'browser': 'ALL'}
-    chrome = webdriver.Remote(
-        command_executor='http://localhost:4444/wd/hub',
-        desired_capabilities=d_chrome
-    )
+    #chrome = webdriver.Remote(
+    #    command_executor='http://localhost:4444/wd/hub',
+    #    desired_capabilities=d_chrome
+    #)
+    chrome_options = Options()
+    chrome_options.add_argument('--headless')
+    chrome_options.add_argument('--no-sandbox')
+    chrome_options.add_argument('--disable-dev-shm-usage')
+    chrome = webdriver.Chrome(options=chrome_options)
     chrome.implicitly_wait(10)
-    #chrome = webdriver.Chrome()
 
     session = request.node
     for item in session.items:
