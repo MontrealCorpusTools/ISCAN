@@ -23,6 +23,8 @@ Enrichments
 
 This section includes only a button to bring the user to the :ref:`enrichment_iscan`, where databases can be enriched by encoding various elements. Usually, the database starts off with just words and phones, but by adding enrichments a diverse range of information will become available to the user for searching with the :ref:`query_iscan`.
 
+*note*: This button will be available only to users with permission to enrich. See :ref:`administration` if a user does not have the correct permissions.
+
 Metadata
 ========
 

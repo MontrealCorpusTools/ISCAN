@@ -42,10 +42,10 @@ Annotation properties
 
 #. **Hierarchical property** This selection allows the user to encode properties involving two levels, such as number of syllables in each utterance, or rate of syllables per second. 
 
-   #. *Property type* Target property can be rate, count, or position. Rate will encode on the higher linguistic type number of lower linguistic type units per second (i.e., speech rate on utterances could be the rate of syllables per second). Count will encode on the higher linguistic type the number of lower linguistic type units that it contains. Position will encode on the lower linguistic type its position within the higher linguistic unit (i.e., position of syllables within a word).
-   #. *Higher linguistic type* Upper level property in hierarchy 
-   #. *Lower linguistic type* Lower level property in hierarchy
-   #. *Subset of lower linguistic type* The user may specify a subset of the lower linguistic type to use. If specified, units outside of this subset are ignored. For instance, speech rate for a utterance could be calculated as the rate of "syllabic" phones per second, rather than needing syllables encoded. Another example would be if certain words are of interest in an experiment, that subset can be specified for the position of words of interest within each utterance.
+   * *Property type* Target property can be rate, count, or position. Rate will encode on the higher linguistic type number of lower linguistic type units per second (i.e., speech rate on utterances could be the rate of syllables per second). Count will encode on the higher linguistic type the number of lower linguistic type units that it contains. Position will encode on the lower linguistic type its position within the higher linguistic unit (i.e., position of syllables within a word).
+   * *Higher linguistic type* Upper level property in hierarchy 
+   * *Lower linguistic type* Lower level property in hierarchy
+   * *Subset of lower linguistic type* The user may specify a subset of the lower linguistic type to use. If specified, units outside of this subset are ignored. For instance, speech rate for a utterance could be calculated as the rate of "syllabic" phones per second, rather than needing syllables encoded. Another example would be if certain words are of interest in an experiment, that subset can be specified for the position of words of interest within each utterance.
 
    *Example*:
    To encode the number of phones per word, set *Property type* to **count**, *Higher linguistic type* to **word**, and *Lower linguistic type* to **phones**. You may leave the subset of a lower linguistic type blank, but the other fields must be filled as hierarchical properties involve some relation between two linguistic types.
@@ -54,17 +54,17 @@ Annotation properties
 
 #. **Properties from a CSV** Here the user can import information to the corpus using CSV files saved locally
 
-   #. *Lexicon CSV* Allows the user to assign certain properties to specific words using a CSV file. For example the user might want to encode word frequency. This can be done by having words in one column and corresponding frequencies in the other column of a column-delimited text file.
-   #. *Speaker CSV* Allows the user to enrich speakers with information by adding speaker metadata, such as sex and age, from a CSV.
-   #. *Phone CSV* Allows the user to add certain helpful features to phonological properties. For example, adding 'fricative' to 'manner_of_articulation' for some phones.
-   #. *Sound File CSV* Sound file properties may include notes about noise, recording environment, etc. 
+   * *Lexicon CSV* Allows the user to assign certain properties to specific words using a CSV file. For example the user might want to encode word frequency. This can be done by having words in one column and corresponding frequencies in the other column of a column-delimited text file.
+   * *Speaker CSV* Allows the user to enrich speakers with information by adding speaker metadata, such as sex and age, from a CSV.
+   * *Phone CSV* Allows the user to add certain helpful features to phonological properties. For example, adding 'fricative' to 'manner_of_articulation' for some phones.
+   * *Sound File CSV* Sound file properties may include notes about noise, recording environment, etc. 
 
 #. **Custom properties from a query-generated CSV** This option allows users to perform analyses outside of ISCAN, and then bring them in. For detailed information on how to use this enrichment, see Tutorial 4 in :ref:`tutorials_iscan`.
 
 #. **Relativize a property** This permits the user to encode certain statistics
 
-   #. *Linguistic type*
-   #. *Property*
+   * *Linguistic type* Specifies which linguistic type (for example, phone or word) will be relativized. 
+   * *Property* Specifies which property of the linguistic type to relativize.
 
 The user may also decide whether relativization should be performed within speaker (using by-speaker means and standard deviations). If this option is not selected, means and standard deviations will be calculated across the the whole corpus.
 
@@ -75,11 +75,11 @@ Acoustics
 
 #. **Voice onset time** Here a user may enrich the corpus with AutoVOT
 
-   #. *Stop subset* This menu presents options for the subset of phones that will have their VOTs calculated
-   #. *Use custom classifier* If this option is selected, you may choose your own classifier (The file format for classifier is a zip file containing both the pos and neg files from an AutoVOT trained classifier). Otherwise it will default to a classifier trained on voiceless word-initial VOTs in SOTC
-   #. *VOT Min/Max(ms)* These values represent the minimum and maximum values of the VOT calculated. A minimum value of 15 ms will ensure that the difference between the closure and onset of voicing will be at least 15 ms.
-   #. *Window Min/Max(ms)*
-   #. *Overwrite manually edited VOTs?* Select this option to overwrite any VOTs that were manually edited in the inspection view
+   * *Stop subset* This menu presents options for the subset of phones that will have their VOTs calculated
+   * *Use custom classifier* If this option is selected, you may choose your own classifier (The file format for classifier is a zip file containing both the pos and neg files from an AutoVOT trained classifier). Otherwise it will default to a classifier trained on voiceless word-initial VOTs in SOTC
+   * *VOT Min/Max(ms)* These values represent the minimum and maximum values of the VOT calculated. A minimum value of 15 ms will ensure that the difference between the closure and onset of voicing will be at least 15 ms.
+   * *Window Min/Max(ms)*
+   * *Overwrite manually edited VOTs?* Select this option to overwrite any VOTs that were manually edited in the inspection view
 
 For convenience, default settings for voiced and voiceless stops are available
 
