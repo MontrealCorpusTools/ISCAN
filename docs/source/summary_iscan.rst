@@ -6,6 +6,8 @@ Corpus View
 
 The Corpus View is the first page a user sees after making a selection from the *Corpora* dropdown menu in the ISCAN banner (given that the corpus has been imported. See the :ref:`tutorials_iscan` for directions on importing.) This page provides an overview and summary of the selected corpus.
 
+.. image:: images/corpus_view.png
+
 Linguistic Units
 ================
 

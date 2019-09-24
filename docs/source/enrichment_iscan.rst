@@ -16,6 +16,8 @@ Once an enrichment has been saved, a number of possible actions will become avai
       #. *Edit* The user may make changes to the saved enrichment. For the changes to be applied to the corpus, hit *Run* again after editing
       #. *Delete* This has the same effect as *Reset* but also removes this enrichment from the Enrichment View. To re-run a deleted enrichment, the user must start over and create a new enrichment
 
+.. image:: images/enrichment_view.png
+
 Create New Enrichments
 ======================
 
@@ -49,6 +51,8 @@ Annotation properties
 
    *Example*:
    To encode the number of phones per word, set *Property type* to **count**, *Higher linguistic type* to **word**, and *Lower linguistic type* to **phones**. You may leave the subset of a lower linguistic type blank, but the other fields must be filled as hierarchical properties involve some relation between two linguistic types.
+
+.. image:: images/hierarchical_example.png
 
 #. **Stress from word property** Enriches syllables with stress information ('stressed' or 'unstressed', coded as '1' or '0') via a listing for each *word* in the lexical enrichment CSV. The user must choose which property to use for encoding syllable stress. The property should have syllable stress separated by dashes (i.e., "1-0" for "dashes"). If there is a mismatch in the number of syllables in this property and in the database, the word's syllables will not have any stress encoded.
 

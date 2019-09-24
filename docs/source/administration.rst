@@ -82,6 +82,8 @@ User creation and permissions editing can be done in two ways. As previously, ev
 
 In the Users View, a user with administrative permissions can choose the 'Add New User' button to add a user with any role (roles explained below).
 
+.. image:: images/usersTab.png
+
 User Permissions
 ----------------
 

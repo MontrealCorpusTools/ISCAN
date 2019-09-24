@@ -13,7 +13,7 @@ Building Queries
 
 The user builds queries by specifying filters, subsets, and/or alignments for some linguistic unit. The user can specify particular properties for target units, as well as the units preceding and following the targets. Filters, alignments, and subsets may be specified on any linguistic type at or higher than the linguistic unit of interest. For example, if a user is querying words, filters may be specified over properties of words, over the properties of the utterances those words appear in, over the properties of the sound files in which the words appear, and over the speakers who produced the words. These can be added by selecting the linguistic type of interest in the top bar of the Query View.
 
-.. image:: query01-lingtype.png
+.. image:: images/query01-lingtype.png
 
 Filters
 *******
@@ -126,7 +126,7 @@ Once all of the desired filters, subsets, and alignments have been selected to b
 
 ISCAN shows the results of running a query on the page. This can be a quick way to visualize data, but most often the user will want to further manipulate the data (i.e. in R, MatLab, etc.) To this end, the user has the option to export query results. ISCAN allows the user to specify the information that is exported by adding columns to the final output file using the window which appears next to the search view.
 
-.. image:: query02-addCols.png
+.. image:: images/query02-addCols.png
 
 The same properties appearing during query building will be available, and the user may tick the boxes next to the features to add them as columns to the output CSV.
 

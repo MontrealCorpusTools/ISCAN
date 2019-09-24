@@ -12,9 +12,7 @@ Welcome to iscan-server's documentation!
 
    introduction.rst
    tutorials_iscan.rst
-   summary_iscan.rst
    enrichment_iscan.rst
-   query_iscan.rst
    admin.rst
 
 
