@@ -4,7 +4,7 @@
 Enrichment View
 ****************
 
-Databases can be enriched by encoding various elements. Usually, the database starts off with just words and phones, but by adding enrichments a diverse range of information will become available to the user for searching with the Query View later. All enrichments are added in the Enrichment View. Here are some details about this View and the Enrichment options available to the user from here.
+Databases can be enriched by encoding various elements. Usually, the database starts off with just words and phones, but by adding enrichments a diverse range of information will become available to the user for searching with the Query View later. All enrichments are added in the Enrichment View. Here are some details about this View and the Enrichment options available to the user.
 
 Actions
 =======
@@ -53,6 +53,7 @@ Annotation properties
    To encode the number of phones per word, set *Property type* to **count**, *Higher linguistic type* to **word**, and *Lower linguistic type* to **phones**. You may leave the subset of a lower linguistic type blank, but the other fields must be filled as hierarchical properties involve some relation between two linguistic types.
 
 .. image:: images/hierarchical_example.png
+   :align: center	
 
 #. **Stress from word property** Enriches syllables with stress information ('stressed' or 'unstressed', coded as '1' or '0') via a listing for each *word* in the lexical enrichment CSV. The user must choose which property to use for encoding syllable stress. The property should have syllable stress separated by dashes (i.e., "1-0" for "dashes"). If there is a mismatch in the number of syllables in this property and in the database, the word's syllables will not have any stress encoded.
 
@@ -93,14 +94,14 @@ For convenience, default settings for voiced and voiceless stops are available
 
 #. **Refined formant points or tracks** This option is for generating and refining formant point measures. The user must specify:
 
-   #. The subset of phones representing segments over which the formant analysis will be run.
-   #. The number of refinement iterations. Increasing the amount of iterations will significantly increase the amount of time it takes to run the analysis, but it may improve convergence and accuracy of measurements.
+   * The subset of phones representing segments over which the formant analysis will be run.
+   * The number of refinement iterations. Increasing the amount of iterations will significantly increase the amount of time it takes to run the analysis, but it may improve convergence and accuracy of measurements.
 
    And the user may optionally specify:
 
-   #. The minimum duration of a phone for it to be analyzed.
-   #. A CSV file containing formant measure prototypes to seed the algorithm before the first refinement iteration. If no CSV file is selected, the prototypes are generated from the data.
-   #. If you prefer to save tracks rather than a single point.
+   * The minimum duration of a phone for it to be analyzed.
+   * A CSV file containing formant measure prototypes to seed the algorithm before the first refinement iteration. If no CSV file is selected, the prototypes are generated from the data.
+   * If you prefer to save tracks rather than a single point.
 
 #. **Custom Praat script** This options allows you to run a custom Praat script over a specified type of annotation, or some subset of a type of annotation.
 

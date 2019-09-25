@@ -13,15 +13,19 @@ Building Queries
 
 The user builds queries by specifying filters, subsets, and/or alignments for some linguistic unit. The user can specify particular properties for target units, as well as the units preceding and following the targets. Filters, alignments, and subsets may be specified on any linguistic type at or higher than the linguistic unit of interest. For example, if a user is querying words, filters may be specified over properties of words, over the properties of the utterances those words appear in, over the properties of the sound files in which the words appear, and over the speakers who produced the words. These can be added by selecting the linguistic type of interest in the top bar of the Query View.
 
-.. image:: images/query01-lingtype.png
+.. image:: images/query01-lingType.png
 
 Filters
 *******
 
 Filters are statements that limit the data returned to a specific set. Each filter added provides another constraint on the data. A filter can be specified by choosing the 'ADD FILTER' button. The filters a dropdown menu for *Property* and *Operator*, as well as a space to type in a *Value*.
 
+.. image:: images/filter_example.png
+
 Property
 --------
+
+.. TO DO: add properties available after enrichments (for all units)
 
 The first dropdown menu when creating a filter is used to target a property.
 
@@ -29,22 +33,22 @@ The first dropdown menu when creating a filter is used to target a property.
 
 Without enrichment, the following properties are available for phones:
 
-#. *id* The identification key for the phone
-#. *label* The orthographic content of the phone
-#. *begin* The start time (seconds) of the phone
-#. *duration* The amound of time the phone occupies
-#. *end* The end time (seconds) of the phone
+* *id* The identification key for the phone
+* *label* The orthographic content of the phone
+* *begin* The start time (seconds) of the phone
+* *duration* The amound of time the phone occupies
+* *end* The end time (seconds) of the phone
 
 **Word Properties**
 
 Without enrichment, the following properties are available for words:
 
-#. *id* The identification key for the word
-#. *label* The orthographic content of the word
-#. *transcription* The phonetic transctiption of the word in the corpus
-#. *begin* The start time (seconds) of the word
-#. *duration* The amound of time the word occupies
-#. *end* The end time (seconds) of the word
+* *id* The identification key for the word
+* *label* The orthographic content of the word
+* *transcription* The phonetic transctiption of the word in the corpus
+* *begin* The start time (seconds) of the word
+* *duration* The amound of time the word occupies
+* *end* The end time (seconds) of the word
 
 **Syllable Properties**
 
@@ -64,10 +68,10 @@ After enrichment, the properties available will depend on the metadata CSV file 
 
 Without enrichment, the following properties are available for sound files:
 
-#. *duration* The amound of time of the whole sound file
-#. *name* The name of the sound file
-#. *sampling_rate*
-#. *num_channels*
+* *duration* The amound of time of the whole sound file
+* *name* The name of the sound file
+* *sampling_rate* The number of times the audio is sampled per second
+* *num_channels* The number of data channels contained in the file
 
 Operator
 --------
@@ -110,19 +114,19 @@ Exporting Queries
 
 Once all of the desired filters, subsets, and alignments have been selected to build the Query, several options are available at the bottom of this page. 
 
-#. **Run Query** This will generate the results of the query. The results will be displayed on the Query View page. 
+* **Run Query** This will generate the results of the query. The results will be displayed on the Query View page. The user can rename and reorder the displayed results by clicking on the column headers.
 
-#. **Refresh Query** At any time after running a query, the user may update/add/remove filters, subsets, and alignments. Refreshing the query will output the results of the query after the changes.
+* **Refresh Query** At any time after running a query, the user may update/add/remove filters, subsets, and alignments. Refreshing the query will output the results of the query after the changes. This will also return the ordering of the columns of results to the default unless 'Save Current Ordering' has been selected.
 
-#. **Save Current Ordering**
+* **Save Current Ordering** Clicking on the column headers in the displayed results will reorder them. These changes to the display are typically reverted to default when a query is refreshed. Selecting 'Save Current Ordering' saves the columns as they are displayed across refreshes.
 
-#. **Clear Filters**
+* **Clear Filters** This button will clear all filters built by the user.
 
-#. **Generate CSV Export File** After 
+* **Generate CSV Export File** This will generate a CSV file in the format shown on the page as a result of running a query. This may take some time, depending on the size of the corpus.
 
-#. **Save CSV Export File**
+* **Save CSV Export File** This allows you to download the generated CSV file and save it to your local machine.
 
-#. **Generate Subset from Query**
+* **Generate Subset from Query** Allows the user to name and identify results of the query to use in future queries. For example: the user may find all word initial phones in one query, then use *Generate Subset from Query* in order to easily query **'word-initial'** in future queries.
 
 ISCAN shows the results of running a query on the page. This can be a quick way to visualize data, but most often the user will want to further manipulate the data (i.e. in R, MatLab, etc.) To this end, the user has the option to export query results. ISCAN allows the user to specify the information that is exported by adding columns to the final output file using the window which appears next to the search view.
 
