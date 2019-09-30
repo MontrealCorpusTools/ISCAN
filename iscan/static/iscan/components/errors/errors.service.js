@@ -1,6 +1,6 @@
 
 angular.module('iscan.errors')
-    .service('Errors', function ($mdToast, $mdDialog, $http, __env) {
+    .service('Errors', function ($mdToast, $mdDialog, $http, __env, $timeout) {
     let Errors = {};
 
     let base_url = __env.apiUrl + 'tasks/';
@@ -55,9 +55,6 @@ angular.module('iscan.errors')
                         })
                     }
                 });
-            }else{
-                //If the task ain't done, check again in 5 seconds
-                setTimeout(Errors.checkForErrors(task_id), 5000);
             }
         });
     }

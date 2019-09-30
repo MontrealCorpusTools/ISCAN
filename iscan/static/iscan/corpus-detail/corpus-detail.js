@@ -14,6 +14,7 @@ angular.module('corpusDetail', [
         $scope.subsets = {};
         $scope.queryIds = {};
         $scope.available_queries = {};
+        $scope.task_id = '';
 
         var getData = function () {
             Corpora.one($stateParams.corpus_id).then(function (res) {
@@ -86,8 +87,9 @@ angular.module('corpusDetail', [
             });
 		});
             }
-            else if ($scope.corpus.busy){
+            else if ($scope.corpus.busy && $scope.task_id !== ''){
 
+                Errors.checkForErrors($scope.task_id);
 
             }
             nextLoad(loadTime);
@@ -141,7 +143,7 @@ angular.module('corpusDetail', [
 
         $scope.importCorpus = function () {
             Corpora.importCorpus($stateParams.corpus_id).then(function (res) {
-                Errors.checkForErrors(res.headers("task"));
+                $scope.task_id = res.headers("task");
                 getData();
             }).catch(function (res) {
 		    console.error(res);
