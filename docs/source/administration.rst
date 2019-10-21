@@ -26,13 +26,22 @@ Updating ISCAN and PolyglotDB
 =============================
 
 As ISCAN and PolyglotDB are both under active development, updating to the latest version is necessary to fix issues that
-crop up.  To perform an update, run the command:
+crop up.  To perform an update for the Docker version, run following command from the root of the ``iscan-spade-server`` directory:
 
 .. code-block:: bash
 
-   docker-compose run app update
+   ./update.sh
 
-Which will then fetch the latest changes from the GitHub repositories of both packages.
+Which will then fetch the latest changes from the GitHub repositories of both packages.  If it generates a permissions error,
+run ``chmod +x update.sh`` and rerun the above command.
+
+For the non-Docker version, updating the ISCAN and PolyglotDB packages can be done via the following command from
+the root of the ``iscan-spade-server`` repo:
+
+.. code-block:: bash
+
+   pip install -U -r requirements.txt
+
 
 Getting a tutorial corpus
 =========================

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
-# iscan-server documentation build configuration file, created by
+# iscan documentation build configuration file, created by
 # sphinx-quickstart on Fri Jul 28 12:50:43 2017.
 #
 # This file is execfile()d with the current directory set to its
@@ -73,7 +73,7 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = 'iscan-server'
+project = 'ISCAN'
 copyright = '2017-2018, Montreal Corpus Tools'
 author = 'Michael McAuliffe'
 
@@ -128,7 +128,7 @@ html_static_path = []
 # -- Options for HTMLHelp output ------------------------------------------
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = 'iscan-serverdoc'
+htmlhelp_basename = 'iscan-doc'
 
 
 # -- Options for LaTeX output ---------------------------------------------
@@ -155,7 +155,7 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-    (master_doc, 'iscan-server.tex', 'iscan-server Documentation',
+    (master_doc, 'iscan.tex', 'ISCAN Documentation',
      'Michael McAuliffe', 'manual'),
 ]
 
@@ -165,7 +165,7 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    (master_doc, 'iscan-server', 'iscan-server Documentation',
+    (master_doc, 'iscan', 'ISCAN Documentation',
      [author], 1)
 ]
 
@@ -176,8 +176,8 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-    (master_doc, 'iscan-server', 'iscan-server Documentation',
-     author, 'iscan-server', 'One line description of project.',
+    (master_doc, 'iscan', 'ISCAN Documentation',
+     author, 'iscan', 'One line description of project.',
      'Miscellaneous'),
 ]
 
