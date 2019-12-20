@@ -45,6 +45,21 @@ First, clone the iscan-spade-server repository to your machine:
 	
    git clone https://github.com/MontrealCorpusTools/iscan-spade-server.git
 
+Configuration
+-------------
+
+Two files need to be updated for your specific machine. First, navigate to ``iscan-spade-server/iscan_server/settings``
+and copy/rename the ``local_settings.py.template`` to ``local_settings.py`` and add your host's IP address and domain name.
+
+Second, if you would like to use the built-in simple HTTP server (nginx) using the production mode
+(see :ref:`dev_prod` for more details on the different modes), edit the ``iscan-spade-server/docker-utils/nginx/nginx.conf``
+file.  Update the ``server_name`` field to reflect your server's IP address/domain name (as with the ``local_settings.py`` file above).
+
+.. _docker_build:
+
+Build
+-----
+
 Included are a :code:`Dockerfile` and a `docker-compose.yml`. In order to build a Docker image from these files,
 navigate to the root of the repository and run:
 
@@ -88,3 +103,10 @@ the prompt will close.
 Then, you should be able to log in with your credentials. You should only need to perform this step once; from now on,
 whenever you start the server, you should be able to log in with your defined username and password. When finished,
 press :code:`Ctrl+C` to end the current server run.
+
+.. _dev_prod:
+
+Development and Production modes
+================================
+
+By default, running the build commands in :ref:`docker_build` will use the "production" environment.
