@@ -117,7 +117,8 @@ def run_spade_script(script, target, reset=False, log=None):
     cmd = [sys.executable, script, target]
     if reset:
         cmd.append("-r")
-    cmd.append('-d') # Flag for running scripts in docker mode
+    if settings.DOCKER:
+        cmd.append('-d') # Flag for running scripts in docker mode
     if log is None:
         results = subprocess.run(cmd, cwd=settings.SPADE_SCRIPT_DIRECTORY)
     else:
