@@ -15,4 +15,4 @@ This package is intended to be used by developers who wish to extend functionali
 instructions for a fully operational ISCAN server, please see the [ISCAN SPADE server repository](https://github.com/MontrealCorpusTools/iscan-spade-server)
 for an example configuration and more instructions.
 
-
+Documentation for ISCAN, as well as tutorials, can be found [here](https://iscan.readthedocs.io/).
